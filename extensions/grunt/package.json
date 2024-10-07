@@ -53,7 +53,7 @@
 	"dependencies": {},
 	"description": "Extension to add Grunt capabilities to VS Code.",
 	"devDependencies": {
-		"@types/node": "20.x"
+		"@types/node": "22.x"
 	},
 	"displayName": "Grunt support for VS Code",
 	"icon": "images/grunt.png",

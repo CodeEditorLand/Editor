@@ -462,11 +462,11 @@
 		}
 	},
 	"dependencies": {
-		"image-size": "1.0.0"
+		"image-size": "1.1.1"
 	},
 	"description": "%description%",
 	"devDependencies": {
-		"@types/node": "20.x"
+		"@types/node": "22.x"
 	},
 	"displayName": "Emmet",
 	"icon": "images/icon.png",

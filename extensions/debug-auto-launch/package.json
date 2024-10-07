@@ -19,7 +19,7 @@
 	},
 	"description": "%description%",
 	"devDependencies": {
-		"@types/node": "20.x"
+		"@types/node": "22.x"
 	},
 	"displayName": "%displayName%",
 	"icon": "media/icon.png",

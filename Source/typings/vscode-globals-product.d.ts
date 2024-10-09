@@ -6,7 +6,6 @@
 // AMD2ESM migration relevant
 
 declare global {
-
 	/**
 	 * Holds the file root for resources.
 	 */
@@ -26,8 +25,7 @@ declare global {
 	 * @deprecated You MUST use `IProductService` whenever possible.
 	 */
 	var _VSCODE_PACKAGE_JSON: Record<string, any>;
-
 }
 
 // fake export to make global work
-export { }
+export {};

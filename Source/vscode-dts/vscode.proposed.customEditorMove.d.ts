@@ -3,14 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	// https://github.com/microsoft/vscode/issues/86146
 
 	// TODO: Also for custom editor
 
 	export interface CustomTextEditorProvider {
-
 		/**
 		 * Handle when the underlying resource for a custom editor is renamed.
 		 *
@@ -24,6 +22,10 @@ declare module 'vscode' {
 		 * @return Thenable indicating that the webview editor has been moved.
 		 */
 		// eslint-disable-next-line local/vscode-dts-provider-naming
-		moveCustomTextEditor?(newDocument: TextDocument, existingWebviewPanel: WebviewPanel, token: CancellationToken): Thenable<void>;
+		moveCustomTextEditor?(
+			newDocument: TextDocument,
+			existingWebviewPanel: WebviewPanel,
+			token: CancellationToken,
+		): Thenable<void>;
 	}
 }

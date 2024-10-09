@@ -1,19 +1,11 @@
 {
-	"activationEvents": [
-		"onTaskType:npm",
-		"onLanguage:json",
-		"workspaceContains:package.json"
-	],
+	"name": "npm",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"main": "./out/npmMain",
 	"browser": "./dist/browser/npmBrowserMain",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"description": "%workspaceTrust%",
-			"supported": "limited"
-		},
-		"virtualWorkspaces": {
-			"description": "%virtualWorkspaces%",
-			"supported": "limited"
-		}
+	"scripts": {
+		"compile": "npx gulp compile-extension:npm"
 	},
 	"contributes": {
 		"commands": [
@@ -317,6 +309,11 @@
 			]
 		}
 	},
+	"activationEvents": [
+		"onTaskType:npm",
+		"onLanguage:json",
+		"workspaceContains:package.json"
+	],
 	"dependencies": {
 		"find-up": "7.0.0",
 		"find-yarn-workspace-root": "2.0.0",
@@ -326,20 +323,23 @@
 		"which": "5.0.0",
 		"which-pm": "3.0.0"
 	},
-	"description": "%description%",
 	"devDependencies": {
 		"@types/minimatch": "5.1.2",
 		"@types/node": "22.x",
 		"@types/which": "3.0.4"
 	},
-	"displayName": "%displayName%",
+	"icon": "images/npm_icon.png",
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"description": "%workspaceTrust%",
+			"supported": "limited"
+		},
+		"virtualWorkspaces": {
+			"description": "%virtualWorkspaces%",
+			"supported": "limited"
+		}
+	},
 	"enabledApiProposals": [
 		"terminalQuickFixProvider"
-	],
-	"icon": "images/npm_icon.png",
-	"main": "./out/npmMain",
-	"name": "npm",
-	"scripts": {
-		"compile": "npx gulp compile-extension:npm"
-	}
+	]
 }

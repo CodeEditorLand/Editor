@@ -1,4 +1,10 @@
 {
+	"name": "vb",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin textmate/asp.vb.net.tmbundle Syntaxes/ASP%20VB.net.plist ./syntaxes/asp-vb-net.tmLanguage.json"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -30,11 +36,5 @@
 				"path": "./snippets/vb.code-snippets"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "vb",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin textmate/asp.vb.net.tmbundle Syntaxes/ASP%20VB.net.plist ./syntaxes/asp-vb-net.tmLanguage.json"
 	}
 }

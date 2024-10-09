@@ -1,4 +1,10 @@
 {
+	"name": "r",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin REditorSupport/vscode-R syntax/r.json ./syntaxes/r.tmLanguage.json"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -23,11 +29,5 @@
 				"id": "r"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "r",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin REditorSupport/vscode-R syntax/r.json ./syntaxes/r.tmLanguage.json"
 	}
 }

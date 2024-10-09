@@ -1,4 +1,10 @@
 {
+	"name": "log",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin emilast/vscode-logfile-highlighter syntaxes/log.tmLanguage ./syntaxes/log.tmLanguage.json"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -19,11 +25,5 @@
 				"id": "log"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "log",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin emilast/vscode-logfile-highlighter syntaxes/log.tmLanguage ./syntaxes/log.tmLanguage.json"
 	}
 }

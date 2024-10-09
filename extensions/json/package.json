@@ -1,4 +1,10 @@
 {
+	"name": "json",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammars.js"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -103,11 +109,5 @@
 				"id": "snippets"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "json",
-	"scripts": {
-		"update-grammar": "node ./build/update-grammars.js"
 	}
 }

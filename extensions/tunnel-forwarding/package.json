@@ -1,12 +1,10 @@
 {
-	"activationEvents": [
-		"onTunnel"
-	],
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": false
+	"name": "tunnel-forwarding",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"main": "./out/extension",
+	"scripts": {
+		"compile": "gulp compile-extension:tunnel-forwarding"
 	},
 	"contributes": {
 		"commands": [
@@ -24,19 +22,21 @@
 			}
 		]
 	},
-	"description": "%description%",
+	"activationEvents": [
+		"onTunnel"
+	],
 	"devDependencies": {
 		"@types/node": "22.x"
 	},
-	"displayName": "%displayName%",
+	"icon": "media/icon.png",
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": false
+	},
 	"enabledApiProposals": [
 		"resolvers",
 		"tunnelFactory"
-	],
-	"icon": "media/icon.png",
-	"main": "./out/extension",
-	"name": "tunnel-forwarding",
-	"scripts": {
-		"compile": "gulp compile-extension:tunnel-forwarding"
-	}
+	]
 }

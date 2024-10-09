@@ -1,9 +1,10 @@
 {
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
+	"name": "builtin-notebook-renderers",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"build-notebook": "node ./esbuild",
+		"compile": "npx gulp compile-extension:notebook-renderers && npm run build-notebook"
 	},
 	"contributes": {
 		"notebookRenderer": [
@@ -32,16 +33,15 @@
 		]
 	},
 	"dependencies": {},
-	"description": "%description%",
 	"devDependencies": {
 		"@types/jsdom": "21.1.7",
 		"jsdom": "25.0.1"
 	},
-	"displayName": "%displayName%",
 	"icon": "media/icon.png",
-	"name": "builtin-notebook-renderers",
-	"scripts": {
-		"build-notebook": "node ./esbuild",
-		"compile": "npx gulp compile-extension:notebook-renderers && npm run build-notebook"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
 	}
 }

@@ -1,19 +1,21 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-use crate::util::errors::{wrap, WrappedError};
+// ---------------------------------------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation. All rights reserved.
+//  Licensed under the MIT License. See License.txt in the project root for
+// license information.
+// --------------------------------------------------------------------------------------------
+use std::{
+	fs::{self, File},
+	io::{Read, Seek},
+	path::{Path, PathBuf},
+};
 
 use flate2::read::GzDecoder;
-use std::fs::{self, File};
-use std::io::{Read, Seek};
-use std::path::{Path, PathBuf};
 use tar::Archive;
 
-use super::errors::wrapdbg;
-use super::io::ReportCopyProgress;
+use super::{errors::wrapdbg, io::ReportCopyProgress};
+use crate::util::errors::{wrap, WrappedError};
 
-fn should_skip_first_segment(file: &fs::File) -> Result<(bool, u64), WrappedError> {
+fn should_skip_first_segment(file:&fs::File) -> Result<(bool, u64), WrappedError> {
 	// unfortunately, we need to re-read the archive here since you cannot reuse
 	// `.entries()`. But this will generally only look at one or two files, so this
 	// should be acceptably speedy... If not, we could hardcode behavior for
@@ -21,9 +23,7 @@ fn should_skip_first_segment(file: &fs::File) -> Result<(bool, u64), WrappedErro
 
 	let tar = GzDecoder::new(file);
 	let mut archive = Archive::new(tar);
-	let mut entries = archive
-		.entries()
-		.map_err(|e| wrap(e, "error opening archive"))?;
+	let mut entries = archive.entries().map_err(|e| wrap(e, "error opening archive"))?;
 
 	let first_name = {
 		let file = entries
@@ -33,10 +33,7 @@ fn should_skip_first_segment(file: &fs::File) -> Result<(bool, u64), WrappedErro
 
 		let path = file.path().expect("expected to have path");
 
-		path.iter()
-			.next()
-			.expect("expected to have non-empty name")
-			.to_owned()
+		path.iter().next().expect("expected to have non-empty name").to_owned()
 	};
 
 	let mut num_entries = 1;
@@ -57,22 +54,19 @@ fn should_skip_first_segment(file: &fs::File) -> Result<(bool, u64), WrappedErro
 }
 
 pub fn decompress_tarball<T>(
-	mut tar_gz: File,
-	parent_path: &Path,
-	mut reporter: T,
+	mut tar_gz:File,
+	parent_path:&Path,
+	mut reporter:T,
 ) -> Result<(), WrappedError>
 where
-	T: ReportCopyProgress,
-{
+	T: ReportCopyProgress, {
 	let (skip_first, num_entries) = should_skip_first_segment(&tar_gz)?;
 	let report_progress_every = num_entries / 20;
 	let mut entries_so_far = 0;
 	let mut last_reported_at = 0;
 
 	// reset since skip logic read the tar already:
-	tar_gz
-		.rewind()
-		.map_err(|e| wrap(e, "error resetting seek position"))?;
+	tar_gz.rewind().map_err(|e| wrap(e, "error resetting seek position"))?;
 
 	let tar = GzDecoder::new(tar_gz);
 	let mut archive = Archive::new(tar);
@@ -89,9 +83,7 @@ where
 				last_reported_at = entries_so_far;
 			}
 
-			let entry_path = entry
-				.path()
-				.map_err(|e| wrap(e, "error reading entry path"))?;
+			let entry_path = entry.path().map_err(|e| wrap(e, "error reading entry path"))?;
 
 			let path = parent_path.join(if skip_first {
 				entry_path.iter().skip(1).collect::<PathBuf>()
@@ -116,12 +108,12 @@ where
 	Ok(())
 }
 
-pub fn has_gzip_header(path: &Path) -> std::io::Result<(File, bool)> {
+pub fn has_gzip_header(path:&Path) -> std::io::Result<(File, bool)> {
 	let mut file = fs::File::open(path)?;
 	let mut header = [0; 2];
 	let _ = file.read_exact(&mut header);
 
 	file.rewind()?;
 
-	Ok((file, header[0] == 0x1f && header[1] == 0x8b))
+	Ok((file, header[0] == 0x1F && header[1] == 0x8B))
 }

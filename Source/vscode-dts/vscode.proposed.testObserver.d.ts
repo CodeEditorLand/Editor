@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	// https://github.com/microsoft/vscode/issues/107467
 
 	export namespace tests {
@@ -13,12 +12,17 @@ declare module 'vscode' {
 		 * @param run Run options to use.
 		 * @param token Cancellation token for the test run
 		 */
-		export function runTests(run: TestRunRequest, token?: CancellationToken): Thenable<void>;
+		export function runTests(
+			run: TestRunRequest,
+			token?: CancellationToken,
+		): Thenable<void>;
 
 		/**
 		 * Registers a provider that can provide follow-up actions for a test failure.
 		 */
-		export function registerTestFollowupProvider(provider: TestFollowupProvider): Disposable;
+		export function registerTestFollowupProvider(
+			provider: TestFollowupProvider,
+		): Disposable;
 
 		/**
 		 * Returns an observer that watches and can request tests.
@@ -37,7 +41,13 @@ declare module 'vscode' {
 	}
 
 	export interface TestFollowupProvider {
-		provideFollowup(result: TestRunResult, test: TestResultSnapshot, taskIndex: number, messageIndex: number, token: CancellationToken): ProviderResult<Command[]>;
+		provideFollowup(
+			result: TestRunResult,
+			test: TestResultSnapshot,
+			taskIndex: number,
+			messageIndex: number,
+			token: CancellationToken,
+		): ProviderResult<Command[]>;
 	}
 
 	export interface TestObserver {
@@ -107,7 +117,10 @@ declare module 'vscode' {
 		 * Gets coverage information for a URI. This function is available only
 		 * when a test run reported coverage.
 		 */
-		getDetailedCoverage?(uri: Uri, token?: CancellationToken): Thenable<FileCoverageDetail[]>;
+		getDetailedCoverage?(
+			uri: Uri,
+			token?: CancellationToken,
+		): Thenable<FileCoverageDetail[]>;
 	}
 
 	/**
@@ -194,6 +207,6 @@ declare module 'vscode' {
 		// Test run has been skipped
 		Skipped = 5,
 		// Test run failed for some other reason (compilation error, timeout, etc)
-		Errored = 6
+		Errored = 6,
 	}
 }

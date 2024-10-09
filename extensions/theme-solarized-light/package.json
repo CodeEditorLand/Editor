@@ -1,4 +1,7 @@
 {
+	"name": "theme-solarized-light",
+	"displayName": "%displayName%",
+	"description": "%description%",
 	"contributes": {
 		"themes": [
 			{
@@ -8,8 +11,5 @@
 				"uiTheme": "vs"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "theme-solarized-light"
+	}
 }

@@ -1,4 +1,4 @@
 {
-	"main": "main.js",
-	"name": "builtin"
+	"name": "builtin",
+	"main": "main.js"
 }

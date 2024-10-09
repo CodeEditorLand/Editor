@@ -1,4 +1,10 @@
 {
+	"name": "diff",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin textmate/diff.tmbundle Syntaxes/Diff.plist ./syntaxes/diff.tmLanguage.json"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -22,11 +28,5 @@
 				"id": "diff"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "diff",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin textmate/diff.tmbundle Syntaxes/Diff.plist ./syntaxes/diff.tmLanguage.json"
 	}
 }

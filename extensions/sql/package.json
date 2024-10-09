@@ -1,4 +1,10 @@
 {
+	"name": "sql",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammar.mjs"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -21,11 +27,5 @@
 				"id": "sql"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "sql",
-	"scripts": {
-		"update-grammar": "node ./build/update-grammar.mjs"
 	}
 }

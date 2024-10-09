@@ -1,4 +1,10 @@
 {
+	"name": "php",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammar.mjs"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -48,11 +54,5 @@
 				"path": "./snippets/php.code-snippets"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "php",
-	"scripts": {
-		"update-grammar": "node ./build/update-grammar.mjs"
 	}
 }

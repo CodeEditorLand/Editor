@@ -1,17 +1,16 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation. All rights reserved.
+//  Licensed under the MIT License. See License.txt in the project root for
+// license information.
+// --------------------------------------------------------------------------------------------
 
 use crate::log;
 
 #[cfg(not(windows))]
-pub fn is_wsl_installed(_log: &log::Logger) -> bool {
-	false
-}
+pub fn is_wsl_installed(_log:&log::Logger) -> bool { false }
 
 #[cfg(windows)]
-pub fn is_wsl_installed(log: &log::Logger) -> bool {
+pub fn is_wsl_installed(log:&log::Logger) -> bool {
 	use std::path::PathBuf;
 
 	use crate::util::command::new_std_command;

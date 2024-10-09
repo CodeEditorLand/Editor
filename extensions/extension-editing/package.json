@@ -1,14 +1,11 @@
 {
-	"activationEvents": [
-		"onLanguage:json",
-		"onLanguage:markdown"
-	],
+	"name": "extension-editing",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"main": "./out/extensionEditingMain",
 	"browser": "./dist/browser/extensionEditingBrowserMain",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
+	"scripts": {
+		"compile": "gulp compile-extension:extension-editing"
 	},
 	"contributes": {
 		"jsonValidation": [
@@ -45,21 +42,24 @@
 			}
 		]
 	},
+	"activationEvents": [
+		"onLanguage:json",
+		"onLanguage:markdown"
+	],
 	"dependencies": {
 		"jsonc-parser": "3.3.1",
 		"markdown-it": "14.1.0",
 		"parse5": "7.1.2"
 	},
-	"description": "%description%",
 	"devDependencies": {
 		"@types/markdown-it": "14.1.2",
 		"@types/node": "22.x"
 	},
-	"displayName": "%displayName%",
 	"icon": "images/icon.png",
-	"main": "./out/extensionEditingMain",
-	"name": "extension-editing",
-	"scripts": {
-		"compile": "gulp compile-extension:extension-editing"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
 	}
 }

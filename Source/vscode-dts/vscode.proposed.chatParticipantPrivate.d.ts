@@ -5,8 +5,7 @@
 
 // version: 2
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	/**
 	 * The location at which the chat is happening.
 	 */
@@ -39,7 +38,11 @@ declare module 'vscode' {
 		selection: Selection;
 		wholeRange: Range;
 
-		constructor(document: TextDocument, selection: Selection, wholeRange: Range);
+		constructor(
+			document: TextDocument,
+			selection: Selection,
+			wholeRange: Range,
+		);
 	}
 
 	export class ChatRequestNotebookData {
@@ -76,7 +79,10 @@ declare module 'vscode' {
 		 * Information that is specific to the location at which chat is happening, e.g within a document, notebook,
 		 * or terminal. Will be `undefined` for the chat panel.
 		 */
-		readonly location2: ChatRequestEditorData | ChatRequestNotebookData | undefined;
+		readonly location2:
+			| ChatRequestEditorData
+			| ChatRequestNotebookData
+			| undefined;
 	}
 
 	export interface ChatParticipant {
@@ -96,7 +102,11 @@ declare module 'vscode' {
 	}
 
 	export namespace chat {
-		export function createDynamicChatParticipant(id: string, dynamicProps: DynamicChatParticipantProps, handler: ChatExtendedRequestHandler): ChatParticipant;
+		export function createDynamicChatParticipant(
+			id: string,
+			dynamicProps: DynamicChatParticipantProps,
+			handler: ChatExtendedRequestHandler,
+		): ChatParticipant;
 	}
 
 	/**

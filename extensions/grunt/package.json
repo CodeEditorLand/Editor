@@ -1,12 +1,10 @@
 {
-	"activationEvents": [
-		"onTaskType:grunt"
-	],
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": false
+	"name": "grunt",
+	"displayName": "Grunt support for VS Code",
+	"description": "Extension to add Grunt capabilities to VS Code.",
+	"main": "./out/main",
+	"scripts": {
+		"compile": "gulp compile-extension:grunt"
 	},
 	"contributes": {
 		"configuration": {
@@ -50,16 +48,18 @@
 			}
 		]
 	},
+	"activationEvents": [
+		"onTaskType:grunt"
+	],
 	"dependencies": {},
-	"description": "Extension to add Grunt capabilities to VS Code.",
 	"devDependencies": {
 		"@types/node": "22.x"
 	},
-	"displayName": "Grunt support for VS Code",
 	"icon": "images/grunt.png",
-	"main": "./out/main",
-	"name": "grunt",
-	"scripts": {
-		"compile": "gulp compile-extension:grunt"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": false
 	}
 }

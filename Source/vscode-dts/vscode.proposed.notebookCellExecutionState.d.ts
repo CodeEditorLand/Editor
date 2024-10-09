@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	// https://github.com/microsoft/vscode/issues/124970
 
 	/**
@@ -41,7 +40,6 @@ declare module 'vscode' {
 	}
 
 	export namespace notebooks {
-
 		/**
 		 * An {@link Event} which fires when the execution state of a cell has changed.
 		 */

@@ -5,10 +5,8 @@
 
 // https://github.com/microsoft/vscode/issues/169724 @bpasero
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	export interface FileSystemWatcherOptions {
-
 		/**
 		 * Ignore when files have been created.
 		 */
@@ -32,7 +30,6 @@ declare module 'vscode' {
 	}
 
 	export namespace workspace {
-
 		/**
 		 * A variant of {@link workspace.createFileSystemWatcher} that optionally allows to specify
 		 * a set of glob patterns to exclude from watching.
@@ -46,6 +43,9 @@ declare module 'vscode' {
 		 * As such, this method is prefered in cases where you want full control over the watcher behavior
 		 * without being impacted by settings or other watchers that are installed.
 		 */
-		export function createFileSystemWatcher(pattern: RelativePattern, options?: FileSystemWatcherOptions): FileSystemWatcher;
+		export function createFileSystemWatcher(
+			pattern: RelativePattern,
+			options?: FileSystemWatcherOptions,
+		): FileSystemWatcher;
 	}
 }

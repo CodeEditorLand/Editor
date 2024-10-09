@@ -1,38 +1,26 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation. All rights reserved.
+//  Licensed under the MIT License. See License.txt in the project root for
+// license information.
+// --------------------------------------------------------------------------------------------
 
 pub struct RingBuffer<T> {
-	data: Vec<T>,
-	i: usize,
+	data:Vec<T>,
+	i:usize,
 }
 
 impl<T> RingBuffer<T> {
-	pub fn new(capacity: usize) -> Self {
-		Self {
-			data: Vec::with_capacity(capacity),
-			i: 0,
-		}
-	}
+	pub fn new(capacity:usize) -> Self { Self { data:Vec::with_capacity(capacity), i:0 } }
 
-	pub fn capacity(&self) -> usize {
-		self.data.capacity()
-	}
+	pub fn capacity(&self) -> usize { self.data.capacity() }
 
-	pub fn len(&self) -> usize {
-		self.data.len()
-	}
+	pub fn len(&self) -> usize { self.data.len() }
 
-	pub fn is_full(&self) -> bool {
-		self.data.len() == self.data.capacity()
-	}
+	pub fn is_full(&self) -> bool { self.data.len() == self.data.capacity() }
 
-	pub fn is_empty(&self) -> bool {
-		self.data.len() == 0
-	}
+	pub fn is_empty(&self) -> bool { self.data.len() == 0 }
 
-	pub fn push(&mut self, value: T) {
+	pub fn push(&mut self, value:T) {
 		if self.data.len() == self.data.capacity() {
 			self.data[self.i] = value;
 		} else {
@@ -42,35 +30,26 @@ impl<T> RingBuffer<T> {
 		self.i = (self.i + 1) % self.data.capacity();
 	}
 
-	pub fn iter(&self) -> RingBufferIter<'_, T> {
-		RingBufferIter {
-			index: 0,
-			buffer: self,
-		}
-	}
+	pub fn iter(&self) -> RingBufferIter<'_, T> { RingBufferIter { index:0, buffer:self } }
 }
 
-impl<T: Default> IntoIterator for RingBuffer<T> {
-	type Item = T;
+impl<T:Default> IntoIterator for RingBuffer<T> {
 	type IntoIter = OwnedRingBufferIter<T>;
+	type Item = T;
 
 	fn into_iter(self) -> OwnedRingBufferIter<T>
 	where
-		T: Default,
-	{
-		OwnedRingBufferIter {
-			index: 0,
-			buffer: self,
-		}
+		T: Default, {
+		OwnedRingBufferIter { index:0, buffer:self }
 	}
 }
 
-pub struct OwnedRingBufferIter<T: Default> {
-	buffer: RingBuffer<T>,
-	index: usize,
+pub struct OwnedRingBufferIter<T:Default> {
+	buffer:RingBuffer<T>,
+	index:usize,
 }
 
-impl<T: Default> Iterator for OwnedRingBufferIter<T> {
+impl<T:Default> Iterator for OwnedRingBufferIter<T> {
 	type Item = T;
 
 	fn next(&mut self) -> Option<Self::Item> {
@@ -86,8 +65,8 @@ impl<T: Default> Iterator for OwnedRingBufferIter<T> {
 }
 
 pub struct RingBufferIter<'a, T> {
-	buffer: &'a RingBuffer<T>,
-	index: usize,
+	buffer:&'a RingBuffer<T>,
+	index:usize,
 }
 
 impl<'a, T> Iterator for RingBufferIter<'a, T> {

@@ -5,8 +5,7 @@
 
 // https://github.com/microsoft/vscode/issues/131138
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	export interface OpenDialogOptions {
 		/**
 		 * Controls whether the dialog allows users to select local files via the "Show Local" button.

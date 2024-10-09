@@ -2,11 +2,7 @@
 	"extends": "./tsconfig.base.json",
 	"compilerOptions": {
 		"noEmit": true,
-		"types": [
-			"@webgpu/types",
-			"trusted-types",
-			"wicg-file-system-access"
-		],
+		"types": ["@webgpu/types", "trusted-types", "wicg-file-system-access"],
 		"paths": {},
 		"module": "amd",
 		"moduleResolution": "node",

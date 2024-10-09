@@ -1,7 +1,8 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation. All rights reserved.
+//  Licensed under the MIT License. See License.txt in the project root for
+// license information.
+// --------------------------------------------------------------------------------------------
 
 use std::fmt;
 
@@ -56,7 +57,7 @@ impl Quality {
 }
 
 impl fmt::Display for Quality {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+	fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
 		write!(f, "{}", self.get_capitalized_name())
 	}
 }
@@ -64,15 +65,17 @@ impl fmt::Display for Quality {
 impl TryFrom<&str> for Quality {
 	type Error = String;
 
-	fn try_from(s: &str) -> Result<Self, Self::Error> {
+	fn try_from(s:&str) -> Result<Self, Self::Error> {
 		match s {
 			"stable" => Ok(Quality::Stable),
 			"insiders" | "insider" => Ok(Quality::Insiders),
 			"exploration" => Ok(Quality::Exploration),
-			_ => Err(format!(
-				"Unknown quality: {}. Must be one of stable, insiders, or exploration.",
-				s
-			)),
+			_ => {
+				Err(format!(
+					"Unknown quality: {}. Must be one of stable, insiders, or exploration.",
+					s
+				))
+			},
 		}
 	}
 }
@@ -86,7 +89,7 @@ pub enum TelemetryLevel {
 }
 
 impl fmt::Display for TelemetryLevel {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+	fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
 		match self {
 			TelemetryLevel::Off => write!(f, "off"),
 			TelemetryLevel::Crash => write!(f, "crash"),

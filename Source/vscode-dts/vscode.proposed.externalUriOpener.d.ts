@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	// https://github.com/microsoft/vscode/issues/109277
 
 	/**
@@ -61,7 +60,6 @@ declare module 'vscode' {
 	 * Currently openers may only be registered for `http` and `https` uris.
 	 */
 	export interface ExternalUriOpener {
-
 		/**
 		 * Check if the opener can open a uri.
 		 *
@@ -71,7 +69,10 @@ declare module 'vscode' {
 		 *
 		 * @return Priority indicating if the opener can open the external uri.
 		 */
-		canOpenExternalUri(uri: Uri, token: CancellationToken): ExternalUriOpenerPriority | Thenable<ExternalUriOpenerPriority>;
+		canOpenExternalUri(
+			uri: Uri,
+			token: CancellationToken,
+		): ExternalUriOpenerPriority | Thenable<ExternalUriOpenerPriority>;
 
 		/**
 		 * Open a uri.
@@ -90,7 +91,11 @@ declare module 'vscode' {
 		 *
 		 * @return Thenable indicating that the opening has completed.
 		 */
-		openExternalUri(resolvedUri: Uri, ctx: OpenExternalUriContext, token: CancellationToken): Thenable<void> | void;
+		openExternalUri(
+			resolvedUri: Uri,
+			ctx: OpenExternalUriContext,
+			token: CancellationToken,
+		): Thenable<void> | void;
 	}
 
 	/**
@@ -110,7 +115,6 @@ declare module 'vscode' {
 	 * Additional metadata about a registered `ExternalUriOpener`.
 	 */
 	interface ExternalUriOpenerMetadata {
-
 		/**
 		 * List of uri schemes the opener is triggered for.
 		 *
@@ -137,9 +141,13 @@ declare module 'vscode' {
 		 * @param opener Opener to register.
 		 * @param metadata Additional information about the opener.
 		 *
-		* @returns Disposable that unregisters the opener.
-		*/
-		export function registerExternalUriOpener(id: string, opener: ExternalUriOpener, metadata: ExternalUriOpenerMetadata): Disposable;
+		 * @returns Disposable that unregisters the opener.
+		 */
+		export function registerExternalUriOpener(
+			id: string,
+			opener: ExternalUriOpener,
+			metadata: ExternalUriOpenerMetadata,
+		): Disposable;
 	}
 
 	interface OpenExternalOptions {
@@ -158,6 +166,9 @@ declare module 'vscode' {
 	}
 
 	namespace env {
-		export function openExternal(target: Uri, options?: OpenExternalOptions): Thenable<boolean>;
+		export function openExternal(
+			target: Uri,
+			options?: OpenExternalOptions,
+		): Thenable<boolean>;
 	}
 }

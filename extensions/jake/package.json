@@ -1,12 +1,10 @@
 {
-	"activationEvents": [
-		"onTaskType:jake"
-	],
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": false
+	"name": "jake",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"main": "./out/main",
+	"scripts": {
+		"compile": "gulp compile-extension:jake"
 	},
 	"contributes": {
 		"configuration": {
@@ -46,16 +44,18 @@
 			}
 		]
 	},
+	"activationEvents": [
+		"onTaskType:jake"
+	],
 	"dependencies": {},
-	"description": "%description%",
 	"devDependencies": {
 		"@types/node": "22.x"
 	},
-	"displayName": "%displayName%",
 	"icon": "images/cowboy_hat.png",
-	"main": "./out/main",
-	"name": "jake",
-	"scripts": {
-		"compile": "gulp compile-extension:jake"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": false
 	}
 }

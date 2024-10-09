@@ -1,4 +1,10 @@
 {
+	"name": "clojure",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin atom/language-clojure grammars/clojure.cson ./syntaxes/clojure.tmLanguage.json"
+	},
 	"contributes": {
 		"configurationDefaults": {
 			"[clojure]": {
@@ -30,11 +36,5 @@
 				"id": "clojure"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "clojure",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin atom/language-clojure grammars/clojure.cson ./syntaxes/clojure.tmLanguage.json"
 	}
 }

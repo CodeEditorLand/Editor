@@ -34,13 +34,7 @@
 		"vs/base/browser/markdownRenderer.ts",
 		"vs/base/test/browser/markdownRenderer.test.ts"
 	],
-	"ban-element-setattribute": [
-		"**/*.ts"
-	],
-	"ban-element-insertadjacenthtml": [
-		"**/*.ts"
-	],
-	"ban-script-content-assignments": [
-		"bootstrap-window.ts"
-	]
+	"ban-element-setattribute": ["**/*.ts"],
+	"ban-element-insertadjacenthtml": ["**/*.ts"],
+	"ban-script-content-assignments": ["bootstrap-window.ts"]
 }

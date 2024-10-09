@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	export interface FindFiles2OptionsNew {
 		/**
 		 * An array of {@link GlobPattern GlobPattern} that defines files to exclude.
@@ -100,6 +99,10 @@ declare module 'vscode' {
 		 * @returns A thenable that resolves to an array of resource identifiers. Will return no results if no
 		 * {@link workspace.workspaceFolders workspace folders} are opened.
 		 */
-		export function findFiles2New(filePattern: GlobPattern[], options?: FindFiles2OptionsNew, token?: CancellationToken): Thenable<Uri[]>;
+		export function findFiles2New(
+			filePattern: GlobPattern[],
+			options?: FindFiles2OptionsNew,
+			token?: CancellationToken,
+		): Thenable<Uri[]>;
 	}
 }

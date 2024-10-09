@@ -1,4 +1,10 @@
 {
+	"name": "go",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin worlpaker/go-syntax syntaxes/go.tmLanguage.json ./syntaxes/go.tmLanguage.json"
+	},
 	"contributes": {
 		"configurationDefaults": {
 			"[go]": {
@@ -24,11 +30,5 @@
 				"id": "go"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "go",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin worlpaker/go-syntax syntaxes/go.tmLanguage.json ./syntaxes/go.tmLanguage.json"
 	}
 }

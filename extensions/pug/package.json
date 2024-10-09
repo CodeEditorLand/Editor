@@ -1,4 +1,10 @@
 {
+	"name": "pug",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin davidrios/pug-tmbundle Syntaxes/Pug.JSON-tmLanguage ./syntaxes/pug.tmLanguage.json"
+	},
 	"contributes": {
 		"configurationDefaults": {
 			"[jade]": {
@@ -27,11 +33,5 @@
 				"id": "jade"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "pug",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin davidrios/pug-tmbundle Syntaxes/Pug.JSON-tmLanguage ./syntaxes/pug.tmLanguage.json"
 	}
 }

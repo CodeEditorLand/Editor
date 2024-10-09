@@ -1,7 +1,8 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation. All rights reserved.
+//  Licensed under the MIT License. See License.txt in the project root for
+// license information.
+// --------------------------------------------------------------------------------------------
 
 extern crate dirs;
 
@@ -20,23 +21,22 @@ use crate::{
 	util::errors::{wrap, AnyError, NoHomeForLauncherError, WrappedError},
 };
 
-const HOME_DIR_ALTS: [&str; 2] = ["$HOME", "~"];
+const HOME_DIR_ALTS:[&str; 2] = ["$HOME", "~"];
 
 #[derive(Clone)]
 pub struct LauncherPaths {
-	pub server_cache: DownloadCache,
-	pub cli_cache: DownloadCache,
-	root: PathBuf,
+	pub server_cache:DownloadCache,
+	pub cli_cache:DownloadCache,
+	root:PathBuf,
 }
 
 struct PersistedStateContainer<T>
 where
-	T: Clone + Serialize + DeserializeOwned + Default,
-{
-	path: PathBuf,
-	state: Option<T>,
+	T: Clone + Serialize + DeserializeOwned + Default, {
+	path:PathBuf,
+	state:Option<T>,
 	#[allow(dead_code)]
-	mode: u32,
+	mode:u32,
 }
 
 impl<T> PersistedStateContainer<T>
@@ -58,18 +58,15 @@ where
 		state
 	}
 
-	fn save(&mut self, state: T) -> Result<(), WrappedError> {
+	fn save(&mut self, state:T) -> Result<(), WrappedError> {
 		let s = serde_json::to_string(&state).unwrap();
 		self.state = Some(state);
 		self.write_state(s).map_err(|e| {
-			wrap(
-				e,
-				format!("error saving launcher state into {}", self.path.display()),
-			)
+			wrap(e, format!("error saving launcher state into {}", self.path.display()))
 		})
 	}
 
-	fn write_state(&mut self, s: String) -> std::io::Result<()> {
+	fn write_state(&mut self, s:String) -> std::io::Result<()> {
 		#[cfg(not(windows))]
 		use std::os::unix::fs::OpenOptionsExt;
 
@@ -89,9 +86,8 @@ where
 #[derive(Clone)]
 pub struct PersistedState<T>
 where
-	T: Clone + Serialize + DeserializeOwned + Default,
-{
-	container: Arc<Mutex<PersistedStateContainer<T>>>,
+	T: Clone + Serialize + DeserializeOwned + Default, {
+	container:Arc<Mutex<PersistedStateContainer<T>>>,
 }
 
 impl<T> PersistedState<T>
@@ -99,33 +95,25 @@ where
 	T: Clone + Serialize + DeserializeOwned + Default,
 {
 	/// Creates a new state container that persists to the given path.
-	pub fn new(path: PathBuf) -> PersistedState<T> {
-		Self::new_with_mode(path, 0o644)
-	}
+	pub fn new(path:PathBuf) -> PersistedState<T> { Self::new_with_mode(path, 0o644) }
 
 	/// Creates a new state container that persists to the given path.
-	pub fn new_with_mode(path: PathBuf, mode: u32) -> PersistedState<T> {
+	pub fn new_with_mode(path:PathBuf, mode:u32) -> PersistedState<T> {
 		PersistedState {
-			container: Arc::new(Mutex::new(PersistedStateContainer {
-				path,
-				state: None,
-				mode,
-			})),
+			container:Arc::new(Mutex::new(PersistedStateContainer { path, state:None, mode })),
 		}
 	}
 
 	/// Loads persisted state.
-	pub fn load(&self) -> T {
-		self.container.lock().unwrap().load_or_get()
-	}
+	pub fn load(&self) -> T { self.container.lock().unwrap().load_or_get() }
 
 	/// Saves persisted state.
-	pub fn save(&self, state: T) -> Result<(), WrappedError> {
+	pub fn save(&self, state:T) -> Result<(), WrappedError> {
 		self.container.lock().unwrap().save(state)
 	}
 
 	/// Mutates persisted state.
-	pub fn update<R>(&self, mutator: impl FnOnce(&mut T) -> R) -> Result<R, WrappedError> {
+	pub fn update<R>(&self, mutator:impl FnOnce(&mut T) -> R) -> Result<R, WrappedError> {
 		let mut container = self.container.lock().unwrap();
 		let mut state = container.load_or_get();
 		let r = mutator(&mut state);
@@ -135,7 +123,7 @@ where
 
 impl LauncherPaths {
 	/// todo@conno4312: temporary migration from the old CLI data directory
-	pub fn migrate(root: Option<String>) -> Result<LauncherPaths, AnyError> {
+	pub fn migrate(root:Option<String>) -> Result<LauncherPaths, AnyError> {
 		if root.is_some() {
 			return Self::new(root);
 		}
@@ -155,16 +143,13 @@ impl LauncherPaths {
 
 		if let Err(e) = std::fs::rename(&old_dir, &new_dir) {
 			// no logger exists at this point in the lifecycle, so just log to stderr
-			eprintln!(
-				"Failed to migrate old CLI data directory, will create a new one ({})",
-				e
-			);
+			eprintln!("Failed to migrate old CLI data directory, will create a new one ({})", e);
 		}
 
 		Self::new_for_path(new_dir)
 	}
 
-	pub fn new(root: Option<String>) -> Result<LauncherPaths, AnyError> {
+	pub fn new(root:Option<String>) -> Result<LauncherPaths, AnyError> {
 		let root = root.unwrap_or_else(|| format!("~/{}/cli", DEFAULT_DATA_PARENT_DIR));
 		let mut replaced = root.to_owned();
 		for token in HOME_DIR_ALTS {
@@ -180,7 +165,7 @@ impl LauncherPaths {
 		Self::new_for_path(PathBuf::from(replaced))
 	}
 
-	fn new_for_path(root: PathBuf) -> Result<LauncherPaths, AnyError> {
+	fn new_for_path(root:PathBuf) -> Result<LauncherPaths, AnyError> {
 		if !root.exists() {
 			create_dir_all(&root)
 				.map_err(|e| wrap(e, format!("error creating directory {}", root.display())))?;
@@ -189,59 +174,42 @@ impl LauncherPaths {
 		Ok(LauncherPaths::new_without_replacements(root))
 	}
 
-	pub fn new_without_replacements(root: PathBuf) -> LauncherPaths {
+	pub fn new_without_replacements(root:PathBuf) -> LauncherPaths {
 		// cleanup folders that existed before the new LRU strategy:
 		let _ = std::fs::remove_dir_all(root.join("server-insiders"));
 		let _ = std::fs::remove_dir_all(root.join("server-stable"));
 
 		LauncherPaths {
-			server_cache: DownloadCache::new(root.join("servers")),
-			cli_cache: DownloadCache::new(root.join("cli")),
+			server_cache:DownloadCache::new(root.join("servers")),
+			cli_cache:DownloadCache::new(root.join("cli")),
 			root,
 		}
 	}
 
 	/// Root directory for the server launcher
-	pub fn root(&self) -> &Path {
-		&self.root
-	}
+	pub fn root(&self) -> &Path { &self.root }
 
 	/// Lockfile for the running tunnel
 	pub fn tunnel_lockfile(&self) -> PathBuf {
-		self.root.join(format!(
-			"tunnel-{}.lock",
-			VSCODE_CLI_QUALITY.unwrap_or("oss")
-		))
+		self.root.join(format!("tunnel-{}.lock", VSCODE_CLI_QUALITY.unwrap_or("oss")))
 	}
 
 	/// Lockfile for port forwarding
 	pub fn forwarding_lockfile(&self) -> PathBuf {
-		self.root.join(format!(
-			"forwarding-{}.lock",
-			VSCODE_CLI_QUALITY.unwrap_or("oss")
-		))
+		self.root
+			.join(format!("forwarding-{}.lock", VSCODE_CLI_QUALITY.unwrap_or("oss")))
 	}
 
 	/// Suggested path for tunnel service logs, when using file logs
-	pub fn service_log_file(&self) -> PathBuf {
-		self.root.join("tunnel-service.log")
-	}
+	pub fn service_log_file(&self) -> PathBuf { self.root.join("tunnel-service.log") }
 
 	/// Removes the launcher data directory.
 	pub fn remove(&self) -> Result<(), WrappedError> {
 		remove_dir_all(&self.root).map_err(|e| {
-			wrap(
-				e,
-				format!(
-					"error removing launcher data directory {}",
-					self.root.display()
-				),
-			)
+			wrap(e, format!("error removing launcher data directory {}", self.root.display()))
 		})
 	}
 
 	/// Suggested path for web server storage
-	pub fn web_server_storage(&self) -> PathBuf {
-		self.root.join("serve-web")
-	}
+	pub fn web_server_storage(&self) -> PathBuf { self.root.join("serve-web") }
 }

@@ -1,13 +1,12 @@
 {
-	"activationEvents": [
-		"*"
-	],
+	"name": "git-base",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"main": "./out/extension.js",
 	"browser": "./dist/browser/extension.js",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
+	"scripts": {
+		"compile": "gulp compile-extension:git-base",
+		"update-grammar": "node ./build/update-grammars.js"
 	},
 	"contributes": {
 		"commands": [
@@ -84,16 +83,17 @@
 			]
 		}
 	},
-	"description": "%description%",
+	"activationEvents": [
+		"*"
+	],
 	"devDependencies": {
 		"@types/node": "22.x"
 	},
-	"displayName": "%displayName%",
 	"icon": "resources/icons/git.png",
-	"main": "./out/extension.js",
-	"name": "git-base",
-	"scripts": {
-		"compile": "gulp compile-extension:git-base",
-		"update-grammar": "node ./build/update-grammars.js"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
 	}
 }

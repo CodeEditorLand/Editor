@@ -1,4 +1,7 @@
 {
+	"name": "theme-tomorrow-night-blue",
+	"displayName": "%displayName%",
+	"description": "%description%",
 	"contributes": {
 		"themes": [
 			{
@@ -8,8 +11,5 @@
 				"uiTheme": "vs-dark"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "theme-tomorrow-night-blue"
+	}
 }

@@ -1,16 +1,10 @@
 {
-	"activationEvents": [
-		"onLanguage:php"
-	],
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"description": "%workspaceTrust%",
-			"restrictedConfigurations": [
-				"php.validate.executablePath"
-			],
-			"supported": "limited"
-		},
-		"virtualWorkspaces": false
+	"name": "php-language-features",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"main": "./out/phpMain",
+	"scripts": {
+		"compile": "npx gulp compile-extension:php-language-features"
 	},
 	"contributes": {
 		"configuration": {
@@ -55,19 +49,25 @@
 			}
 		]
 	},
+	"activationEvents": [
+		"onLanguage:php"
+	],
 	"dependencies": {
 		"which": "5.0.0"
 	},
-	"description": "%description%",
 	"devDependencies": {
 		"@types/node": "22.x",
 		"@types/which": "3.0.4"
 	},
-	"displayName": "%displayName%",
 	"icon": "icons/logo.png",
-	"main": "./out/phpMain",
-	"name": "php-language-features",
-	"scripts": {
-		"compile": "npx gulp compile-extension:php-language-features"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"description": "%workspaceTrust%",
+			"restrictedConfigurations": [
+				"php.validate.executablePath"
+			],
+			"supported": "limited"
+		},
+		"virtualWorkspaces": false
 	}
 }

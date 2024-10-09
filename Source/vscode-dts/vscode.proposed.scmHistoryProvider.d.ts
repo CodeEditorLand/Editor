@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
+declare module "vscode" {
 	// https://github.com/microsoft/vscode/issues/185269
 
 	export interface SourceControl {
@@ -12,8 +12,12 @@ declare module 'vscode' {
 
 	export interface SourceControlHistoryProvider {
 		readonly currentHistoryItemRef: SourceControlHistoryItemRef | undefined;
-		readonly currentHistoryItemRemoteRef: SourceControlHistoryItemRef | undefined;
-		readonly currentHistoryItemBaseRef: SourceControlHistoryItemRef | undefined;
+		readonly currentHistoryItemRemoteRef:
+			| SourceControlHistoryItemRef
+			| undefined;
+		readonly currentHistoryItemBaseRef:
+			| SourceControlHistoryItemRef
+			| undefined;
 
 		/**
 		 * Fires when the current history item refs (local, remote, base)
@@ -26,11 +30,24 @@ declare module 'vscode' {
 		 */
 		onDidChangeHistoryItemRefs: Event<SourceControlHistoryItemRefsChangeEvent>;
 
-		provideHistoryItemRefs(historyItemRefs: string[] | undefined, token: CancellationToken): ProviderResult<SourceControlHistoryItemRef[]>;
-		provideHistoryItems(options: SourceControlHistoryOptions, token: CancellationToken): ProviderResult<SourceControlHistoryItem[]>;
-		provideHistoryItemChanges(historyItemId: string, historyItemParentId: string | undefined, token: CancellationToken): ProviderResult<SourceControlHistoryItemChange[]>;
+		provideHistoryItemRefs(
+			historyItemRefs: string[] | undefined,
+			token: CancellationToken,
+		): ProviderResult<SourceControlHistoryItemRef[]>;
+		provideHistoryItems(
+			options: SourceControlHistoryOptions,
+			token: CancellationToken,
+		): ProviderResult<SourceControlHistoryItem[]>;
+		provideHistoryItemChanges(
+			historyItemId: string,
+			historyItemParentId: string | undefined,
+			token: CancellationToken,
+		): ProviderResult<SourceControlHistoryItemChange[]>;
 
-		resolveHistoryItemRefsCommonAncestor(historyItemRefs: string[], token: CancellationToken): ProviderResult<string>;
+		resolveHistoryItemRefsCommonAncestor(
+			historyItemRefs: string[],
+			token: CancellationToken,
+		): ProviderResult<string>;
 	}
 
 	export interface SourceControlHistoryOptions {

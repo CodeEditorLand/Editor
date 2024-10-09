@@ -3,13 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	export interface ChatPromptReference {
 		/**
 		 * The value of this reference. The `string | Uri | Location` types are used today, but this could expand in the future.
 		 */
-		readonly value: string | Uri | Location | ChatReferenceBinaryData | unknown;
+		readonly value:
+			| string
+			| Uri
+			| Location
+			| ChatReferenceBinaryData
+			| unknown;
 	}
 
 	export class ChatReferenceBinaryData {

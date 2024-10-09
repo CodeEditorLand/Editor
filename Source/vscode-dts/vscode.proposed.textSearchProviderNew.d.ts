@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	// https://github.com/microsoft/vscode/issues/59921
 
 	/**
@@ -57,7 +56,6 @@ declare module 'vscode' {
 	 * Options that apply to text search.
 	 */
 	export interface TextSearchProviderOptions {
-
 		folderOptions: {
 			/**
 			 * The root folder to search within.
@@ -172,7 +170,11 @@ declare module 'vscode' {
 		 * @param ranges The ranges associated with this match.
 		 * @param previewText The text that is used to preview the match. The highlighted range in `previewText` is specified in `ranges`.
 		 */
-		constructor(uri: Uri, ranges: { sourceRange: Range; previewRange: Range }[], previewText: string);
+		constructor(
+			uri: Uri,
+			ranges: { sourceRange: Range; previewRange: Range }[],
+			previewText: string,
+		);
 
 		/**
 		 * The uri for the matching document.
@@ -257,7 +259,12 @@ declare module 'vscode' {
 		 * These results can be direct matches, or context that surrounds matches.
 		 * @param token A cancellation token.
 		 */
-		provideTextSearchResults(query: TextSearchQueryNew, options: TextSearchProviderOptions, progress: Progress<TextSearchResultNew>, token: CancellationToken): ProviderResult<TextSearchCompleteNew>;
+		provideTextSearchResults(
+			query: TextSearchQueryNew,
+			options: TextSearchProviderOptions,
+			progress: Progress<TextSearchResultNew>,
+			token: CancellationToken,
+		): ProviderResult<TextSearchCompleteNew>;
 	}
 
 	export namespace workspace {
@@ -270,6 +277,9 @@ declare module 'vscode' {
 		 * @param provider The provider.
 		 * @return A {@link Disposable} that unregisters this provider when being disposed.
 		 */
-		export function registerTextSearchProviderNew(scheme: string, provider: TextSearchProviderNew): Disposable;
+		export function registerTextSearchProviderNew(
+			scheme: string,
+			provider: TextSearchProviderNew,
+		): Disposable;
 	}
 }

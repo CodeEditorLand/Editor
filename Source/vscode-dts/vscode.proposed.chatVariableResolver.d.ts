@@ -3,10 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	export namespace chat {
-
 		/**
 		 * Register a variable which can be used in a chat request to any participant.
 		 * @param id A unique ID for the variable.
@@ -18,7 +16,16 @@ declare module 'vscode' {
 		 * @param fullName The full name of the variable when selecting context in the picker UI.
 		 * @param icon An icon to display when selecting context in the picker UI.
 		 */
-		export function registerChatVariableResolver(id: string, name: string, userDescription: string, modelDescription: string | undefined, isSlow: boolean | undefined, resolver: ChatVariableResolver, fullName?: string, icon?: ThemeIcon): Disposable;
+		export function registerChatVariableResolver(
+			id: string,
+			name: string,
+			userDescription: string,
+			modelDescription: string | undefined,
+			isSlow: boolean | undefined,
+			resolver: ChatVariableResolver,
+			fullName?: string,
+			icon?: ThemeIcon,
+		): Disposable;
 	}
 
 	export interface ChatVariableValue {
@@ -56,17 +63,25 @@ declare module 'vscode' {
 		 * @param context Contextual information about this chat request.
 		 * @param token A cancellation token.
 		 */
-		resolve(name: string, context: ChatVariableContext, token: CancellationToken): ProviderResult<ChatVariableValue[]>;
+		resolve(
+			name: string,
+			context: ChatVariableContext,
+			token: CancellationToken,
+		): ProviderResult<ChatVariableValue[]>;
 
 		/**
 		 * A callback to resolve the value of a chat variable.
 		 * @param name The name of the variable.
 		 * @param context Contextual information about this chat request.
 		 * @param token A cancellation token.
-		*/
-		resolve2?(name: string, context: ChatVariableContext, stream: ChatVariableResolverResponseStream, token: CancellationToken): ProviderResult<ChatVariableValue[]>;
+		 */
+		resolve2?(
+			name: string,
+			context: ChatVariableContext,
+			stream: ChatVariableResolverResponseStream,
+			token: CancellationToken,
+		): ProviderResult<ChatVariableValue[]>;
 	}
-
 
 	/**
 	 * The detail level of this chat variable value.
@@ -74,7 +89,7 @@ declare module 'vscode' {
 	export enum ChatVariableLevel {
 		Short = 1,
 		Medium = 2,
-		Full = 3
+		Full = 3,
 	}
 
 	export interface ChatVariableResolverResponseStream {
@@ -103,8 +118,12 @@ declare module 'vscode' {
 		 *
 		 * @param part A response part, rendered or metadata
 		 */
-		push(part: ChatVariableResolverResponsePart): ChatVariableResolverResponseStream;
+		push(
+			part: ChatVariableResolverResponsePart,
+		): ChatVariableResolverResponseStream;
 	}
 
-	export type ChatVariableResolverResponsePart = ChatResponseProgressPart | ChatResponseReferencePart;
+	export type ChatVariableResolverResponsePart =
+		| ChatResponseProgressPart
+		| ChatResponseReferencePart;
 }

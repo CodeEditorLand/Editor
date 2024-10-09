@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	// @alexr00 https://github.com/microsoft/vscode/issues/167253
 
 	export enum CommentThreadFocus {
@@ -15,14 +14,13 @@ declare module 'vscode' {
 		/**
 		 * Focus the revealed comment.
 		 */
-		Comment = 2
+		Comment = 2,
 	}
 
 	/**
 	 * Options to reveal a comment thread in an editor.
 	 */
 	export interface CommentThreadRevealOptions {
-
 		/**
 		 * Where to move the focus to when revealing the comment thread.
 		 * If undefined, the focus will not be changed.
@@ -34,12 +32,14 @@ declare module 'vscode' {
 		/**
 		 * Reveal the comment thread in an editor. If no comment is provided, the first comment in the thread will be revealed.
 		 */
-		reveal(comment?: Comment, options?: CommentThreadRevealOptions): Thenable<void>;
+		reveal(
+			comment?: Comment,
+			options?: CommentThreadRevealOptions,
+		): Thenable<void>;
 
 		/**
 		 * Collapse the comment thread in an editor.
 		 */
 		hide(): Thenable<void>;
 	}
-
 }

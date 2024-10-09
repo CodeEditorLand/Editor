@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	export interface TelemetryConfiguration {
 		/**
 		 * Whether or not usage telemetry collection is allowed
@@ -31,6 +30,8 @@ declare module 'vscode' {
 		 * An {@link Event} which fires when the collectable state of telemetry changes
 		 * Returns a {@link TelemetryConfiguration} object
 		 */
-		export const onDidChangeTelemetryConfiguration: Event<TelemetryConfiguration | undefined>;
+		export const onDidChangeTelemetryConfiguration: Event<
+			TelemetryConfiguration | undefined
+		>;
 	}
 }

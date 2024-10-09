@@ -1,4 +1,10 @@
 {
+	"name": "rust",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammar.mjs"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -20,11 +26,5 @@
 				"id": "rust"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "rust",
-	"scripts": {
-		"update-grammar": "node ./build/update-grammar.mjs"
 	}
 }

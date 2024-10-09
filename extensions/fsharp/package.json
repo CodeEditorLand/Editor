@@ -1,4 +1,10 @@
 {
+	"name": "fsharp",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin ionide/ionide-fsgrammar grammars/fsharp.json ./syntaxes/fsharp.tmLanguage.json"
+	},
 	"contributes": {
 		"configurationDefaults": {
 			"[fsharp]": {
@@ -35,11 +41,5 @@
 				"path": "./snippets/fsharp.code-snippets"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "fsharp",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin ionide/ionide-fsgrammar grammars/fsharp.json ./syntaxes/fsharp.tmLanguage.json"
 	}
 }

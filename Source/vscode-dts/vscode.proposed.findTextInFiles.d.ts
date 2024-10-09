@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	// https://github.com/microsoft/vscode/issues/59924
 
 	/**
@@ -89,7 +88,11 @@ declare module 'vscode' {
 		 * @param token A token that can be used to signal cancellation to the underlying search engine.
 		 * @return A thenable that resolves when the search is complete.
 		 */
-		export function findTextInFiles(query: TextSearchQuery, callback: (result: TextSearchResult) => void, token?: CancellationToken): Thenable<TextSearchComplete>;
+		export function findTextInFiles(
+			query: TextSearchQuery,
+			callback: (result: TextSearchResult) => void,
+			token?: CancellationToken,
+		): Thenable<TextSearchComplete>;
 
 		/**
 		 * Search text in files across all {@link workspace.workspaceFolders workspace folders} in the workspace.
@@ -99,6 +102,11 @@ declare module 'vscode' {
 		 * @param token A token that can be used to signal cancellation to the underlying search engine.
 		 * @return A thenable that resolves when the search is complete.
 		 */
-		export function findTextInFiles(query: TextSearchQuery, options: FindTextInFilesOptions, callback: (result: TextSearchResult) => void, token?: CancellationToken): Thenable<TextSearchComplete>;
+		export function findTextInFiles(
+			query: TextSearchQuery,
+			options: FindTextInFilesOptions,
+			callback: (result: TextSearchResult) => void,
+			token?: CancellationToken,
+		): Thenable<TextSearchComplete>;
 	}
 }

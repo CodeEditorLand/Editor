@@ -1,4 +1,10 @@
 {
+	"name": "swift",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin jtbandes/swift-tmlanguage Swift.tmLanguage.json ./syntaxes/swift.tmLanguage.json"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -26,11 +32,5 @@
 				"path": "./snippets/swift.code-snippets"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "swift",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin jtbandes/swift-tmlanguage Swift.tmLanguage.json ./syntaxes/swift.tmLanguage.json"
 	}
 }

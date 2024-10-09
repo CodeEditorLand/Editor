@@ -1,46 +1,38 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation. All rights reserved.
+//  Licensed under the MIT License. See License.txt in the project root for
+// license information.
+// --------------------------------------------------------------------------------------------
 
 use std::sync::Arc;
 
 use futures::future::join_all;
 
-use crate::log;
-
 use super::server_bridge::ServerBridge;
+use crate::log;
 
 type Inner = Arc<std::sync::Mutex<Option<Vec<ServerBridgeRec>>>>;
 
 struct ServerBridgeRec {
-	id: u16,
+	id:u16,
 	// bridge is removed when there's a write loop currently active
-	bridge: Option<ServerBridge>,
-	write_queue: Vec<Vec<u8>>,
+	bridge:Option<ServerBridge>,
+	write_queue:Vec<Vec<u8>>,
 }
 
 /// The ServerMultiplexer manages multiple server bridges and allows writing
 /// to them in a thread-safe way. It is copy, sync, and clone.
 #[derive(Clone)]
 pub struct ServerMultiplexer {
-	inner: Inner,
+	inner:Inner,
 }
 
 impl ServerMultiplexer {
-	pub fn new() -> Self {
-		Self {
-			inner: Arc::new(std::sync::Mutex::new(Some(Vec::new()))),
-		}
-	}
+	pub fn new() -> Self { Self { inner:Arc::new(std::sync::Mutex::new(Some(Vec::new()))) } }
 
 	/// Adds a new bridge to the multiplexer.
-	pub fn register(&self, id: u16, bridge: ServerBridge) {
-		let bridge_rec = ServerBridgeRec {
-			id,
-			bridge: Some(bridge),
-			write_queue: vec![],
-		};
+	pub fn register(&self, id:u16, bridge:ServerBridge) {
+		let bridge_rec = ServerBridgeRec { id, bridge:Some(bridge), write_queue:vec![] };
 
 		let mut lock = self.inner.lock().unwrap();
 		match &mut *lock {
@@ -50,17 +42,18 @@ impl ServerMultiplexer {
 	}
 
 	/// Removes a server bridge by ID.
-	pub fn remove(&self, id: u16) {
+	pub fn remove(&self, id:u16) {
 		let mut lock = self.inner.lock().unwrap();
 		if let Some(bridges) = &mut *lock {
 			bridges.retain(|sb| sb.id != id);
 		}
 	}
 
-	/// Handle an incoming server message. This is synchronous and uses a 'write loop'
-	/// to ensure message order is preserved exactly, which is necessary for compression.
-	/// Returns false if there was no server with the given bridge_id.
-	pub fn write_message(&self, log: &log::Logger, bridge_id: u16, message: Vec<u8>) -> bool {
+	/// Handle an incoming server message. This is synchronous and uses a 'write
+	/// loop' to ensure message order is preserved exactly, which is necessary
+	/// for compression. Returns false if there was no server with the given
+	/// bridge_id.
+	pub fn write_message(&self, log:&log::Logger, bridge_id:u16, message:Vec<u8>) -> bool {
 		let mut lock = self.inner.lock().unwrap();
 
 		let bridges = match &mut *lock {
@@ -95,22 +88,16 @@ impl ServerMultiplexer {
 			None => return,
 		};
 
-		join_all(
-			bridges
-				.into_iter()
-				.filter_map(|b| b.bridge)
-				.map(|b| b.close()),
-		)
-		.await;
+		join_all(bridges.into_iter().filter_map(|b| b.bridge).map(|b| b.close())).await;
 	}
 }
 
-/// Write loop started by `handle_server_message`. It takes the ServerBridge, and
-/// runs until there's no more items in the 'write queue'. At that point, if the
-/// record still exists in the bridges_lock (i.e. we haven't shut down), it'll
-/// return the ServerBridge so that the next handle_server_message call starts
-/// the loop again. Otherwise, it'll close the bridge.
-async fn write_loop(log: log::Logger, id: u16, mut bridge: ServerBridge, bridges_lock: Inner) {
+/// Write loop started by `handle_server_message`. It takes the ServerBridge,
+/// and runs until there's no more items in the 'write queue'. At that point, if
+/// the record still exists in the bridges_lock (i.e. we haven't shut down),
+/// it'll return the ServerBridge so that the next handle_server_message call
+/// starts the loop again. Otherwise, it'll close the bridge.
+async fn write_loop(log:log::Logger, id:u16, mut bridge:ServerBridge, bridges_lock:Inner) {
 	let mut items_vec = vec![];
 	loop {
 		{

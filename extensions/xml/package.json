@@ -1,4 +1,10 @@
 {
+	"name": "xml",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin atom/language-xml grammars/xml.cson ./syntaxes/xml.tmLanguage.json grammars/xsl.cson ./syntaxes/xsl.tmLanguage.json"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -98,11 +104,5 @@
 				"id": "xsl"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "xml",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin atom/language-xml grammars/xml.cson ./syntaxes/xml.tmLanguage.json grammars/xsl.cson ./syntaxes/xsl.tmLanguage.json"
 	}
 }

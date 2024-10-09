@@ -1,14 +1,12 @@
 {
-	"activationEvents": [
-		"onCommand:emmet.expandAbbreviation",
-		"onLanguage"
-	],
+	"name": "emmet",
+	"displayName": "Emmet",
+	"description": "%description%",
+	"main": "./out/node/emmetNodeMain",
 	"browser": "./dist/browser/emmetBrowserMain",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
+	"scripts": {
+		"compile": "gulp compile-extension:emmet",
+		"deps": "npm install @vscode/emmet-helper"
 	},
 	"contributes": {
 		"commands": [
@@ -461,19 +459,21 @@
 			]
 		}
 	},
+	"activationEvents": [
+		"onCommand:emmet.expandAbbreviation",
+		"onLanguage"
+	],
 	"dependencies": {
 		"image-size": "1.1.1"
 	},
-	"description": "%description%",
 	"devDependencies": {
 		"@types/node": "22.x"
 	},
-	"displayName": "Emmet",
 	"icon": "images/icon.png",
-	"main": "./out/node/emmetNodeMain",
-	"name": "emmet",
-	"scripts": {
-		"compile": "gulp compile-extension:emmet",
-		"deps": "npm install @vscode/emmet-helper"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
 	}
 }

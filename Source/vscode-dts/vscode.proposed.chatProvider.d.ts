@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	export interface ChatResponseFragment {
 		index: number;
 		part: string;
@@ -21,20 +20,37 @@ declare module 'vscode' {
 	 * Represents a large language model that accepts ChatML messages and produces a streaming response
 	 */
 	export interface LanguageModelChatProvider {
+		onDidReceiveLanguageModelResponse2?: Event<{
+			readonly extensionId: string;
+			readonly participant?: string;
+			readonly tokenCount?: number;
+		}>;
 
-		onDidReceiveLanguageModelResponse2?: Event<{ readonly extensionId: string; readonly participant?: string; readonly tokenCount?: number }>;
+		provideLanguageModelResponse(
+			messages: LanguageModelChatMessage[],
+			options: { [name: string]: any },
+			extensionId: string,
+			progress: Progress<ChatResponseFragment>,
+			token: CancellationToken,
+		): Thenable<any>;
 
-		provideLanguageModelResponse(messages: LanguageModelChatMessage[], options: { [name: string]: any }, extensionId: string, progress: Progress<ChatResponseFragment>, token: CancellationToken): Thenable<any>;
+		provideLanguageModelResponse2?(
+			messages: LanguageModelChatMessage[],
+			options: LanguageModelChatRequestOptions,
+			extensionId: string,
+			progress: Progress<ChatResponseFragment2>,
+			token: CancellationToken,
+		): Thenable<any>;
 
-		provideLanguageModelResponse2?(messages: LanguageModelChatMessage[], options: LanguageModelChatRequestOptions, extensionId: string, progress: Progress<ChatResponseFragment2>, token: CancellationToken): Thenable<any>;
-
-		provideTokenCount(text: string | LanguageModelChatMessage, token: CancellationToken): Thenable<number>;
+		provideTokenCount(
+			text: string | LanguageModelChatMessage,
+			token: CancellationToken,
+		): Thenable<number>;
 	}
 
 	export type ChatResponseProvider = LanguageModelChatProvider;
 
 	export interface ChatResponseProviderMetadata {
-
 		readonly vendor: string;
 
 		/**
@@ -75,16 +91,21 @@ declare module 'vscode' {
 	}
 
 	export namespace chat {
-
 		/**
 		 * @deprecated use `lm.registerChatResponseProvider` instead
-		*/
-		export function registerChatResponseProvider(id: string, provider: ChatResponseProvider, metadata: ChatResponseProviderMetadata): Disposable;
+		 */
+		export function registerChatResponseProvider(
+			id: string,
+			provider: ChatResponseProvider,
+			metadata: ChatResponseProviderMetadata,
+		): Disposable;
 	}
 
 	export namespace lm {
-
-		export function registerChatModelProvider(id: string, provider: LanguageModelChatProvider, metadata: ChatResponseProviderMetadata): Disposable;
+		export function registerChatModelProvider(
+			id: string,
+			provider: LanguageModelChatProvider,
+			metadata: ChatResponseProviderMetadata,
+		): Disposable;
 	}
-
 }

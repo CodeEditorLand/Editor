@@ -1,7 +1,8 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation. All rights reserved.
+//  Licensed under the MIT License. See License.txt in the project root for
+// license information.
+// --------------------------------------------------------------------------------------------
 
 use std::{
 	fs::{remove_file, File},
@@ -11,6 +12,7 @@ use std::{
 
 use async_trait::async_trait;
 
+use super::{service::tail_log_file, ServiceManager};
 use crate::{
 	constants::APPLICATION_NAME,
 	log,
@@ -21,19 +23,14 @@ use crate::{
 	},
 };
 
-use super::{service::tail_log_file, ServiceManager};
-
 pub struct LaunchdService {
-	log: log::Logger,
-	log_file: PathBuf,
+	log:log::Logger,
+	log_file:PathBuf,
 }
 
 impl LaunchdService {
-	pub fn new(log: log::Logger, paths: &LauncherPaths) -> Self {
-		Self {
-			log,
-			log_file: paths.service_log_file(),
-		}
+	pub fn new(log:log::Logger, paths:&LauncherPaths) -> Self {
+		Self { log, log_file:paths.service_log_file() }
 	}
 }
 
@@ -41,8 +38,8 @@ impl LaunchdService {
 impl ServiceManager for LaunchdService {
 	async fn register(
 		&self,
-		exe: std::path::PathBuf,
-		args: &[&str],
+		exe:std::path::PathBuf,
+		args:&[&str],
 	) -> Result<(), crate::util::errors::AnyError> {
 		let service_file = get_service_file_path()?;
 		write_service_file(&service_file, &self.log_file, exe, args)
@@ -63,14 +60,12 @@ impl ServiceManager for LaunchdService {
 		Ok(())
 	}
 
-	async fn show_logs(&self) -> Result<(), AnyError> {
-		tail_log_file(&self.log_file).await
-	}
+	async fn show_logs(&self) -> Result<(), AnyError> { tail_log_file(&self.log_file).await }
 
 	async fn run(
 		self,
-		launcher_paths: crate::state::LauncherPaths,
-		mut handle: impl 'static + super::ServiceContainer,
+		launcher_paths:crate::state::LauncherPaths,
+		mut handle:impl 'static + super::ServiceContainer,
 	) -> Result<(), crate::util::errors::AnyError> {
 		handle.run_service(self.log, launcher_paths).await
 	}
@@ -84,9 +79,9 @@ impl ServiceManager for LaunchdService {
 		let service_file = get_service_file_path()?;
 
 		match capture_command_and_check_status("launchctl", &["stop", &get_service_label()]).await {
-			Ok(_) => {}
+			Ok(_) => {},
 			// status 3 == "no such process"
-			Err(CodeError::CommandFailed { code: 3, .. }) => {}
+			Err(CodeError::CommandFailed { code: 3, .. }) => {},
 			Err(e) => return Err(wrap(e, "error stopping service").into()),
 		};
 
@@ -94,10 +89,7 @@ impl ServiceManager for LaunchdService {
 
 		capture_command_and_check_status(
 			"launchctl",
-			&[
-				"unload",
-				service_file.as_os_str().to_string_lossy().as_ref(),
-			],
+			&["unload", service_file.as_os_str().to_string_lossy().as_ref()],
 		)
 		.await?;
 
@@ -111,25 +103,23 @@ impl ServiceManager for LaunchdService {
 	}
 }
 
-fn get_service_label() -> String {
-	format!("com.visualstudio.{}.tunnel", APPLICATION_NAME)
-}
+fn get_service_label() -> String { format!("com.visualstudio.{}.tunnel", APPLICATION_NAME) }
 
 fn get_service_file_path() -> Result<PathBuf, MissingHomeDirectory> {
 	match dirs::home_dir() {
 		Some(mut d) => {
 			d.push(format!("{}.plist", get_service_label()));
 			Ok(d)
-		}
+		},
 		None => Err(MissingHomeDirectory()),
 	}
 }
 
 fn write_service_file(
-	path: &PathBuf,
-	log_file: &Path,
-	exe: std::path::PathBuf,
-	args: &[&str],
+	path:&PathBuf,
+	log_file:&Path,
+	exe:std::path::PathBuf,
+	args:&[&str],
 ) -> io::Result<()> {
 	let mut f = File::create(path)?;
 	let log_file = log_file.as_os_str().to_string_lossy();

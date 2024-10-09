@@ -2,11 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as postcss from 'postcss';
-import * as File from 'vinyl';
-import * as es from 'event-stream';
+import * as es from "event-stream";
+import * as postcss from "postcss";
+import * as File from "vinyl";
 
-export function gulpPostcss(plugins: postcss.AcceptedPlugin[], handleError?: (err: Error) => void) {
+export function gulpPostcss(
+	plugins: postcss.AcceptedPlugin[],
+	handleError?: (err: Error) => void,
+) {
 	const instance = postcss(plugins);
 
 	return es.map((file: File, callback: (error?: any, file?: any) => void) => {
@@ -15,7 +18,7 @@ export function gulpPostcss(plugins: postcss.AcceptedPlugin[], handleError?: (er
 		}
 
 		if (file.isStream()) {
-			return callback(new Error('Streaming not supported'));
+			return callback(new Error("Streaming not supported"));
 		}
 
 		instance

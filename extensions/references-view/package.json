@@ -1,14 +1,11 @@
 {
-	"activationEvents": [
-		"onCommand:references-view.find",
-		"onCommand:editor.action.showReferences"
-	],
+	"name": "references-view",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"main": "./out/extension",
 	"browser": "./dist/extension.js",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
+	"scripts": {
+		"compile": "npx gulp compile-extension:references-view"
 	},
 	"contributes": {
 		"commands": [
@@ -376,15 +373,18 @@
 			]
 		}
 	},
-	"description": "%description%",
+	"activationEvents": [
+		"onCommand:references-view.find",
+		"onCommand:editor.action.showReferences"
+	],
 	"devDependencies": {
 		"@types/node": "22.x"
 	},
-	"displayName": "%displayName%",
 	"icon": "media/icon.png",
-	"main": "./out/extension",
-	"name": "references-view",
-	"scripts": {
-		"compile": "npx gulp compile-extension:references-view"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
 	}
 }

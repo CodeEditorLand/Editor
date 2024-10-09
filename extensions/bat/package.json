@@ -1,4 +1,10 @@
 {
+	"name": "bat",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin mmims/language-batchfile grammars/batchfile.cson ./syntaxes/batchfile.tmLanguage.json"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -27,11 +33,5 @@
 				"path": "./snippets/batchfile.code-snippets"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "bat",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin mmims/language-batchfile grammars/batchfile.cson ./syntaxes/batchfile.tmLanguage.json"
 	}
 }

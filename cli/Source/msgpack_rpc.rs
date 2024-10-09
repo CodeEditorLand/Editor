@@ -1,7 +1,10 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+// ---------------------------------------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation. All rights reserved.
+//  Licensed under the MIT License. See License.txt in the project root for
+// license information.
+// --------------------------------------------------------------------------------------------
+
+use std::io::{self, Cursor, ErrorKind};
 
 use bytes::Buf;
 use serde::de::DeserializeOwned;
@@ -19,17 +22,16 @@ use crate::{
 		sync::{Barrier, Receivable},
 	},
 };
-use std::io::{self, Cursor, ErrorKind};
 
 #[derive(Copy, Clone)]
 pub struct MsgPackSerializer {}
 
 impl Serialization for MsgPackSerializer {
-	fn serialize(&self, value: impl serde::Serialize) -> Vec<u8> {
+	fn serialize(&self, value:impl serde::Serialize) -> Vec<u8> {
 		rmp_serde::to_vec_named(&value).expect("expected to serialize")
 	}
 
-	fn deserialize<P: serde::de::DeserializeOwned>(&self, b: &[u8]) -> Result<P, AnyError> {
+	fn deserialize<P:serde::de::DeserializeOwned>(&self, b:&[u8]) -> Result<P, AnyError> {
 		rmp_serde::from_slice(b).map_err(|e| InvalidRpcDataError(e.to_string()).into())
 	}
 }
@@ -44,17 +46,17 @@ pub fn new_msgpack_rpc() -> rpc::RpcBuilder<MsgPackSerializer> {
 /// Starting processing msgpack rpc over the given i/o. It's recommended that
 /// the reader be passed in as a BufReader for efficiency.
 pub async fn start_msgpack_rpc<
-	C: Send + Sync + 'static,
-	X: Clone,
-	S: Send + Sync + Serialization,
-	Read: AsyncRead + Unpin,
-	Write: AsyncWrite + Unpin,
+	C:Send + Sync + 'static,
+	X:Clone,
+	S:Send + Sync + Serialization,
+	Read:AsyncRead + Unpin,
+	Write:AsyncWrite + Unpin,
 >(
-	dispatcher: rpc::RpcDispatcher<S, C>,
-	mut read: Read,
-	mut write: Write,
-	mut msg_rx: impl Receivable<Vec<u8>>,
-	mut shutdown_rx: Barrier<X>,
+	dispatcher:rpc::RpcDispatcher<S, C>,
+	mut read:Read,
+	mut write:Write,
+	mut msg_rx:impl Receivable<Vec<u8>>,
+	mut shutdown_rx:Barrier<X>,
 ) -> io::Result<(Option<X>, Read, Write)> {
 	let (write_tx, mut write_rx) = mpsc::channel::<Vec<u8>>(8);
 	let mut decoder = MsgPackCodec::new();
@@ -109,34 +111,31 @@ pub async fn start_msgpack_rpc<
 	}
 }
 
-/// Reader that reads msgpack object messages in a cancellation-safe way using Tokio's codecs.
+/// Reader that reads msgpack object messages in a cancellation-safe way using
+/// Tokio's codecs.
 ///
-/// rmp_serde does not support async reads, and does not plan to. But we know every
-/// type in protocol is some kind of object, so by asking to deserialize the
-/// requested object from a reader (repeatedly, if incomplete) we can
+/// rmp_serde does not support async reads, and does not plan to. But we know
+/// every type in protocol is some kind of object, so by asking to deserialize
+/// the requested object from a reader (repeatedly, if incomplete) we can
 /// accomplish streaming.
 pub struct MsgPackCodec<T> {
-	_marker: std::marker::PhantomData<T>,
+	_marker:std::marker::PhantomData<T>,
 }
 
 impl<T> MsgPackCodec<T> {
-	pub fn new() -> Self {
-		Self {
-			_marker: std::marker::PhantomData,
-		}
-	}
+	pub fn new() -> Self { Self { _marker:std::marker::PhantomData } }
 }
 
 pub struct MsgPackDecoded<T> {
-	pub obj: T,
-	pub vec: Vec<u8>,
+	pub obj:T,
+	pub vec:Vec<u8>,
 }
 
-impl<T: DeserializeOwned> tokio_util::codec::Decoder for MsgPackCodec<T> {
-	type Item = MsgPackDecoded<T>;
+impl<T:DeserializeOwned> tokio_util::codec::Decoder for MsgPackCodec<T> {
 	type Error = io::Error;
+	type Item = MsgPackDecoded<T>;
 
-	fn decode(&mut self, src: &mut bytes::BytesMut) -> Result<Option<Self::Item>, Self::Error> {
+	fn decode(&mut self, src:&mut bytes::BytesMut) -> Result<Option<Self::Item>, Self::Error> {
 		let bytes_ref = src.as_ref();
 		let mut cursor = Cursor::new(bytes_ref);
 
@@ -147,17 +146,14 @@ impl<T: DeserializeOwned> tokio_util::codec::Decoder for MsgPackCodec<T> {
 			) if e.kind() == ErrorKind::UnexpectedEof => {
 				src.reserve(1024);
 				Ok(None)
-			}
-			Err(e) => Err(std::io::Error::new(
-				std::io::ErrorKind::InvalidData,
-				e.to_string(),
-			)),
+			},
+			Err(e) => Err(std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string())),
 			Ok(obj) => {
 				let len = cursor.position() as usize;
 				let vec = src[..len].to_vec();
 				src.advance(len);
 				Ok(Some(MsgPackDecoded { obj, vec }))
-			}
+			},
 		}
 	}
 }
@@ -170,7 +166,7 @@ mod tests {
 
 	#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 	pub struct Msg {
-		pub x: i32,
+		pub x:i32,
 	}
 
 	#[test]
@@ -180,16 +176,10 @@ mod tests {
 
 		assert!(c.decode(&mut buf).unwrap().is_none());
 
-		buf.extend_from_slice(rmp_serde::to_vec_named(&Msg { x: 1 }).unwrap().as_slice());
-		buf.extend_from_slice(rmp_serde::to_vec_named(&Msg { x: 2 }).unwrap().as_slice());
+		buf.extend_from_slice(rmp_serde::to_vec_named(&Msg { x:1 }).unwrap().as_slice());
+		buf.extend_from_slice(rmp_serde::to_vec_named(&Msg { x:2 }).unwrap().as_slice());
 
-		assert_eq!(
-			c.decode(&mut buf).unwrap().expect("expected msg1").obj,
-			Msg { x: 1 }
-		);
-		assert_eq!(
-			c.decode(&mut buf).unwrap().expect("expected msg1").obj,
-			Msg { x: 2 }
-		);
+		assert_eq!(c.decode(&mut buf).unwrap().expect("expected msg1").obj, Msg { x:1 });
+		assert_eq!(c.decode(&mut buf).unwrap().expect("expected msg1").obj, Msg { x:2 });
 	}
 }

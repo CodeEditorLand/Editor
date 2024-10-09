@@ -8,14 +8,14 @@ nan/**
 fsevents/binding.gyp
 fsevents/fsevents.cc
 fsevents/build/**
-fsevents/src/**
+fsevents/Source/**
 fsevents/test/**
 !fsevents/**/*.node
 
 @vscode/spdlog/binding.gyp
 @vscode/spdlog/build/**
 @vscode/spdlog/deps/**
-@vscode/spdlog/src/**
+@vscode/spdlog/Source/**
 @vscode/spdlog/test/**
 @vscode/spdlog/*.yml
 !@vscode/spdlog/build/Release/*.node
@@ -23,7 +23,7 @@ fsevents/test/**
 @vscode/deviceid/binding.gyp
 @vscode/deviceid/build/**
 @vscode/deviceid/deps/**
-@vscode/deviceid/src/**
+@vscode/deviceid/Source/**
 @vscode/deviceid/test/**
 @vscode/deviceid/*.yml
 !@vscode/deviceid/build/Release/*.node
@@ -35,41 +35,41 @@ fsevents/test/**
 @vscode/sqlite3/deps/**
 @vscode/sqlite3/test/**
 @vscode/sqlite3/build/**
-@vscode/sqlite3/src/**
+@vscode/sqlite3/Source/**
 !@vscode/sqlite3/build/Release/*.node
 
 @vscode/windows-mutex/binding.gyp
 @vscode/windows-mutex/build/**
-@vscode/windows-mutex/src/**
+@vscode/windows-mutex/Source/**
 !@vscode/windows-mutex/**/*.node
 
 @vscode/windows-process-tree/binding.gyp
 @vscode/windows-process-tree/build/**
-@vscode/windows-process-tree/src/**
+@vscode/windows-process-tree/Source/**
 @vscode/windows-process-tree/tsconfig.json
 @vscode/windows-process-tree/tslint.json
 !@vscode/windows-process-tree/**/*.node
 
 @vscode/windows-registry/binding.gyp
-@vscode/windows-registry/src/**
+@vscode/windows-registry/Source/**
 @vscode/windows-registry/build/**
 !@vscode/windows-registry/build/Release/*.node
 
 native-keymap/binding.gyp
 native-keymap/build/**
-native-keymap/src/**
+native-keymap/Source/**
 native-keymap/deps/**
 !native-keymap/build/Release/*.node
 
 native-is-elevated/binding.gyp
 native-is-elevated/build/**
-native-is-elevated/src/**
+native-is-elevated/Source/**
 native-is-elevated/deps/**
 !native-is-elevated/build/Release/*.node
 
 native-watchdog/binding.gyp
 native-watchdog/build/**
-native-watchdog/src/**
+native-watchdog/Source/**
 !native-watchdog/build/Release/*.node
 
 @vscode/vsce-sign/**
@@ -80,18 +80,18 @@ native-watchdog/src/**
 
 windows-foreground-love/binding.gyp
 windows-foreground-love/build/**
-windows-foreground-love/src/**
+windows-foreground-love/Source/**
 !windows-foreground-love/**/*.node
 
 kerberos/binding.gyp
 kerberos/build/**
-kerberos/src/**
+kerberos/Source/**
 kerberos/node_modules/**
 !kerberos/**/*.node
 
 node-pty/binding.gyp
 node-pty/build/**
-node-pty/src/**
+node-pty/Source/**
 node-pty/lib/*.test.js
 node-pty/tools/**
 node-pty/deps/**
@@ -107,12 +107,12 @@ node-pty/third_party/**
 @parcel/watcher/binding.gyp
 @parcel/watcher/build/**
 @parcel/watcher/prebuilds/**
-@parcel/watcher/src/**
+@parcel/watcher/Source/**
 !@parcel/watcher/build/Release/*.node
 
 vsda/build/**
 vsda/ci/**
-vsda/src/**
+vsda/Source/**
 vsda/.gitignore
 vsda/binding.gyp
 vsda/README.md
@@ -122,7 +122,7 @@ vsda/targets
 
 @vscode/policy-watcher/build/**
 @vscode/policy-watcher/.husky/**
-@vscode/policy-watcher/src/**
+@vscode/policy-watcher/Source/**
 @vscode/policy-watcher/binding.gyp
 @vscode/policy-watcher/README.md
 @vscode/policy-watcher/index.d.ts
@@ -162,7 +162,7 @@ typescript/lib/tsserverlibrary.js
 !typescript/lib/lib*.d.ts
 
 jschardet/index.js
-jschardet/src/**
+jschardet/Source/**
 jschardet/dist/jschardet.js
 
 es6-promise/lib/**
@@ -173,11 +173,11 @@ zone.js/dist/**
 !zone.js/dist/zone-node.js
 
 # https://github.com/xtermjs/xterm.js/issues/3137
-@xterm/xterm/src/**
+@xterm/xterm/Source/**
 @xterm/xterm/tsconfig.all.json
 
 # https://github.com/xtermjs/xterm.js/issues/3138
-@xterm/xterm-addon-*/src/**
+@xterm/xterm-addon-*/Source/**
 @xterm/xterm-addon-*/fixtures/**
 @xterm/xterm-addon-*/out/**
 @xterm/xterm-addon-*/out-test/**

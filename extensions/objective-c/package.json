@@ -1,4 +1,10 @@
 {
+	"name": "objective-c",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammars.js"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -34,11 +40,5 @@
 				"id": "objective-cpp"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "objective-c",
-	"scripts": {
-		"update-grammar": "node ./build/update-grammars.js"
 	}
 }

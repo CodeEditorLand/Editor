@@ -1,4 +1,10 @@
 {
+	"name": "csharp",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin dotnet/csharp-tmLanguage grammars/csharp.tmLanguage ./syntaxes/csharp.tmLanguage.json"
+	},
 	"contributes": {
 		"configurationDefaults": {
 			"[csharp]": {
@@ -33,11 +39,5 @@
 				"path": "./snippets/csharp.code-snippets"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "csharp",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin dotnet/csharp-tmLanguage grammars/csharp.tmLanguage ./syntaxes/csharp.tmLanguage.json"
 	}
 }

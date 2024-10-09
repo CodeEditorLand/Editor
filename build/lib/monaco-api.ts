@@ -13,9 +13,9 @@ const dtsv = '3';
 
 const tsfmt = require('../../tsfmt.json');
 
-const SRC = path.join(__dirname, '../../src');
+const SRC = path.join(__dirname, '../../Source');
 export const RECIPE_PATH = path.join(__dirname, '../monaco/monaco.d.ts.recipe');
-const DECLARATION_PATH = path.join(__dirname, '../../src/vs/monaco.d.ts');
+const DECLARATION_PATH = path.join(__dirname, '../../Source/vs/monaco.d.ts');
 
 function logErr(message: any, ...rest: any[]): void {
 	fancyLog(ansiColors.yellow(`[monaco.d.ts]`), message, ...rest);

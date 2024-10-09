@@ -73,8 +73,8 @@ native-watchdog/Source/**
 !native-watchdog/build/Release/*.node
 
 @vscode/vsce-sign/**
-!@vscode/vsce-sign/src/main.d.ts
-!@vscode/vsce-sign/src/main.js
+!@vscode/vsce-sign/Source/main.d.ts
+!@vscode/vsce-sign/Source/main.js
 !@vscode/vsce-sign/package.json
 !@vscode/vsce-sign/bin/**
 

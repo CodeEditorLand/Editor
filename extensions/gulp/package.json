@@ -1,12 +1,10 @@
 {
-	"activationEvents": [
-		"onTaskType:gulp"
-	],
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": false
+	"name": "gulp",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"main": "./out/main",
+	"scripts": {
+		"compile": "gulp compile-extension:gulp"
 	},
 	"contributes": {
 		"configuration": {
@@ -46,16 +44,18 @@
 			}
 		]
 	},
+	"activationEvents": [
+		"onTaskType:gulp"
+	],
 	"dependencies": {},
-	"description": "%description%",
 	"devDependencies": {
 		"@types/node": "22.x"
 	},
-	"displayName": "%displayName%",
 	"icon": "images/gulp.png",
-	"main": "./out/main",
-	"name": "gulp",
-	"scripts": {
-		"compile": "gulp compile-extension:gulp"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": false
 	}
 }

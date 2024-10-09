@@ -1,0 +1,445 @@
+name: Node
+
+concurrency:
+    group: Node-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    security-events: write
+    contents: write
+    pull-requests: write
+
+on:
+    workflow_dispatch:
+    push:
+        branches: [Current]
+    pull_request:
+        branches: [Current]
+    workflow_call:
+
+jobs:
+    Pre-Publish:
+        runs-on: ubuntu-latest
+
+        env:
+            ADBLOCK: true
+            ASTRO_TELEMETRY_DISABLED: 1
+            AUTOMATEDLAB_TELEMETRY_OPTOUT: 1
+            AZURE_CORE_COLLECT_TELEMETRY: 0
+            CHOOSENIM_NO_ANALYTICS: 1
+            DIEZ_DO_NOT_TRACK: 1
+            DOTNET_CLI_TELEMETRY_OPTOUT: 1
+            DOTNET_INTERACTIVE_CLI_TELEMETRY_OPTOUT: 1
+            DO_NOT_TRACK: 1
+            ET_NO_TELEMETRY: 1
+            GATSBY_TELEMETRY_DISABLED: 1
+            GATSBY_TELEMETRY_OPTOUT: 1
+            GATSBY_TELEMETRY_OPT_OUT: 1
+            GRIT_TELEMETRY_DISABLED: 1
+            HASURA_GRAPHQL_ENABLE_TELEMETRY: false
+            HINT_TELEMETRY: off
+            HOMEBREW_NO_ANALYTICS: 1
+            INFLUXD_REPORTING_DISABLED: true
+            ITERATIVE_DO_NOT_TRACK: 1
+            NEXT_TELEMETRY_DEBUG: 1
+            NEXT_TELEMETRY_DISABLED: 1
+            NG_CLI_ANALYTICS: false
+            NUXT_TELEMETRY_DISABLED: 1
+            PIN_DO_NOT_TRACK: 1
+            POWERSHELL_TELEMETRY_OPTOUT: 1
+            SAM_CLI_TELEMETRY: 0
+            STNOUPGRADE: 1
+            STRIPE_CLI_TELEMETRY_OPTOUT: 1
+            TELEMETRY_DISABLED: 1
+            TERRAFORM_TELEMETRY: 0
+            VCPKG_DISABLE_METRICS: 1
+
+        strategy:
+            matrix:
+                node-version: [18, 19, 20]
+
+        steps:
+            - uses: actions/checkout@v4.2.1
+
+            - uses: pnpm/action-setup@v4.0.0
+              with:
+                  version: 9.3.0
+                  run_install: |
+                      - recursive: true
+                        args: [
+                          --link-workspace-packages=true,
+                          --lockfile-only,
+                          --prefer-frozen-lockfile=false,
+                          --shamefully-hoist=false,
+                          --shared-workspace-lockfile=true,
+                          --strict-peer-dependencies=false,
+                          --unsafe-perm=true
+                        ]
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./build/npm/gyp/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./build/npm/gyp
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./build/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./build
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/configuration-editing/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/configuration-editing
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/css-language-features/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/css-language-features
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/css-language-features/server/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/css-language-features/server
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/debug-auto-launch/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/debug-auto-launch
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/debug-server-ready/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/debug-server-ready
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/emmet/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/emmet
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/extension-editing/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/extension-editing
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/git-base/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/git-base
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/git/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/git
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/github-authentication/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/github-authentication
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/github/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/github
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/grunt/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/grunt
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/gulp/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/gulp
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/html-language-features/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/html-language-features
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/html-language-features/server/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/html-language-features/server
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/ipynb/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/ipynb
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/jake/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/jake
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/json-language-features/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/json-language-features
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/json-language-features/server/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/json-language-features/server
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.4.2
+              with:
+                  name: .-extensions-json-language-features-server-Node-${{ matrix.node-version }}-Target
+                  path: ./extensions/json-language-features/server/Target
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/markdown-language-features/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/markdown-language-features
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/markdown-math/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/markdown-math
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/media-preview/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/media-preview
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/merge-conflict/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/merge-conflict
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/microsoft-authentication/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/microsoft-authentication
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/notebook-renderers/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/notebook-renderers
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/npm/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/npm
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/php-language-features/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/php-language-features
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/references-view/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/references-view
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/simple-browser/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/simple-browser
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/tunnel-forwarding/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/tunnel-forwarding
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/typescript-language-features/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/typescript-language-features
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/vscode-api-tests/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/vscode-api-tests
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/vscode-colorize-tests/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/vscode-colorize-tests
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./extensions/vscode-test-resolver/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./extensions/vscode-test-resolver
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: .
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./remote/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./remote
+
+            - uses: actions/setup-node@v4.0.4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./remote/web/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./remote/web

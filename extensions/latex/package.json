@@ -1,4 +1,10 @@
 {
+	"name": "latex",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammars.js"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -91,11 +97,5 @@
 				"id": "markdown_latex_combined"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "latex",
-	"scripts": {
-		"update-grammar": "node ./build/update-grammars.js"
 	}
 }

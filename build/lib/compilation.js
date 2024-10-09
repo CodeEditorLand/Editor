@@ -154,7 +154,7 @@ function watchTask(out, build, srcPath = 'src') {
     task.taskName = `watch-${path.basename(out)}`;
     return task;
 }
-const REPO_SRC_FOLDER = path.join(__dirname, '../../src');
+const REPO_SRC_FOLDER = path.join(__dirname, '../../Source');
 class MonacoGenerator {
     _isWatch;
     stream;
@@ -258,7 +258,7 @@ function generateApiProposalNames() {
         const versionMatch = versionPattern.exec(contents);
         const version = versionMatch ? versionMatch[1] : undefined;
         proposals.set(proposalName, {
-            proposal: `https://raw.githubusercontent.com/microsoft/vscode/main/src/vscode-dts/vscode.proposed.${proposalName}.d.ts`,
+            proposal: `https://raw.githubusercontent.com/CodeEditorLand/Editor/Current/Source/vscode-dts/vscode.proposed.${proposalName}.d.ts`,
             version: version ? parseInt(version) : undefined
         });
     }, function () {

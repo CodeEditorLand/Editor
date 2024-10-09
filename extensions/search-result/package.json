@@ -1,13 +1,11 @@
 {
-	"activationEvents": [
-		"onLanguage:search-result"
-	],
+	"name": "search-result",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"main": "./out/extension.js",
 	"browser": "./dist/extension.js",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
+	"scripts": {
+		"generate-grammar": "node ./syntaxes/generateTMLanguage.js"
 	},
 	"contributes": {
 		"configurationDefaults": {
@@ -34,15 +32,17 @@
 			}
 		]
 	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"enabledApiProposals": [
-		"documentFiltersExclusive"
+	"activationEvents": [
+		"onLanguage:search-result"
 	],
 	"icon": "images/icon.png",
-	"main": "./out/extension.js",
-	"name": "search-result",
-	"scripts": {
-		"generate-grammar": "node ./syntaxes/generateTMLanguage.js"
-	}
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
+	},
+	"enabledApiProposals": [
+		"documentFiltersExclusive"
+	]
 }

@@ -1,4 +1,10 @@
 {
+	"name": "dart",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin dart-lang/dart-syntax-highlight grammars/dart.json ./syntaxes/dart.tmLanguage.json"
+	},
 	"contributes": {
 		"grammars": [
 			{
@@ -19,11 +25,5 @@
 				"id": "dart"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "dart",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin dart-lang/dart-syntax-highlight grammars/dart.json ./syntaxes/dart.tmLanguage.json"
 	}
 }

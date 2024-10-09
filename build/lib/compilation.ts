@@ -190,7 +190,7 @@ export function watchTask(out: string, build: boolean, srcPath: string = 'src'):
 	return task;
 }
 
-const REPO_SRC_FOLDER = path.join(__dirname, '../../src');
+const REPO_SRC_FOLDER = path.join(__dirname, '../../Source');
 
 class MonacoGenerator {
 	private readonly _isWatch: boolean;
@@ -311,7 +311,7 @@ function generateApiProposalNames() {
 			const version = versionMatch ? versionMatch[1] : undefined;
 
 			proposals.set(proposalName, {
-				proposal: `https://raw.githubusercontent.com/microsoft/vscode/main/src/vscode-dts/vscode.proposed.${proposalName}.d.ts`,
+				proposal: `https://raw.githubusercontent.com/CodeEditorLand/Editor/Current/Source/vscode-dts/vscode.proposed.${proposalName}.d.ts`,
 				version: version ? parseInt(version) : undefined
 			});
 		}, function () {

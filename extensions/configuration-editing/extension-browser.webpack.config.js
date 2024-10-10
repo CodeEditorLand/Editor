@@ -20,7 +20,7 @@ module.exports = withBrowserDefaults({
 	},
 	resolve: {
 		alias: {
-			'./node/net': path.resolve(__dirname, 'src', 'browser', 'net'),
+			'./node/net': path.resolve(__dirname, 'Source', 'browser', 'net'),
 		}
 	}
 });

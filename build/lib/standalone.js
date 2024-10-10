@@ -10,7 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const tss = require("./treeshaking");
 const REPO_ROOT = path.join(__dirname, '../../');
-const SRC_DIR = path.join(REPO_ROOT, 'src');
+const SRC_DIR = path.join(REPO_ROOT, 'Source');
 const dirCache = {};
 function writeFile(filePath, contents) {
     function ensureDirs(dirPath) {

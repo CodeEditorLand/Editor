@@ -139,7 +139,7 @@ export class StandardWheelEvent {
 		let shouldFactorDPR: boolean = false;
 		if (browser.isChrome) {
 			// Chrome version >= 123 contains the fix to factor devicePixelRatio into the wheel event.
-			// See https://chromium.googlesource.com/chromium/src.git/+/be51b448441ff0c9d1f17e0f25c4bf1ab3f11f61
+
 			const chromeVersionMatch = navigator.userAgent.match(/Chrome\/(\d+)/);
 			const chromeMajorVersion = chromeVersionMatch ? parseInt(chromeVersionMatch[1]) : 123;
 			shouldFactorDPR = chromeMajorVersion <= 122;

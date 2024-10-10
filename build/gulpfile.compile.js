@@ -20,7 +20,7 @@ function makeCompileBuildTask(disableMangle) {
 		util.rimraf('out-build'),
 		date.writeISODate('out-build'),
 		compilation.compileApiProposalNamesTask,
-		compilation.compileTask('src', 'out-build', true, { disableMangle })
+		compilation.compileTask('Source', 'out-build', true, { disableMangle })
 	);
 }
 

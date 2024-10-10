@@ -659,7 +659,7 @@ async function parsePolicies(): Promise<Policy[]> {
 	parser.setLanguage(typescript);
 
 	const files = await getFiles(process.cwd());
-	const base = path.join(process.cwd(), 'src');
+	const base = path.join(process.cwd(), 'Source');
 	const policies = [];
 
 	for (const file of files) {

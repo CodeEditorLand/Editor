@@ -17,7 +17,7 @@ function generatePackageDeps(files, arch, chromiumSysroot, vscodeSysroot) {
     dependencies.push(additionalDepsSet);
     return dependencies;
 }
-// Based on https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/debian/calculate_package_deps.py.
+
 function calculatePackageDeps(binaryPath, arch, chromiumSysroot, vscodeSysroot) {
     try {
         if (!((0, fs_1.statSync)(binaryPath).mode & fs_1.constants.S_IXUSR)) {
@@ -65,7 +65,7 @@ function calculatePackageDeps(binaryPath, arch, chromiumSysroot, vscodeSysroot) 
             depsStr = line.substring(shlibsDependsPrefix.length);
         }
     }
-    // Refs https://chromium-review.googlesource.com/c/chromium/src/+/3572926
+
     // Chromium depends on libgcc_s, is from the package libgcc1.  However, in
     // Bullseye, the package was renamed to libgcc-s1.  To avoid adding a dep
     // on the newer package, this hack skips the dep.  This is safe because

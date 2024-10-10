@@ -43,11 +43,11 @@ export class WebviewProtocolProvider extends Disposable {
 					}
 				});
 			} else {
-				return callback({ error: -10 /* ACCESS_DENIED - https://cs.chromium.org/chromium/src/net/base/net_error_list.h?l=32 */ });
+
 			}
 		} catch {
 			// noop
 		}
-		return callback({ error: -2 /* FAILED - https://cs.chromium.org/chromium/src/net/base/net_error_list.h?l=32 */ });
+
 	}
 }

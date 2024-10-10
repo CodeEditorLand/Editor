@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// Based on https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/rpm/additional_deps
+
 // Additional dependencies not in the rpm find-requires output.
 export const additionalDeps = [
 	'ca-certificates', // Make sure users have SSL certificates.

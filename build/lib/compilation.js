@@ -139,7 +139,7 @@ function compileTask(src, out, build, options = {}) {
     task.taskName = `compile-${path.basename(src)}`;
     return task;
 }
-function watchTask(out, build, srcPath = 'src') {
+function watchTask(out, build, srcPath = 'Source') {
     const task = () => {
         const compile = createCompile(srcPath, { build, emitError: false, transpileOnly: false, preserveEnglish: false });
         const src = gulp.src(`${srcPath}/**`, { base: srcPath });
@@ -293,7 +293,7 @@ const apiProposalNamesReporter = (0, reporter_1.createReporter)('api-proposal-na
 exports.compileApiProposalNamesTask = task.define('compile-api-proposal-names', () => {
     return gulp.src('Source/vscode-dts/**')
         .pipe(generateApiProposalNames())
-        .pipe(gulp.dest('src'))
+        .pipe(gulp.dest('Source'))
         .pipe(apiProposalNamesReporter.end(true));
 });
 exports.watchApiProposalNamesTask = task.define('watch-api-proposal-names', () => {
@@ -302,6 +302,6 @@ exports.watchApiProposalNamesTask = task.define('watch-api-proposal-names', () =
         .pipe(apiProposalNamesReporter.end(true));
     return watch('Source/vscode-dts/**', { readDelay: 200 })
         .pipe(util.debounce(task))
-        .pipe(gulp.dest('src'));
+        .pipe(gulp.dest('Source'));
 });
 //# sourceMappingURL=compilation.js.map

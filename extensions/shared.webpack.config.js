@@ -91,7 +91,7 @@ function nodePlugins(context) {
 	return [
 		new CopyWebpackPlugin({
 			patterns: [
-				{ from: 'src', to: '.', globOptions: { ignore: ['**/test/**', '**/*.ts'] }, noErrorOnMissing: true }
+				{ from: 'Source', to: '.', globOptions: { ignore: ['**/test/**', '**/*.ts'] }, noErrorOnMissing: true }
 			]
 		})
 	];
@@ -188,7 +188,7 @@ function browserPlugins(context) {
 		}),
 		new CopyWebpackPlugin({
 			patterns: [
-				{ from: 'src', to: '.', globOptions: { ignore: ['**/test/**', '**/*.ts'] }, noErrorOnMissing: true }
+				{ from: 'Source', to: '.', globOptions: { ignore: ['**/test/**', '**/*.ts'] }, noErrorOnMissing: true }
 			]
 		}),
 		new DefinePlugin({

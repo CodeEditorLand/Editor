@@ -143,7 +143,7 @@ function patchGlobalFetch(configProvider: ExtHostConfigProvider, mainThreadTelem
 				monitorResponseProperties(mainThreadTelemetry, response, urlString);
 				return response;
 			}
-			// Unsupported headers: https://source.chromium.org/chromium/chromium/src/+/main:services/network/public/cpp/header_util.cc;l=32;drc=ee7299f8961a1b05a3554efcc496b6daa0d7f6e1
+
 			if (init?.headers) {
 				const headers = new Headers(init.headers);
 				for (const header of unsafeHeaders) {

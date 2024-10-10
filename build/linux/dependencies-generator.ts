@@ -25,7 +25,7 @@ import product = require('../../product.json');
 // are valid, are in dep-lists.ts
 const FAIL_BUILD_FOR_NEW_DEPENDENCIES: boolean = true;
 
-// Based on https://source.chromium.org/chromium/chromium/src/+/refs/tags/128.0.6613.162:chrome/installer/linux/BUILD.gn;l=64-80
+
 // and the Linux Archive build
 // Shared library dependencies that we already bundle.
 const bundledDeps = [
@@ -103,7 +103,7 @@ export async function getDependencies(packageType: 'deb' | 'rpm', buildDir: stri
 }
 
 
-// Based on https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/rpm/merge_package_deps.py.
+
 function mergePackageDeps(inputDeps: Set<string>[]): Set<string> {
 	const requires = new Set<string>();
 	for (const depSet of inputDeps) {

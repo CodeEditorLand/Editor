@@ -12,7 +12,7 @@ import { createHash } from 'crypto';
 import { DebianArchString } from './types';
 import * as ansiColors from 'ansi-colors';
 
-// Based on https://source.chromium.org/chromium/chromium/src/+/main:build/linux/sysroot_scripts/install-sysroot.py.
+
 const URL_PREFIX = 'https://msftelectronbuild.z5.web.core.windows.net';
 const URL_PATH = 'sysroots/toolchain';
 const REPO_ROOT = path.dirname(path.dirname(path.dirname(__dirname)));

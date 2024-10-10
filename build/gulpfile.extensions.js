@@ -83,7 +83,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 	const name = relativeDirname.replace(/\//g, '-');
 
 	const srcRoot = path.dirname(tsconfigFile);
-	const srcBase = path.join(srcRoot, 'src');
+	const srcBase = path.join(srcRoot, 'Source');
 	const src = path.join(srcBase, '**');
 	const srcOpts = { cwd: root, base: srcBase, dot: true };
 

@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as tss from './treeshaking';
 
 const REPO_ROOT = path.join(__dirname, '../../');
-const SRC_DIR = path.join(REPO_ROOT, 'src');
+const SRC_DIR = path.join(REPO_ROOT, 'Source');
 
 const dirCache: { [dir: string]: boolean } = {};
 

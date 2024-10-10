@@ -315,7 +315,7 @@ const RULES: IRule[] = [
 	}
 ];
 
-const TS_CONFIG_PATH = join(__dirname, '../../', 'src', 'tsconfig.json');
+const TS_CONFIG_PATH = join(__dirname, '../../', 'Source', 'tsconfig.json');
 
 interface IRule {
 	target: string;

@@ -170,7 +170,7 @@ export function compileTask(src: string, out: string, build: boolean, options: {
 	return task;
 }
 
-export function watchTask(out: string, build: boolean, srcPath: string = 'src'): task.StreamTask {
+export function watchTask(out: string, build: boolean, srcPath: string = 'Source'): task.StreamTask {
 
 	const task = () => {
 		const compile = createCompile(srcPath, { build, emitError: false, transpileOnly: false, preserveEnglish: false });
@@ -350,7 +350,7 @@ const apiProposalNamesReporter = createReporter('api-proposal-names');
 export const compileApiProposalNamesTask = task.define('compile-api-proposal-names', () => {
 	return gulp.src('Source/vscode-dts/**')
 		.pipe(generateApiProposalNames())
-		.pipe(gulp.dest('src'))
+		.pipe(gulp.dest('Source'))
 		.pipe(apiProposalNamesReporter.end(true));
 });
 
@@ -361,5 +361,5 @@ export const watchApiProposalNamesTask = task.define('watch-api-proposal-names',
 
 	return watch('Source/vscode-dts/**', { readDelay: 200 })
 		.pipe(util.debounce(task))
-		.pipe(gulp.dest('src'));
+		.pipe(gulp.dest('Source'));
 });

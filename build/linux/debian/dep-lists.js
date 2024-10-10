@@ -5,7 +5,7 @@
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.referenceGeneratedDepsByArch = exports.recommendedDeps = exports.additionalDeps = void 0;
-// Based on https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/debian/additional_deps
+
 // Additional dependencies not in the dpkg-shlibdeps output.
 exports.additionalDeps = [
     'ca-certificates', // Make sure users have SSL certificates.
@@ -14,7 +14,7 @@ exports.additionalDeps = [
     'libcurl3-gnutls | libcurl3-nss | libcurl4 | libcurl3', // For Breakpad crash reports.
     'xdg-utils (>= 1.0.2)', // OS integration
 ];
-// Based on https://source.chromium.org/chromium/chromium/src/+/main:chrome/installer/linux/debian/manual_recommends
+
 // Dependencies that we can only recommend
 // for now since some of the older distros don't support them.
 exports.recommendedDeps = [

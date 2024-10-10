@@ -149,7 +149,7 @@ function getImageCSSNode(editor: TextEditor, position: Position): Property | nul
  * Returns image source from given <img> node
  */
 function getImageSrcHTML(node: HtmlNode): string | undefined {
-	const srcAttr = getAttribute(node, 'src');
+	const srcAttr = getAttribute(node, 'Source');
 	if (!srcAttr) {
 		return;
 	}

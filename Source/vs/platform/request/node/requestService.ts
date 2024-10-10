@@ -179,7 +179,7 @@ export async function nodeRequest(options: NodeRequestOptions, token: Cancellati
 				// from browser, which will apply gzip filter and decompress the response
 				// using zlib before passing the result to us. Following step can be bypassed
 				// in this case and proceed further.
-				// Refs https://source.chromium.org/chromium/chromium/src/+/main:net/url_request/url_request_http_job.cc;l=1266-1318
+
 				if (!options.isChromiumNetwork && res.headers['content-encoding'] === 'gzip') {
 					stream = res.pipe(createGunzip());
 				}
@@ -195,7 +195,7 @@ export async function nodeRequest(options: NodeRequestOptions, token: Cancellati
 		}
 
 		// Chromium will abort the request if forbidden headers are set.
-		// Ref https://source.chromium.org/chromium/chromium/src/+/main:services/network/public/cpp/header_util.cc;l=14-48;
+
 		// for additional context.
 		if (options.isChromiumNetwork) {
 			req.removeHeader('Content-Length');

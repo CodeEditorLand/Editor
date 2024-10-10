@@ -210,6 +210,29 @@ export class InlineEditsView extends Disposable {
 			const layoutInfo = this._previewEditorLayoutInfo.read(reader);
 			if (!layoutInfo) {
 				this._indicator.root.style.visibility = 'hidden';
+				return;
+			}
+
+			this._indicator.root.style.visibility = '';
+			const i = this._editorObs.layoutInfo.read(reader);
+
+			const range = new OffsetRange(0, i.height - 30);
+
+			const topEdit = layoutInfo.edit1;
+			this._indicator.root.classList.toggle('top', topEdit.y < range.start);
+			this._indicator.root.classList.toggle('bottom', topEdit.y > range.endExclusive);
+			const showAnyway = !this._diffViewInformation.read(reader);
+			this._indicator.root.classList.toggle('visible', showAnyway);
+			this._indicator.root.classList.toggle('contained', range.contains(topEdit.y));
+
+
+			this._indicator.root.style.top = `${range.clip(topEdit.y)}px`;
+			this._indicator.root.style.right = `${i.minimap.minimapWidth + i.verticalScrollbarWidth}px`;
+		}));
+
+		this._register(autorun(reader => {
+			const layoutInfo = this._previewEditorLayoutInfo.read(reader);
+			if (!layoutInfo) {
 				this._elements.path.style.visibility = 'hidden';
 				return;
 			}

@@ -210,6 +210,7 @@ export class InlineEditsView extends Disposable {
 			const layoutInfo = this._previewEditorLayoutInfo.read(reader);
 			if (!layoutInfo) {
 				this._indicator.root.style.visibility = 'hidden';
+				this._elements.path.style.visibility = 'hidden';
 				return;
 			}
 

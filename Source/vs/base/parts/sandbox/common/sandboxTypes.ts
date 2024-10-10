@@ -61,7 +61,7 @@ export interface ISandboxConfiguration {
 
 		/**
 		 * All NLS messages produced by `localize` and `localize2` calls
-		 * under `src/vs`.
+		 * under `Source/vs`.
 		 */
 		messages: string[];
 

@@ -354,7 +354,7 @@
 					throw new Error(`'crypto.subtle' is not available so webviews will not work. This is likely because the editor is not running in a secure context (https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts).`);
 				}
 
-				// Here the `parentOriginHash()` function from `src/vs/workbench/common/webview.ts` is inlined
+				// Here the `parentOriginHash()` function from `Source/vs/workbench/common/webview.ts` is inlined
 				// compute a sha-256 composed of `parentOrigin` and `salt` converted to base 32
 				let parentOriginHash;
 				try {

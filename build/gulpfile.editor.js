@@ -66,7 +66,7 @@ const extractEditorSrcTask = task.define('extract-editor-src', () => {
 	const apiusages = monacoapi.execute().usageContent;
 	const extrausages = fs.readFileSync(path.join(root, 'build', 'monaco', 'monaco.usage.recipe')).toString();
 	standalone.extractEditor({
-		sourcesRoot: path.join(root, 'src'),
+		sourcesRoot: path.join(root, 'Source'),
 		entryPoints: [
 			'vs/editor/editor.main',
 			'vs/editor/editor.worker',
@@ -257,11 +257,11 @@ const finalEditorResourcesTask = task.define('final-editor-resources', () => {
 		es.merge(
 			gulp.src('build/monaco/LICENSE'),
 			gulp.src('build/monaco/ThirdPartyNotices.txt'),
-			gulp.src('src/vs/monaco.d.ts')
+			gulp.src('Source/vs/monaco.d.ts')
 		).pipe(gulp.dest('out-monaco-editor-core')),
 
 		// place the .d.ts in the esm folder
-		gulp.src('src/vs/monaco.d.ts')
+		gulp.src('Source/vs/monaco.d.ts')
 			.pipe(es.through(function (data) {
 				this.emit('data', new File({
 					path: data.path.replace(/monaco\.d\.ts/, 'editor.api.d.ts'),
@@ -387,7 +387,7 @@ gulp.task('editor-esm',
 gulp.task('monacodts', task.define('monacodts', () => {
 	const result = monacoapi.execute();
 	fs.writeFileSync(result.filePath, result.content);
-	fs.writeFileSync(path.join(root, 'src/vs/editor/common/standalone/standaloneEnums.ts'), result.enums);
+	fs.writeFileSync(path.join(root, 'Source/vs/editor/common/standalone/standaloneEnums.ts'), result.enums);
 	return Promise.resolve(true);
 }));
 
@@ -427,7 +427,7 @@ function createTscCompileTask(watch) {
 					const match = /(.*\(\d+,\d+\): )(.*: )(.*)/.exec(str);
 					if (match) {
 						// trying to massage the message so that it matches the gulp-tsb error messages
-						// e.g. src/vs/base/common/strings.ts(663,5): error TS2322: Type '1234' is not assignable to type 'string'.
+						// e.g. Source/vs/base/common/strings.ts(663,5): error TS2322: Type '1234' is not assignable to type 'string'.
 						const fullpath = path.join(root, match[1]);
 						const message = match[3];
 						reporter(fullpath + message);

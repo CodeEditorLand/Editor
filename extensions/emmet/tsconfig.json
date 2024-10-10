@@ -9,6 +9,6 @@
 	],
 	"include": [
 		"src/**/*",
-		"../../src/vscode-dts/vscode.d.ts"
+		"../../Source/vscode-dts/vscode.d.ts"
 	]
 }

@@ -750,7 +750,7 @@ function normalize(path: string): string {
 
 async function _run() {
 	const root = path.join(__dirname, '..', '..', '..');
-	const projectBase = path.join(root, 'src');
+	const projectBase = path.join(root, 'Source');
 	const projectPath = path.join(projectBase, 'tsconfig.json');
 	const newProjectBase = path.join(path.dirname(projectBase), path.basename(projectBase) + '2');
 

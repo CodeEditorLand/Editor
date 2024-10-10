@@ -132,7 +132,7 @@ export function compileTask(src: string, out: string, build: boolean, options: {
 		const compile = createCompile(src, { build, emitError: true, transpileOnly: false, preserveEnglish: !!options.preserveEnglish });
 		const srcPipe = gulp.src(`${src}/**`, { base: `${src}` });
 		const generator = new MonacoGenerator(false);
-		if (src === 'src') {
+		if (src === 'Source') {
 			generator.execute();
 		}
 
@@ -282,7 +282,7 @@ function generateApiProposalNames() {
 	let eol: string;
 
 	try {
-		const src = fs.readFileSync('src/vs/platform/extensions/common/extensionsApiProposals.ts', 'utf-8');
+		const src = fs.readFileSync('Source/vs/platform/extensions/common/extensionsApiProposals.ts', 'utf-8');
 		const match = /\r?\n/m.exec(src);
 		eol = match ? match[0] : os.EOL;
 	} catch {
@@ -311,7 +311,7 @@ function generateApiProposalNames() {
 			const version = versionMatch ? versionMatch[1] : undefined;
 
 			proposals.set(proposalName, {
-				proposal: `https://raw.githubusercontent.com/microsoft/vscode/main/src/vscode-dts/vscode.proposed.${proposalName}.d.ts`,
+				proposal: `https://raw.githubusercontent.com/CodeEditorLand/Editor/Current/Source/vscode-dts/vscode.proposed.${proposalName}.d.ts`,
 				version: version ? parseInt(version) : undefined
 			});
 		}, function () {
@@ -348,18 +348,18 @@ function generateApiProposalNames() {
 const apiProposalNamesReporter = createReporter('api-proposal-names');
 
 export const compileApiProposalNamesTask = task.define('compile-api-proposal-names', () => {
-	return gulp.src('src/vscode-dts/**')
+	return gulp.src('Source/vscode-dts/**')
 		.pipe(generateApiProposalNames())
 		.pipe(gulp.dest('src'))
 		.pipe(apiProposalNamesReporter.end(true));
 });
 
 export const watchApiProposalNamesTask = task.define('watch-api-proposal-names', () => {
-	const task = () => gulp.src('src/vscode-dts/**')
+	const task = () => gulp.src('Source/vscode-dts/**')
 		.pipe(generateApiProposalNames())
 		.pipe(apiProposalNamesReporter.end(true));
 
-	return watch('src/vscode-dts/**', { readDelay: 200 })
+	return watch('Source/vscode-dts/**', { readDelay: 200 })
 		.pipe(util.debounce(task))
 		.pipe(gulp.dest('src'));
 });

@@ -22,7 +22,7 @@
 declare global {
 	/**
 	 * All NLS messages produced by `localize` and `localize2` calls
-	 * under `src/vs` translated to the language as indicated by
+	 * under `Source/vs` translated to the language as indicated by
 	 * `_VSCODE_NLS_LANGUAGE`.
 	 *
 	 * Instead of accessing this global variable directly, use function getNLSMessages.

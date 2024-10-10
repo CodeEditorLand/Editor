@@ -18,7 +18,7 @@ function findNodeModulesFiles(location: string, inNodeModules: boolean, result: 
 	for (const entry of entries) {
 		const entryPath = `${location}/${entry}`;
 
-		if (/(^\/out)|(^\/src$)|(^\/.git$)|(^\/.build$)/.test(entryPath)) {
+		if (/(^\/out)|(^\/Source$)|(^\/.git$)|(^\/.build$)/.test(entryPath)) {
 			continue;
 		}
 

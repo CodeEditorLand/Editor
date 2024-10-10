@@ -22,12 +22,12 @@ interface ServerReadyAction {
 	killOnServerStop?: boolean;
 }
 
-// From src/vs/base/common/strings.ts
+// From Source/vs/base/common/strings.ts
 const CSI_SEQUENCE = /(?:(?:\x1b\[|\x9B)[=?>!]?[\d;:]*["$#'* ]?[a-zA-Z@^`{}|~])|(:?\x1b\].*?\x07)/g;
 
 /**
  * Froms vs/base/common/strings.ts in core
- * @see https://github.com/microsoft/vscode/blob/22a2a0e833175c32a2005b977d7fbd355582e416/src/vs/base/common/strings.ts#L736
+ * @see https://github.com/microsoft/vscode/blob/22a2a0e833175c32a2005b977d7fbd355582e416/Source/vs/base/common/strings.ts#L736
  */
 function removeAnsiEscapeCodes(str: string): string {
 	if (str) {

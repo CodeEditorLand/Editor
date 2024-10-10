@@ -27,7 +27,7 @@ import { NotebookDocumentMetadataTextModel } from '../../common/model/notebookMe
 
 const PropertyHeaderHeight = 25;
 
-// From `.monaco-editor .diff-hidden-lines .center` in src/vs/editor/browser/widget/diffEditor/style.css
+// From `.monaco-editor .diff-hidden-lines .center` in Source/vs/editor/browser/widget/diffEditor/style.css
 export const HeightOfHiddenLinesRegionInDiffEditor = 24;
 
 export const DefaultLineHeight = 17;

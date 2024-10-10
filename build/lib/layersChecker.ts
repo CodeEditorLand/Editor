@@ -252,7 +252,7 @@ const RULES: IRule[] = [
 
 	// Browser (editor contrib)
 	{
-		target: '**/src/vs/editor/contrib/**',
+		target: '**/Source/vs/editor/contrib/**',
 		allowedTypes: CORE_TYPES,
 		disallowedTypes: NATIVE_TYPES,
 		disallowedDefinitions: [

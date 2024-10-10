@@ -28,7 +28,7 @@
 			return sendError(new Error(`Cannot validate in current context!`));
 		}
 
-		// Here the `parentOriginHash()` function from `src/vs/base/browser/iframe.ts` is inlined
+		// Here the `parentOriginHash()` function from `Source/vs/base/browser/iframe.ts` is inlined
 		// compute a sha-256 composed of `parentOrigin` and `salt` converted to base 32
 		/** @type {string} */
 		let parentOriginHash;

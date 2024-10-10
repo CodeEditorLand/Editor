@@ -73,7 +73,7 @@ async function getClient(instrumentationKey: string, addInternalFlag?: boolean, 
 	return appInsightsCore;
 }
 
-// TODO @lramos15 maybe make more in line with src/vs/platform/telemetry/browser/appInsightsAppender.ts with caching support
+// TODO @lramos15 maybe make more in line with Source/vs/platform/telemetry/browser/appInsightsAppender.ts with caching support
 export abstract class AbstractOneDataSystemAppender implements ITelemetryAppender {
 
 	protected _aiCoreOrKey: IAppInsightsCore | string | undefined;

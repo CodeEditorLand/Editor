@@ -225,12 +225,6 @@ export function createTypeScriptBuilder(config: IConfiguration, projectFile: str
 										});
 
 										sourceMap = JSON.parse(smg.toString());
-
-										// const filename = '/Users/jrieken/Code/vscode/src2/' + vinyl.relative + '.map';
-										// fs.promises.mkdir(path.dirname(filename), { recursive: true }).then(async () => {
-										// 	await fs.promises.writeFile(filename, smg.toString());
-										// 	await fs.promises.writeFile('/Users/jrieken/Code/vscode/src2/' + vinyl.relative, vinyl.contents);
-										// });
 									}
 								}
 

@@ -24,7 +24,7 @@ export function deepClone<T>(obj: T): T {
 	return result;
 }
 
-// from https://github.com/microsoft/vscode/blob/43ae27a30e7b5e8711bf6b218ee39872ed2b8ef6/src/vs/base/common/objects.ts#L117
+// from https://github.com/microsoft/vscode/blob/43ae27a30e7b5e8711bf6b218ee39872ed2b8ef6/Source/vs/base/common/objects.ts#L117
 export function objectEquals(one: any, other: any) {
 	if (one === other) {
 		return true;
@@ -145,7 +145,7 @@ export interface ITask<T> {
 
 
 /**
- * Copied from src/vs/base/common/uuid.ts
+ * Copied from Source/vs/base/common/uuid.ts
  */
 export function generateUuid() {
 	// use `randomValues` if possible

@@ -156,7 +156,7 @@ const compileEditorESMTask = task.define('compile-editor-esm', () => {
 
 				// copy files from src
 				for (const file of files) {
-					const srcFilePath = path.join(__dirname, '../src', file);
+					const srcFilePath = path.join(__dirname, '../Source', file);
 					const dstFilePath = path.join(destPath, file);
 					if (fs.existsSync(srcFilePath)) {
 						util.ensureDir(path.dirname(dstFilePath));

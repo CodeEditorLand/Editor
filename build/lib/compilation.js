@@ -154,7 +154,7 @@ function watchTask(out, build, srcPath = 'src') {
     task.taskName = `watch-${path.basename(out)}`;
     return task;
 }
-const REPO_SRC_FOLDER = path.join(__dirname, '../../src');
+const REPO_SRC_FOLDER = path.join(__dirname, '../../Source');
 class MonacoGenerator {
     _isWatch;
     stream;

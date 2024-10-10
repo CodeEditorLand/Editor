@@ -190,7 +190,7 @@ export function watchTask(out: string, build: boolean, srcPath: string = 'src'):
 	return task;
 }
 
-const REPO_SRC_FOLDER = path.join(__dirname, '../../src');
+const REPO_SRC_FOLDER = path.join(__dirname, '../../Source');
 
 class MonacoGenerator {
 	private readonly _isWatch: boolean;

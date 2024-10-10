@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"outDir": "./out",
 		"sourceMap": true,
-		"sourceRoot": "../src",
+		"sourceRoot": "../Source",
 		"lib": [
 			"ES2020",
 			"WebWorker"

@@ -324,7 +324,7 @@ export class Color {
 	 * Reduces the "foreground" color on this "background" color unti it is
 	 * below the relative luminace ratio.
 	 * @returns the new foreground color
-	 * @see https://github.com/xtermjs/xterm.js/blob/44f9fa39ae03e2ca6d28354d88a399608686770e/src/common/Color.ts#L315
+	 * @see https://github.com/xtermjs/xterm.js/blob/44f9fa39ae03e2ca6d28354d88a399608686770e/Source/common/Color.ts#L315
 	 */
 	reduceRelativeLuminace(foreground: Color, ratio: number): Color {
 		// This is a naive but fast approach to reducing luminance as converting to
@@ -347,7 +347,7 @@ export class Color {
 	 * Increases the "foreground" color on this "background" color unti it is
 	 * below the relative luminace ratio.
 	 * @returns the new foreground color
-	 * @see https://github.com/xtermjs/xterm.js/blob/44f9fa39ae03e2ca6d28354d88a399608686770e/src/common/Color.ts#L335
+	 * @see https://github.com/xtermjs/xterm.js/blob/44f9fa39ae03e2ca6d28354d88a399608686770e/Source/common/Color.ts#L335
 	 */
 	increaseRelativeLuminace(foreground: Color, ratio: number): Color {
 		// This is a naive but fast approach to reducing luminance as converting to
@@ -410,7 +410,7 @@ export class Color {
 	}
 
 	/**
-	 * Based on xterm.js: https://github.com/xtermjs/xterm.js/blob/44f9fa39ae03e2ca6d28354d88a399608686770e/src/common/Color.ts#L288
+	 * Based on xterm.js: https://github.com/xtermjs/xterm.js/blob/44f9fa39ae03e2ca6d28354d88a399608686770e/Source/common/Color.ts#L288
 	 *
 	 * Given a foreground color and a background color, either increase or reduce the luminance of the
 	 * foreground color until the specified contrast ratio is met. If pure white or black is hit

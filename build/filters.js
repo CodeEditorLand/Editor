@@ -115,7 +115,7 @@ module.exports.indentationFilter = [
 
 	// except specific file types
 	'!Source/vs/*/**/*.d.ts',
-	'!src/typings/**/*.d.ts',
+	'!Source/typings/**/*.d.ts',
 	'!extensions/**/*.d.ts',
 	'!**/*.{svg,exe,png,bmp,jpg,scpt,bat,cmd,cur,ttf,woff,eot,md,ps1,psm1,template,yaml,yml,d.ts.recipe,ico,icns,plist,opus,admx,adml,wasm}',
 	'!build/{lib,download,linux,darwin}/**/*.js',
@@ -181,7 +181,7 @@ module.exports.tsFormattingFilter = [
 	'test/**/*.ts',
 	'extensions/**/*.ts',
 	'!Source/vs/*/**/*.d.ts',
-	'!src/typings/**/*.d.ts',
+	'!Source/typings/**/*.d.ts',
 	'!extensions/**/*.d.ts',
 	'!**/fixtures/**',
 	'!**/typings/**',

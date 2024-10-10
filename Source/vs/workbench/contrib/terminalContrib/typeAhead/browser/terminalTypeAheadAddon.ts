@@ -1083,7 +1083,7 @@ const arrayHasPrefixAt = <T>(a: ReadonlyArray<T>, ai: number, b: ReadonlyArray<T
 };
 
 /**
- * @see https://github.com/xtermjs/xterm.js/blob/065eb13a9d3145bea687239680ec9696d9112b8e/src/common/InputHandler.ts#L2127
+ * @see https://github.com/xtermjs/xterm.js/blob/065eb13a9d3145bea687239680ec9696d9112b8e/Source/common/InputHandler.ts#L2127
  */
 const getColorWidth = (params: (number | number[])[], pos: number) => {
 	const accu = [0, 0, -1, 0, 0, 0];
@@ -1473,7 +1473,7 @@ export class TypeAheadAddon extends Disposable implements ITerminalAddon {
 				? this._timeline!.addBoundary(buffer, p)
 				: this._timeline!.addPrediction(buffer, p);
 
-		/** @see https://github.com/xtermjs/xterm.js/blob/1913e9512c048e3cf56bb5f5df51bfff6899c184/src/common/input/Keyboard.ts */
+		/** @see https://github.com/xtermjs/xterm.js/blob/1913e9512c048e3cf56bb5f5df51bfff6899c184/Source/common/input/Keyboard.ts */
 		const reader = new StringReader(data);
 		while (reader.remaining > 0) {
 			if (reader.eatCharCode(127)) { // backspace

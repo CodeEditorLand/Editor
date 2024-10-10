@@ -13,7 +13,7 @@ const dtsv = '3';
 
 const tsfmt = require('../../tsfmt.json');
 
-const SRC = path.join(__dirname, '../../src');
+const SRC = path.join(__dirname, '../../Source');
 export const RECIPE_PATH = path.join(__dirname, '../monaco/monaco.d.ts.recipe');
 const DECLARATION_PATH = path.join(__dirname, '../../Source/vs/monaco.d.ts');
 

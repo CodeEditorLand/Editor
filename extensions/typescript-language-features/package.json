@@ -1801,13 +1801,13 @@
 		]
 	},
 	"dependencies": {
-		"jsonc-parser": "^3.2.0",
+		"jsonc-parser": "3.2.0",
 		"semver": "7.5.2"
 	},
 	"description": "%description%",
 	"devDependencies": {
 		"@types/node": "20.x",
-		"@types/semver": "^5.5.0"
+		"@types/semver": "5.5.0"
 	},
 	"displayName": "%displayName%",
 	"enabledApiProposals": [

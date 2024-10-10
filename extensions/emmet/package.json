@@ -462,7 +462,7 @@
 		}
 	},
 	"dependencies": {
-		"image-size": "~1.0.0"
+		"image-size": "1.0.0"
 	},
 	"description": "%description%",
 	"devDependencies": {

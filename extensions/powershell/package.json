@@ -1,10 +1,4 @@
 {
-	"name": "powershell",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin PowerShell/EditorSyntax PowerShellSyntax.tmLanguage ./syntaxes/powershell.tmLanguage.json"
-	},
 	"contributes": {
 		"grammars": [
 			{
@@ -34,5 +28,11 @@
 				"id": "powershell"
 			}
 		]
+	},
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "powershell",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin PowerShell/EditorSyntax PowerShellSyntax.tmLanguage ./syntaxes/powershell.tmLanguage.json"
 	}
 }

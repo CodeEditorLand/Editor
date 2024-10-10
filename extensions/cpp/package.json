@@ -1,10 +1,4 @@
 {
-	"name": "cpp",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"scripts": {
-		"update-grammar": "node ./build/update-grammars.js"
-	},
 	"contributes": {
 		"grammars": [
 			{
@@ -122,5 +116,11 @@
 				"path": "./snippets/cpp.code-snippets"
 			}
 		]
+	},
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "cpp",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammars.js"
 	}
 }

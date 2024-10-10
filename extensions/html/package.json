@@ -1,10 +1,4 @@
 {
-	"name": "html",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"scripts": {
-		"update-grammar": "node ./build/update-grammar.mjs"
-	},
 	"contributes": {
 		"grammars": [
 			{
@@ -77,5 +71,11 @@
 				"path": "./snippets/html.code-snippets"
 			}
 		]
+	},
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "html",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammar.mjs"
 	}
 }

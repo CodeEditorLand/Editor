@@ -1,10 +1,4 @@
 {
-	"name": "razor",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"scripts": {
-		"update-grammar": "node ./build/update-grammar.mjs"
-	},
 	"contributes": {
 		"grammars": [
 			{
@@ -35,5 +29,11 @@
 				]
 			}
 		]
+	},
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "razor",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammar.mjs"
 	}
 }

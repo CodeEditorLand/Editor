@@ -1,12 +1,15 @@
 {
-	"name": "html-language-features",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"main": "./client/out/node/htmlClientMain",
+	"activationEvents": [
+		"onLanguage:html",
+		"onLanguage:handlebars"
+	],
+	"aiKey": "0c6ae279ed8443289764825290e4f9e2-1a736e7c-1324-4338-be46-fc2a58ae4d14-7255",
 	"browser": "./client/dist/browser/htmlClientMain",
-	"scripts": {
-		"compile": "npx gulp compile-extension:html-language-features-client compile-extension:html-language-features-server",
-		"install-client-next": "npm install vscode-languageclient@next"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
 	},
 	"contributes": {
 		"configuration": {
@@ -232,23 +235,20 @@
 			}
 		]
 	},
-	"activationEvents": [
-		"onLanguage:html",
-		"onLanguage:handlebars"
-	],
 	"dependencies": {},
+	"description": "%description%",
 	"devDependencies": {
 		"@types/node": "22.x"
 	},
-	"icon": "icons/html.png",
-	"aiKey": "0c6ae279ed8443289764825290e4f9e2-1a736e7c-1324-4338-be46-fc2a58ae4d14-7255",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
-	},
+	"displayName": "%displayName%",
 	"enabledApiProposals": [
 		"extensionsAny"
-	]
+	],
+	"icon": "icons/html.png",
+	"main": "./client/out/node/htmlClientMain",
+	"name": "html-language-features",
+	"scripts": {
+		"compile": "npx gulp compile-extension:html-language-features-client compile-extension:html-language-features-server",
+		"install-client-next": "npm install vscode-languageclient@next"
+	}
 }

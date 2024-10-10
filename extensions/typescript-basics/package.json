@@ -1,10 +1,4 @@
 {
-	"name": "typescript",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"scripts": {
-		"update-grammar": "node ./build/update-grammars.mjs"
-	},
 	"contributes": {
 		"grammars": [
 			{
@@ -190,5 +184,11 @@
 				"path": "./snippets/typescript.code-snippets"
 			}
 		]
+	},
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "typescript",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammars.mjs"
 	}
 }

@@ -1,12 +1,15 @@
 {
-	"name": "ipynb",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"main": "./out/ipynbMain.node.js",
+	"activationEvents": [
+		"onNotebook:jupyter-notebook",
+		"onNotebookSerializer:interactive",
+		"onNotebookSerializer:repl"
+	],
 	"browser": "./dist/browser/ipynbMain.browser.js",
-	"scripts": {
-		"build-notebook": "node ./esbuild",
-		"compile": "npx gulp compile-extension:ipynb && npm run build-notebook"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
 	},
 	"contributes": {
 		"commands": [
@@ -122,26 +125,16 @@
 			}
 		]
 	},
-	"activationEvents": [
-		"onNotebook:jupyter-notebook",
-		"onNotebookSerializer:interactive",
-		"onNotebookSerializer:repl"
-	],
 	"dependencies": {
 		"@enonic/fnv-plus": "1.3.0",
 		"detect-indent": "7.0.1"
 	},
+	"description": "%description%",
 	"devDependencies": {
 		"@jupyterlab/nbformat": "4.2.5",
 		"@types/markdown-it": "14.1.2"
 	},
-	"icon": "media/icon.png",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
-	},
+	"displayName": "%displayName%",
 	"enabledApiProposals": [
 		"documentPaste",
 		"diffContentOptions"
@@ -149,5 +142,12 @@
 	"extensionKind": [
 		"workspace",
 		"ui"
-	]
+	],
+	"icon": "media/icon.png",
+	"main": "./out/ipynbMain.node.js",
+	"name": "ipynb",
+	"scripts": {
+		"build-notebook": "node ./esbuild",
+		"compile": "npx gulp compile-extension:ipynb && npm run build-notebook"
+	}
 }

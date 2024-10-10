@@ -1,15 +1,15 @@
 {
-	"name": "vscode-extensions",
-	"description": "Dependencies shared by all extensions",
-	"scripts": {},
 	"dependencies": {},
+	"description": "Dependencies shared by all extensions",
 	"devDependencies": {
 		"esbuild": "0.24.0"
 	},
+	"name": "vscode-extensions",
 	"overrides": {
 		"@parcel/watcher@2.1.0": {
 			"node-addon-api": "7.1.0"
 		},
 		"node-gyp-build": "4.8.1"
-	}
+	},
+	"scripts": {}
 }

@@ -1,11 +1,16 @@
 {
-	"name": "configuration-editing",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"main": "./out/configurationEditingMain",
+	"activationEvents": [
+		"onProfile",
+		"onProfile:github",
+		"onLanguage:json",
+		"onLanguage:jsonc"
+	],
 	"browser": "./dist/browser/configurationEditingMain",
-	"scripts": {
-		"compile": "gulp compile-extension:configuration-editing"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
 	},
 	"contributes": {
 		"jsonValidation": [
@@ -135,28 +140,23 @@
 			}
 		]
 	},
-	"activationEvents": [
-		"onProfile",
-		"onProfile:github",
-		"onLanguage:json",
-		"onLanguage:jsonc"
-	],
 	"dependencies": {
 		"@octokit/rest": "21.0.2",
 		"jsonc-parser": "3.3.1",
 		"tunnel": "0.0.6"
 	},
+	"description": "%description%",
 	"devDependencies": {
 		"@types/node": "22.x"
 	},
-	"icon": "images/icon.png",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
-	},
+	"displayName": "%displayName%",
 	"enabledApiProposals": [
 		"profileContentHandlers"
-	]
+	],
+	"icon": "images/icon.png",
+	"main": "./out/configurationEditingMain",
+	"name": "configuration-editing",
+	"scripts": {
+		"compile": "gulp compile-extension:configuration-editing"
+	}
 }

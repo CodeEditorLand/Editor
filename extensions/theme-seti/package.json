@@ -1,10 +1,4 @@
 {
-	"name": "vscode-theme-seti",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"scripts": {
-		"update": "node ./build/update-icon-theme.js"
-	},
 	"contributes": {
 		"iconThemes": [
 			{
@@ -14,5 +8,11 @@
 			}
 		]
 	},
-	"icon": "icons/seti-circular-128x128.png"
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"icon": "icons/seti-circular-128x128.png",
+	"name": "vscode-theme-seti",
+	"scripts": {
+		"update": "node ./build/update-icon-theme.js"
+	}
 }

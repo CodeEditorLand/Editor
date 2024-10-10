@@ -1,11 +1,13 @@
 {
-	"name": "search-result",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"main": "./out/extension.js",
+	"activationEvents": [
+		"onLanguage:search-result"
+	],
 	"browser": "./dist/extension.js",
-	"scripts": {
-		"generate-grammar": "node ./syntaxes/generateTMLanguage.js"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
 	},
 	"contributes": {
 		"configurationDefaults": {
@@ -32,17 +34,15 @@
 			}
 		]
 	},
-	"activationEvents": [
-		"onLanguage:search-result"
-	],
-	"icon": "images/icon.png",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
-	},
+	"description": "%description%",
+	"displayName": "%displayName%",
 	"enabledApiProposals": [
 		"documentFiltersExclusive"
-	]
+	],
+	"icon": "images/icon.png",
+	"main": "./out/extension.js",
+	"name": "search-result",
+	"scripts": {
+		"generate-grammar": "node ./syntaxes/generateTMLanguage.js"
+	}
 }

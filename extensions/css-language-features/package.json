@@ -1,12 +1,16 @@
 {
-	"name": "css-language-features",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"main": "./client/out/node/cssClientMain",
+	"activationEvents": [
+		"onLanguage:css",
+		"onLanguage:less",
+		"onLanguage:scss",
+		"onCommand:_css.applyCodeAction"
+	],
 	"browser": "./client/dist/browser/cssClientMain",
-	"scripts": {
-		"compile": "npx gulp compile-extension:css-language-features-client compile-extension:css-language-features-server",
-		"install-client-next": "npm install vscode-languageclient@next"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
 	},
 	"contributes": {
 		"configuration": [
@@ -969,24 +973,20 @@
 			}
 		]
 	},
-	"activationEvents": [
-		"onLanguage:css",
-		"onLanguage:less",
-		"onLanguage:scss",
-		"onCommand:_css.applyCodeAction"
-	],
 	"dependencies": {},
+	"description": "%description%",
 	"devDependencies": {
 		"@types/node": "22.x"
 	},
-	"icon": "icons/css.png",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
-	},
+	"displayName": "%displayName%",
 	"enabledApiProposals": [
 		"documentPaste"
-	]
+	],
+	"icon": "icons/css.png",
+	"main": "./client/out/node/cssClientMain",
+	"name": "css-language-features",
+	"scripts": {
+		"compile": "npx gulp compile-extension:css-language-features-client compile-extension:css-language-features-server",
+		"install-client-next": "npm install vscode-languageclient@next"
+	}
 }

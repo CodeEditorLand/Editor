@@ -1,10 +1,4 @@
 {
-	"name": "markdown",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin microsoft/vscode-markdown-tm-grammar syntaxes/markdown.tmLanguage ./syntaxes/markdown.tmLanguage.json"
-	},
 	"contributes": {
 		"configurationDefaults": {
 			"[markdown]": {
@@ -98,5 +92,11 @@
 				"path": "./snippets/markdown.code-snippets"
 			}
 		]
+	},
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "markdown",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin microsoft/vscode-markdown-tm-grammar syntaxes/markdown.tmLanguage ./syntaxes/markdown.tmLanguage.json"
 	}
 }

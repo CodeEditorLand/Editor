@@ -1,10 +1,20 @@
 {
-	"name": "vscode-test-resolver",
-	"description": "Test resolver for VS Code",
-	"main": "./out/extension",
+	"activationEvents": [
+		"onResolveRemoteAuthority:test",
+		"onCommand:vscode-testresolver.newWindow",
+		"onCommand:vscode-testresolver.currentWindow",
+		"onCommand:vscode-testresolver.newWindowWithError",
+		"onCommand:vscode-testresolver.showLog",
+		"onCommand:vscode-testresolver.openTunnel",
+		"onCommand:vscode-testresolver.startRemoteServer",
+		"onCommand:vscode-testresolver.toggleConnectionPause"
+	],
 	"browser": "./dist/browser/testResolverMain",
-	"scripts": {
-		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
 	},
 	"contributes": {
 		"commands": [
@@ -135,25 +145,9 @@
 			}
 		]
 	},
-	"activationEvents": [
-		"onResolveRemoteAuthority:test",
-		"onCommand:vscode-testresolver.newWindow",
-		"onCommand:vscode-testresolver.currentWindow",
-		"onCommand:vscode-testresolver.newWindowWithError",
-		"onCommand:vscode-testresolver.showLog",
-		"onCommand:vscode-testresolver.openTunnel",
-		"onCommand:vscode-testresolver.startRemoteServer",
-		"onCommand:vscode-testresolver.toggleConnectionPause"
-	],
+	"description": "Test resolver for VS Code",
 	"devDependencies": {
 		"@types/node": "22.x"
-	},
-	"icon": "media/icon.png",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
 	},
 	"enabledApiProposals": [
 		"resolvers",
@@ -161,5 +155,11 @@
 	],
 	"extensionKind": [
 		"ui"
-	]
+	],
+	"icon": "media/icon.png",
+	"main": "./out/extension",
+	"name": "vscode-test-resolver",
+	"scripts": {
+		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+	}
 }

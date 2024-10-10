@@ -1,7 +1,4 @@
 {
-	"name": "javascript",
-	"displayName": "%displayName%",
-	"description": "%description%",
 	"contributes": {
 		"configurationDefaults": {
 			"[javascript]": {
@@ -166,5 +163,8 @@
 				"path": "./snippets/javascript.code-snippets"
 			}
 		]
-	}
+	},
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "javascript"
 }

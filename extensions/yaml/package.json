@@ -1,10 +1,4 @@
 {
-	"name": "yaml",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"scripts": {
-		"update-grammar": "node ./build/update-grammar.js"
-	},
 	"contributes": {
 		"configurationDefaults": {
 			"[dockercompose]": {
@@ -90,5 +84,11 @@
 				"id": "yaml"
 			}
 		]
+	},
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "yaml",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammar.js"
 	}
 }

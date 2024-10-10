@@ -1,10 +1,12 @@
 {
-	"name": "debug-server-ready",
-	"displayName": "%displayName%",
-	"description": "%description%",
-	"main": "./out/extension",
-	"scripts": {
-		"compile": "gulp compile-extension:debug-server-ready"
+	"activationEvents": [
+		"onDebugResolve"
+	],
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": false
 	},
 	"contributes": {
 		"debuggers": [
@@ -191,20 +193,18 @@
 			}
 		]
 	},
-	"activationEvents": [
-		"onDebugResolve"
-	],
+	"description": "%description%",
 	"devDependencies": {
 		"@types/node": "22.x"
 	},
-	"icon": "media/icon.png",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": false
-	},
+	"displayName": "%displayName%",
 	"enabledApiProposals": [
 		"terminalDataWriteEvent"
-	]
+	],
+	"icon": "media/icon.png",
+	"main": "./out/extension",
+	"name": "debug-server-ready",
+	"scripts": {
+		"compile": "gulp compile-extension:debug-server-ready"
+	}
 }

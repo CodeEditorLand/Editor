@@ -1,8 +1,7 @@
-// ---------------------------------------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation. All rights reserved.
-//  Licensed under the MIT License. See License.txt in the project root for
-// license information.
-// --------------------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 use std::{env, io};
 
@@ -21,8 +20,11 @@ pub fn is_integrated_cli() -> io::Result<bool> {
 		None => return Ok(false),
 	};
 
-	let expected_file =
-		if cfg!(target_os = "macos") { "node_modules.asar" } else { "resources.pak" };
+	let expected_file = if cfg!(target_os = "macos") {
+		"node_modules.asar"
+	} else {
+		"resources.pak"
+	};
 
 	Ok(parent.join(expected_file).exists())
 }

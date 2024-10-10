@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
-
-import MergeConflictServices from "./services";
+import * as vscode from 'vscode';
+import MergeConflictServices from './services';
 
 export function activate(context: vscode.ExtensionContext) {
 	// Register disposables
@@ -14,4 +13,6 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(services);
 }
 
-export function deactivate() {}
+export function deactivate() {
+}
+

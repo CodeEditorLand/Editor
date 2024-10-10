@@ -1,44 +1,33 @@
 {
-  "name": "lua",
-  "displayName": "%displayName%",
-  "description": "%description%",
-  "version": "1.0.0",
-  "publisher": "vscode",
-  "license": "MIT",
-  "engines": {
-    "vscode": "*"
-  },
-  "scripts": {
-    "update-grammar": "node ../node_modules/vscode-grammar-updater/bin sumneko/lua.tmbundle Syntaxes/Lua.plist ./syntaxes/lua.tmLanguage.json"
-  },
-  "categories": ["Programming Languages"],
-  "contributes": {
-    "languages": [
-      {
-        "id": "lua",
-        "extensions": [
-          ".lua"
-        ],
-        "aliases": [
-          "Lua",
-          "lua"
-        ],
-        "configuration": "./language-configuration.json"
-      }
-    ],
-    "grammars": [
-      {
-        "language": "lua",
-        "scopeName": "source.lua",
-        "path": "./syntaxes/lua.tmLanguage.json",
-        "tokenTypes": {
-          "comment.line.double-dash.doc.lua": "other"
-        }
-      }
-    ]
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/microsoft/vscode.git"
-  }
+	"contributes": {
+		"grammars": [
+			{
+				"language": "lua",
+				"path": "./syntaxes/lua.tmLanguage.json",
+				"scopeName": "source.lua",
+				"tokenTypes": {
+					"comment.line.double-dash.doc.lua": "other"
+				}
+			}
+		],
+		"languages": [
+			{
+				"aliases": [
+					"Lua",
+					"lua"
+				],
+				"configuration": "./language-configuration.json",
+				"extensions": [
+					".lua"
+				],
+				"id": "lua"
+			}
+		]
+	},
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "lua",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin sumneko/lua.tmbundle Syntaxes/Lua.plist ./syntaxes/lua.tmLanguage.json"
+	}
 }

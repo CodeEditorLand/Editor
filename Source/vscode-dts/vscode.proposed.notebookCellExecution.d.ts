@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	export interface NotebookCellExecution {
 		/**
 		 * Signal that execution has ended.
@@ -14,11 +15,7 @@ declare module "vscode" {
 		 * @param endTime The time that execution finished, in milliseconds in the Unix epoch.
 		 * @param error Details about an error that occurred during execution if any.
 		 */
-		end(
-			success: boolean | undefined,
-			endTime?: number,
-			error?: CellExecutionError,
-		): void;
+		end(success: boolean | undefined, endTime?: number, error?: CellExecutionError): void;
 	}
 
 	export interface CellExecutionError {
@@ -41,5 +38,7 @@ declare module "vscode" {
 		 * The location within the resource where the error occurred.
 		 */
 		readonly location: Range | undefined;
+
+
 	}
 }

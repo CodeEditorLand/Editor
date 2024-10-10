@@ -3,12 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	// @alexr00 https://github.com/microsoft/vscode/issues/207402
 
 	export enum CommentThreadApplicability {
 		Current = 0,
-		Outdated = 1,
+		Outdated = 1
 	}
 
 	export interface CommentThread2 {
@@ -25,13 +26,8 @@ declare module "vscode" {
 		 * };
 		 *
 		 * Worth noting that we already have this problem for the `comments` property.
-		 */
-		state?:
-			| CommentThreadState
-			| {
-					resolved?: CommentThreadState;
-					applicability?: CommentThreadApplicability;
-			  };
+		*/
+		state?: CommentThreadState | { resolved?: CommentThreadState; applicability?: CommentThreadApplicability };
 		readonly uri: Uri;
 		range: Range | undefined;
 		comments: readonly Comment[];

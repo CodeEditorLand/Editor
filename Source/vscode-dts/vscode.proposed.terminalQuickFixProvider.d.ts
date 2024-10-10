@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	// https://github.com/microsoft/vscode/issues/162950
 
 	export type SingleOrMany<T> = T[] | T;
@@ -15,17 +16,9 @@ declare module "vscode" {
 		 * @param token A cancellation token indicating the result is no longer needed
 		 * @return Terminal quick fix(es) if any
 		 */
-		provideTerminalQuickFixes(
-			commandMatchResult: TerminalCommandMatchResult,
-			token: CancellationToken,
-		): ProviderResult<
-			SingleOrMany<
-				| TerminalQuickFixTerminalCommand
-				| TerminalQuickFixOpener
-				| Command
-			>
-		>;
+		provideTerminalQuickFixes(commandMatchResult: TerminalCommandMatchResult, token: CancellationToken): ProviderResult<SingleOrMany<TerminalQuickFixTerminalCommand | TerminalQuickFixOpener | Command>>;
 	}
+
 
 	export interface TerminalCommandMatchResult {
 		commandLine: string;
@@ -41,10 +34,7 @@ declare module "vscode" {
 		 * @param provider A terminal quick fix provider
 		 * @return A {@link Disposable} that unregisters the provider when being disposed
 		 */
-		export function registerTerminalQuickFixProvider(
-			id: string,
-			provider: TerminalQuickFixProvider,
-		): Disposable;
+		export function registerTerminalQuickFixProvider(id: string, provider: TerminalQuickFixProvider): Disposable;
 	}
 
 	export class TerminalQuickFixTerminalCommand {
@@ -80,8 +70,8 @@ declare module "vscode" {
 		 */
 		anchor: TerminalOutputAnchor;
 		/**
-		 * The number of rows above or below the {@link anchor} to start matching against.
-		 */
+			 * The number of rows above or below the {@link anchor} to start matching against.
+			 */
 		offset: number;
 		/**
 		 * The number of wrapped lines to match against, this should be as small as possible for performance
@@ -92,6 +82,6 @@ declare module "vscode" {
 
 	enum TerminalOutputAnchor {
 		Top = 0,
-		Bottom = 1,
+		Bottom = 1
 	}
 }

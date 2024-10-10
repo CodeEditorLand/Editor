@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable, Uri, workspace } from "vscode";
+import { CredentialsProvider, Credentials, API as GitAPI } from './typings/git';
+import { workspace, Uri, Disposable } from 'vscode';
+import { getSession } from './auth';
 
-import { getSession } from "./auth";
-import { Credentials, CredentialsProvider, API as GitAPI } from "./typings/git";
-
-const EmptyDisposable: Disposable = { dispose() {} };
+const EmptyDisposable: Disposable = { dispose() { } };
 
 class GitHubCredentialProvider implements CredentialsProvider {
+
 	async getCredentials(host: Uri): Promise<Credentials | undefined> {
 		if (!/github\.com/i.test(host.authority)) {
 			return;
@@ -22,6 +22,7 @@ class GitHubCredentialProvider implements CredentialsProvider {
 }
 
 export class GithubCredentialProviderManager {
+
 	private providerDisposable: Disposable = EmptyDisposable;
 	private readonly disposable: Disposable;
 
@@ -34,17 +35,15 @@ export class GithubCredentialProviderManager {
 		this._enabled = enabled;
 
 		if (enabled) {
-			this.providerDisposable = this.gitAPI.registerCredentialsProvider(
-				new GitHubCredentialProvider(),
-			);
+			this.providerDisposable = this.gitAPI.registerCredentialsProvider(new GitHubCredentialProvider());
 		} else {
 			this.providerDisposable.dispose();
 		}
 	}
 
 	constructor(private gitAPI: GitAPI) {
-		this.disposable = workspace.onDidChangeConfiguration((e) => {
-			if (e.affectsConfiguration("github")) {
+		this.disposable = workspace.onDidChangeConfiguration(e => {
+			if (e.affectsConfiguration('github')) {
 				this.refresh();
 			}
 		});
@@ -53,8 +52,8 @@ export class GithubCredentialProviderManager {
 	}
 
 	private refresh(): void {
-		const config = workspace.getConfiguration("github", null);
-		const enabled = config.get<boolean>("gitAuthentication", true);
+		const config = workspace.getConfiguration('github', null);
+		const enabled = config.get<boolean>('gitAuthentication', true);
 		this.enabled = !!enabled;
 	}
 

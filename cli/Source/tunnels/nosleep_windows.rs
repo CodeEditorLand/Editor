@@ -1,8 +1,7 @@
-// ---------------------------------------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation. All rights reserved.
-//  Licensed under the MIT License. See License.txt in the project root for
-// license information.
-// --------------------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 use std::io;
 
@@ -13,10 +12,8 @@ use winapi::{
 		minwinbase::REASON_CONTEXT,
 		winbase::{PowerClearRequest, PowerCreateRequest, PowerSetRequest},
 		winnt::{
-			PowerRequestSystemRequired,
-			POWER_REQUEST_CONTEXT_SIMPLE_STRING,
-			POWER_REQUEST_CONTEXT_VERSION,
-			POWER_REQUEST_TYPE,
+			PowerRequestSystemRequired, POWER_REQUEST_CONTEXT_SIMPLE_STRING,
+			POWER_REQUEST_CONTEXT_VERSION, POWER_REQUEST_TYPE,
 		},
 	},
 };
@@ -27,11 +24,11 @@ struct Request(*mut c_void);
 
 impl Request {
 	pub fn new() -> io::Result<Self> {
-		let mut reason:Vec<u16> = TUNNEL_ACTIVITY_NAME.encode_utf16().chain([0u16]).collect();
+		let mut reason: Vec<u16> = TUNNEL_ACTIVITY_NAME.encode_utf16().chain([0u16]).collect();
 		let mut context = REASON_CONTEXT {
-			Version:POWER_REQUEST_CONTEXT_VERSION,
-			Flags:POWER_REQUEST_CONTEXT_SIMPLE_STRING,
-			Reason:unsafe { std::mem::zeroed() },
+			Version: POWER_REQUEST_CONTEXT_VERSION,
+			Flags: POWER_REQUEST_CONTEXT_SIMPLE_STRING,
+			Reason: unsafe { std::mem::zeroed() },
 		};
 		unsafe { *context.Reason.SimpleReasonString_mut() = reason.as_mut_ptr() };
 
@@ -43,7 +40,7 @@ impl Request {
 		Ok(Self(request))
 	}
 
-	pub fn set(&self, request_type:POWER_REQUEST_TYPE) -> io::Result<()> {
+	pub fn set(&self, request_type: POWER_REQUEST_TYPE) -> io::Result<()> {
 		let result = unsafe { PowerSetRequest(self.0, request_type) };
 		if result == 0 {
 			return Err(io::Error::last_os_error());
@@ -62,7 +59,7 @@ impl Drop for Request {
 }
 
 pub struct SleepInhibitor {
-	request:Request,
+	request: Request,
 }
 
 impl SleepInhibitor {

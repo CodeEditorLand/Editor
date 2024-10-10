@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	// https://github.com/microsoft/vscode/issues/84297
 
 	export class TimelineItem {
@@ -142,11 +143,7 @@ declare module "vscode" {
 		 * @return The {@link TimelineResult timeline result} or a thenable that resolves to such. The lack of a result
 		 * can be signaled by returning `undefined`, `null`, or an empty array.
 		 */
-		provideTimeline(
-			uri: Uri,
-			options: TimelineOptions,
-			token: CancellationToken,
-		): ProviderResult<Timeline>;
+		provideTimeline(uri: Uri, options: TimelineOptions, token: CancellationToken): ProviderResult<Timeline>;
 	}
 
 	export namespace workspace {
@@ -160,10 +157,7 @@ declare module "vscode" {
 		 * @param scheme A scheme or schemes that defines which documents this provider is applicable to. Can be `*` to target all documents.
 		 * @param provider A timeline provider.
 		 * @return A {@link Disposable} that unregisters this provider when being disposed.
-		 */
-		export function registerTimelineProvider(
-			scheme: string | string[],
-			provider: TimelineProvider,
-		): Disposable;
+		*/
+		export function registerTimelineProvider(scheme: string | string[], provider: TimelineProvider): Disposable;
 	}
 }

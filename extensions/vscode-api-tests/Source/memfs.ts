@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from "path";
-import * as vscode from "vscode";
+
+import * as path from 'path';
+import * as vscode from 'vscode';
 
 class File implements vscode.FileStat {
+
 	type: vscode.FileType;
 	ctime: number;
 	mtime: number;
@@ -25,6 +27,7 @@ class File implements vscode.FileStat {
 }
 
 class Directory implements vscode.FileStat {
+
 	type: vscode.FileType;
 	ctime: number;
 	mtime: number;
@@ -46,12 +49,13 @@ class Directory implements vscode.FileStat {
 export type Entry = File | Directory;
 
 export class TestFS implements vscode.FileSystemProvider {
+
 	constructor(
 		readonly scheme: string,
-		readonly isCaseSensitive: boolean,
-	) {}
+		readonly isCaseSensitive: boolean
+	) { }
 
-	readonly root = new Directory("");
+	readonly root = new Directory('');
 
 	// --- manage file metadata
 
@@ -78,11 +82,7 @@ export class TestFS implements vscode.FileSystemProvider {
 		throw vscode.FileSystemError.FileNotFound();
 	}
 
-	writeFile(
-		uri: vscode.Uri,
-		content: Uint8Array,
-		options: { create: boolean; overwrite: boolean },
-	): void {
+	writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean }): void {
 		const basename = path.posix.basename(uri.path);
 		const parent = this._lookupParentDirectory(uri);
 		let entry = parent.entries.get(basename);
@@ -109,11 +109,8 @@ export class TestFS implements vscode.FileSystemProvider {
 
 	// --- manage files/folders
 
-	rename(
-		oldUri: vscode.Uri,
-		newUri: vscode.Uri,
-		options: { overwrite: boolean },
-	): void {
+	rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean }): void {
+
 		if (!options.overwrite && this._lookup(newUri, true)) {
 			throw vscode.FileSystemError.FileExists(newUri);
 		}
@@ -130,7 +127,7 @@ export class TestFS implements vscode.FileSystemProvider {
 
 		this._fireSoon(
 			{ type: vscode.FileChangeType.Deleted, uri: oldUri },
-			{ type: vscode.FileChangeType.Created, uri: newUri },
+			{ type: vscode.FileChangeType.Created, uri: newUri }
 		);
 	}
 
@@ -144,10 +141,7 @@ export class TestFS implements vscode.FileSystemProvider {
 		parent.entries.delete(basename);
 		parent.mtime = Date.now();
 		parent.size -= 1;
-		this._fireSoon(
-			{ type: vscode.FileChangeType.Changed, uri: dirname },
-			{ uri, type: vscode.FileChangeType.Deleted },
-		);
+		this._fireSoon({ type: vscode.FileChangeType.Changed, uri: dirname }, { uri, type: vscode.FileChangeType.Deleted });
 	}
 
 	createDirectory(uri: vscode.Uri): void {
@@ -159,10 +153,7 @@ export class TestFS implements vscode.FileSystemProvider {
 		parent.entries.set(entry.name, entry);
 		parent.mtime = Date.now();
 		parent.size += 1;
-		this._fireSoon(
-			{ type: vscode.FileChangeType.Changed, uri: dirname },
-			{ type: vscode.FileChangeType.Created, uri },
-		);
+		this._fireSoon({ type: vscode.FileChangeType.Changed, uri: dirname }, { type: vscode.FileChangeType.Created, uri });
 	}
 
 	// --- lookup
@@ -170,7 +161,7 @@ export class TestFS implements vscode.FileSystemProvider {
 	private _lookup(uri: vscode.Uri, silent: false): Entry;
 	private _lookup(uri: vscode.Uri, silent: boolean): Entry | undefined;
 	private _lookup(uri: vscode.Uri, silent: boolean): Entry | undefined {
-		const parts = uri.path.split("/");
+		const parts = uri.path.split('/');
 		let entry: Entry = this.root;
 		for (const part of parts) {
 			const partLow = part.toLowerCase();
@@ -229,15 +220,11 @@ export class TestFS implements vscode.FileSystemProvider {
 	private _bufferedEvents: vscode.FileChangeEvent[] = [];
 	private _fireSoonHandle?: NodeJS.Timeout;
 
-	readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> =
-		this._emitter.event;
+	readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this._emitter.event;
 
-	watch(
-		_resource: vscode.Uri,
-		_options: { recursive: boolean; excludes: string[] },
-	): vscode.Disposable {
+	watch(_resource: vscode.Uri, _options: { recursive: boolean; excludes: string[] }): vscode.Disposable {
 		// ignore, fires for all changes...
-		return new vscode.Disposable(() => {});
+		return new vscode.Disposable(() => { });
 	}
 
 	private _fireSoon(...events: vscode.FileChangeEvent[]): void {

@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+
+declare module 'vscode' {
 	export namespace debug {
 		/**
 		 * Registers a custom data visualization for variables when debugging.
@@ -11,18 +12,20 @@ declare module "vscode" {
 		 * @param id The corresponding ID in the package.json `debugVisualizers` contribution point.
 		 * @param provider The {@link DebugVisualizationProvider} to register
 		 */
-		export function registerDebugVisualizationProvider<
-			T extends DebugVisualization,
-		>(id: string, provider: DebugVisualizationProvider<T>): Disposable;
+		export function registerDebugVisualizationProvider<T extends DebugVisualization>(
+			id: string,
+			provider: DebugVisualizationProvider<T>
+		): Disposable;
 
 		/**
 		 * Registers a tree that can be referenced by {@link DebugVisualization.visualization}.
 		 * @param id
 		 * @param provider
 		 */
-		export function registerDebugVisualizationTreeProvider<
-			T extends DebugTreeItem,
-		>(id: string, provider: DebugVisualizationTree<T>): Disposable;
+		export function registerDebugVisualizationTreeProvider<T extends DebugTreeItem>(
+			id: string,
+			provider: DebugVisualizationTree<T>
+		): Disposable;
 	}
 
 	/**
@@ -73,9 +76,7 @@ declare module "vscode" {
 	/**
 	 * Provides a tree that can be referenced in debug visualizations.
 	 */
-	export interface DebugVisualizationTree<
-		T extends DebugTreeItem = DebugTreeItem,
-	> {
+	export interface DebugVisualizationTree<T extends DebugTreeItem = DebugTreeItem> {
 		/**
 		 * Gets the tree item for an element or the base context item.
 		 */
@@ -115,9 +116,7 @@ declare module "vscode" {
 		constructor(name: string);
 	}
 
-	export interface DebugVisualizationProvider<
-		T extends DebugVisualization = DebugVisualization,
-	> {
+	export interface DebugVisualizationProvider<T extends DebugVisualization = DebugVisualization> {
 		/**
 		 * Called for each variable when the debug session stops. It should return
 		 * any visualizations the extension wishes to show to the user.
@@ -126,10 +125,7 @@ declare module "vscode" {
 		 * `debugVisualizers` contribution point in the `package.json` evaluates
 		 * to true.
 		 */
-		provideDebugVisualization(
-			context: DebugVisualizationContext,
-			token: CancellationToken,
-		): ProviderResult<T[]>;
+		provideDebugVisualization(context: DebugVisualizationContext, token: CancellationToken): ProviderResult<T[]>;
 
 		/**
 		 * Invoked for a variable when a user picks the visualizer.
@@ -139,10 +135,7 @@ declare module "vscode" {
 		 * this function and instead trigger other actions in the UI, such as opening
 		 * a custom {@link WebviewView}.
 		 */
-		resolveDebugVisualization?(
-			visualization: T,
-			token: CancellationToken,
-		): ProviderResult<T>;
+		resolveDebugVisualization?(visualization: T, token: CancellationToken): ProviderResult<T>;
 	}
 
 	export interface DebugVisualizationContext {

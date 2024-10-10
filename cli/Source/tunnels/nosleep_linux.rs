@@ -1,8 +1,7 @@
-// ---------------------------------------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation. All rights reserved.
-//  Licensed under the MIT License. See License.txt in the project root for
-// license information.
-// --------------------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 use zbus::{dbus_proxy, Connection};
 
@@ -26,7 +25,7 @@ use crate::{
 )]
 trait PMInhibitor {
 	#[dbus_proxy(name = "Inhibit")]
-	fn inhibit(&self, what:&str, why:&str) -> zbus::Result<u32>;
+	fn inhibit(&self, what: &str, why: &str) -> zbus::Result<u32>;
 }
 
 /// A slightly better documented version which seems commonly used.
@@ -38,11 +37,11 @@ trait PMInhibitor {
 )]
 trait ScreenSaver {
 	#[dbus_proxy(name = "Inhibit")]
-	fn inhibit(&self, what:&str, why:&str) -> zbus::Result<u32>;
+	fn inhibit(&self, what: &str, why: &str) -> zbus::Result<u32>;
 }
 
 pub struct SleepInhibitor {
-	_connection:Connection, // Inhibition is released when the connection is closed
+	_connection: Connection, // Inhibition is released when the connection is closed
 }
 
 impl SleepInhibitor {
@@ -73,6 +72,8 @@ impl SleepInhibitor {
 			}
 		}
 
-		Ok(SleepInhibitor { _connection:connection })
+		Ok(SleepInhibitor {
+			_connection: connection,
+		})
 	}
 }

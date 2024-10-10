@@ -1,64 +1,44 @@
-// ---------------------------------------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation. All rights reserved.
-//  Licensed under the MIT License. See License.txt in the project root for
-// license information.
-// --------------------------------------------------------------------------------------------
-use std::{
-	fs,
-	fs::File,
-	io::Write,
-	path::{Path, PathBuf},
-	sync::Arc,
-	time::Duration,
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+use super::paths::{InstalledServer, ServerPaths};
+use crate::async_pipe::get_socket_name;
+use crate::constants::{
+	APPLICATION_NAME, EDITOR_WEB_URL, QUALITYLESS_PRODUCT_NAME, QUALITYLESS_SERVER_NAME,
 };
-
+use crate::download_cache::DownloadCache;
+use crate::options::{Quality, TelemetryLevel};
+use crate::state::LauncherPaths;
+use crate::tunnels::paths::{get_server_folder_name, SERVER_FOLDER_NAME};
+use crate::update_service::{
+	unzip_downloaded_release, Platform, Release, TargetKind, UpdateService,
+};
+use crate::util::command::{
+	capture_command, capture_command_and_check_status, check_output_status, kill_tree,
+	new_script_command,
+};
+use crate::util::errors::{wrap, AnyError, CodeError, ExtensionInstallFailed, WrappedError};
+use crate::util::http::{self, BoxedHttp};
+use crate::util::io::SilentCopyProgress;
+use crate::util::machine::process_exists;
+use crate::util::prereqs::skip_requirements_check;
+use crate::{debug, info, log, spanf, trace, warning};
 use lazy_static::lazy_static;
 use opentelemetry::KeyValue;
 use regex::Regex;
 use serde::Deserialize;
-use tokio::{
-	fs::remove_file,
-	io::{AsyncBufReadExt, BufReader},
-	process::{Child, Command},
-	sync::oneshot::Receiver,
-	time::{interval, timeout},
-};
-
-use super::paths::{InstalledServer, ServerPaths};
-use crate::{
-	async_pipe::get_socket_name,
-	constants::{
-		APPLICATION_NAME,
-		EDITOR_WEB_URL,
-		QUALITYLESS_PRODUCT_NAME,
-		QUALITYLESS_SERVER_NAME,
-	},
-	debug,
-	download_cache::DownloadCache,
-	info,
-	log,
-	options::{Quality, TelemetryLevel},
-	spanf,
-	state::LauncherPaths,
-	trace,
-	tunnels::paths::{get_server_folder_name, SERVER_FOLDER_NAME},
-	update_service::{unzip_downloaded_release, Platform, Release, TargetKind, UpdateService},
-	util::{
-		command::{
-			capture_command,
-			capture_command_and_check_status,
-			check_output_status,
-			kill_tree,
-			new_script_command,
-		},
-		errors::{wrap, AnyError, CodeError, ExtensionInstallFailed, WrappedError},
-		http::{self, BoxedHttp},
-		io::SilentCopyProgress,
-		machine::process_exists,
-		prereqs::skip_requirements_check,
-	},
-	warning,
-};
+use std::fs;
+use std::fs::File;
+use std::io::Write;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::fs::remove_file;
+use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::process::{Child, Command};
+use tokio::sync::oneshot::Receiver;
+use tokio::time::{interval, timeout};
 
 lazy_static! {
 	static ref LISTENING_PORT_RE: Regex =
@@ -68,31 +48,31 @@ lazy_static! {
 
 #[derive(Clone, Debug, Default)]
 pub struct CodeServerArgs {
-	pub host:Option<String>,
-	pub port:Option<u16>,
-	pub socket_path:Option<String>,
+	pub host: Option<String>,
+	pub port: Option<u16>,
+	pub socket_path: Option<String>,
 
 	// common argument
-	pub telemetry_level:Option<TelemetryLevel>,
-	pub log:Option<log::Level>,
-	pub accept_server_license_terms:bool,
-	pub verbose:bool,
-	pub server_data_dir:Option<String>,
-	pub extensions_dir:Option<String>,
+	pub telemetry_level: Option<TelemetryLevel>,
+	pub log: Option<log::Level>,
+	pub accept_server_license_terms: bool,
+	pub verbose: bool,
+	pub server_data_dir: Option<String>,
+	pub extensions_dir: Option<String>,
 	// extension management
-	pub install_extensions:Vec<String>,
-	pub uninstall_extensions:Vec<String>,
-	pub update_extensions:bool,
-	pub list_extensions:bool,
-	pub show_versions:bool,
-	pub category:Option<String>,
-	pub pre_release:bool,
-	pub force:bool,
-	pub start_server:bool,
+	pub install_extensions: Vec<String>,
+	pub uninstall_extensions: Vec<String>,
+	pub update_extensions: bool,
+	pub list_extensions: bool,
+	pub show_versions: bool,
+	pub category: Option<String>,
+	pub pre_release: bool,
+	pub force: bool,
+	pub start_server: bool,
 	// connection tokens
-	pub connection_token:Option<String>,
-	pub connection_token_file:Option<String>,
-	pub without_connection_token:bool,
+	pub connection_token: Option<String>,
+	pub connection_token_file: Option<String>,
+	pub without_connection_token: bool,
 }
 
 impl CodeServerArgs {
@@ -104,7 +84,9 @@ impl CodeServerArgs {
 		}
 	}
 
-	pub fn telemetry_disabled(&self) -> bool { self.telemetry_level == Some(TelemetryLevel::Off) }
+	pub fn telemetry_disabled(&self) -> bool {
+		self.telemetry_level == Some(TelemetryLevel::Off)
+	}
 
 	pub fn command_arguments(&self) -> Vec<String> {
 		let mut args = Vec::new();
@@ -181,25 +163,25 @@ impl CodeServerArgs {
 /// Doing so fetches additional information like a commit ID if previously
 /// unspecified.
 pub struct ServerParamsRaw {
-	pub commit_id:Option<String>,
-	pub quality:Quality,
-	pub code_server_args:CodeServerArgs,
-	pub headless:bool,
-	pub platform:Platform,
+	pub commit_id: Option<String>,
+	pub quality: Quality,
+	pub code_server_args: CodeServerArgs,
+	pub headless: bool,
+	pub platform: Platform,
 }
 
 /// Server params that can be used to start a VS Code server.
 pub struct ResolvedServerParams {
-	pub release:Release,
-	pub code_server_args:CodeServerArgs,
+	pub release: Release,
+	pub code_server_args: CodeServerArgs,
 }
 
 impl ResolvedServerParams {
 	fn as_installed_server(&self) -> InstalledServer {
 		InstalledServer {
-			commit:self.release.commit.clone(),
-			quality:self.release.quality,
-			headless:self.release.target == TargetKind::Server,
+			commit: self.release.commit.clone(),
+			quality: self.release.quality,
+			headless: self.release.target == TargetKind::Server,
 		}
 	}
 }
@@ -207,19 +189,19 @@ impl ResolvedServerParams {
 impl ServerParamsRaw {
 	pub async fn resolve(
 		self,
-		log:&log::Logger,
-		http:BoxedHttp,
+		log: &log::Logger,
+		http: BoxedHttp,
 	) -> Result<ResolvedServerParams, AnyError> {
 		Ok(ResolvedServerParams {
-			release:self.get_or_fetch_commit_id(log, http).await?,
-			code_server_args:self.code_server_args,
+			release: self.get_or_fetch_commit_id(log, http).await?,
+			code_server_args: self.code_server_args,
 		})
 	}
 
 	async fn get_or_fetch_commit_id(
 		&self,
-		log:&log::Logger,
-		http:BoxedHttp,
+		log: &log::Logger,
+		http: BoxedHttp,
 	) -> Result<Release, AnyError> {
 		let target = match self.headless {
 			true => TargetKind::Server,
@@ -228,11 +210,11 @@ impl ServerParamsRaw {
 
 		if let Some(c) = &self.commit_id {
 			return Ok(Release {
-				commit:c.clone(),
-				quality:self.quality,
+				commit: c.clone(),
+				quality: self.quality,
 				target,
-				name:String::new(),
-				platform:self.platform,
+				name: String::new(),
+				platform: self.platform,
 			});
 		}
 
@@ -246,26 +228,26 @@ impl ServerParamsRaw {
 #[serde(rename_all = "camelCase")]
 #[allow(dead_code)]
 struct UpdateServerVersion {
-	pub name:String,
-	pub version:String,
-	pub product_version:String,
-	pub timestamp:i64,
+	pub name: String,
+	pub version: String,
+	pub product_version: String,
+	pub timestamp: i64,
 }
 
 /// Code server listening on a port address.
 #[derive(Clone)]
 pub struct SocketCodeServer {
-	pub commit_id:String,
-	pub socket:PathBuf,
-	pub origin:Arc<CodeServerOrigin>,
+	pub commit_id: String,
+	pub socket: PathBuf,
+	pub origin: Arc<CodeServerOrigin>,
 }
 
 /// Code server listening on a socket address.
 #[derive(Clone)]
 pub struct PortCodeServer {
-	pub commit_id:String,
-	pub port:u16,
-	pub origin:Arc<CodeServerOrigin>,
+	pub commit_id: String,
+	pub port: u16,
+	pub origin: Arc<CodeServerOrigin>,
 }
 
 /// A server listening on any address/location.
@@ -286,13 +268,13 @@ impl CodeServerOrigin {
 		match self {
 			CodeServerOrigin::New(child) => {
 				child.wait().await.ok();
-			},
+			}
 			CodeServerOrigin::Existing(pid) => {
 				let mut interval = interval(Duration::from_secs(30));
 				while process_exists(*pid) {
 					interval.tick().await;
 				}
-			},
+			}
 		}
 	}
 
@@ -300,19 +282,19 @@ impl CodeServerOrigin {
 		match self {
 			CodeServerOrigin::New(child) => {
 				child.kill().await.ok();
-			},
+			}
 			CodeServerOrigin::Existing(pid) => {
 				kill_tree(*pid).await.ok();
-			},
+			}
 		}
 	}
 }
 
 /// Ensures the given list of extensions are installed on the running server.
 async fn do_extension_install_on_running_server(
-	start_script_path:&Path,
-	extensions:&[String],
-	log:&log::Logger,
+	start_script_path: &Path,
+	extensions: &[String],
+	log: &log::Logger,
 ) -> Result<(), AnyError> {
 	if extensions.is_empty() {
 		return Ok(());
@@ -340,25 +322,27 @@ async fn do_extension_install_on_running_server(
 }
 
 pub struct ServerBuilder<'a> {
-	logger:&'a log::Logger,
-	server_params:&'a ResolvedServerParams,
-	launcher_paths:&'a LauncherPaths,
-	server_paths:ServerPaths,
-	http:BoxedHttp,
+	logger: &'a log::Logger,
+	server_params: &'a ResolvedServerParams,
+	launcher_paths: &'a LauncherPaths,
+	server_paths: ServerPaths,
+	http: BoxedHttp,
 }
 
 impl<'a> ServerBuilder<'a> {
 	pub fn new(
-		logger:&'a log::Logger,
-		server_params:&'a ResolvedServerParams,
-		launcher_paths:&'a LauncherPaths,
-		http:BoxedHttp,
+		logger: &'a log::Logger,
+		server_params: &'a ResolvedServerParams,
+		launcher_paths: &'a LauncherPaths,
+		http: BoxedHttp,
 	) -> Self {
 		Self {
 			logger,
 			server_params,
 			launcher_paths,
-			server_paths:server_params.as_installed_server().server_paths(launcher_paths),
+			server_paths: server_params
+				.as_installed_server()
+				.server_paths(launcher_paths),
 			http,
 		}
 	}
@@ -378,14 +362,7 @@ impl<'a> ServerBuilder<'a> {
 		};
 		info!(self.logger, "Found running server (pid={})", pid);
 		if !Path::new(&self.server_paths.logfile).exists() {
-			warning!(
-				self.logger,
-				"{} Server is running but its logfile is missing. Don't delete the {} Server \
-				 manually, run the command '{} prune'.",
-				QUALITYLESS_PRODUCT_NAME,
-				QUALITYLESS_PRODUCT_NAME,
-				APPLICATION_NAME
-			);
+			warning!(self.logger, "{} Server is running but its logfile is missing. Don't delete the {} Server manually, run the command '{} prune'.", QUALITYLESS_PRODUCT_NAME, QUALITYLESS_PRODUCT_NAME, APPLICATION_NAME);
 			return Ok(None);
 		}
 
@@ -402,13 +379,13 @@ impl<'a> ServerBuilder<'a> {
 
 		if let Some(port) = parse_port_from(&contents) {
 			Ok(Some(AnyCodeServer::Port(PortCodeServer {
-				commit_id:self.server_params.release.commit.to_owned(),
+				commit_id: self.server_params.release.commit.to_owned(),
 				port,
 				origin,
 			})))
 		} else if let Some(socket) = parse_socket_from(&contents) {
 			Ok(Some(AnyCodeServer::Socket(SocketCodeServer {
-				commit_id:self.server_params.release.commit.to_owned(),
+				commit_id: self.server_params.release.commit.to_owned(),
 				socket,
 				origin,
 			})))
@@ -429,7 +406,10 @@ impl<'a> ServerBuilder<'a> {
 
 	/// Ensures the server is set up in the configured directory.
 	pub async fn setup(&self) -> Result<(), AnyError> {
-		debug!(self.logger, "Installing and setting up {}...", QUALITYLESS_SERVER_NAME);
+		debug!(
+			self.logger,
+			"Installing and setting up {}...", QUALITYLESS_SERVER_NAME
+		);
 
 		let update_service = UpdateService::new(self.logger.clone(), self.http.clone());
 		let name = get_server_folder_name(
@@ -440,57 +420,56 @@ impl<'a> ServerBuilder<'a> {
 		let result = self
 			.launcher_paths
 			.server_cache
-			.create(name, |target_dir| {
-				async move {
-					let tmpdir = tempfile::tempdir()
-						.map_err(|e| wrap(e, "error creating temp download dir"))?;
+			.create(name, |target_dir| async move {
+				let tmpdir =
+					tempfile::tempdir().map_err(|e| wrap(e, "error creating temp download dir"))?;
 
-					let response =
-						update_service.get_download_stream(&self.server_params.release).await?;
-					let archive_path = tmpdir.path().join(response.url_path_basename().unwrap());
-
-					info!(
-						self.logger,
-						"Downloading {} server -> {}",
-						QUALITYLESS_PRODUCT_NAME,
-						archive_path.display()
-					);
-
-					http::download_into_file(
-						&archive_path,
-						self.logger.get_download_logger("server download progress:"),
-						response,
-					)
+				let response = update_service
+					.get_download_stream(&self.server_params.release)
 					.await?;
+				let archive_path = tmpdir.path().join(response.url_path_basename().unwrap());
 
-					let server_dir = target_dir.join(SERVER_FOLDER_NAME);
-					unzip_downloaded_release(
-						&archive_path,
-						&server_dir,
-						self.logger.get_download_logger("server inflate progress:"),
-					)?;
+				info!(
+					self.logger,
+					"Downloading {} server -> {}",
+					QUALITYLESS_PRODUCT_NAME,
+					archive_path.display()
+				);
 
-					if !skip_requirements_check().await {
-						let output = capture_command_and_check_status(
-							server_dir
-								.join("bin")
-								.join(self.server_params.release.quality.server_entrypoint()),
-							&["--version"],
-						)
-						.await
-						.map_err(|e| wrap(e, "error checking server integrity"))?;
+				http::download_into_file(
+					&archive_path,
+					self.logger.get_download_logger("server download progress:"),
+					response,
+				)
+				.await?;
 
-						trace!(
-							self.logger,
-							"Server integrity verified, version: {}",
-							String::from_utf8_lossy(&output.stdout).replace('\n', " / ")
-						);
-					} else {
-						info!(self.logger, "Skipping server integrity check");
-					}
+				let server_dir = target_dir.join(SERVER_FOLDER_NAME);
+				unzip_downloaded_release(
+					&archive_path,
+					&server_dir,
+					self.logger.get_download_logger("server inflate progress:"),
+				)?;
 
-					Ok(())
+				if !skip_requirements_check().await {
+					let output = capture_command_and_check_status(
+						server_dir
+							.join("bin")
+							.join(self.server_params.release.quality.server_entrypoint()),
+						&["--version"],
+					)
+					.await
+					.map_err(|e| wrap(e, "error checking server integrity"))?;
+
+					trace!(
+						self.logger,
+						"Server integrity verified, version: {}",
+						String::from_utf8_lossy(&output.stdout).replace('\n', " / ")
+					);
+				} else {
+					info!(self.logger, "Skipping server integrity check");
 				}
+
+				Ok(())
 			})
 			.await;
 
@@ -504,7 +483,7 @@ impl<'a> ServerBuilder<'a> {
 		Ok(())
 	}
 
-	pub async fn listen_on_port(&self, port:u16) -> Result<PortCodeServer, AnyError> {
+	pub async fn listen_on_port(&self, port: u16) -> Result<PortCodeServer, AnyError> {
 		let mut cmd = self.get_base_command();
 		cmd.arg("--start-server")
 			.arg("--enable-remote-auto-shutdown")
@@ -521,20 +500,20 @@ impl<'a> ServerBuilder<'a> {
 			Err(_) => {
 				origin.kill().await;
 				return Err(CodeError::ServerOriginTimeout.into());
-			},
+			}
 			Ok(Err(s)) => {
 				origin.kill().await;
 				return Err(CodeError::ServerUnexpectedExit(format!("{}", s)).into());
-			},
+			}
 			Ok(Ok(p)) => p,
 		};
 
 		info!(self.logger, "Server started");
 
 		Ok(PortCodeServer {
-			commit_id:self.server_params.release.commit.to_owned(),
+			commit_id: self.server_params.release.commit.to_owned(),
 			port,
-			origin:Arc::new(origin),
+			origin: Arc::new(origin),
 		})
 	}
 
@@ -542,10 +521,17 @@ impl<'a> ServerBuilder<'a> {
 	pub async fn install_extensions(&self) -> Result<(), AnyError> {
 		// cmd already has --install-extensions from base
 		let mut cmd = self.get_base_command();
-		let cmd_str = || self.server_params.code_server_args.command_arguments().join(" ");
+		let cmd_str = || {
+			self.server_params
+				.code_server_args
+				.command_arguments()
+				.join(" ")
+		};
 
-		let r = cmd.output().await.map_err(|e| {
-			CodeError::CommandFailed { command:cmd_str(), code:-1, output:e.to_string() }
+		let r = cmd.output().await.map_err(|e| CodeError::CommandFailed {
+			command: cmd_str(),
+			code: -1,
+			output: e.to_string(),
 		})?;
 
 		check_output_status(r, cmd_str)?;
@@ -558,7 +544,7 @@ impl<'a> ServerBuilder<'a> {
 		self.listen_on_socket(&requested_file).await
 	}
 
-	pub async fn listen_on_socket(&self, socket:&Path) -> Result<SocketCodeServer, AnyError> {
+	pub async fn listen_on_socket(&self, socket: &Path) -> Result<SocketCodeServer, AnyError> {
 		Ok(spanf!(
 			self.logger,
 			self.logger.span("server.start").with_attributes(vec! {
@@ -569,7 +555,7 @@ impl<'a> ServerBuilder<'a> {
 		)?)
 	}
 
-	async fn _listen_on_socket(&self, socket:&Path) -> Result<SocketCodeServer, AnyError> {
+	async fn _listen_on_socket(&self, socket: &Path) -> Result<SocketCodeServer, AnyError> {
 		remove_file(&socket).await.ok(); // ignore any error if it doesn't exist
 
 		let mut cmd = self.get_base_command();
@@ -588,33 +574,33 @@ impl<'a> ServerBuilder<'a> {
 			Err(_) => {
 				origin.kill().await;
 				return Err(CodeError::ServerOriginTimeout.into());
-			},
+			}
 			Ok(Err(s)) => {
 				origin.kill().await;
 				return Err(CodeError::ServerUnexpectedExit(format!("{}", s)).into());
-			},
+			}
 			Ok(Ok(socket)) => socket,
 		};
 
 		info!(self.logger, "Server started");
 
 		Ok(SocketCodeServer {
-			commit_id:self.server_params.release.commit.to_owned(),
+			commit_id: self.server_params.release.commit.to_owned(),
 			socket,
-			origin:Arc::new(origin),
+			origin: Arc::new(origin),
 		})
 	}
 
-	async fn spawn_server_process(&self, mut cmd:Command) -> Result<Child, AnyError> {
+	async fn spawn_server_process(&self, mut cmd: Command) -> Result<Child, AnyError> {
 		info!(self.logger, "Starting server...");
 
 		debug!(self.logger, "Starting server with command... {:?}", cmd);
 
-		// On Windows spawning a code-server binary will run cmd.exe /c
-		// C:\path\to\code-server.cmd... This spawns a cmd.exe window for the user,
-		// which if they close will kill the code-server process and disconnect the
-		// tunnel. To prevent this, pass the CREATE_NO_WINDOW flag to the Command only
-		// on Windows. Original issue: https://github.com/microsoft/vscode/issues/184058
+		// On Windows spawning a code-server binary will run cmd.exe /c C:\path\to\code-server.cmd...
+		// This spawns a cmd.exe window for the user, which if they close will kill the code-server process
+		// and disconnect the tunnel. To prevent this, pass the CREATE_NO_WINDOW flag to the Command
+		// only on Windows.
+		// Original issue: https://github.com/microsoft/vscode/issues/184058
 		// Partial fix: https://github.com/microsoft/vscode/pull/184621
 		#[cfg(target_os = "windows")]
 		let cmd = cmd.creation_flags(
@@ -632,14 +618,21 @@ impl<'a> ServerBuilder<'a> {
 			.spawn()
 			.map_err(|e| CodeError::ServerUnexpectedExit(format!("{}", e)))?;
 
-		self.server_paths.write_pid(child.id().expect("expected server to have pid"))?;
+		self.server_paths
+			.write_pid(child.id().expect("expected server to have pid"))?;
 
 		Ok(child)
 	}
 
 	fn get_logfile(&self) -> Result<File, WrappedError> {
 		File::create(&self.server_paths.logfile).map_err(|e| {
-			wrap(e, format!("error creating log file {}", self.server_paths.logfile.display()))
+			wrap(
+				e,
+				format!(
+					"error creating log file {}",
+					self.server_paths.logfile.display()
+				),
+			)
 		})
 	}
 
@@ -652,17 +645,24 @@ impl<'a> ServerBuilder<'a> {
 }
 
 fn monitor_server<M, R>(
-	mut child:Child,
-	log_file:Option<File>,
-	plog:log::Logger,
-	write_directly:bool,
+	mut child: Child,
+	log_file: Option<File>,
+	plog: log::Logger,
+	write_directly: bool,
 ) -> (CodeServerOrigin, Receiver<R>)
 where
 	M: ServerOutputMatcher<R>,
-	R: 'static + Send + std::fmt::Debug, {
-	let stdout = child.stdout.take().expect("child did not have a handle to stdout");
+	R: 'static + Send + std::fmt::Debug,
+{
+	let stdout = child
+		.stdout
+		.take()
+		.expect("child did not have a handle to stdout");
 
-	let stderr = child.stderr.take().expect("child did not have a handle to stdout");
+	let stderr = child
+		.stderr
+		.take()
+		.expect("child did not have a handle to stdout");
 
 	let (listen_tx, listen_rx) = tokio::sync::oneshot::channel();
 
@@ -671,7 +671,7 @@ where
 	tokio::spawn(async move {
 		let mut stdout_reader = BufReader::new(stdout).lines();
 		let mut stderr_reader = BufReader::new(stderr).lines();
-		let write_line = |line:&str| -> std::io::Result<()> {
+		let write_line = |line: &str| -> std::io::Result<()> {
 			if let Some(mut f) = log_file.as_ref() {
 				f.write_all(line.as_bytes())?;
 				f.write_all(b"\n")?;
@@ -694,7 +694,7 @@ where
 				Err(e) => {
 					trace!(plog, "error reading from stdout/stderr: {}", e);
 					return;
-				},
+				}
 				Ok(None) => break,
 				Ok(Some(l)) => {
 					write_line(&l).ok();
@@ -704,7 +704,7 @@ where
 						listen_tx.send(listen_on).ok();
 						break;
 					}
-				},
+				}
 			}
 		}
 
@@ -718,11 +718,11 @@ where
 				Err(e) => {
 					trace!(plog, "error reading from stdout/stderr: {}", e);
 					break;
-				},
+				}
 				Ok(None) => break,
 				Ok(Some(l)) => {
 					write_line(&l).ok();
-				},
+				}
 			}
 		}
 	});
@@ -731,7 +731,7 @@ where
 	(origin, listen_rx)
 }
 
-fn get_extensions_flag(extension_id:&str) -> String {
+fn get_extensions_flag(extension_id: &str) -> String {
 	format!("--install-extension={}", extension_id)
 }
 
@@ -739,32 +739,38 @@ fn get_extensions_flag(extension_id:&str) -> String {
 /// some other type that, in turn, is returned from starting the server.
 pub trait ServerOutputMatcher<R>
 where
-	R: Send, {
-	fn match_line(line:&str) -> Option<R>;
+	R: Send,
+{
+	fn match_line(line: &str) -> Option<R>;
 }
 
 /// Parses a line like "Extension host agent listening on /tmp/foo.sock"
 struct SocketMatcher();
 
 impl ServerOutputMatcher<PathBuf> for SocketMatcher {
-	fn match_line(line:&str) -> Option<PathBuf> { parse_socket_from(line) }
+	fn match_line(line: &str) -> Option<PathBuf> {
+		parse_socket_from(line)
+	}
 }
 
 /// Parses a line like "Extension host agent listening on 9000"
 pub struct PortMatcher();
 
 impl ServerOutputMatcher<u16> for PortMatcher {
-	fn match_line(line:&str) -> Option<u16> { parse_port_from(line) }
+	fn match_line(line: &str) -> Option<u16> {
+		parse_port_from(line)
+	}
 }
 
 /// Parses a line like "Web UI available at http://localhost:9000/?tkn=..."
 pub struct WebUiMatcher();
 
 impl ServerOutputMatcher<reqwest::Url> for WebUiMatcher {
-	fn match_line(line:&str) -> Option<reqwest::Url> {
-		WEB_UI_RE
-			.captures(line)
-			.and_then(|cap| cap.get(1).and_then(|uri| reqwest::Url::parse(uri.as_str()).ok()))
+	fn match_line(line: &str) -> Option<reqwest::Url> {
+		WEB_UI_RE.captures(line).and_then(|cap| {
+			cap.get(1)
+				.and_then(|uri| reqwest::Url::parse(uri.as_str()).ok())
+		})
 	}
 }
 
@@ -772,28 +778,38 @@ impl ServerOutputMatcher<reqwest::Url> for WebUiMatcher {
 pub struct NoOpMatcher();
 
 impl ServerOutputMatcher<()> for NoOpMatcher {
-	fn match_line(_:&str) -> Option<()> { Some(()) }
+	fn match_line(_: &str) -> Option<()> {
+		Some(())
+	}
 }
 
-fn parse_socket_from(text:&str) -> Option<PathBuf> {
+fn parse_socket_from(text: &str) -> Option<PathBuf> {
 	LISTENING_PORT_RE
 		.captures(text)
 		.and_then(|cap| cap.get(1).map(|path| PathBuf::from(path.as_str())))
 }
 
-fn parse_port_from(text:&str) -> Option<u16> {
-	LISTENING_PORT_RE
-		.captures(text)
-		.and_then(|cap| cap.get(1).and_then(|path| path.as_str().parse::<u16>().ok()))
+fn parse_port_from(text: &str) -> Option<u16> {
+	LISTENING_PORT_RE.captures(text).and_then(|cap| {
+		cap.get(1)
+			.and_then(|path| path.as_str().parse::<u16>().ok())
+	})
 }
 
-pub fn print_listening(log:&log::Logger, tunnel_name:&str) {
-	debug!(log, "{} is listening for incoming connections", QUALITYLESS_SERVER_NAME);
+pub fn print_listening(log: &log::Logger, tunnel_name: &str) {
+	debug!(
+		log,
+		"{} is listening for incoming connections", QUALITYLESS_SERVER_NAME
+	);
 
 	let home_dir = dirs::home_dir().unwrap_or_else(|| PathBuf::from(""));
 	let current_dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from(""));
 
-	let dir = if home_dir == current_dir { PathBuf::from("") } else { current_dir };
+	let dir = if home_dir == current_dir {
+		PathBuf::from("")
+	} else {
+		current_dir
+	};
 
 	let base_web_url = match EDITOR_WEB_URL {
 		Some(u) => u,
@@ -818,24 +834,25 @@ pub fn print_listening(log:&log::Logger, tunnel_name:&str) {
 }
 
 pub async fn download_cli_into_cache(
-	cache:&DownloadCache,
-	release:&Release,
-	update_service:&UpdateService,
+	cache: &DownloadCache,
+	release: &Release,
+	update_service: &UpdateService,
 ) -> Result<PathBuf, AnyError> {
-	let cache_name = format!("{}-{}-{}", release.quality, release.commit, release.platform);
+	let cache_name = format!(
+		"{}-{}-{}",
+		release.quality, release.commit, release.platform
+	);
 	let cli_dir = cache
-		.create(&cache_name, |target_dir| {
-			async move {
-				let tmpdir =
-					tempfile::tempdir().map_err(|e| wrap(e, "error creating temp download dir"))?;
-				let response = update_service.get_download_stream(release).await?;
+		.create(&cache_name, |target_dir| async move {
+			let tmpdir =
+				tempfile::tempdir().map_err(|e| wrap(e, "error creating temp download dir"))?;
+			let response = update_service.get_download_stream(release).await?;
 
-				let name = response.url_path_basename().unwrap();
-				let archive_path = tmpdir.path().join(name);
-				http::download_into_file(&archive_path, SilentCopyProgress(), response).await?;
-				unzip_downloaded_release(&archive_path, &target_dir, SilentCopyProgress())?;
-				Ok(())
-			}
+			let name = response.url_path_basename().unwrap();
+			let archive_path = tmpdir.path().join(name);
+			http::download_into_file(&archive_path, SilentCopyProgress(), response).await?;
+			unzip_downloaded_release(&archive_path, &target_dir, SilentCopyProgress())?;
+			Ok(())
 		})
 		.await?;
 
@@ -848,7 +865,7 @@ pub async fn download_cli_into_cache(
 		_ => {
 			let _ = cache.delete(&cache_name);
 			Err(CodeError::CorruptDownload("cli directory is empty").into())
-		},
+		}
 	}
 }
 

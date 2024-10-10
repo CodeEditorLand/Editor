@@ -7,18 +7,17 @@ export type ValueCallback<T = unknown> = (value: T | Promise<T>) => void;
 
 const enum DeferredOutcome {
 	Resolved,
-	Rejected,
+	Rejected
 }
 
 /**
  * Copied from src\vs\base\common\async.ts
  */
 export class DeferredPromise<T> {
+
 	private completeCallback!: ValueCallback<T>;
 	private errorCallback!: (err: unknown) => void;
-	private outcome?:
-		| { outcome: DeferredOutcome.Rejected; value: any }
-		| { outcome: DeferredOutcome.Resolved; value: T };
+	private outcome?: { outcome: DeferredOutcome.Rejected; value: any } | { outcome: DeferredOutcome.Resolved; value: T };
 
 	public get isRejected() {
 		return this.outcome?.outcome === DeferredOutcome.Rejected;
@@ -33,9 +32,7 @@ export class DeferredPromise<T> {
 	}
 
 	public get value() {
-		return this.outcome?.outcome === DeferredOutcome.Resolved
-			? this.outcome?.value
-			: undefined;
+		return this.outcome?.outcome === DeferredOutcome.Resolved ? this.outcome?.value : undefined;
 	}
 
 	public readonly p: Promise<T>;
@@ -48,7 +45,7 @@ export class DeferredPromise<T> {
 	}
 
 	public complete(value: T) {
-		return new Promise<void>((resolve) => {
+		return new Promise<void>(resolve => {
 			this.completeCallback(value);
 			this.outcome = { outcome: DeferredOutcome.Resolved, value };
 			resolve();
@@ -56,7 +53,7 @@ export class DeferredPromise<T> {
 	}
 
 	public error(err: unknown) {
-		return new Promise<void>((resolve) => {
+		return new Promise<void>(resolve => {
 			this.errorCallback(err);
 			this.outcome = { outcome: DeferredOutcome.Rejected, value: err };
 			resolve();

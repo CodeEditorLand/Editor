@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	// todo@joaomoreno add issue reference
 
 	export interface SourceControl {
+
 		/**
 		 * Whether the source control is selected.
 		 */

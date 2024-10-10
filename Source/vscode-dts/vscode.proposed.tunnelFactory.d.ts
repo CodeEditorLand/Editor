@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
 	/**
 	 * Used as part of the ResolverResult if the extension has any candidate,
 	 * published, or forwarded ports.
@@ -34,11 +34,7 @@ declare module "vscode" {
 		 * Provides port forwarding capabilities. If there is a resolver that already provids tunnels, then the resolver's provider will
 		 * be used. If multiple providers are registered, then only the first will be used.
 		 */
-		provideTunnel(
-			tunnelOptions: TunnelOptions,
-			tunnelCreationOptions: TunnelCreationOptions,
-			token: CancellationToken,
-		): ProviderResult<Tunnel>;
+		provideTunnel(tunnelOptions: TunnelOptions, tunnelCreationOptions: TunnelCreationOptions, token: CancellationToken): ProviderResult<Tunnel>;
 	}
 
 	export namespace workspace {
@@ -46,9 +42,7 @@ declare module "vscode" {
 		 * Registering a tunnel provider enables port forwarding. This will cause the Ports view to show.
 		 * @param provider
 		 */
-		export function registerTunnelProvider(
-			provider: TunnelProvider,
-			information: TunnelInformation,
-		): Thenable<Disposable>;
+		export function registerTunnelProvider(provider: TunnelProvider, information: TunnelInformation): Thenable<Disposable>;
 	}
+
 }

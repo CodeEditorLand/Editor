@@ -1,8 +1,7 @@
-// ---------------------------------------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation. All rights reserved.
-//  Licensed under the MIT License. See License.txt in the project root for
-// license information.
-// --------------------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 #[cfg(windows)]
 use std::{io, ptr};
@@ -17,7 +16,7 @@ use super::errors::CodeError;
 
 pub struct AppMutex {
 	#[cfg(windows)]
-	handle:HANDLE,
+	handle: HANDLE,
 }
 
 #[cfg(windows)] // handle is thread-safe, mark it so with this
@@ -25,10 +24,12 @@ unsafe impl Send for AppMutex {}
 
 impl AppMutex {
 	#[cfg(unix)]
-	pub fn new(_name:&str) -> Result<Self, CodeError> { Ok(Self {}) }
+	pub fn new(_name: &str) -> Result<Self, CodeError> {
+		Ok(Self {})
+	}
 
 	#[cfg(windows)]
-	pub fn new(name:&str) -> Result<Self, CodeError> {
+	pub fn new(name: &str) -> Result<Self, CodeError> {
 		use std::ffi::CString;
 
 		let cname = CString::new(name).unwrap();

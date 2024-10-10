@@ -574,8 +574,6 @@ function readCookie(name: string): string | undefined {
 	return undefined;
 }
 
-alert(5);
-
 (function () {
 
 	// Find config by checking for DOM

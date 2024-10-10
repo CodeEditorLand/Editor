@@ -1,18 +1,7 @@
-// ---------------------------------------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation. All rights reserved.
-//  Licensed under the MIT License. See License.txt in the project root for
-// license information.
-// --------------------------------------------------------------------------------------------
-
-use std::{
-	fmt,
-	io::Write,
-	path::Path,
-	sync::{
-		atomic::{AtomicU32, Ordering},
-		Arc,
-	},
-};
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 use chrono::Local;
 use opentelemetry::{
@@ -20,13 +9,21 @@ use opentelemetry::{
 	trace::{SpanBuilder, Tracer as TraitTracer, TracerProvider as TracerProviderTrait},
 };
 use serde::{Deserialize, Serialize};
+use std::fmt;
+use std::{
+	io::Write,
+	sync::atomic::{AtomicU32, Ordering},
+};
+use std::{path::Path, sync::Arc};
 
 use crate::constants::COLORS_ENABLED;
 
-static INSTANCE_COUNTER:AtomicU32 = AtomicU32::new(0);
+static INSTANCE_COUNTER: AtomicU32 = AtomicU32::new(0);
 
 // Gets a next incrementing number that can be used in logs
-pub fn next_counter() -> u32 { INSTANCE_COUNTER.fetch_add(1, Ordering::SeqCst) }
+pub fn next_counter() -> u32 {
+	INSTANCE_COUNTER.fetch_add(1, Ordering::SeqCst)
+}
 
 // Log level
 #[derive(
@@ -44,7 +41,7 @@ pub enum Level {
 }
 
 impl fmt::Display for Level {
-	fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		match self {
 			Level::Critical => write!(f, "critical"),
 			Level::Debug => write!(f, "debug"),
@@ -86,21 +83,29 @@ impl Level {
 		}
 	}
 
-	pub fn to_u8(self) -> u8 { self as u8 }
+	pub fn to_u8(self) -> u8 {
+		self as u8
+	}
 }
 
-pub fn new_tunnel_prefix() -> String { format!("[tunnel.{}]", next_counter()) }
+pub fn new_tunnel_prefix() -> String {
+	format!("[tunnel.{}]", next_counter())
+}
 
-pub fn new_code_server_prefix() -> String { format!("[codeserver.{}]", next_counter()) }
+pub fn new_code_server_prefix() -> String {
+	format!("[codeserver.{}]", next_counter())
+}
 
-pub fn new_rpc_prefix() -> String { format!("[rpc.{}]", next_counter()) }
+pub fn new_rpc_prefix() -> String {
+	format!("[rpc.{}]", next_counter())
+}
 
 // Base logger implementation
 #[derive(Clone)]
 pub struct Logger {
-	tracer:Arc<Tracer>,
-	sink:Vec<Box<dyn LogSink>>,
-	prefix:Option<String>,
+	tracer: Arc<Tracer>,
+	sink: Vec<Box<dyn LogSink>>,
+	prefix: Option<String>,
 }
 
 // Copy trick from https://stackoverflow.com/a/30353928
@@ -112,26 +117,30 @@ impl<T> LogSinkClone for T
 where
 	T: 'static + LogSink + Clone,
 {
-	fn clone_box(&self) -> Box<dyn LogSink> { Box::new(self.clone()) }
+	fn clone_box(&self) -> Box<dyn LogSink> {
+		Box::new(self.clone())
+	}
 }
 
 pub trait LogSink: LogSinkClone + Sync + Send {
-	fn write_log(&self, level:Level, prefix:&str, message:&str);
-	fn write_result(&self, message:&str);
+	fn write_log(&self, level: Level, prefix: &str, message: &str);
+	fn write_result(&self, message: &str);
 }
 
 impl Clone for Box<dyn LogSink> {
-	fn clone(&self) -> Box<dyn LogSink> { self.clone_box() }
+	fn clone(&self) -> Box<dyn LogSink> {
+		self.clone_box()
+	}
 }
 
 /// The basic log sink that writes output to stdout, with colors when relevant.
 #[derive(Clone)]
 pub struct StdioLogSink {
-	level:Level,
+	level: Level,
 }
 
 impl LogSink for StdioLogSink {
-	fn write_log(&self, level:Level, prefix:&str, message:&str) {
+	fn write_log(&self, level: Level, prefix: &str, message: &str) {
 		if level < self.level {
 			return;
 		}
@@ -139,35 +148,41 @@ impl LogSink for StdioLogSink {
 		emit(level, prefix, message);
 	}
 
-	fn write_result(&self, message:&str) {
+	fn write_result(&self, message: &str) {
 		println!("{}", message);
 	}
 }
 
 #[derive(Clone)]
 pub struct FileLogSink {
-	level:Level,
-	file:Arc<std::sync::Mutex<std::fs::File>>,
+	level: Level,
+	file: Arc<std::sync::Mutex<std::fs::File>>,
 }
 
-const FILE_LOG_SIZE_LIMIT:u64 = 1024 * 1024 * 10; // 10MB
+const FILE_LOG_SIZE_LIMIT: u64 = 1024 * 1024 * 10; // 10MB
 
 impl FileLogSink {
-	pub fn new(level:Level, path:&Path) -> std::io::Result<Self> {
+	pub fn new(level: Level, path: &Path) -> std::io::Result<Self> {
 		// Truncate the service log occasionally to avoid growing infinitely
 		if matches!(path.metadata(), Ok(m) if m.len() > FILE_LOG_SIZE_LIMIT) {
 			// ignore errors, can happen if another process is writing right now
 			let _ = std::fs::remove_file(path);
 		}
 
-		let file = std::fs::OpenOptions::new().append(true).create(true).open(path)?;
+		let file = std::fs::OpenOptions::new()
+			.append(true)
+			.create(true)
+			.open(path)?;
 
-		Ok(Self { level, file:Arc::new(std::sync::Mutex::new(file)) })
+		Ok(Self {
+			level,
+			file: Arc::new(std::sync::Mutex::new(file)),
+		})
 	}
 }
 
 impl LogSink for FileLogSink {
-	fn write_log(&self, level:Level, prefix:&str, message:&str) {
+	fn write_log(&self, level: Level, prefix: &str, message: &str) {
 		if level < self.level {
 			return;
 		}
@@ -178,48 +193,50 @@ impl LogSink for FileLogSink {
 		self.file.lock().unwrap().write_all(line.as_bytes()).ok();
 	}
 
-	fn write_result(&self, _message:&str) {}
+	fn write_result(&self, _message: &str) {}
 }
 
 impl Logger {
 	pub fn test() -> Self {
 		Self {
-			tracer:Arc::new(TracerProvider::builder().build().tracer("codeclitest")),
-			sink:vec![],
-			prefix:None,
+			tracer: Arc::new(TracerProvider::builder().build().tracer("codeclitest")),
+			sink: vec![],
+			prefix: None,
 		}
 	}
 
-	pub fn new(tracer:Tracer, level:Level) -> Self {
+	pub fn new(tracer: Tracer, level: Level) -> Self {
 		Self {
-			tracer:Arc::new(tracer),
-			sink:vec![Box::new(StdioLogSink { level })],
-			prefix:None,
+			tracer: Arc::new(tracer),
+			sink: vec![Box::new(StdioLogSink { level })],
+			prefix: None,
 		}
 	}
 
-	pub fn span(&self, name:&str) -> SpanBuilder {
+	pub fn span(&self, name: &str) -> SpanBuilder {
 		self.tracer.span_builder(format!("serverlauncher/{}", name))
 	}
 
-	pub fn tracer(&self) -> &Tracer { &self.tracer }
+	pub fn tracer(&self) -> &Tracer {
+		&self.tracer
+	}
 
-	pub fn emit(&self, level:Level, message:&str) {
+	pub fn emit(&self, level: Level, message: &str) {
 		let prefix = self.prefix.as_deref().unwrap_or("");
 		for sink in &self.sink {
 			sink.write_log(level, prefix, message);
 		}
 	}
 
-	pub fn result(&self, message:impl AsRef<str>) {
+	pub fn result(&self, message: impl AsRef<str>) {
 		for sink in &self.sink {
 			sink.write_result(message.as_ref());
 		}
 	}
 
-	pub fn prefixed(&self, prefix:&str) -> Logger {
+	pub fn prefixed(&self, prefix: &str) -> Logger {
 		Logger {
-			prefix:Some(match &self.prefix {
+			prefix: Some(match &self.prefix {
 				Some(p) => format!("{}{} ", p, prefix),
 				None => format!("{} ", prefix),
 			}),
@@ -228,34 +245,45 @@ impl Logger {
 	}
 
 	/// Creates a new logger with the additional log sink added.
-	pub fn tee<T>(&self, sink:T) -> Logger
+	pub fn tee<T>(&self, sink: T) -> Logger
 	where
-		T: LogSink + 'static, {
+		T: LogSink + 'static,
+	{
 		let mut new_sinks = self.sink.clone();
 		new_sinks.push(Box::new(sink));
 
-		Logger { sink:new_sinks, ..self.clone() }
+		Logger {
+			sink: new_sinks,
+			..self.clone()
+		}
 	}
 
 	/// Creates a new logger with the sink replace with the given sink.
-	pub fn with_sink<T>(&self, sink:T) -> Logger
+	pub fn with_sink<T>(&self, sink: T) -> Logger
 	where
-		T: LogSink + 'static, {
-		Logger { sink:vec![Box::new(sink)], ..self.clone() }
+		T: LogSink + 'static,
+	{
+		Logger {
+			sink: vec![Box::new(sink)],
+			..self.clone()
+		}
 	}
 
-	pub fn get_download_logger<'a>(&'a self, prefix:&'static str) -> DownloadLogger<'a> {
-		DownloadLogger { prefix, logger:self }
+	pub fn get_download_logger<'a>(&'a self, prefix: &'static str) -> DownloadLogger<'a> {
+		DownloadLogger {
+			prefix,
+			logger: self,
+		}
 	}
 }
 
 pub struct DownloadLogger<'a> {
-	prefix:&'static str,
-	logger:&'a Logger,
+	prefix: &'static str,
+	logger: &'a Logger,
 }
 
 impl<'a> crate::util::io::ReportCopyProgress for DownloadLogger<'a> {
-	fn report_progress(&mut self, bytes_so_far:u64, total_bytes:u64) {
+	fn report_progress(&mut self, bytes_so_far: u64, total_bytes: u64) {
 		if total_bytes > 0 {
 			self.logger.emit(
 				Level::Trace,
@@ -268,13 +296,15 @@ impl<'a> crate::util::io::ReportCopyProgress for DownloadLogger<'a> {
 				),
 			);
 		} else {
-			self.logger
-				.emit(Level::Trace, &format!("{} {}/{}", self.prefix, bytes_so_far, total_bytes,));
+			self.logger.emit(
+				Level::Trace,
+				&format!("{} {}/{}", self.prefix, bytes_so_far, total_bytes,),
+			);
 		}
 	}
 }
 
-fn format(level:Level, prefix:&str, message:&str, use_colors:bool) -> String {
+fn format(level: Level, prefix: &str, message: &str, use_colors: bool) -> String {
 	let current = Local::now();
 	let timestamp = current.format("%Y-%m-%d %H:%M:%S").to_string();
 
@@ -292,7 +322,7 @@ fn format(level:Level, prefix:&str, message:&str, use_colors:bool) -> String {
 	format!("[{}] {} {}{}\n", timestamp, name, prefix, message)
 }
 
-pub fn emit(level:Level, prefix:&str, message:&str) {
+pub fn emit(level: Level, prefix: &str, message: &str) {
 	let line = format(level, prefix, message, *COLORS_ENABLED);
 	if level == Level::Trace && *COLORS_ENABLED {
 		print!("\x1b[2m{}\x1b[0m", line);
@@ -302,9 +332,8 @@ pub fn emit(level:Level, prefix:&str, message:&str) {
 }
 
 /// Installs the logger instance as the global logger for the 'log' service.
-/// Replaces any existing registered logger. Note that the logger will be
-/// leaked/
-pub fn install_global_logger(log:Logger) {
+/// Replaces any existing registered logger. Note that the logger will be leaked/
+pub fn install_global_logger(log: Logger) {
 	log::set_logger(Box::leak(Box::new(RustyLogger(log))))
 		.map(|()| log::set_max_level(log::LevelFilter::Debug))
 		.expect("expected to make logger");
@@ -315,9 +344,11 @@ pub fn install_global_logger(log:Logger) {
 struct RustyLogger(Logger);
 
 impl log::Log for RustyLogger {
-	fn enabled(&self, metadata:&log::Metadata) -> bool { metadata.level() <= log::Level::Debug }
+	fn enabled(&self, metadata: &log::Metadata) -> bool {
+		metadata.level() <= log::Level::Debug
+	}
 
-	fn log(&self, record:&log::Record) {
+	fn log(&self, record: &log::Record) {
 		if !self.enabled(record.metadata()) {
 			return;
 		}

@@ -1,14 +1,11 @@
-// ---------------------------------------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation. All rights reserved.
-//  Licensed under the MIT License. See License.txt in the project root for
-// license information.
-// --------------------------------------------------------------------------------------------
-use std::{marker::PhantomData, sync::Arc};
-
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 use async_trait::async_trait;
+use std::{marker::PhantomData, sync::Arc};
 use tokio::sync::{
-	broadcast,
-	mpsc,
+	broadcast, mpsc,
 	watch::{self, error::RecvError},
 };
 
@@ -33,20 +30,24 @@ where
 	}
 
 	/// Gets whether the barrier is currently open
-	pub fn is_open(&self) -> bool { self.0.borrow().is_some() }
+	pub fn is_open(&self) -> bool {
+		self.0.borrow().is_some()
+	}
 }
 
 #[async_trait]
-impl<T:Clone + Send + Sync> Receivable<T> for Barrier<T> {
-	async fn recv_msg(&mut self) -> Option<T> { self.wait().await.ok() }
+impl<T: Clone + Send + Sync> Receivable<T> for Barrier<T> {
+	async fn recv_msg(&mut self) -> Option<T> {
+		self.wait().await.ok()
+	}
 }
 
 #[derive(Clone)]
-pub struct BarrierOpener<T:Clone>(Arc<watch::Sender<Option<T>>>);
+pub struct BarrierOpener<T: Clone>(Arc<watch::Sender<Option<T>>>);
 
-impl<T:Clone> BarrierOpener<T> {
+impl<T: Clone> BarrierOpener<T> {
 	/// Opens the barrier.
-	pub fn open(&self, value:T) {
+	pub fn open(&self, value: T) {
 		self.0.send_if_modified(|v| {
 			if v.is_none() {
 				*v = Some(value);
@@ -62,7 +63,8 @@ impl<T:Clone> BarrierOpener<T> {
 /// and is thereafter permanently closed. It can contain a value.
 pub fn new_barrier<T>() -> (Barrier<T>, BarrierOpener<T>)
 where
-	T: Clone, {
+	T: Clone,
+{
 	let (closed_tx, closed_rx) = watch::channel(None);
 	(Barrier(closed_rx), BarrierOpener(Arc::new(closed_tx)))
 }
@@ -76,7 +78,7 @@ pub trait Receivable<T> {
 // todo: ideally we would use an Arc in the broadcast::Receiver to avoid having
 // to clone bytes everywhere, requires updating rpc consumers as well.
 #[async_trait]
-impl<T:Clone + Send> Receivable<T> for broadcast::Receiver<T> {
+impl<T: Clone + Send> Receivable<T> for broadcast::Receiver<T> {
 	async fn recv_msg(&mut self) -> Option<T> {
 		loop {
 			match self.recv().await {
@@ -89,27 +91,37 @@ impl<T:Clone + Send> Receivable<T> for broadcast::Receiver<T> {
 }
 
 #[async_trait]
-impl<T:Send> Receivable<T> for mpsc::UnboundedReceiver<T> {
-	async fn recv_msg(&mut self) -> Option<T> { self.recv().await }
+impl<T: Send> Receivable<T> for mpsc::UnboundedReceiver<T> {
+	async fn recv_msg(&mut self) -> Option<T> {
+		self.recv().await
+	}
 }
 
 #[async_trait]
-impl<T:Send> Receivable<T> for () {
-	async fn recv_msg(&mut self) -> Option<T> { futures::future::pending().await }
+impl<T: Send> Receivable<T> for () {
+	async fn recv_msg(&mut self) -> Option<T> {
+		futures::future::pending().await
+	}
 }
 
-pub struct ConcatReceivable<T:Send, A:Receivable<T>, B:Receivable<T>> {
-	left:Option<A>,
-	right:B,
-	_marker:PhantomData<T>,
+pub struct ConcatReceivable<T: Send, A: Receivable<T>, B: Receivable<T>> {
+	left: Option<A>,
+	right: B,
+	_marker: PhantomData<T>,
 }
 
-impl<T:Send, A:Receivable<T>, B:Receivable<T>> ConcatReceivable<T, A, B> {
-	pub fn new(left:A, right:B) -> Self { Self { left:Some(left), right, _marker:PhantomData } }
+impl<T: Send, A: Receivable<T>, B: Receivable<T>> ConcatReceivable<T, A, B> {
+	pub fn new(left: A, right: B) -> Self {
+		Self {
+			left: Some(left),
+			right,
+			_marker: PhantomData,
+		}
+	}
 }
 
 #[async_trait]
-impl<T:Send, A:Send + Receivable<T>, B:Send + Receivable<T>> Receivable<T>
+impl<T: Send, A: Send + Receivable<T>, B: Send + Receivable<T>> Receivable<T>
 	for ConcatReceivable<T, A, B>
 {
 	async fn recv_msg(&mut self) -> Option<T> {
@@ -118,7 +130,7 @@ impl<T:Send, A:Send + Receivable<T>, B:Send + Receivable<T>> Receivable<T>
 				Some(v) => return Some(v),
 				None => {
 					self.left = None;
-				},
+				}
 			}
 		}
 
@@ -126,20 +138,24 @@ impl<T:Send, A:Send + Receivable<T>, B:Send + Receivable<T>> Receivable<T>
 	}
 }
 
-pub struct MergedReceivable<T:Send, A:Receivable<T>, B:Receivable<T>> {
-	left:Option<A>,
-	right:Option<B>,
-	_marker:PhantomData<T>,
+pub struct MergedReceivable<T: Send, A: Receivable<T>, B: Receivable<T>> {
+	left: Option<A>,
+	right: Option<B>,
+	_marker: PhantomData<T>,
 }
 
-impl<T:Send, A:Receivable<T>, B:Receivable<T>> MergedReceivable<T, A, B> {
-	pub fn new(left:A, right:B) -> Self {
-		Self { left:Some(left), right:Some(right), _marker:PhantomData }
+impl<T: Send, A: Receivable<T>, B: Receivable<T>> MergedReceivable<T, A, B> {
+	pub fn new(left: A, right: B) -> Self {
+		Self {
+			left: Some(left),
+			right: Some(right),
+			_marker: PhantomData,
+		}
 	}
 }
 
 #[async_trait]
-impl<T:Send, A:Send + Receivable<T>, B:Send + Receivable<T>> Receivable<T>
+impl<T: Send, A: Send + Receivable<T>, B: Send + Receivable<T>> Receivable<T>
 	for MergedReceivable<T, A, B>
 {
 	async fn recv_msg(&mut self) -> Option<T> {
@@ -156,7 +172,7 @@ impl<T:Send, A:Send + Receivable<T>, B:Send + Receivable<T>> Receivable<T>
 							None => { self.right = None; continue; },
 						},
 					}
-				},
+				}
 				(Some(a), None) => break a.recv_msg().await,
 				(None, Some(b)) => break b.recv_msg().await,
 				(None, None) => break None,

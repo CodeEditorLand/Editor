@@ -1,75 +1,61 @@
 {
-  "name": "gulp",
-  "publisher": "vscode",
-  "description": "%description%",
-  "displayName": "%displayName%",
-  "version": "1.0.0",
-  "icon": "images/gulp.png",
-  "license": "MIT",
-  "engines": {
-    "vscode": "*"
-  },
-  "categories": [
-    "Other"
-  ],
-  "scripts": {
-    "compile": "gulp compile-extension:gulp",
-    "watch": "gulp watch-extension:gulp"
-  },
-  "dependencies": {},
-  "devDependencies": {
-    "@types/node": "20.x"
-  },
-  "main": "./out/main",
-  "activationEvents": [
-    "onTaskType:gulp"
-  ],
-  "capabilities": {
-    "virtualWorkspaces": false,
-    "untrustedWorkspaces": {
-      "supported": true
-    }
-  },
-  "contributes": {
-    "configuration": {
-      "id": "gulp",
-      "type": "object",
-      "title": "Gulp",
-      "properties": {
-        "gulp.autoDetect": {
-          "scope": "application",
-          "type": "string",
-          "enum": [
-            "off",
-            "on"
-          ],
-          "default": "off",
-          "description": "%config.gulp.autoDetect%"
-        }
-      }
-    },
-    "taskDefinitions": [
-      {
-        "type": "gulp",
-        "required": [
-          "task"
-        ],
-        "properties": {
-          "task": {
-            "type": "string",
-            "description": "%gulp.taskDefinition.type.description%"
-          },
-          "file": {
-            "type": "string",
-            "description": "%gulp.taskDefinition.file.description%"
-          }
-        },
-        "when": "shellExecutionSupported"
-      }
-    ]
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/microsoft/vscode.git"
-  }
+	"activationEvents": [
+		"onTaskType:gulp"
+	],
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": false
+	},
+	"contributes": {
+		"configuration": {
+			"id": "gulp",
+			"properties": {
+				"gulp.autoDetect": {
+					"default": "off",
+					"description": "%config.gulp.autoDetect%",
+					"enum": [
+						"off",
+						"on"
+					],
+					"scope": "application",
+					"type": "string"
+				}
+			},
+			"title": "Gulp",
+			"type": "object"
+		},
+		"taskDefinitions": [
+			{
+				"properties": {
+					"file": {
+						"description": "%gulp.taskDefinition.file.description%",
+						"type": "string"
+					},
+					"task": {
+						"description": "%gulp.taskDefinition.type.description%",
+						"type": "string"
+					}
+				},
+				"required": [
+					"task"
+				],
+				"type": "gulp",
+				"when": "shellExecutionSupported"
+			}
+		]
+	},
+	"dependencies": {},
+	"description": "%description%",
+	"devDependencies": {
+		"@types/node": "20.x"
+	},
+	"displayName": "%displayName%",
+	"icon": "images/gulp.png",
+	"main": "./out/main",
+	"name": "gulp",
+	"scripts": {
+		"compile": "gulp compile-extension:gulp"
+	}
 }

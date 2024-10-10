@@ -31,7 +31,7 @@ const languages = [
 module.exports = [withBrowserDefaults({
 	context: __dirname,
 	entry: {
-		extension: './src/extension.browser.ts',
+		extension: './Source/extension.browser.ts',
 	},
 	plugins: [
 		...browserPlugins(__dirname), // add plugins, don't replace inherited

@@ -14,7 +14,7 @@ const withDefaults = require('../shared.webpack.config');
 module.exports = withDefaults({
 	context: __dirname,
 	entry: {
-		extension: './src/node/emmetNodeMain.ts',
+		extension: './Source/node/emmetNodeMain.ts',
 	},
 	output: {
 		path: path.join(__dirname, 'dist', 'node'),

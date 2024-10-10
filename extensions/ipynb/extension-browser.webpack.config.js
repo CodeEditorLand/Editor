@@ -13,7 +13,7 @@ const path = require('path');
 const mainConfig = withBrowserDefaults({
 	context: __dirname,
 	entry: {
-		extension: './src/ipynbMain.browser.ts'
+		extension: './Source/ipynbMain.browser.ts'
 	},
 	output: {
 		filename: 'ipynbMain.browser.js',
@@ -25,7 +25,7 @@ const mainConfig = withBrowserDefaults({
 const workerConfig = withBrowserDefaults({
 	context: __dirname,
 	entry: {
-		notebookSerializerWorker: './src/notebookSerializerWorker.web.ts',
+		notebookSerializerWorker: './Source/notebookSerializerWorker.web.ts',
 	},
 	output: {
 		filename: 'notebookSerializerWorker.js',

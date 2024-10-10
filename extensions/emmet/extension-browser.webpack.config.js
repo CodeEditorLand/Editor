@@ -13,7 +13,7 @@ const withBrowserDefaults
 module.exports = withBrowserDefaults({
 	context: __dirname,
 	entry: {
-		extension: './src/browser/emmetBrowserMain.ts'
+		extension: './Source/browser/emmetBrowserMain.ts'
 	},
 	output: {
 		filename: 'emmetBrowserMain.js'

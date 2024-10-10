@@ -13,7 +13,7 @@ const withBrowserDefaults = require('../shared.webpack.config').browser;
 module.exports = withBrowserDefaults({
 	context: __dirname,
 	entry: {
-		extension: './src/configurationEditingMain.ts'
+		extension: './Source/configurationEditingMain.ts'
 	},
 	output: {
 		filename: 'configurationEditingMain.js'

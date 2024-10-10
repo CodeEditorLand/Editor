@@ -2,8 +2,8 @@ test/**
 .vscode/**
 server/.vscode/**
 server/node_modules/**
-client/src/**
-server/src/**
+client/Source/**
+server/Source/**
 client/out/**
 server/out/**
 client/tsconfig.json

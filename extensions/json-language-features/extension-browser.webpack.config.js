@@ -14,7 +14,7 @@ module.exports = withBrowserDefaults({
 	target: 'webworker',
 	context: path.join(__dirname, 'client'),
 	entry: {
-		extension: './src/browser/jsonClientMain.ts'
+		extension: './Source/browser/jsonClientMain.ts'
 	},
 	output: {
 		filename: 'jsonClientMain.js',

@@ -13,7 +13,7 @@ const path = require('path');
 module.exports = withBrowserDefaults({
 	context: path.join(__dirname, 'client'),
 	entry: {
-		extension: './src/browser/htmlClientMain.ts'
+		extension: './Source/browser/htmlClientMain.ts'
 	},
 	output: {
 		filename: 'htmlClientMain.js',

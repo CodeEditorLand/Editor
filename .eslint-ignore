@@ -23,9 +23,9 @@
 **/out-*/**/*.js
 **/out-editor-*/**
 **/out/**/*.js
-**/src/**/dompurify.js
-**/src/**/marked.js
-**/src/**/semver.js
+**/Source/**/dompurify.js
+**/Source/**/marked.js
+**/Source/**/semver.js
 **/src/typings/**/*.d.ts
 **/Source/vs/*/**/*.d.ts
 **/Source/vs/base/test/common/filters.perf.data.js

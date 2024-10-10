@@ -16,7 +16,7 @@ module.exports = withDefaults({
 		mainFields: ['module', 'main']
 	},
 	entry: {
-		extension: './src/extension.ts',
+		extension: './Source/extension.ts',
 	},
 	plugins: [
 		...withDefaults.nodePlugins(__dirname), // add plugins, don't replace inherited

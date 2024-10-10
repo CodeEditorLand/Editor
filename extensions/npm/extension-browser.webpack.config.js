@@ -12,7 +12,7 @@ const withBrowserDefaults = require('../shared.webpack.config').browser;
 const config = withBrowserDefaults({
 	context: __dirname,
 	entry: {
-		extension: './src/npmBrowserMain.ts'
+		extension: './Source/npmBrowserMain.ts'
 	},
 	output: {
 		filename: 'npmBrowserMain.js'

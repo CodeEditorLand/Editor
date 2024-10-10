@@ -387,7 +387,7 @@ function createXlfFilesForCoreBundle() {
                             xlf = new XLF(project);
                             xlfs[resource] = xlf;
                         }
-                        xlf.addFile(`src/${coreModule}`, keys, messages);
+                        xlf.addFile(`Source/${coreModule}`, keys, messages);
                     }
                 }
                 for (const resource in xlfs) {

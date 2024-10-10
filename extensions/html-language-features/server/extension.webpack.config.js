@@ -13,7 +13,7 @@ const path = require('path');
 module.exports = withDefaults({
 	context: path.join(__dirname),
 	entry: {
-		extension: './src/node/htmlServerNodeMain.ts',
+		extension: './Source/node/htmlServerNodeMain.ts',
 	},
 	output: {
 		filename: 'htmlServerMain.js',

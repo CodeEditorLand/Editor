@@ -13,7 +13,7 @@ const path = require('path');
 module.exports = withDefaults({
 	context: path.join(__dirname),
 	entry: {
-		extension: './src/node/cssServerNodeMain.ts',
+		extension: './Source/node/cssServerNodeMain.ts',
 	},
 	output: {
 		filename: 'cssServerMain.js',

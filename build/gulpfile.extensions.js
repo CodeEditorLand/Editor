@@ -131,7 +131,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 					addComment: !!build,
 					includeContent: !!build,
 					// note: trailing slash is important, else the source URLs in V8's file coverage are incorrect
-					sourceRoot: '../src/',
+					sourceRoot: '../Source/',
 				}))
 				.pipe(tsFilter.restore)
 				.pipe(reporter.end(emitError));

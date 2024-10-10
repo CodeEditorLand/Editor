@@ -12,7 +12,7 @@ const withBrowserDefaults = require('../shared.webpack.config').browser;
 module.exports = withBrowserDefaults({
 	context: __dirname,
 	entry: {
-		extension: './src/mergeConflictMain.ts'
+		extension: './Source/mergeConflictMain.ts'
 	},
 	output: {
 		filename: 'mergeConflictMain.js'

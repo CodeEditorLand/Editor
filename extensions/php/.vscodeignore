@@ -1,7 +1,7 @@
 test/**
 build/**
 out/test/**
-src/**
+Source/**
 tsconfig.json
 cgmanifest.json
 .vscode

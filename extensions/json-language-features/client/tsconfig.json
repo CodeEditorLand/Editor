@@ -8,7 +8,7 @@
 		"module": "Node16",
 	},
 	"include": [
-		"src/**/*",
+		"Source/**/*",
 		"../../../Source/vscode-dts/vscode.d.ts",
 		"../../../Source/vscode-dts/vscode.proposed.languageStatus.d.ts",
 		"../../../Source/vscode-dts/vscode.proposed.extensionsAny.d.ts"

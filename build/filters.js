@@ -20,7 +20,7 @@ module.exports.all = [
 	'build/**/*',
 	'extensions/**/*',
 	'scripts/**/*',
-	'src/**/*',
+	'Source/**/*',
 	'test/**/*',
 	'!cli/**/*',
 	'!out*/**',
@@ -177,7 +177,7 @@ module.exports.copyrightFilter = [
 ];
 
 module.exports.tsFormattingFilter = [
-	'src/**/*.ts',
+	'Source/**/*.ts',
 	'test/**/*.ts',
 	'extensions/**/*.ts',
 	'!Source/vs/*/**/*.d.ts',
@@ -206,5 +206,5 @@ module.exports.eslintFilter = [
 ];
 
 module.exports.stylelintFilter = [
-	'src/**/*.css'
+	'Source/**/*.css'
 ];

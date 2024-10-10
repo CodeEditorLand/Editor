@@ -5,7 +5,7 @@
 		"types": []
 	},
 	"include": [
-		"src/**/*",
+		"Source/**/*",
 		"../../Source/vscode-dts/vscode.d.ts"
 	]
 }

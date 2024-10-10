@@ -20,7 +20,7 @@
 		"node_modules"
 	],
 	"include": [
-		"src/**/*",
+		"Source/**/*",
 		"../../Source/vscode-dts/vscode.d.ts",
 		"../../Source/vscode-dts/vscode.proposed.idToken.d.ts"
 	]

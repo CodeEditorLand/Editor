@@ -7,7 +7,7 @@
 		]
 	},
 	"include": [
-		"src/**/*",
+		"Source/**/*",
 		"../../Source/vscode-dts/vscode.d.ts",
 		"../../Source/vscode-dts/vscode.proposed.*.d.ts"
 	]

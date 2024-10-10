@@ -1,6 +1,6 @@
 test/**
 test-workspace/**
-src/**
+Source/**
 out/**
 tsconfig.json
 extension.webpack.config.js

@@ -1,4 +1,4 @@
-src/**
+Source/**
 tsconfig.json
 out/**
 extension.webpack.config.js

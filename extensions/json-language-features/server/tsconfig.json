@@ -11,6 +11,6 @@
 		"module": "Node16",
 	},
 	"include": [
-		"src/**/*"
+		"Source/**/*"
 	]
 }

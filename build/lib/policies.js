@@ -340,7 +340,7 @@ function getPolicies(moduleName, node) {
 async function getFiles(root) {
     return new Promise((c, e) => {
         const result = [];
-        const rg = (0, child_process_1.spawn)(ripgrep_1.rgPath, ['-l', 'registerConfiguration\\(', '-g', 'src/**/*.ts', '-g', '!src/**/test/**', root]);
+        const rg = (0, child_process_1.spawn)(ripgrep_1.rgPath, ['-l', 'registerConfiguration\\(', '-g', 'Source/**/*.ts', '-g', '!Source/**/test/**', root]);
         const stream = byline(rg.stdout.setEncoding('utf8'));
         stream.on('data', path => result.push(path));
         stream.on('error', err => e(err));

@@ -189,7 +189,7 @@ export class ResourceGlobMatcher extends Disposable {
 
 		// If the resource if from a workspace, convert its absolute path to a relative
 		// path so that glob patterns have a higher probability to match. For example
-		// a glob pattern of "src/**" will not match on an absolute path "/folder/src/file.txt"
+		// a glob pattern of "Source/**" will not match on an absolute path "/folder/src/file.txt"
 		// but can match on "src/file.txt"
 
 		let resourcePathToMatch: string | undefined;

@@ -1,4 +1,4 @@
-src/**
+Source/**
 !src/common/config.json
 out/**
 build/**

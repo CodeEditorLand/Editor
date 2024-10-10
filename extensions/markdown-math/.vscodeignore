@@ -1,4 +1,4 @@
-src/**
+Source/**
 notebook/**
 extension-browser.webpack.config.js
 extension.webpack.config.js

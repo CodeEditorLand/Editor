@@ -1,5 +1,5 @@
 test/**
-src/**/*.ts
+Source/**/*.ts
 syntaxes/Readme.md
 tsconfig.json
 cgmanifest.json

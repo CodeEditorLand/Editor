@@ -498,7 +498,7 @@ function getPolicies(moduleName: string, node: Parser.SyntaxNode): Policy[] {
 async function getFiles(root: string): Promise<string[]> {
 	return new Promise((c, e) => {
 		const result: string[] = [];
-		const rg = spawn(rgPath, ['-l', 'registerConfiguration\\(', '-g', 'src/**/*.ts', '-g', '!src/**/test/**', root]);
+		const rg = spawn(rgPath, ['-l', 'registerConfiguration\\(', '-g', 'Source/**/*.ts', '-g', '!Source/**/test/**', root]);
 		const stream = byline(rg.stdout.setEncoding('utf8'));
 		stream.on('data', path => result.push(path));
 		stream.on('error', err => e(err));

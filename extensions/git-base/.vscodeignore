@@ -1,4 +1,4 @@
-src/**
+Source/**
 build/**
 cgmanifest.json
 extension.webpack.config.js

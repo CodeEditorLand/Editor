@@ -1,6 +1,6 @@
 test/**
 test-workspace/**
-src/**
+Source/**
 notebook/**
 tsconfig.json
 tsconfig.*.json
@@ -10,7 +10,7 @@ extension.webpack.config.js
 extension-browser.webpack.config.js
 cgmanifest.json
 package-lock.json
-preview-src/**
+preview-Source/**
 webpack.config.js
 esbuild-notebook.js
 esbuild-preview.js

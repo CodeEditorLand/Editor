@@ -1,16 +1,13 @@
-// ---------------------------------------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation. All rights reserved.
-//  Licensed under the MIT License. See License.txt in the project root for
-// license information.
-// --------------------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 const FILE_HEADER: &str = "/*---------------------------------------------------------------------------------------------\n *  Copyright (c) Microsoft Corporation. All rights reserved.\n *  Licensed under the MIT License. See License.txt in the project root for license information.\n *--------------------------------------------------------------------------------------------*/";
 
 use std::{
 	collections::HashMap,
-	env,
-	fs,
-	io,
+	env, fs, io,
 	path::{Path, PathBuf},
 	process::{self},
 	str::FromStr,
@@ -25,7 +22,7 @@ fn main() {
 	apply_build_environment_variables();
 }
 
-fn camel_case_to_constant_case(key:&str) -> String {
+fn camel_case_to_constant_case(key: &str) -> String {
 	let mut output = String::new();
 	let mut prev_upper = false;
 	for c in key.chars() {
@@ -49,7 +46,7 @@ fn camel_case_to_constant_case(key:&str) -> String {
 	output
 }
 
-fn set_env_vars_from_map_keys(prefix:&str, map:impl IntoIterator<Item = (String, Value)>) {
+fn set_env_vars_from_map_keys(prefix: &str, map: impl IntoIterator<Item = (String, Value)>) {
 	let mut win32_app_ids = vec![];
 
 	for (key, value) in map {
@@ -57,7 +54,7 @@ fn set_env_vars_from_map_keys(prefix:&str, map:impl IntoIterator<Item = (String,
 		let value = match key.as_str() {
 			"tunnelServerQualities" | "serverLicense" => {
 				Value::String(serde_json::to_string(&value).unwrap())
-			},
+			}
 			"nameLong" => {
 				if let Value::String(s) = &value {
 					let idx = s.find(" - ");
@@ -68,13 +65,13 @@ fn set_env_vars_from_map_keys(prefix:&str, map:impl IntoIterator<Item = (String,
 				}
 
 				value
-			},
+			}
 			"tunnelApplicationConfig" => {
 				if let Value::Object(v) = value {
 					set_env_vars_from_map_keys(&format!("{}_{}", prefix, "TUNNEL"), v);
 				}
 				continue;
-			},
+			}
 			_ => value,
 		};
 		if key.contains("win32") && key.contains("AppId") {
@@ -86,36 +83,48 @@ fn set_env_vars_from_map_keys(prefix:&str, map:impl IntoIterator<Item = (String,
 		//#endregion
 
 		if let Value::String(s) = value {
-			println!("cargo:rustc-env={}_{}={}", prefix, camel_case_to_constant_case(&key), s);
+			println!(
+				"cargo:rustc-env={}_{}={}",
+				prefix,
+				camel_case_to_constant_case(&key),
+				s
+			);
 		}
 	}
 
 	if !win32_app_ids.is_empty() {
-		println!("cargo:rustc-env=VSCODE_CLI_WIN32_APP_IDS={}", win32_app_ids.join(","));
+		println!(
+			"cargo:rustc-env=VSCODE_CLI_WIN32_APP_IDS={}",
+			win32_app_ids.join(",")
+		);
 	}
 }
 
-fn read_json_from_path<T>(path:&Path) -> T
+fn read_json_from_path<T>(path: &Path) -> T
 where
-	T: DeserializeOwned, {
+	T: DeserializeOwned,
+{
 	let mut file = fs::File::open(path).expect("failed to open file");
 	serde_json::from_reader(&mut file).expect("failed to deserialize JSON")
 }
 
-fn apply_build_from_product_json(path:&Path) {
-	let json:HashMap<String, Value> = read_json_from_path(path);
+fn apply_build_from_product_json(path: &Path) {
+	let json: HashMap<String, Value> = read_json_from_path(path);
 	set_env_vars_from_map_keys("VSCODE_CLI", json);
 }
 
 #[derive(Deserialize)]
 struct PackageJson {
-	pub version:String,
+	pub version: String,
 }
 
 fn apply_build_environment_variables() {
 	let repo_dir = env::current_dir().unwrap().join("..");
 	let package_json = read_json_from_path::<PackageJson>(&repo_dir.join("package.json"));
-	println!("cargo:rustc-env=VSCODE_CLI_VERSION={}", package_json.version);
+	println!(
+		"cargo:rustc-env=VSCODE_CLI_VERSION={}",
+		package_json.version
+	);
 
 	match env::var("VSCODE_CLI_PRODUCT_JSON") {
 		Ok(v) => {
@@ -126,7 +135,7 @@ fn apply_build_environment_variables() {
 			};
 			println!("cargo:warning=loading product.json from <{:?}>", path);
 			apply_build_from_product_json(&path);
-		},
+		}
 
 		Err(_) => {
 			apply_build_from_product_json(&repo_dir.join("product.json"));
@@ -135,11 +144,11 @@ fn apply_build_environment_variables() {
 			if overrides.exists() {
 				apply_build_from_product_json(&overrides);
 			}
-		},
+		}
 	};
 }
 
-fn ensure_file_headers(files:&[PathBuf]) -> Result<(), io::Error> {
+fn ensure_file_headers(files: &[PathBuf]) -> Result<(), io::Error> {
 	let mut ok = true;
 
 	let crlf_header_str = str::replace(FILE_HEADER, "\n", "\r\n");

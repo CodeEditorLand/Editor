@@ -3,9 +3,14 @@
 	"compilerOptions": {
 		"outDir": "./out",
 		"sourceMap": true,
-		"sourceRoot": "../Source",
-		"lib": ["ES2020", "WebWorker"],
-		"module": "Node16"
+		"sourceRoot": "../src",
+		"lib": [
+			"ES2020",
+			"WebWorker"
+		],
+		"module": "Node16",
 	},
-	"include": ["src/**/*"]
+	"include": [
+		"src/**/*"
+	]
 }

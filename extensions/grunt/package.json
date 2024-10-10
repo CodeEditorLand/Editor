@@ -1,65 +1,80 @@
 {
-	"activationEvents": [
-		"onTaskType:grunt"
-	],
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": false
-	},
-	"contributes": {
-		"configuration": {
-			"id": "grunt",
-			"properties": {
-				"grunt.autoDetect": {
-					"default": "off",
-					"description": "%config.grunt.autoDetect%",
-					"enum": [
-						"off",
-						"on"
-					],
-					"scope": "application",
-					"type": "string"
-				}
-			},
-			"title": "Grunt",
-			"type": "object"
-		},
-		"taskDefinitions": [
-			{
-				"properties": {
-					"args": {
-						"description": "%grunt.taskDefinition.args.description%",
-						"type": "array"
-					},
-					"file": {
-						"description": "%grunt.taskDefinition.file.description%",
-						"type": "string"
-					},
-					"task": {
-						"description": "%grunt.taskDefinition.type.description%",
-						"type": "string"
-					}
-				},
-				"required": [
-					"task"
-				],
-				"type": "grunt",
-				"when": "shellExecutionSupported"
-			}
-		]
-	},
-	"dependencies": {},
-	"description": "Extension to add Grunt capabilities to VS Code.",
-	"devDependencies": {
-		"@types/node": "22.x"
-	},
-	"displayName": "Grunt support for VS Code",
-	"icon": "images/grunt.png",
-	"main": "./out/main",
-	"name": "grunt",
-	"scripts": {
-		"compile": "gulp compile-extension:grunt"
-	}
+  "name": "grunt",
+  "publisher": "vscode",
+  "description": "Extension to add Grunt capabilities to VS Code.",
+  "displayName": "Grunt support for VS Code",
+  "version": "1.0.0",
+  "private": true,
+  "icon": "images/grunt.png",
+  "license": "MIT",
+  "engines": {
+    "vscode": "*"
+  },
+  "categories": [
+    "Other"
+  ],
+  "scripts": {
+    "compile": "gulp compile-extension:grunt",
+    "watch": "gulp watch-extension:grunt"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "20.x"
+  },
+  "main": "./out/main",
+  "activationEvents": [
+    "onTaskType:grunt"
+  ],
+  "capabilities": {
+    "virtualWorkspaces": false,
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
+  "contributes": {
+    "configuration": {
+      "id": "grunt",
+      "type": "object",
+      "title": "Grunt",
+      "properties": {
+        "grunt.autoDetect": {
+          "scope": "application",
+          "type": "string",
+          "enum": [
+            "off",
+            "on"
+          ],
+          "default": "off",
+          "description": "%config.grunt.autoDetect%"
+        }
+      }
+    },
+    "taskDefinitions": [
+      {
+        "type": "grunt",
+        "required": [
+          "task"
+        ],
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "%grunt.taskDefinition.type.description%"
+          },
+          "args": {
+            "type": "array",
+            "description": "%grunt.taskDefinition.args.description%"
+          },
+          "file": {
+            "type": "string",
+            "description": "%grunt.taskDefinition.file.description%"
+          }
+        },
+        "when": "shellExecutionSupported"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/vscode.git"
+  }
 }

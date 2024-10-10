@@ -1,10 +1,6 @@
-declare module "ternary-stream" {
-	import File = require("vinyl");
-	function f(
-		check: (f: File) => boolean,
-		onTrue: NodeJS.ReadWriteStream,
-		opnFalse?: NodeJS.ReadWriteStream,
-	): NodeJS.ReadWriteStream;
+declare module 'ternary-stream' {
+	import File = require('vinyl');
+	function f(check: (f: File) => boolean, onTrue: NodeJS.ReadWriteStream, opnFalse?: NodeJS.ReadWriteStream): NodeJS.ReadWriteStream;
 
 	/**
 	 * This is required as per:

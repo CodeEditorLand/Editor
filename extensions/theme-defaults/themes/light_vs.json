@@ -209,7 +209,10 @@
 			}
 		},
 		{
-			"scope": ["meta.preprocessor", "entity.name.function.preprocessor"],
+			"scope": [
+				"meta.preprocessor",
+				"entity.name.function.preprocessor"
+			],
 			"settings": {
 				"foreground": "#0000ff"
 			}
@@ -245,13 +248,19 @@
 			}
 		},
 		{
-			"scope": ["storage.modifier", "keyword.operator.noexcept"],
+			"scope": [
+				"storage.modifier",
+				"keyword.operator.noexcept"
+			],
 			"settings": {
 				"foreground": "#0000ff"
 			}
 		},
 		{
-			"scope": ["string", "meta.embedded.assembly"],
+			"scope": [
+				"string",
+				"meta.embedded.assembly"
+			],
 			"settings": {
 				"foreground": "#a31515"
 			}
@@ -297,7 +306,9 @@
 		},
 		{
 			"name": "Reset JavaScript string interpolation expression",
-			"scope": ["meta.template.expression"],
+			"scope": [
+				"meta.template.expression"
+			],
 			"settings": {
 				"foreground": "#000000"
 			}
@@ -328,7 +339,9 @@
 			}
 		},
 		{
-			"scope": ["support.type.property-name.json"],
+			"scope": [
+				"support.type.property-name.json"
+			],
 			"settings": {
 				"foreground": "#0451a5"
 			}
@@ -419,6 +432,6 @@
 		"newOperator": "#0000ff",
 		"stringLiteral": "#a31515",
 		"customLiteral": "#000000",
-		"numberLiteral": "#098658"
+		"numberLiteral": "#098658",
 	}
 }

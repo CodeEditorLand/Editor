@@ -144,7 +144,9 @@
 		},
 		{
 			"name": "Reset JavaScript string interpolation expression",
-			"scope": ["meta.template.expression"],
+			"scope": [
+				"meta.template.expression"
+			],
 			"settings": {
 				"foreground": "#F8F8F2"
 			}
@@ -444,7 +446,9 @@
 		},
 		{
 			"name": "Markdown List Punctuation",
-			"scope": ["punctuation.definition.list.begin.markdown"],
+			"scope": [
+				"punctuation.definition.list.begin.markdown"
+			],
 			"settings": {
 				"foreground": "#A6E22E"
 			}

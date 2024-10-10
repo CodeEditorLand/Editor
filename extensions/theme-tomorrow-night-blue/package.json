@@ -1,15 +1,26 @@
 {
-	"contributes": {
-		"themes": [
-			{
-				"id": "Tomorrow Night Blue",
-				"label": "%themeLabel%",
-				"path": "./themes/tomorrow-night-blue-color-theme.json",
-				"uiTheme": "vs-dark"
-			}
-		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "theme-tomorrow-night-blue"
+  "name": "theme-tomorrow-night-blue",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "version": "1.0.0",
+  "publisher": "vscode",
+  "license": "MIT",
+  "engines": {
+    "vscode": "*"
+  },
+  "categories": ["Themes"],
+  "contributes": {
+    "themes": [
+      {
+        "id": "Tomorrow Night Blue",
+        "label": "%themeLabel%",
+        "uiTheme": "vs-dark",
+        "path": "./themes/tomorrow-night-blue-color-theme.json"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/vscode.git"
+  }
 }

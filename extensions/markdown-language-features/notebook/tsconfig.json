@@ -6,6 +6,10 @@
 		"moduleResolution": "Node",
 		"allowSyntheticDefaultImports": true,
 		"module": "es2020",
-		"lib": ["es2018", "DOM", "DOM.Iterable"]
+		"lib": [
+			"es2018",
+			"DOM",
+			"DOM.Iterable"
+		]
 	}
 }

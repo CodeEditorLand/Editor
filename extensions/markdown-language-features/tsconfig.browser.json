@@ -3,5 +3,7 @@
 	"compilerOptions": {
 		"types": []
 	},
-	"exclude": ["./src/test/**"]
+	"exclude": [
+		"./src/test/**"
+	]
 }

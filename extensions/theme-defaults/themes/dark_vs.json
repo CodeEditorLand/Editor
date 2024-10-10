@@ -97,7 +97,10 @@
 			}
 		},
 		{
-			"scope": ["entity.name.tag.css", "entity.name.tag.less"],
+			"scope": [
+				"entity.name.tag.css",
+				"entity.name.tag.less"
+			],
 			"settings": {
 				"foreground": "#d7ba7d"
 			}
@@ -206,7 +209,10 @@
 			}
 		},
 		{
-			"scope": ["meta.preprocessor", "entity.name.function.preprocessor"],
+			"scope": [
+				"meta.preprocessor",
+				"entity.name.function.preprocessor"
+			],
 			"settings": {
 				"foreground": "#569cd6"
 			}
@@ -248,13 +254,19 @@
 			}
 		},
 		{
-			"scope": ["storage.modifier", "keyword.operator.noexcept"],
+			"scope": [
+				"storage.modifier",
+				"keyword.operator.noexcept"
+			],
 			"settings": {
 				"foreground": "#569cd6"
 			}
 		},
 		{
-			"scope": ["string", "meta.embedded.assembly"],
+			"scope": [
+				"string",
+				"meta.embedded.assembly"
+			],
 			"settings": {
 				"foreground": "#ce9178"
 			}
@@ -290,7 +302,9 @@
 		},
 		{
 			"name": "Reset JavaScript string interpolation expression",
-			"scope": ["meta.template.expression"],
+			"scope": [
+				"meta.template.expression"
+			],
 			"settings": {
 				"foreground": "#d4d4d4"
 			}
@@ -392,6 +406,6 @@
 		"newOperator": "#d4d4d4",
 		"stringLiteral": "#ce9178",
 		"customLiteral": "#D4D4D4",
-		"numberLiteral": "#b5cea8"
+		"numberLiteral": "#b5cea8",
 	}
 }

@@ -151,14 +151,14 @@
 		]
 	},
 	"dependencies": {
-		"@octokit/graphql": "5.0.5",
-		"@octokit/graphql-schema": "14.4.0",
-		"@octokit/rest": "19.0.4",
+		"@octokit/graphql": "8.1.1",
+		"@octokit/graphql-schema": "15.25.0",
+		"@octokit/rest": "21.0.2",
 		"tunnel": "0.0.6"
 	},
 	"description": "%description%",
 	"devDependencies": {
-		"@types/node": "20.x"
+		"@types/node": "22.x"
 	},
 	"displayName": "%displayName%",
 	"enabledApiProposals": [

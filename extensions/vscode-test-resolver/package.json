@@ -147,7 +147,7 @@
 	},
 	"description": "Test resolver for VS Code",
 	"devDependencies": {
-		"@types/node": "20.x"
+		"@types/node": "22.x"
 	},
 	"enabledApiProposals": [
 		"resolvers",

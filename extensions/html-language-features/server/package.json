@@ -2,7 +2,7 @@
 	"dependencies": {},
 	"description": "HTML language server",
 	"devDependencies": {
-		"@types/node": "20.x"
+		"@types/node": "22.x"
 	},
 	"main": "./out/node/htmlServerMain",
 	"name": "vscode-html-languageserver",

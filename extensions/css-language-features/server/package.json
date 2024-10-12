@@ -3,7 +3,7 @@
 	"dependencies": {},
 	"description": "CSS/LESS/SCSS language server",
 	"devDependencies": {
-		"@types/node": "20.x"
+		"@types/node": "22.x"
 	},
 	"main": "./out/node/cssServerMain",
 	"name": "vscode-css-languageserver",

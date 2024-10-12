@@ -8,7 +8,7 @@
 	},
 	"description": "JSON language server",
 	"devDependencies": {
-		"@types/node": "20.x"
+		"@types/node": "22.x"
 	},
 	"main": "./out/node/jsonServerMain",
 	"name": "vscode-json-languageserver",

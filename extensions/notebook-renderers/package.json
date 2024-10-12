@@ -34,8 +34,8 @@
 	"dependencies": {},
 	"description": "%description%",
 	"devDependencies": {
-		"@types/jsdom": "21.1.0",
-		"jsdom": "21.1.1"
+		"@types/jsdom": "21.1.7",
+		"jsdom": "25.0.1"
 	},
 	"displayName": "%displayName%",
 	"icon": "media/icon.png",

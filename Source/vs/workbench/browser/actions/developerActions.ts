@@ -3,52 +3,89 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import './media/actions.css';
+import "./media/actions.css";
 
-import { localize, localize2 } from '../../../nls.js';
-import { IKeybindingService } from '../../../platform/keybinding/common/keybinding.js';
-import { DomEmitter } from '../../../base/browser/event.js';
-import { Color } from '../../../base/common/color.js';
-import { Emitter, Event } from '../../../base/common/event.js';
-import { IDisposable, toDisposable, dispose, DisposableStore, setDisposableTracker, DisposableTracker, DisposableInfo } from '../../../base/common/lifecycle.js';
-import { getDomNodePagePosition, createStyleSheet, createCSSRule, append, $, getActiveDocument, onDidRegisterWindow, getWindows } from '../../../base/browser/dom.js';
-import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
-import { ContextKeyExpr, IContextKeyService, RawContextKey } from '../../../platform/contextkey/common/contextkey.js';
-import { Context } from '../../../platform/contextkey/browser/contextKeyService.js';
-import { StandardKeyboardEvent } from '../../../base/browser/keyboardEvent.js';
-import { RunOnceScheduler } from '../../../base/common/async.js';
-import { ILayoutService } from '../../../platform/layout/browser/layoutService.js';
-import { Registry } from '../../../platform/registry/common/platform.js';
-import { registerAction2, Action2, MenuRegistry } from '../../../platform/actions/common/actions.js';
-import { IStorageService, StorageScope, StorageTarget } from '../../../platform/storage/common/storage.js';
-import { clamp } from '../../../base/common/numbers.js';
-import { KeyCode } from '../../../base/common/keyCodes.js';
-import { IConfigurationRegistry, Extensions as ConfigurationExtensions } from '../../../platform/configuration/common/configurationRegistry.js';
-import { ILogService } from '../../../platform/log/common/log.js';
-import { IWorkingCopyService } from '../../services/workingCopy/common/workingCopyService.js';
-import { ServicesAccessor } from '../../../platform/instantiation/common/instantiation.js';
-import { Categories } from '../../../platform/action/common/actionCommonCategories.js';
-import { IWorkingCopyBackupService } from '../../services/workingCopy/common/workingCopyBackup.js';
-import { ResolutionResult, ResultKind } from '../../../platform/keybinding/common/keybindingResolver.js';
-import { IDialogService } from '../../../platform/dialogs/common/dialogs.js';
-import { IOutputService } from '../../services/output/common/output.js';
-import { windowLogId } from '../../services/log/common/logConstants.js';
-import { ByteSize } from '../../../platform/files/common/files.js';
-import { IQuickInputService, IQuickPickItem } from '../../../platform/quickinput/common/quickInput.js';
-import { IUserDataProfileService } from '../../services/userDataProfile/common/userDataProfile.js';
-import { IEditorService } from '../../services/editor/common/editorService.js';
-import product from '../../../platform/product/common/product.js';
-import { CommandsRegistry } from '../../../platform/commands/common/commands.js';
-import { IEnvironmentService } from '../../../platform/environment/common/environment.js';
+import {
+	$,
+	append,
+	createCSSRule,
+	createStyleSheet,
+	getActiveDocument,
+	getDomNodePagePosition,
+	getWindows,
+	onDidRegisterWindow,
+} from "../../../base/browser/dom.js";
+import { DomEmitter } from "../../../base/browser/event.js";
+import { StandardKeyboardEvent } from "../../../base/browser/keyboardEvent.js";
+import { RunOnceScheduler } from "../../../base/common/async.js";
+import { Color } from "../../../base/common/color.js";
+import { Emitter, Event } from "../../../base/common/event.js";
+import { KeyCode } from "../../../base/common/keyCodes.js";
+import {
+	DisposableInfo,
+	DisposableStore,
+	DisposableTracker,
+	dispose,
+	IDisposable,
+	setDisposableTracker,
+	toDisposable,
+} from "../../../base/common/lifecycle.js";
+import { clamp } from "../../../base/common/numbers.js";
+import { localize, localize2 } from "../../../nls.js";
+import { Categories } from "../../../platform/action/common/actionCommonCategories.js";
+import {
+	Action2,
+	MenuRegistry,
+	registerAction2,
+} from "../../../platform/actions/common/actions.js";
+import { CommandsRegistry } from "../../../platform/commands/common/commands.js";
+import { IConfigurationService } from "../../../platform/configuration/common/configuration.js";
+import {
+	Extensions as ConfigurationExtensions,
+	IConfigurationRegistry,
+} from "../../../platform/configuration/common/configurationRegistry.js";
+import { Context } from "../../../platform/contextkey/browser/contextKeyService.js";
+import {
+	ContextKeyExpr,
+	IContextKeyService,
+	RawContextKey,
+} from "../../../platform/contextkey/common/contextkey.js";
+import { IDialogService } from "../../../platform/dialogs/common/dialogs.js";
+import { IEnvironmentService } from "../../../platform/environment/common/environment.js";
+import { ByteSize } from "../../../platform/files/common/files.js";
+import { ServicesAccessor } from "../../../platform/instantiation/common/instantiation.js";
+import { IKeybindingService } from "../../../platform/keybinding/common/keybinding.js";
+import {
+	ResolutionResult,
+	ResultKind,
+} from "../../../platform/keybinding/common/keybindingResolver.js";
+import { ILayoutService } from "../../../platform/layout/browser/layoutService.js";
+import { ILogService } from "../../../platform/log/common/log.js";
+import product from "../../../platform/product/common/product.js";
+import {
+	IQuickInputService,
+	IQuickPickItem,
+} from "../../../platform/quickinput/common/quickInput.js";
+import { Registry } from "../../../platform/registry/common/platform.js";
+import {
+	IStorageService,
+	StorageScope,
+	StorageTarget,
+} from "../../../platform/storage/common/storage.js";
+import { IEditorService } from "../../services/editor/common/editorService.js";
+import { windowLogId } from "../../services/log/common/logConstants.js";
+import { IOutputService } from "../../services/output/common/output.js";
+import { IUserDataProfileService } from "../../services/userDataProfile/common/userDataProfile.js";
+import { IWorkingCopyBackupService } from "../../services/workingCopy/common/workingCopyBackup.js";
+import { IWorkingCopyService } from "../../services/workingCopy/common/workingCopyService.js";
 
 class InspectContextKeysAction extends Action2 {
-
 	constructor() {
 		super({
-			id: 'workbench.action.inspectContextKeys',
-			title: localize2('inspect context keys', 'Inspect Context Keys'),
+			id: "workbench.action.inspectContextKeys",
+			title: localize2("inspect context keys", "Inspect Context Keys"),
 			category: Categories.Developer,
-			f1: true
+			f1: true,
 		});
 	}
 
@@ -58,42 +95,63 @@ class InspectContextKeysAction extends Action2 {
 		const disposables = new DisposableStore();
 
 		const stylesheet = createStyleSheet(undefined, undefined, disposables);
-		createCSSRule('*', 'cursor: crosshair !important;', stylesheet);
+		createCSSRule("*", "cursor: crosshair !important;", stylesheet);
 
-		const hoverFeedback = document.createElement('div');
+		const hoverFeedback = document.createElement("div");
 		const activeDocument = getActiveDocument();
 		activeDocument.body.appendChild(hoverFeedback);
 		disposables.add(toDisposable(() => hoverFeedback.remove()));
 
-		hoverFeedback.style.position = 'absolute';
-		hoverFeedback.style.pointerEvents = 'none';
-		hoverFeedback.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
-		hoverFeedback.style.zIndex = '1000';
+		hoverFeedback.style.position = "absolute";
+		hoverFeedback.style.pointerEvents = "none";
+		hoverFeedback.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+		hoverFeedback.style.zIndex = "1000";
 
-		const onMouseMove = disposables.add(new DomEmitter(activeDocument, 'mousemove', true));
-		disposables.add(onMouseMove.event(e => {
-			const target = e.target as HTMLElement;
-			const position = getDomNodePagePosition(target);
+		const onMouseMove = disposables.add(
+			new DomEmitter(activeDocument, "mousemove", true),
+		);
+		disposables.add(
+			onMouseMove.event((e) => {
+				const target = e.target as HTMLElement;
+				const position = getDomNodePagePosition(target);
 
-			hoverFeedback.style.top = `${position.top}px`;
-			hoverFeedback.style.left = `${position.left}px`;
-			hoverFeedback.style.width = `${position.width}px`;
-			hoverFeedback.style.height = `${position.height}px`;
-		}));
+				hoverFeedback.style.top = `${position.top}px`;
+				hoverFeedback.style.left = `${position.left}px`;
+				hoverFeedback.style.width = `${position.width}px`;
+				hoverFeedback.style.height = `${position.height}px`;
+			}),
+		);
 
-		const onMouseDown = disposables.add(new DomEmitter(activeDocument, 'mousedown', true));
-		Event.once(onMouseDown.event)(e => { e.preventDefault(); e.stopPropagation(); }, null, disposables);
+		const onMouseDown = disposables.add(
+			new DomEmitter(activeDocument, "mousedown", true),
+		);
+		Event.once(onMouseDown.event)(
+			(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+			},
+			null,
+			disposables,
+		);
 
-		const onMouseUp = disposables.add(new DomEmitter(activeDocument, 'mouseup', true));
-		Event.once(onMouseUp.event)(e => {
-			e.preventDefault();
-			e.stopPropagation();
+		const onMouseUp = disposables.add(
+			new DomEmitter(activeDocument, "mouseup", true),
+		);
+		Event.once(onMouseUp.event)(
+			(e) => {
+				e.preventDefault();
+				e.stopPropagation();
 
-			const context = contextKeyService.getContext(e.target as HTMLElement) as Context;
-			console.log(context.collectAllValues());
+				const context = contextKeyService.getContext(
+					e.target as HTMLElement,
+				) as Context;
+				console.log(context.collectAllValues());
 
-			dispose(disposables);
-		}, null, disposables);
+				dispose(disposables);
+			},
+			null,
+			disposables,
+		);
 	}
 }
 
@@ -106,15 +164,17 @@ interface IScreencastKeyboardOptions {
 }
 
 class ToggleScreencastModeAction extends Action2 {
-
 	static disposable: IDisposable | undefined;
 
 	constructor() {
 		super({
-			id: 'workbench.action.toggleScreencastMode',
-			title: localize2('toggle screencast mode', 'Toggle Screencast Mode'),
+			id: "workbench.action.toggleScreencastMode",
+			title: localize2(
+				"toggle screencast mode",
+				"Toggle Screencast Mode",
+			),
 			category: Categories.Developer,
-			f1: true
+			f1: true,
 		});
 	}
 
@@ -133,40 +193,77 @@ class ToggleScreencastModeAction extends Action2 {
 
 		const container = layoutService.activeContainer;
 
-		const mouseMarker = append(container, $('.screencast-mouse'));
+		const mouseMarker = append(container, $(".screencast-mouse"));
 		disposables.add(toDisposable(() => mouseMarker.remove()));
 
-		const keyboardMarker = append(container, $('.screencast-keyboard'));
+		const keyboardMarker = append(container, $(".screencast-keyboard"));
 		disposables.add(toDisposable(() => keyboardMarker.remove()));
 
 		const onMouseDown = disposables.add(new Emitter<MouseEvent>());
 		const onMouseUp = disposables.add(new Emitter<MouseEvent>());
 		const onMouseMove = disposables.add(new Emitter<MouseEvent>());
 
-		function registerContainerListeners(container: HTMLElement, disposables: DisposableStore): void {
-			disposables.add(disposables.add(new DomEmitter(container, 'mousedown', true)).event(e => onMouseDown.fire(e)));
-			disposables.add(disposables.add(new DomEmitter(container, 'mouseup', true)).event(e => onMouseUp.fire(e)));
-			disposables.add(disposables.add(new DomEmitter(container, 'mousemove', true)).event(e => onMouseMove.fire(e)));
+		function registerContainerListeners(
+			container: HTMLElement,
+			disposables: DisposableStore,
+		): void {
+			disposables.add(
+				disposables
+					.add(new DomEmitter(container, "mousedown", true))
+					.event((e) => onMouseDown.fire(e)),
+			);
+			disposables.add(
+				disposables
+					.add(new DomEmitter(container, "mouseup", true))
+					.event((e) => onMouseUp.fire(e)),
+			);
+			disposables.add(
+				disposables
+					.add(new DomEmitter(container, "mousemove", true))
+					.event((e) => onMouseMove.fire(e)),
+			);
 		}
 
 		for (const { window, disposables } of getWindows()) {
-			registerContainerListeners(layoutService.getContainer(window), disposables);
+			registerContainerListeners(
+				layoutService.getContainer(window),
+				disposables,
+			);
 		}
 
-		disposables.add(onDidRegisterWindow(({ window, disposables }) => registerContainerListeners(layoutService.getContainer(window), disposables)));
+		disposables.add(
+			onDidRegisterWindow(({ window, disposables }) =>
+				registerContainerListeners(
+					layoutService.getContainer(window),
+					disposables,
+				),
+			),
+		);
 
-		disposables.add(layoutService.onDidChangeActiveContainer(() => {
-			layoutService.activeContainer.appendChild(mouseMarker);
-			layoutService.activeContainer.appendChild(keyboardMarker);
-		}));
+		disposables.add(
+			layoutService.onDidChangeActiveContainer(() => {
+				layoutService.activeContainer.appendChild(mouseMarker);
+				layoutService.activeContainer.appendChild(keyboardMarker);
+			}),
+		);
 
 		const updateMouseIndicatorColor = () => {
-			mouseMarker.style.borderColor = Color.fromHex(configurationService.getValue<string>('screencastMode.mouseIndicatorColor')).toString();
+			mouseMarker.style.borderColor = Color.fromHex(
+				configurationService.getValue<string>(
+					"screencastMode.mouseIndicatorColor",
+				),
+			).toString();
 		};
 
 		let mouseIndicatorSize: number;
 		const updateMouseIndicatorSize = () => {
-			mouseIndicatorSize = clamp(configurationService.getValue<number>('screencastMode.mouseIndicatorSize') || 20, 20, 100);
+			mouseIndicatorSize = clamp(
+				configurationService.getValue<number>(
+					"screencastMode.mouseIndicatorSize",
+				) || 20,
+				20,
+				100,
+			);
 
 			mouseMarker.style.height = `${mouseIndicatorSize}px`;
 			mouseMarker.style.width = `${mouseIndicatorSize}px`;
@@ -175,216 +272,341 @@ class ToggleScreencastModeAction extends Action2 {
 		updateMouseIndicatorColor();
 		updateMouseIndicatorSize();
 
-		disposables.add(onMouseDown.event(e => {
-			mouseMarker.style.top = `${e.clientY - mouseIndicatorSize / 2}px`;
-			mouseMarker.style.left = `${e.clientX - mouseIndicatorSize / 2}px`;
-			mouseMarker.style.display = 'block';
-			mouseMarker.style.transform = `scale(${1})`;
-			mouseMarker.style.transition = 'transform 0.1s';
-
-			const mouseMoveListener = onMouseMove.event(e => {
+		disposables.add(
+			onMouseDown.event((e) => {
 				mouseMarker.style.top = `${e.clientY - mouseIndicatorSize / 2}px`;
 				mouseMarker.style.left = `${e.clientX - mouseIndicatorSize / 2}px`;
-				mouseMarker.style.transform = `scale(${.8})`;
-			});
+				mouseMarker.style.display = "block";
+				mouseMarker.style.transform = `scale(${1})`;
+				mouseMarker.style.transition = "transform 0.1s";
 
-			Event.once(onMouseUp.event)(() => {
-				mouseMarker.style.display = 'none';
-				mouseMoveListener.dispose();
-			});
-		}));
+				const mouseMoveListener = onMouseMove.event((e) => {
+					mouseMarker.style.top = `${e.clientY - mouseIndicatorSize / 2}px`;
+					mouseMarker.style.left = `${e.clientX - mouseIndicatorSize / 2}px`;
+					mouseMarker.style.transform = `scale(${0.8})`;
+				});
+
+				Event.once(onMouseUp.event)(() => {
+					mouseMarker.style.display = "none";
+					mouseMoveListener.dispose();
+				});
+			}),
+		);
 
 		const updateKeyboardFontSize = () => {
-			keyboardMarker.style.fontSize = `${clamp(configurationService.getValue<number>('screencastMode.fontSize') || 56, 20, 100)}px`;
+			keyboardMarker.style.fontSize = `${clamp(configurationService.getValue<number>("screencastMode.fontSize") || 56, 20, 100)}px`;
 		};
 
 		const updateKeyboardMarker = () => {
-			keyboardMarker.style.bottom = `${clamp(configurationService.getValue<number>('screencastMode.verticalOffset') || 0, 0, 90)}%`;
+			keyboardMarker.style.bottom = `${clamp(configurationService.getValue<number>("screencastMode.verticalOffset") || 0, 0, 90)}%`;
 		};
 
 		let keyboardMarkerTimeout!: number;
 		const updateKeyboardMarkerTimeout = () => {
-			keyboardMarkerTimeout = clamp(configurationService.getValue<number>('screencastMode.keyboardOverlayTimeout') || 800, 500, 5000);
+			keyboardMarkerTimeout = clamp(
+				configurationService.getValue<number>(
+					"screencastMode.keyboardOverlayTimeout",
+				) || 800,
+				500,
+				5000,
+			);
 		};
 
 		updateKeyboardFontSize();
 		updateKeyboardMarker();
 		updateKeyboardMarkerTimeout();
 
-		disposables.add(configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration('screencastMode.verticalOffset')) {
-				updateKeyboardMarker();
-			}
+		disposables.add(
+			configurationService.onDidChangeConfiguration((e) => {
+				if (e.affectsConfiguration("screencastMode.verticalOffset")) {
+					updateKeyboardMarker();
+				}
 
-			if (e.affectsConfiguration('screencastMode.fontSize')) {
-				updateKeyboardFontSize();
-			}
+				if (e.affectsConfiguration("screencastMode.fontSize")) {
+					updateKeyboardFontSize();
+				}
 
-			if (e.affectsConfiguration('screencastMode.keyboardOverlayTimeout')) {
-				updateKeyboardMarkerTimeout();
-			}
+				if (
+					e.affectsConfiguration(
+						"screencastMode.keyboardOverlayTimeout",
+					)
+				) {
+					updateKeyboardMarkerTimeout();
+				}
 
-			if (e.affectsConfiguration('screencastMode.mouseIndicatorColor')) {
-				updateMouseIndicatorColor();
-			}
+				if (
+					e.affectsConfiguration("screencastMode.mouseIndicatorColor")
+				) {
+					updateMouseIndicatorColor();
+				}
 
-			if (e.affectsConfiguration('screencastMode.mouseIndicatorSize')) {
-				updateMouseIndicatorSize();
-			}
-		}));
+				if (
+					e.affectsConfiguration("screencastMode.mouseIndicatorSize")
+				) {
+					updateMouseIndicatorSize();
+				}
+			}),
+		);
 
 		const onKeyDown = disposables.add(new Emitter<KeyboardEvent>());
-		const onCompositionStart = disposables.add(new Emitter<CompositionEvent>());
-		const onCompositionUpdate = disposables.add(new Emitter<CompositionEvent>());
-		const onCompositionEnd = disposables.add(new Emitter<CompositionEvent>());
+		const onCompositionStart = disposables.add(
+			new Emitter<CompositionEvent>(),
+		);
+		const onCompositionUpdate = disposables.add(
+			new Emitter<CompositionEvent>(),
+		);
+		const onCompositionEnd = disposables.add(
+			new Emitter<CompositionEvent>(),
+		);
 
-		function registerWindowListeners(window: Window, disposables: DisposableStore): void {
-			disposables.add(disposables.add(new DomEmitter(window, 'keydown', true)).event(e => onKeyDown.fire(e)));
-			disposables.add(disposables.add(new DomEmitter(window, 'compositionstart', true)).event(e => onCompositionStart.fire(e)));
-			disposables.add(disposables.add(new DomEmitter(window, 'compositionupdate', true)).event(e => onCompositionUpdate.fire(e)));
-			disposables.add(disposables.add(new DomEmitter(window, 'compositionend', true)).event(e => onCompositionEnd.fire(e)));
+		function registerWindowListeners(
+			window: Window,
+			disposables: DisposableStore,
+		): void {
+			disposables.add(
+				disposables
+					.add(new DomEmitter(window, "keydown", true))
+					.event((e) => onKeyDown.fire(e)),
+			);
+			disposables.add(
+				disposables
+					.add(new DomEmitter(window, "compositionstart", true))
+					.event((e) => onCompositionStart.fire(e)),
+			);
+			disposables.add(
+				disposables
+					.add(new DomEmitter(window, "compositionupdate", true))
+					.event((e) => onCompositionUpdate.fire(e)),
+			);
+			disposables.add(
+				disposables
+					.add(new DomEmitter(window, "compositionend", true))
+					.event((e) => onCompositionEnd.fire(e)),
+			);
 		}
 
 		for (const { window, disposables } of getWindows()) {
 			registerWindowListeners(window, disposables);
 		}
 
-		disposables.add(onDidRegisterWindow(({ window, disposables }) => registerWindowListeners(window, disposables)));
+		disposables.add(
+			onDidRegisterWindow(({ window, disposables }) =>
+				registerWindowListeners(window, disposables),
+			),
+		);
 
 		let length = 0;
 		let composing: Element | undefined = undefined;
 		let imeBackSpace = false;
 
 		const clearKeyboardScheduler = new RunOnceScheduler(() => {
-			keyboardMarker.textContent = '';
+			keyboardMarker.textContent = "";
 			composing = undefined;
 			length = 0;
 		}, keyboardMarkerTimeout);
 
-		disposables.add(onCompositionStart.event(e => {
-			imeBackSpace = true;
-		}));
+		disposables.add(
+			onCompositionStart.event((e) => {
+				imeBackSpace = true;
+			}),
+		);
 
-		disposables.add(onCompositionUpdate.event(e => {
-			if (e.data && imeBackSpace) {
-				if (length > 20) {
-					keyboardMarker.innerText = '';
-					length = 0;
-				}
-				composing = composing ?? append(keyboardMarker, $('span.key'));
-				composing.textContent = e.data;
-			} else if (imeBackSpace) {
-				keyboardMarker.innerText = '';
-				append(keyboardMarker, $('span.key', {}, `Backspace`));
-			}
-			clearKeyboardScheduler.schedule();
-		}));
-
-		disposables.add(onCompositionEnd.event(e => {
-			composing = undefined;
-			length++;
-		}));
-
-		disposables.add(onKeyDown.event(e => {
-			if (e.key === 'Process' || /[\uac00-\ud787\u3131-\u314e\u314f-\u3163\u3041-\u3094\u30a1-\u30f4\u30fc\u3005\u3006\u3024\u4e00-\u9fa5]/u.test(e.key)) {
-				if (e.code === 'Backspace') {
-					imeBackSpace = true;
-				} else if (!e.code.includes('Key')) {
-					composing = undefined;
-					imeBackSpace = false;
-				} else {
-					imeBackSpace = true;
+		disposables.add(
+			onCompositionUpdate.event((e) => {
+				if (e.data && imeBackSpace) {
+					if (length > 20) {
+						keyboardMarker.innerText = "";
+						length = 0;
+					}
+					composing =
+						composing ?? append(keyboardMarker, $("span.key"));
+					composing.textContent = e.data;
+				} else if (imeBackSpace) {
+					keyboardMarker.innerText = "";
+					append(keyboardMarker, $("span.key", {}, `Backspace`));
 				}
 				clearKeyboardScheduler.schedule();
-				return;
-			}
+			}),
+		);
 
-			if (e.isComposing) {
-				return;
-			}
+		disposables.add(
+			onCompositionEnd.event((e) => {
+				composing = undefined;
+				length++;
+			}),
+		);
 
-			const options = configurationService.getValue<IScreencastKeyboardOptions>('screencastMode.keyboardOptions');
-			const event = new StandardKeyboardEvent(e);
-			const shortcut = keybindingService.softDispatch(event, event.target);
-
-			// Hide the single arrow key pressed
-			if (shortcut.kind === ResultKind.KbFound && shortcut.commandId && !(options.showSingleEditorCursorMoves ?? true) && (
-				['cursorLeft', 'cursorRight', 'cursorUp', 'cursorDown'].includes(shortcut.commandId))
-			) {
-				return;
-			}
-
-			if (
-				event.ctrlKey || event.altKey || event.metaKey || event.shiftKey
-				|| length > 20
-				|| event.keyCode === KeyCode.Backspace || event.keyCode === KeyCode.Escape
-				|| event.keyCode === KeyCode.UpArrow || event.keyCode === KeyCode.DownArrow
-				|| event.keyCode === KeyCode.LeftArrow || event.keyCode === KeyCode.RightArrow
-			) {
-				keyboardMarker.innerText = '';
-				length = 0;
-			}
-
-			const keybinding = keybindingService.resolveKeyboardEvent(event);
-			const commandDetails = (this._isKbFound(shortcut) && shortcut.commandId) ? this.getCommandDetails(shortcut.commandId) : undefined;
-
-			let commandAndGroupLabel = commandDetails?.title;
-			let keyLabel: string | undefined | null = keybinding.getLabel();
-
-			if (commandDetails) {
-				if ((options.showCommandGroups ?? false) && commandDetails.category) {
-					commandAndGroupLabel = `${commandDetails.category}: ${commandAndGroupLabel} `;
+		disposables.add(
+			onKeyDown.event((e) => {
+				if (
+					e.key === "Process" ||
+					/[\uac00-\ud787\u3131-\u314e\u314f-\u3163\u3041-\u3094\u30a1-\u30f4\u30fc\u3005\u3006\u3024\u4e00-\u9fa5]/u.test(
+						e.key,
+					)
+				) {
+					if (e.code === "Backspace") {
+						imeBackSpace = true;
+					} else if (!e.code.includes("Key")) {
+						composing = undefined;
+						imeBackSpace = false;
+					} else {
+						imeBackSpace = true;
+					}
+					clearKeyboardScheduler.schedule();
+					return;
 				}
 
-				if (this._isKbFound(shortcut) && shortcut.commandId) {
-					const keybindings = keybindingService.lookupKeybindings(shortcut.commandId)
-						.filter(k => k.getLabel()?.endsWith(keyLabel ?? ''));
+				if (e.isComposing) {
+					return;
+				}
 
-					if (keybindings.length > 0) {
-						keyLabel = keybindings[keybindings.length - 1].getLabel();
+				const options =
+					configurationService.getValue<IScreencastKeyboardOptions>(
+						"screencastMode.keyboardOptions",
+					);
+				const event = new StandardKeyboardEvent(e);
+				const shortcut = keybindingService.softDispatch(
+					event,
+					event.target,
+				);
+
+				// Hide the single arrow key pressed
+				if (
+					shortcut.kind === ResultKind.KbFound &&
+					shortcut.commandId &&
+					!(options.showSingleEditorCursorMoves ?? true) &&
+					[
+						"cursorLeft",
+						"cursorRight",
+						"cursorUp",
+						"cursorDown",
+					].includes(shortcut.commandId)
+				) {
+					return;
+				}
+
+				if (
+					event.ctrlKey ||
+					event.altKey ||
+					event.metaKey ||
+					event.shiftKey ||
+					length > 20 ||
+					event.keyCode === KeyCode.Backspace ||
+					event.keyCode === KeyCode.Escape ||
+					event.keyCode === KeyCode.UpArrow ||
+					event.keyCode === KeyCode.DownArrow ||
+					event.keyCode === KeyCode.LeftArrow ||
+					event.keyCode === KeyCode.RightArrow
+				) {
+					keyboardMarker.innerText = "";
+					length = 0;
+				}
+
+				const keybinding =
+					keybindingService.resolveKeyboardEvent(event);
+				const commandDetails =
+					this._isKbFound(shortcut) && shortcut.commandId
+						? this.getCommandDetails(shortcut.commandId)
+						: undefined;
+
+				let commandAndGroupLabel = commandDetails?.title;
+				let keyLabel: string | undefined | null = keybinding.getLabel();
+
+				if (commandDetails) {
+					if (
+						(options.showCommandGroups ?? false) &&
+						commandDetails.category
+					) {
+						commandAndGroupLabel = `${commandDetails.category}: ${commandAndGroupLabel} `;
+					}
+
+					if (this._isKbFound(shortcut) && shortcut.commandId) {
+						const keybindings = keybindingService
+							.lookupKeybindings(shortcut.commandId)
+							.filter((k) =>
+								k.getLabel()?.endsWith(keyLabel ?? ""),
+							);
+
+						if (keybindings.length > 0) {
+							keyLabel =
+								keybindings[keybindings.length - 1].getLabel();
+						}
 					}
 				}
-			}
 
-			if ((options.showCommands ?? true) && commandAndGroupLabel) {
-				append(keyboardMarker, $('span.title', {}, `${commandAndGroupLabel} `));
-			}
+				if ((options.showCommands ?? true) && commandAndGroupLabel) {
+					append(
+						keyboardMarker,
+						$("span.title", {}, `${commandAndGroupLabel} `),
+					);
+				}
 
-			if ((options.showKeys ?? true) || ((options.showKeybindings ?? true) && this._isKbFound(shortcut))) {
-				// Fix label for arrow keys
-				keyLabel = keyLabel?.replace('UpArrow', '↑')
-					?.replace('DownArrow', '↓')
-					?.replace('LeftArrow', '←')
-					?.replace('RightArrow', '→');
+				if (
+					(options.showKeys ?? true) ||
+					((options.showKeybindings ?? true) &&
+						this._isKbFound(shortcut))
+				) {
+					// Fix label for arrow keys
+					keyLabel = keyLabel
+						?.replace("UpArrow", "↑")
+						?.replace("DownArrow", "↓")
+						?.replace("LeftArrow", "←")
+						?.replace("RightArrow", "→");
 
-				append(keyboardMarker, $('span.key', {}, keyLabel ?? ''));
-			}
+					append(keyboardMarker, $("span.key", {}, keyLabel ?? ""));
+				}
 
-			length++;
-			clearKeyboardScheduler.schedule();
-		}));
+				length++;
+				clearKeyboardScheduler.schedule();
+			}),
+		);
 
 		ToggleScreencastModeAction.disposable = disposables;
 	}
 
-	private _isKbFound(resolutionResult: ResolutionResult): resolutionResult is { kind: ResultKind.KbFound; commandId: string | null; commandArgs: any; isBubble: boolean } {
+	private _isKbFound(
+		resolutionResult: ResolutionResult,
+	): resolutionResult is {
+		kind: ResultKind.KbFound;
+		commandId: string | null;
+		commandArgs: any;
+		isBubble: boolean;
+	} {
 		return resolutionResult.kind === ResultKind.KbFound;
 	}
 
-	private getCommandDetails(commandId: string): { title: string; category?: string } | undefined {
+	private getCommandDetails(
+		commandId: string,
+	): { title: string; category?: string } | undefined {
 		const fromMenuRegistry = MenuRegistry.getCommand(commandId);
 
 		if (fromMenuRegistry) {
 			return {
-				title: typeof fromMenuRegistry.title === 'string' ? fromMenuRegistry.title : fromMenuRegistry.title.value,
-				category: fromMenuRegistry.category ? (typeof fromMenuRegistry.category === 'string' ? fromMenuRegistry.category : fromMenuRegistry.category.value) : undefined
+				title:
+					typeof fromMenuRegistry.title === "string"
+						? fromMenuRegistry.title
+						: fromMenuRegistry.title.value,
+				category: fromMenuRegistry.category
+					? typeof fromMenuRegistry.category === "string"
+						? fromMenuRegistry.category
+						: fromMenuRegistry.category.value
+					: undefined,
 			};
 		}
 
 		const fromCommandsRegistry = CommandsRegistry.getCommand(commandId);
 
-		if (fromCommandsRegistry && fromCommandsRegistry.metadata?.description) {
-			return { title: typeof fromCommandsRegistry.metadata.description === 'string' ? fromCommandsRegistry.metadata.description : fromCommandsRegistry.metadata.description.value };
+		if (
+			fromCommandsRegistry &&
+			fromCommandsRegistry.metadata?.description
+		) {
+			return {
+				title:
+					typeof fromCommandsRegistry.metadata.description ===
+					"string"
+						? fromCommandsRegistry.metadata.description
+						: fromCommandsRegistry.metadata.description.value,
+			};
 		}
 
 		return undefined;
@@ -392,13 +614,20 @@ class ToggleScreencastModeAction extends Action2 {
 }
 
 class LogStorageAction extends Action2 {
-
 	constructor() {
 		super({
-			id: 'workbench.action.logStorage',
-			title: localize2({ key: 'logStorage', comment: ['A developer only action to log the contents of the storage for the current window.'] }, "Log Storage Database Contents"),
+			id: "workbench.action.logStorage",
+			title: localize2(
+				{
+					key: "logStorage",
+					comment: [
+						"A developer only action to log the contents of the storage for the current window.",
+					],
+				},
+				"Log Storage Database Contents",
+			),
 			category: Categories.Developer,
-			f1: true
+			f1: true,
 		});
 	}
 
@@ -408,24 +637,42 @@ class LogStorageAction extends Action2 {
 
 		storageService.log();
 
-		dialogService.info(localize('storageLogDialogMessage', "The storage database contents have been logged to the developer tools."), localize('storageLogDialogDetails', "Open developer tools from the menu and select the Console tab."));
+		dialogService.info(
+			localize(
+				"storageLogDialogMessage",
+				"The storage database contents have been logged to the developer tools.",
+			),
+			localize(
+				"storageLogDialogDetails",
+				"Open developer tools from the menu and select the Console tab.",
+			),
+		);
 	}
 }
 
 class LogWorkingCopiesAction extends Action2 {
-
 	constructor() {
 		super({
-			id: 'workbench.action.logWorkingCopies',
-			title: localize2({ key: 'logWorkingCopies', comment: ['A developer only action to log the working copies that exist.'] }, "Log Working Copies"),
+			id: "workbench.action.logWorkingCopies",
+			title: localize2(
+				{
+					key: "logWorkingCopies",
+					comment: [
+						"A developer only action to log the working copies that exist.",
+					],
+				},
+				"Log Working Copies",
+			),
 			category: Categories.Developer,
-			f1: true
+			f1: true,
 		});
 	}
 
 	async run(accessor: ServicesAccessor): Promise<void> {
 		const workingCopyService = accessor.get(IWorkingCopyService);
-		const workingCopyBackupService = accessor.get(IWorkingCopyBackupService);
+		const workingCopyBackupService = accessor.get(
+			IWorkingCopyBackupService,
+		);
 		const logService = accessor.get(ILogService);
 		const outputService = accessor.get(IOutputService);
 
@@ -434,32 +681,40 @@ class LogWorkingCopiesAction extends Action2 {
 		const msg = [
 			``,
 			`[Working Copies]`,
-			...(workingCopyService.workingCopies.length > 0) ?
-				workingCopyService.workingCopies.map(workingCopy => `${workingCopy.isDirty() ? '● ' : ''}${workingCopy.resource.toString(true)} (typeId: ${workingCopy.typeId || '<no typeId>'})`) :
-				['<none>'],
+			...(workingCopyService.workingCopies.length > 0
+				? workingCopyService.workingCopies.map(
+						(workingCopy) =>
+							`${workingCopy.isDirty() ? "● " : ""}${workingCopy.resource.toString(true)} (typeId: ${workingCopy.typeId || "<no typeId>"})`,
+					)
+				: ["<none>"]),
 			``,
 			`[Backups]`,
-			...(backups.length > 0) ?
-				backups.map(backup => `${backup.resource.toString(true)} (typeId: ${backup.typeId || '<no typeId>'})`) :
-				['<none>'],
+			...(backups.length > 0
+				? backups.map(
+						(backup) =>
+							`${backup.resource.toString(true)} (typeId: ${backup.typeId || "<no typeId>"})`,
+					)
+				: ["<none>"]),
 		];
 
-		logService.info(msg.join('\n'));
+		logService.info(msg.join("\n"));
 
 		outputService.showChannel(windowLogId, true);
 	}
 }
 
 class RemoveLargeStorageEntriesAction extends Action2 {
-
 	private static SIZE_THRESHOLD = 1024 * 16; // 16kb
 
 	constructor() {
 		super({
-			id: 'workbench.action.removeLargeStorageDatabaseEntries',
-			title: localize2('removeLargeStorageDatabaseEntries', 'Remove Large Storage Database Entries...'),
+			id: "workbench.action.removeLargeStorageDatabaseEntries",
+			title: localize2(
+				"removeLargeStorageDatabaseEntries",
+				"Remove Large Storage Database Entries...",
+			),
 			category: Categories.Developer,
-			f1: true
+			f1: true,
 		});
 	}
 
@@ -479,15 +734,27 @@ class RemoveLargeStorageEntriesAction extends Action2 {
 
 		const items: IStorageItem[] = [];
 
-		for (const scope of [StorageScope.APPLICATION, StorageScope.PROFILE, StorageScope.WORKSPACE]) {
-			if (scope === StorageScope.PROFILE && userDataProfileService.currentProfile.isDefault) {
+		for (const scope of [
+			StorageScope.APPLICATION,
+			StorageScope.PROFILE,
+			StorageScope.WORKSPACE,
+		]) {
+			if (
+				scope === StorageScope.PROFILE &&
+				userDataProfileService.currentProfile.isDefault
+			) {
 				continue; // avoid duplicates
 			}
 
 			for (const target of [StorageTarget.MACHINE, StorageTarget.USER]) {
 				for (const key of storageService.keys(scope, target)) {
 					const value = storageService.get(key, scope);
-					if (value && (!environmentService.isBuilt /* show all keys in dev */ || value.length > RemoveLargeStorageEntriesAction.SIZE_THRESHOLD)) {
+					if (
+						value &&
+						(!environmentService.isBuilt /* show all keys in dev */ ||
+							value.length >
+								RemoveLargeStorageEntriesAction.SIZE_THRESHOLD)
+					) {
 						items.push({
 							key,
 							scope,
@@ -495,7 +762,18 @@ class RemoveLargeStorageEntriesAction extends Action2 {
 							size: value.length,
 							label: key,
 							description: ByteSize.formatSize(value.length),
-							detail: localize('largeStorageItemDetail', "Scope: {0}, Target: {1}", scope === StorageScope.APPLICATION ? localize('global', "Global") : scope === StorageScope.PROFILE ? localize('profile', "Profile") : localize('workspace', "Workspace"), target === StorageTarget.MACHINE ? localize('machine', "Machine") : localize('user', "User")),
+							detail: localize(
+								"largeStorageItemDetail",
+								"Scope: {0}, Target: {1}",
+								scope === StorageScope.APPLICATION
+									? localize("global", "Global")
+									: scope === StorageScope.PROFILE
+										? localize("profile", "Profile")
+										: localize("workspace", "Workspace"),
+								target === StorageTarget.MACHINE
+									? localize("machine", "Machine")
+									: localize("user", "User"),
+							),
 						});
 					}
 				}
@@ -504,41 +782,69 @@ class RemoveLargeStorageEntriesAction extends Action2 {
 
 		items.sort((itemA, itemB) => itemB.size - itemA.size);
 
-		const selectedItems = await new Promise<readonly IStorageItem[]>(resolve => {
-			const disposables = new DisposableStore();
+		const selectedItems = await new Promise<readonly IStorageItem[]>(
+			(resolve) => {
+				const disposables = new DisposableStore();
 
-			const picker = disposables.add(quickInputService.createQuickPick<IStorageItem>());
-			picker.items = items;
-			picker.canSelectMany = true;
-			picker.ok = false;
-			picker.customButton = true;
-			picker.hideCheckAll = true;
-			picker.customLabel = localize('removeLargeStorageEntriesPickerButton', "Remove");
-			picker.placeholder = localize('removeLargeStorageEntriesPickerPlaceholder', "Select large entries to remove from storage");
+				const picker = disposables.add(
+					quickInputService.createQuickPick<IStorageItem>(),
+				);
+				picker.items = items;
+				picker.canSelectMany = true;
+				picker.ok = false;
+				picker.customButton = true;
+				picker.hideCheckAll = true;
+				picker.customLabel = localize(
+					"removeLargeStorageEntriesPickerButton",
+					"Remove",
+				);
+				picker.placeholder = localize(
+					"removeLargeStorageEntriesPickerPlaceholder",
+					"Select large entries to remove from storage",
+				);
 
-			if (items.length === 0) {
-				picker.description = localize('removeLargeStorageEntriesPickerDescriptionNoEntries', "There are no large storage entries to remove.");
-			}
+				if (items.length === 0) {
+					picker.description = localize(
+						"removeLargeStorageEntriesPickerDescriptionNoEntries",
+						"There are no large storage entries to remove.",
+					);
+				}
 
-			picker.show();
+				picker.show();
 
-			disposables.add(picker.onDidCustom(() => {
-				resolve(picker.selectedItems);
-				picker.hide();
-			}));
+				disposables.add(
+					picker.onDidCustom(() => {
+						resolve(picker.selectedItems);
+						picker.hide();
+					}),
+				);
 
-			disposables.add(picker.onDidHide(() => disposables.dispose()));
-		});
+				disposables.add(picker.onDidHide(() => disposables.dispose()));
+			},
+		);
 
 		if (selectedItems.length === 0) {
 			return;
 		}
 
 		const { confirmed } = await dialogService.confirm({
-			type: 'warning',
-			message: localize('removeLargeStorageEntriesConfirmRemove', "Do you want to remove the selected storage entries from the database?"),
-			detail: localize('removeLargeStorageEntriesConfirmRemoveDetail', "{0}\n\nThis action is irreversible and may result in data loss!", selectedItems.map(item => item.label).join('\n')),
-			primaryButton: localize({ key: 'removeLargeStorageEntriesButtonLabel', comment: ['&& denotes a mnemonic'] }, "&&Remove")
+			type: "warning",
+			message: localize(
+				"removeLargeStorageEntriesConfirmRemove",
+				"Do you want to remove the selected storage entries from the database?",
+			),
+			detail: localize(
+				"removeLargeStorageEntriesConfirmRemoveDetail",
+				"{0}\n\nThis action is irreversible and may result in data loss!",
+				selectedItems.map((item) => item.label).join("\n"),
+			),
+			primaryButton: localize(
+				{
+					key: "removeLargeStorageEntriesButtonLabel",
+					comment: ["&& denotes a mnemonic"],
+				},
+				"&&Remove",
+			),
 		});
 
 		if (!confirmed) {
@@ -560,23 +866,33 @@ class RemoveLargeStorageEntriesAction extends Action2 {
 let tracker: DisposableTracker | undefined = undefined;
 let trackedDisposables = new Set<IDisposable>();
 
-const DisposablesSnapshotStateContext = new RawContextKey<'started' | 'pending' | 'stopped'>('dirtyWorkingCopies', 'stopped');
+const DisposablesSnapshotStateContext = new RawContextKey<
+	"started" | "pending" | "stopped"
+>("dirtyWorkingCopies", "stopped");
 
 class StartTrackDisposables extends Action2 {
-
 	constructor() {
 		super({
-			id: 'workbench.action.startTrackDisposables',
-			title: localize2('startTrackDisposables', 'Start Tracking Disposables'),
+			id: "workbench.action.startTrackDisposables",
+			title: localize2(
+				"startTrackDisposables",
+				"Start Tracking Disposables",
+			),
 			category: Categories.Developer,
 			f1: true,
-			precondition: ContextKeyExpr.and(DisposablesSnapshotStateContext.isEqualTo('pending').negate(), DisposablesSnapshotStateContext.isEqualTo('started').negate())
+			precondition: ContextKeyExpr.and(
+				DisposablesSnapshotStateContext.isEqualTo("pending").negate(),
+				DisposablesSnapshotStateContext.isEqualTo("started").negate(),
+			),
 		});
 	}
 
 	run(accessor: ServicesAccessor): void {
-		const disposablesSnapshotStateContext = DisposablesSnapshotStateContext.bindTo(accessor.get(IContextKeyService));
-		disposablesSnapshotStateContext.set('started');
+		const disposablesSnapshotStateContext =
+			DisposablesSnapshotStateContext.bindTo(
+				accessor.get(IContextKeyService),
+			);
+		disposablesSnapshotStateContext.set("started");
 
 		trackedDisposables.clear();
 
@@ -586,55 +902,77 @@ class StartTrackDisposables extends Action2 {
 }
 
 class SnapshotTrackedDisposables extends Action2 {
-
 	constructor() {
 		super({
-			id: 'workbench.action.snapshotTrackedDisposables',
-			title: localize2('snapshotTrackedDisposables', 'Snapshot Tracked Disposables'),
+			id: "workbench.action.snapshotTrackedDisposables",
+			title: localize2(
+				"snapshotTrackedDisposables",
+				"Snapshot Tracked Disposables",
+			),
 			category: Categories.Developer,
 			f1: true,
-			precondition: DisposablesSnapshotStateContext.isEqualTo('started')
+			precondition: DisposablesSnapshotStateContext.isEqualTo("started"),
 		});
 	}
 
 	run(accessor: ServicesAccessor): void {
-		const disposablesSnapshotStateContext = DisposablesSnapshotStateContext.bindTo(accessor.get(IContextKeyService));
-		disposablesSnapshotStateContext.set('pending');
+		const disposablesSnapshotStateContext =
+			DisposablesSnapshotStateContext.bindTo(
+				accessor.get(IContextKeyService),
+			);
+		disposablesSnapshotStateContext.set("pending");
 
-		trackedDisposables = new Set(tracker?.computeLeakingDisposables(1000)?.leaks.map(disposable => disposable.value));
+		trackedDisposables = new Set(
+			tracker
+				?.computeLeakingDisposables(1000)
+				?.leaks.map((disposable) => disposable.value),
+		);
 	}
 }
 
 class StopTrackDisposables extends Action2 {
-
 	constructor() {
 		super({
-			id: 'workbench.action.stopTrackDisposables',
-			title: localize2('stopTrackDisposables', 'Stop Tracking Disposables'),
+			id: "workbench.action.stopTrackDisposables",
+			title: localize2(
+				"stopTrackDisposables",
+				"Stop Tracking Disposables",
+			),
 			category: Categories.Developer,
 			f1: true,
-			precondition: DisposablesSnapshotStateContext.isEqualTo('pending')
+			precondition: DisposablesSnapshotStateContext.isEqualTo("pending"),
 		});
 	}
 
 	run(accessor: ServicesAccessor): void {
 		const editorService = accessor.get(IEditorService);
 
-		const disposablesSnapshotStateContext = DisposablesSnapshotStateContext.bindTo(accessor.get(IContextKeyService));
-		disposablesSnapshotStateContext.set('stopped');
+		const disposablesSnapshotStateContext =
+			DisposablesSnapshotStateContext.bindTo(
+				accessor.get(IContextKeyService),
+			);
+		disposablesSnapshotStateContext.set("stopped");
 
 		if (tracker) {
 			const disposableLeaks = new Set<DisposableInfo>();
 
-			for (const disposable of new Set(tracker.computeLeakingDisposables(1000)?.leaks) ?? []) {
+			for (const disposable of new Set(
+				tracker.computeLeakingDisposables(1000)?.leaks,
+			) ?? []) {
 				if (trackedDisposables.has(disposable.value)) {
 					disposableLeaks.add(disposable);
 				}
 			}
 
-			const leaks = tracker.computeLeakingDisposables(1000, Array.from(disposableLeaks));
+			const leaks = tracker.computeLeakingDisposables(
+				1000,
+				Array.from(disposableLeaks),
+			);
 			if (leaks) {
-				editorService.openEditor({ resource: undefined, contents: leaks.details });
+				editorService.openEditor({
+					resource: undefined,
+					contents: leaks.details,
+				});
 			}
 		}
 
@@ -659,85 +997,120 @@ if (!product.commit) {
 // --- Configuration
 
 // Screen Cast Mode
-const configurationRegistry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration);
+const configurationRegistry = Registry.as<IConfigurationRegistry>(
+	ConfigurationExtensions.Configuration,
+);
 configurationRegistry.registerConfiguration({
-	id: 'screencastMode',
+	id: "screencastMode",
 	order: 9,
-	title: localize('screencastModeConfigurationTitle', "Screencast Mode"),
-	type: 'object',
+	title: localize("screencastModeConfigurationTitle", "Screencast Mode"),
+	type: "object",
 	properties: {
-		'screencastMode.verticalOffset': {
-			type: 'number',
+		"screencastMode.verticalOffset": {
+			type: "number",
 			default: 20,
 			minimum: 0,
 			maximum: 90,
-			description: localize('screencastMode.location.verticalPosition', "Controls the vertical offset of the screencast mode overlay from the bottom as a percentage of the workbench height.")
+			description: localize(
+				"screencastMode.location.verticalPosition",
+				"Controls the vertical offset of the screencast mode overlay from the bottom as a percentage of the workbench height.",
+			),
 		},
-		'screencastMode.fontSize': {
-			type: 'number',
+		"screencastMode.fontSize": {
+			type: "number",
 			default: 56,
 			minimum: 20,
 			maximum: 100,
-			description: localize('screencastMode.fontSize', "Controls the font size (in pixels) of the screencast mode keyboard.")
+			description: localize(
+				"screencastMode.fontSize",
+				"Controls the font size (in pixels) of the screencast mode keyboard.",
+			),
 		},
-		'screencastMode.keyboardOptions': {
-			type: 'object',
-			description: localize('screencastMode.keyboardOptions.description', "Options for customizing the keyboard overlay in screencast mode."),
+		"screencastMode.keyboardOptions": {
+			type: "object",
+			description: localize(
+				"screencastMode.keyboardOptions.description",
+				"Options for customizing the keyboard overlay in screencast mode.",
+			),
 			properties: {
-				'showKeys': {
-					type: 'boolean',
+				"showKeys": {
+					type: "boolean",
 					default: true,
-					description: localize('screencastMode.keyboardOptions.showKeys', "Show raw keys.")
+					description: localize(
+						"screencastMode.keyboardOptions.showKeys",
+						"Show raw keys.",
+					),
 				},
-				'showKeybindings': {
-					type: 'boolean',
+				"showKeybindings": {
+					type: "boolean",
 					default: true,
-					description: localize('screencastMode.keyboardOptions.showKeybindings', "Show keyboard shortcuts.")
+					description: localize(
+						"screencastMode.keyboardOptions.showKeybindings",
+						"Show keyboard shortcuts.",
+					),
 				},
-				'showCommands': {
-					type: 'boolean',
+				"showCommands": {
+					type: "boolean",
 					default: true,
-					description: localize('screencastMode.keyboardOptions.showCommands', "Show command names.")
+					description: localize(
+						"screencastMode.keyboardOptions.showCommands",
+						"Show command names.",
+					),
 				},
-				'showCommandGroups': {
-					type: 'boolean',
+				"showCommandGroups": {
+					type: "boolean",
 					default: false,
-					description: localize('screencastMode.keyboardOptions.showCommandGroups', "Show command group names, when commands are also shown.")
+					description: localize(
+						"screencastMode.keyboardOptions.showCommandGroups",
+						"Show command group names, when commands are also shown.",
+					),
 				},
-				'showSingleEditorCursorMoves': {
-					type: 'boolean',
+				"showSingleEditorCursorMoves": {
+					type: "boolean",
 					default: true,
-					description: localize('screencastMode.keyboardOptions.showSingleEditorCursorMoves', "Show single editor cursor move commands.")
-				}
+					description: localize(
+						"screencastMode.keyboardOptions.showSingleEditorCursorMoves",
+						"Show single editor cursor move commands.",
+					),
+				},
 			},
 			default: {
-				'showKeys': true,
-				'showKeybindings': true,
-				'showCommands': true,
-				'showCommandGroups': false,
-				'showSingleEditorCursorMoves': true
+				"showKeys": true,
+				"showKeybindings": true,
+				"showCommands": true,
+				"showCommandGroups": false,
+				"showSingleEditorCursorMoves": true,
 			},
-			additionalProperties: false
+			additionalProperties: false,
 		},
-		'screencastMode.keyboardOverlayTimeout': {
-			type: 'number',
+		"screencastMode.keyboardOverlayTimeout": {
+			type: "number",
 			default: 800,
 			minimum: 500,
 			maximum: 5000,
-			description: localize('screencastMode.keyboardOverlayTimeout', "Controls how long (in milliseconds) the keyboard overlay is shown in screencast mode.")
+			description: localize(
+				"screencastMode.keyboardOverlayTimeout",
+				"Controls how long (in milliseconds) the keyboard overlay is shown in screencast mode.",
+			),
 		},
-		'screencastMode.mouseIndicatorColor': {
-			type: 'string',
-			format: 'color-hex',
-			default: '#FF0000',
-			description: localize('screencastMode.mouseIndicatorColor', "Controls the color in hex (#RGB, #RGBA, #RRGGBB or #RRGGBBAA) of the mouse indicator in screencast mode.")
+		"screencastMode.mouseIndicatorColor": {
+			type: "string",
+			format: "color-hex",
+			default: "#FF0000",
+			description: localize(
+				"screencastMode.mouseIndicatorColor",
+				"Controls the color in hex (#RGB, #RGBA, #RRGGBB or #RRGGBBAA) of the mouse indicator in screencast mode.",
+			),
 		},
-		'screencastMode.mouseIndicatorSize': {
-			type: 'number',
+		"screencastMode.mouseIndicatorSize": {
+			type: "number",
 			default: 20,
 			minimum: 20,
 			maximum: 100,
-			description: localize('screencastMode.mouseIndicatorSize', "Controls the size (in pixels) of the mouse indicator in screencast mode.")
+			description: localize(
+				"screencastMode.mouseIndicatorSize",
+				"Controls the size (in pixels) of the mouse indicator in screencast mode.",
+			),
 		},
-	}
+	},
 });

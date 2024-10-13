@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { parse } from '../../../base/common/path.js';
-import { debounce, throttle } from '../../../base/common/decorators.js';
-import { Emitter } from '../../../base/common/event.js';
-import { Disposable } from '../../../base/common/lifecycle.js';
-import { ProcessItem } from '../../../base/common/processes.js';
-import { listProcesses } from '../../../base/node/ps.js';
-import { ILogService } from '../../log/common/log.js';
+import { debounce, throttle } from "../../../base/common/decorators.js";
+import { Emitter } from "../../../base/common/event.js";
+import { Disposable } from "../../../base/common/lifecycle.js";
+import { parse } from "../../../base/common/path.js";
+import { ProcessItem } from "../../../base/common/processes.js";
+import { listProcesses } from "../../../base/node/ps.js";
+import { ILogService } from "../../log/common/log.js";
 
 const enum Constants {
 	/**
@@ -33,24 +33,32 @@ export class ChildProcessMonitor extends Disposable {
 	private set hasChildProcesses(value: boolean) {
 		if (this._hasChildProcesses !== value) {
 			this._hasChildProcesses = value;
-			this._logService.debug('ChildProcessMonitor: Has child processes changed', value);
+			this._logService.debug(
+				"ChildProcessMonitor: Has child processes changed",
+				value,
+			);
 			this._onDidChangeHasChildProcesses.fire(value);
 		}
 	}
 	/**
 	 * Whether the process has child processes.
 	 */
-	get hasChildProcesses(): boolean { return this._hasChildProcesses; }
+	get hasChildProcesses(): boolean {
+		return this._hasChildProcesses;
+	}
 
-	private readonly _onDidChangeHasChildProcesses = this._register(new Emitter<boolean>());
+	private readonly _onDidChangeHasChildProcesses = this._register(
+		new Emitter<boolean>(),
+	);
 	/**
 	 * An event that fires when whether the process has child processes changes.
 	 */
-	readonly onDidChangeHasChildProcesses = this._onDidChangeHasChildProcesses.event;
+	readonly onDidChangeHasChildProcesses =
+		this._onDidChangeHasChildProcesses.event;
 
 	constructor(
 		private readonly _pid: number,
-		@ILogService private readonly _logService: ILogService
+		@ILogService private readonly _logService: ILogService,
 	) {
 		super();
 	}
@@ -78,7 +86,10 @@ export class ChildProcessMonitor extends Disposable {
 			const processItem = await listProcesses(this._pid);
 			this.hasChildProcesses = this._processContainsChildren(processItem);
 		} catch (e) {
-			this._logService.debug('ChildProcessMonitor: Fetching process tree failed', e);
+			this._logService.debug(
+				"ChildProcessMonitor: Fetching process tree failed",
+				e,
+			);
 		}
 	}
 

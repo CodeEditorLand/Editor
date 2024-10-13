@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IProcessEnvironment } from '../../../common/platform.js';
-import { IProductConfiguration } from '../../../common/product.js';
-
+import { IProcessEnvironment } from "../../../common/platform.js";
+import { IProductConfiguration } from "../../../common/product.js";
 
 // #######################################################################
 // ###                                                                 ###
@@ -13,13 +12,11 @@ import { IProductConfiguration } from '../../../common/product.js';
 // ###                                                                 ###
 // #######################################################################
 
-
 /**
  * The common properties required for any sandboxed
  * renderer to function.
  */
 export interface ISandboxConfiguration {
-
 	/**
 	 * Identifier of the sandboxed renderer.
 	 */
@@ -58,7 +55,6 @@ export interface ISandboxConfiguration {
 	 * NLS support
 	 */
 	nls: {
-
 		/**
 		 * All NLS messages produced by `localize` and `localize2` calls
 		 * under `Source/vs`.

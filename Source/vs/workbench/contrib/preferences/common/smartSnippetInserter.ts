@@ -3,10 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { JSONScanner, createScanner as createJSONScanner, SyntaxKind as JSONSyntaxKind } from '../../../../base/common/json.js';
-import { Position } from '../../../../editor/common/core/position.js';
-import { Range } from '../../../../editor/common/core/range.js';
-import { ITextModel } from '../../../../editor/common/model.js';
+import {
+	createScanner as createJSONScanner,
+	JSONScanner,
+	SyntaxKind as JSONSyntaxKind,
+} from "../../../../base/common/json.js";
+import { Position } from "../../../../editor/common/core/position.js";
+import { Range } from "../../../../editor/common/core/range.js";
+import { ITextModel } from "../../../../editor/common/model.js";
 
 export interface InsertSnippetResult {
 	position: Position;
@@ -15,9 +19,7 @@ export interface InsertSnippetResult {
 }
 
 export class SmartSnippetInserter {
-
 	private static hasOpenBrace(scanner: JSONScanner): boolean {
-
 		while (scanner.scan() !== JSONSyntaxKind.EOF) {
 			const kind = scanner.getToken();
 
@@ -29,7 +31,10 @@ export class SmartSnippetInserter {
 		return false;
 	}
 
-	private static offsetToPosition(model: ITextModel, offset: number): Position {
+	private static offsetToPosition(
+		model: ITextModel,
+		offset: number,
+	): Position {
 		let offsetBeforeLine = 0;
 		const eolLength = model.getEOL().length;
 		const lineCount = model.getLineCount();
@@ -38,22 +43,20 @@ export class SmartSnippetInserter {
 			const offsetAfterLine = offsetBeforeLine + lineTotalLength;
 
 			if (offsetAfterLine > offset) {
-				return new Position(
-					lineNumber,
-					offset - offsetBeforeLine + 1
-				);
+				return new Position(lineNumber, offset - offsetBeforeLine + 1);
 			}
 			offsetBeforeLine = offsetAfterLine;
 		}
-		return new Position(
-			lineCount,
-			model.getLineMaxColumn(lineCount)
-		);
+		return new Position(lineCount, model.getLineMaxColumn(lineCount));
 	}
 
-	static insertSnippet(model: ITextModel, _position: Position): InsertSnippetResult {
-
-		const desiredPosition = model.getValueLengthInRange(new Range(1, 1, _position.lineNumber, _position.column));
+	static insertSnippet(
+		model: ITextModel,
+		_position: Position,
+	): InsertSnippetResult {
+		const desiredPosition = model.getValueLengthInRange(
+			new Range(1, 1, _position.lineNumber, _position.column),
+		);
 
 		// <INVALID> [ <BEFORE_OBJECT> { <INVALID> } <AFTER_OBJECT>, <BEFORE_OBJECT> { <INVALID> } <AFTER_OBJECT> ] <INVALID>
 		enum State {
@@ -117,30 +120,35 @@ export class SmartSnippetInserter {
 					goodKind = true;
 			}
 
-			if (currentPos >= desiredPosition && (currentState !== State.INVALID || lastValidPos !== -1)) {
+			if (
+				currentPos >= desiredPosition &&
+				(currentState !== State.INVALID || lastValidPos !== -1)
+			) {
 				let acceptPosition: number;
 				let acceptState: State;
 
 				if (currentState !== State.INVALID) {
-					acceptPosition = (goodKind ? currentPos : scanner.getTokenOffset());
+					acceptPosition = goodKind
+						? currentPos
+						: scanner.getTokenOffset();
 					acceptState = currentState;
 				} else {
 					acceptPosition = lastValidPos;
 					acceptState = lastValidState;
 				}
 
-				if (acceptState as State === State.AFTER_OBJECT) {
+				if ((acceptState as State) === State.AFTER_OBJECT) {
 					return {
 						position: this.offsetToPosition(model, acceptPosition),
-						prepend: ',',
-						append: ''
+						prepend: ",",
+						append: "",
 					};
 				} else {
 					scanner.setPosition(acceptPosition);
 					return {
 						position: this.offsetToPosition(model, acceptPosition),
-						prepend: '',
-						append: this.hasOpenBrace(scanner) ? ',' : ''
+						prepend: "",
+						append: this.hasOpenBrace(scanner) ? "," : "",
 					};
 				}
 			}
@@ -149,9 +157,12 @@ export class SmartSnippetInserter {
 		// no valid position found!
 		const modelLineCount = model.getLineCount();
 		return {
-			position: new Position(modelLineCount, model.getLineMaxColumn(modelLineCount)),
-			prepend: '\n[',
-			append: ']'
+			position: new Position(
+				modelLineCount,
+				model.getLineMaxColumn(modelLineCount),
+			),
+			prepend: "\n[",
+			append: "]",
 		};
 	}
 }

@@ -5,8 +5,7 @@
 
 // https://github.com/microsoft/vscode/issues/85682
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	export interface WebviewEditorInset {
 		readonly editor: TextEditor;
 		readonly line: number;
@@ -17,6 +16,11 @@ declare module 'vscode' {
 	}
 
 	export namespace window {
-		export function createWebviewTextEditorInset(editor: TextEditor, line: number, height: number, options?: WebviewOptions): WebviewEditorInset;
+		export function createWebviewTextEditorInset(
+			editor: TextEditor,
+			line: number,
+			height: number,
+			options?: WebviewOptions,
+		): WebviewEditorInset;
 	}
 }

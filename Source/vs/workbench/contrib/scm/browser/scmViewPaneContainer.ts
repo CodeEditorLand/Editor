@@ -3,23 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import './media/scm.css';
-import { localize } from '../../../../nls.js';
-import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
-import { HISTORY_VIEW_PANE_ID, REPOSITORIES_VIEW_PANE_ID, VIEW_PANE_ID, VIEWLET_ID } from '../common/scm.js';
-import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
-import { IThemeService } from '../../../../platform/theme/common/themeService.js';
-import { IStorageService } from '../../../../platform/storage/common/storage.js';
-import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
-import { IExtensionService } from '../../../services/extensions/common/extensions.js';
-import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
-import { IViewDescriptorService } from '../../../common/views.js';
-import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
+import "./media/scm.css";
+
+import { localize } from "../../../../nls.js";
+import { IConfigurationService } from "../../../../platform/configuration/common/configuration.js";
+import { IContextMenuService } from "../../../../platform/contextview/browser/contextView.js";
+import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
+import { IStorageService } from "../../../../platform/storage/common/storage.js";
+import { ITelemetryService } from "../../../../platform/telemetry/common/telemetry.js";
+import { IThemeService } from "../../../../platform/theme/common/themeService.js";
+import { IWorkspaceContextService } from "../../../../platform/workspace/common/workspace.js";
+import { ViewPaneContainer } from "../../../browser/parts/views/viewPaneContainer.js";
+import { IViewDescriptorService } from "../../../common/views.js";
+import { IExtensionService } from "../../../services/extensions/common/extensions.js";
+import { IWorkbenchLayoutService } from "../../../services/layout/browser/layoutService.js";
+import {
+	HISTORY_VIEW_PANE_ID,
+	REPOSITORIES_VIEW_PANE_ID,
+	VIEW_PANE_ID,
+	VIEWLET_ID,
+} from "../common/scm.js";
 
 export class SCMViewPaneContainer extends ViewPaneContainer {
-
 	constructor(
 		@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService,
 		@ITelemetryService telemetryService: ITelemetryService,
@@ -30,14 +35,27 @@ export class SCMViewPaneContainer extends ViewPaneContainer {
 		@IConfigurationService configurationService: IConfigurationService,
 		@IExtensionService extensionService: IExtensionService,
 		@IWorkspaceContextService contextService: IWorkspaceContextService,
-		@IViewDescriptorService viewDescriptorService: IViewDescriptorService
+		@IViewDescriptorService viewDescriptorService: IViewDescriptorService,
 	) {
-		super(VIEWLET_ID, { mergeViewWithContainerWhenSingleView: true }, instantiationService, configurationService, layoutService, contextMenuService, telemetryService, extensionService, themeService, storageService, contextService, viewDescriptorService);
+		super(
+			VIEWLET_ID,
+			{ mergeViewWithContainerWhenSingleView: true },
+			instantiationService,
+			configurationService,
+			layoutService,
+			contextMenuService,
+			telemetryService,
+			extensionService,
+			themeService,
+			storageService,
+			contextService,
+			viewDescriptorService,
+		);
 	}
 
 	override create(parent: HTMLElement): void {
 		super.create(parent);
-		parent.classList.add('scm-viewlet');
+		parent.classList.add("scm-viewlet");
 	}
 
 	override getOptimalWidth(): number {
@@ -46,16 +64,17 @@ export class SCMViewPaneContainer extends ViewPaneContainer {
 
 	override getTitle(): string {
 		if (this.panes.length === 1) {
-			if (this.panes[0].id === VIEW_PANE_ID ||
+			if (
+				this.panes[0].id === VIEW_PANE_ID ||
 				this.panes[0].id === REPOSITORIES_VIEW_PANE_ID ||
-				this.panes[0].id === HISTORY_VIEW_PANE_ID) {
+				this.panes[0].id === HISTORY_VIEW_PANE_ID
+			) {
 				return this.panes[0].title;
 			} else {
 				return super.getTitle();
 			}
 		}
 
-		return localize('source control', "Source Control");
+		return localize("source control", "Source Control");
 	}
-
 }

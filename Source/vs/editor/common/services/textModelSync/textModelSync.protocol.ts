@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IModelChangedEvent } from '../../model/mirrorTextModel.js';
+import { IModelChangedEvent } from "../../model/mirrorTextModel.js";
 
 export interface IWorkerTextModelSyncChannelServer {
 	$acceptNewModel(data: IRawModelData): void;

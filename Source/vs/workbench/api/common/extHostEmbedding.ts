@@ -3,18 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from '../../../base/common/cancellation.js';
-import { Emitter, Event } from '../../../base/common/event.js';
-import { IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
-import { IExtensionDescription } from '../../../platform/extensions/common/extensions.js';
-import { ExtHostEmbeddingsShape, IMainContext, MainContext, MainThreadEmbeddingsShape } from './extHost.protocol.js';
-import type * as vscode from 'vscode';
+import type * as vscode from "vscode";
 
+import { CancellationToken } from "../../../base/common/cancellation.js";
+import { Emitter, Event } from "../../../base/common/event.js";
+import { IDisposable, toDisposable } from "../../../base/common/lifecycle.js";
+import { IExtensionDescription } from "../../../platform/extensions/common/extensions.js";
+import {
+	ExtHostEmbeddingsShape,
+	IMainContext,
+	MainContext,
+	MainThreadEmbeddingsShape,
+} from "./extHost.protocol.js";
 
 export class ExtHostEmbeddings implements ExtHostEmbeddingsShape {
-
 	private readonly _proxy: MainThreadEmbeddingsShape;
-	private readonly _provider = new Map<number, { id: string; provider: vscode.EmbeddingsProvider }>();
+	private readonly _provider = new Map<
+		number,
+		{ id: string; provider: vscode.EmbeddingsProvider }
+	>();
 
 	private readonly _onDidChange = new Emitter<void>();
 	readonly onDidChange: Event<void> = this._onDidChange.event;
@@ -22,15 +29,19 @@ export class ExtHostEmbeddings implements ExtHostEmbeddingsShape {
 	private _allKnownModels = new Set<string>();
 	private _handlePool: number = 0;
 
-	constructor(
-		mainContext: IMainContext
-	) {
+	constructor(mainContext: IMainContext) {
 		this._proxy = mainContext.getProxy(MainContext.MainThreadEmbeddings);
 	}
 
-	registerEmbeddingsProvider(_extension: IExtensionDescription, embeddingsModel: string, provider: vscode.EmbeddingsProvider): IDisposable {
+	registerEmbeddingsProvider(
+		_extension: IExtensionDescription,
+		embeddingsModel: string,
+		provider: vscode.EmbeddingsProvider,
+	): IDisposable {
 		if (this._allKnownModels.has(embeddingsModel)) {
-			throw new Error('An embeddings provider for this model is already registered');
+			throw new Error(
+				"An embeddings provider for this model is already registered",
+			);
 		}
 
 		const handle = this._handlePool++;
@@ -45,18 +56,33 @@ export class ExtHostEmbeddings implements ExtHostEmbeddingsShape {
 		});
 	}
 
-	async computeEmbeddings(embeddingsModel: string, input: string, token?: vscode.CancellationToken): Promise<vscode.Embedding>;
-	async computeEmbeddings(embeddingsModel: string, input: string[], token?: vscode.CancellationToken): Promise<vscode.Embedding[]>;
-	async computeEmbeddings(embeddingsModel: string, input: string | string[], token?: vscode.CancellationToken): Promise<vscode.Embedding[] | vscode.Embedding> {
-
+	async computeEmbeddings(
+		embeddingsModel: string,
+		input: string,
+		token?: vscode.CancellationToken,
+	): Promise<vscode.Embedding>;
+	async computeEmbeddings(
+		embeddingsModel: string,
+		input: string[],
+		token?: vscode.CancellationToken,
+	): Promise<vscode.Embedding[]>;
+	async computeEmbeddings(
+		embeddingsModel: string,
+		input: string | string[],
+		token?: vscode.CancellationToken,
+	): Promise<vscode.Embedding[] | vscode.Embedding> {
 		token ??= CancellationToken.None;
 
 		let returnSingle = false;
-		if (typeof input === 'string') {
+		if (typeof input === "string") {
 			input = [input];
 			returnSingle = true;
 		}
-		const result = await this._proxy.$computeEmbeddings(embeddingsModel, input, token);
+		const result = await this._proxy.$computeEmbeddings(
+			embeddingsModel,
+			input,
+			token,
+		);
 		if (result.length !== input.length) {
 			throw new Error();
 		}
@@ -67,10 +93,13 @@ export class ExtHostEmbeddings implements ExtHostEmbeddingsShape {
 			return result[0];
 		}
 		return result;
-
 	}
 
-	async $provideEmbeddings(handle: number, input: string[], token: CancellationToken): Promise<{ values: number[] }[]> {
+	async $provideEmbeddings(
+		handle: number,
+		input: string[],
+		token: CancellationToken,
+	): Promise<{ values: number[] }[]> {
 		const data = this._provider.get(handle);
 		if (!data) {
 			return [];

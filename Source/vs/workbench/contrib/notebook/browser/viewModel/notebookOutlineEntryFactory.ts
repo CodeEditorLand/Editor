@@ -3,19 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { renderMarkdownAsPlaintext } from '../../../../../base/browser/markdownRenderer.js';
-import { CancellationToken } from '../../../../../base/common/cancellation.js';
-import { IOutlineModelService, OutlineModelService } from '../../../../../editor/contrib/documentSymbols/browser/outlineModel.js';
-import { localize } from '../../../../../nls.js';
-import { ICellViewModel } from '../notebookBrowser.js';
-import { getMarkdownHeadersInCell } from './foldingModel.js';
-import { OutlineEntry } from './OutlineEntry.js';
-import { CellKind } from '../../common/notebookCommon.js';
-import { INotebookExecutionStateService } from '../../common/notebookExecutionStateService.js';
-import { IRange } from '../../../../../editor/common/core/range.js';
-import { SymbolKind } from '../../../../../editor/common/languages.js';
-import { createDecorator } from '../../../../../platform/instantiation/common/instantiation.js';
-import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
+import { renderMarkdownAsPlaintext } from "../../../../../base/browser/markdownRenderer.js";
+import { CancellationToken } from "../../../../../base/common/cancellation.js";
+import { IRange } from "../../../../../editor/common/core/range.js";
+import { SymbolKind } from "../../../../../editor/common/languages.js";
+import { ITextModelService } from "../../../../../editor/common/services/resolverService.js";
+import {
+	IOutlineModelService,
+	OutlineModelService,
+} from "../../../../../editor/contrib/documentSymbols/browser/outlineModel.js";
+import { localize } from "../../../../../nls.js";
+import { createDecorator } from "../../../../../platform/instantiation/common/instantiation.js";
+import { CellKind } from "../../common/notebookCommon.js";
+import { INotebookExecutionStateService } from "../../common/notebookExecutionStateService.js";
+import { ICellViewModel } from "../notebookBrowser.js";
+import { getMarkdownHeadersInCell } from "./foldingModel.js";
+import { OutlineEntry } from "./OutlineEntry.js";
 
 export const enum NotebookOutlineConstants {
 	NonHeaderOutlineLevel = 7,
@@ -43,28 +46,43 @@ function getMarkdownHeadersInCellFallbackToHtmlTags(fullContent: string) {
 	return headers;
 }
 
-export const INotebookOutlineEntryFactory = createDecorator<INotebookOutlineEntryFactory>('INotebookOutlineEntryFactory');
+export const INotebookOutlineEntryFactory =
+	createDecorator<INotebookOutlineEntryFactory>(
+		"INotebookOutlineEntryFactory",
+	);
 
 export interface INotebookOutlineEntryFactory {
 	readonly _serviceBrand: undefined;
 
 	getOutlineEntries(cell: ICellViewModel, index: number): OutlineEntry[];
-	cacheSymbols(cell: ICellViewModel, cancelToken: CancellationToken): Promise<void>;
+	cacheSymbols(
+		cell: ICellViewModel,
+		cancelToken: CancellationToken,
+	): Promise<void>;
 }
 
-export class NotebookOutlineEntryFactory implements INotebookOutlineEntryFactory {
-
+export class NotebookOutlineEntryFactory
+	implements INotebookOutlineEntryFactory
+{
 	declare readonly _serviceBrand: undefined;
 
 	private cellOutlineEntryCache: Record<string, entryDesc[]> = {};
-	private readonly cachedMarkdownOutlineEntries = new WeakMap<ICellViewModel, { alternativeId: number; headers: { depth: number; text: string }[] }>();
+	private readonly cachedMarkdownOutlineEntries = new WeakMap<
+		ICellViewModel,
+		{ alternativeId: number; headers: { depth: number; text: string }[] }
+	>();
 	constructor(
-		@INotebookExecutionStateService private readonly executionStateService: INotebookExecutionStateService,
-		@IOutlineModelService private readonly outlineModelService: IOutlineModelService,
-		@ITextModelService private readonly textModelService: ITextModelService
-	) { }
+		@INotebookExecutionStateService
+		private readonly executionStateService: INotebookExecutionStateService,
+		@IOutlineModelService
+		private readonly outlineModelService: IOutlineModelService,
+		@ITextModelService private readonly textModelService: ITextModelService,
+	) {}
 
-	public getOutlineEntries(cell: ICellViewModel, index: number): OutlineEntry[] {
+	public getOutlineEntries(
+		cell: ICellViewModel,
+		index: number,
+	): OutlineEntry[] {
 		const entries: OutlineEntry[] = [];
 
 		const isMarkdown = cell.cellKind === CellKind.Markup;
@@ -78,12 +96,24 @@ export class NotebookOutlineEntryFactory implements INotebookOutlineEntryFactory
 		if (isMarkdown) {
 			const fullContent = cell.getText().substring(0, 10000);
 			const cache = this.cachedMarkdownOutlineEntries.get(cell);
-			const headers = cache?.alternativeId === cell.getAlternativeId() ? cache.headers : Array.from(getMarkdownHeadersInCellFallbackToHtmlTags(fullContent));
-			this.cachedMarkdownOutlineEntries.set(cell, { alternativeId: cell.getAlternativeId(), headers });
+			const headers =
+				cache?.alternativeId === cell.getAlternativeId()
+					? cache.headers
+					: Array.from(
+							getMarkdownHeadersInCellFallbackToHtmlTags(
+								fullContent,
+							),
+						);
+			this.cachedMarkdownOutlineEntries.set(cell, {
+				alternativeId: cell.getAlternativeId(),
+				headers,
+			});
 
 			for (const { depth, text } of headers) {
 				hasHeader = true;
-				entries.push(new OutlineEntry(index++, depth, cell, text, false, false));
+				entries.push(
+					new OutlineEntry(index++, depth, cell, text, false, false),
+				);
 			}
 
 			if (!hasHeader) {
@@ -92,7 +122,9 @@ export class NotebookOutlineEntryFactory implements INotebookOutlineEntryFactory
 		}
 
 		if (!hasHeader) {
-			const exeState = !isMarkdown && this.executionStateService.getCellExecution(cell.uri);
+			const exeState =
+				!isMarkdown &&
+				this.executionStateService.getCellExecution(cell.uri);
 			let preview = content.trim();
 
 			if (!isMarkdown) {
@@ -102,26 +134,59 @@ export class NotebookOutlineEntryFactory implements INotebookOutlineEntryFactory
 				// So symbols need to be precached before this function is called to get the full list.
 				if (cached) {
 					// push code cell entry that is a parent of cached symbols, always necessary. filtering for quickpick done in that provider.
-					entries.push(new OutlineEntry(index++, NotebookOutlineConstants.NonHeaderOutlineLevel, cell, preview, !!exeState, exeState ? exeState.isPaused : false));
+					entries.push(
+						new OutlineEntry(
+							index++,
+							NotebookOutlineConstants.NonHeaderOutlineLevel,
+							cell,
+							preview,
+							!!exeState,
+							exeState ? exeState.isPaused : false,
+						),
+					);
 					cached.forEach((entry) => {
-						entries.push(new OutlineEntry(index++, entry.level, cell, entry.name, false, false, entry.range, entry.kind));
+						entries.push(
+							new OutlineEntry(
+								index++,
+								entry.level,
+								cell,
+								entry.name,
+								false,
+								false,
+								entry.range,
+								entry.kind,
+							),
+						);
 					});
 				}
 			}
 
-			if (entries.length === 0) { // if there are no cached entries, use the first line of the cell as a code cell
+			if (entries.length === 0) {
+				// if there are no cached entries, use the first line of the cell as a code cell
 				if (preview.length === 0) {
 					// empty or just whitespace
-					preview = localize('empty', "empty cell");
+					preview = localize("empty", "empty cell");
 				}
-				entries.push(new OutlineEntry(index++, NotebookOutlineConstants.NonHeaderOutlineLevel, cell, preview, !!exeState, exeState ? exeState.isPaused : false));
+				entries.push(
+					new OutlineEntry(
+						index++,
+						NotebookOutlineConstants.NonHeaderOutlineLevel,
+						cell,
+						preview,
+						!!exeState,
+						exeState ? exeState.isPaused : false,
+					),
+				);
 			}
 		}
 
 		return entries;
 	}
 
-	public async cacheSymbols(cell: ICellViewModel, cancelToken: CancellationToken) {
+	public async cacheSymbols(
+		cell: ICellViewModel,
+		cancelToken: CancellationToken,
+	) {
 		if (cell.cellKind === CellKind.Markup) {
 			return;
 		}
@@ -129,8 +194,14 @@ export class NotebookOutlineEntryFactory implements INotebookOutlineEntryFactory
 		const ref = await this.textModelService.createModelReference(cell.uri);
 		try {
 			const textModel = ref.object.textEditorModel;
-			const outlineModel = await this.outlineModelService.getOrCreate(textModel, cancelToken);
-			const entries = createOutlineEntries(outlineModel.getTopLevelSymbols(), 8);
+			const outlineModel = await this.outlineModelService.getOrCreate(
+				textModel,
+				cancelToken,
+			);
+			const entries = createOutlineEntries(
+				outlineModel.getTopLevelSymbols(),
+				8,
+			);
 			this.cellOutlineEntryCache[cell.id] = entries;
 		} finally {
 			ref.dispose();
@@ -138,13 +209,21 @@ export class NotebookOutlineEntryFactory implements INotebookOutlineEntryFactory
 	}
 }
 
-type outlineModel = Awaited<ReturnType<OutlineModelService['getOrCreate']>>;
-type documentSymbol = ReturnType<outlineModel['getTopLevelSymbols']>[number];
+type outlineModel = Awaited<ReturnType<OutlineModelService["getOrCreate"]>>;
+type documentSymbol = ReturnType<outlineModel["getTopLevelSymbols"]>[number];
 
-function createOutlineEntries(symbols: documentSymbol[], level: number): entryDesc[] {
+function createOutlineEntries(
+	symbols: documentSymbol[],
+	level: number,
+): entryDesc[] {
 	const entries: entryDesc[] = [];
-	symbols.forEach(symbol => {
-		entries.push({ name: symbol.name, range: symbol.range, level, kind: symbol.kind });
+	symbols.forEach((symbol) => {
+		entries.push({
+			name: symbol.name,
+			range: symbol.range,
+			level,
+			kind: symbol.kind,
+		});
 		if (symbol.children) {
 			entries.push(...createOutlineEntries(symbol.children, level + 1));
 		}
@@ -155,7 +234,9 @@ function createOutlineEntries(symbols: documentSymbol[], level: number): entryDe
 function getCellFirstNonEmptyLine(cell: ICellViewModel) {
 	const textBuffer = cell.textBuffer;
 	for (let i = 0; i < textBuffer.getLineCount(); i++) {
-		const firstNonWhitespace = textBuffer.getLineFirstNonWhitespaceColumn(i + 1);
+		const firstNonWhitespace = textBuffer.getLineFirstNonWhitespaceColumn(
+			i + 1,
+		);
 		const lineLength = textBuffer.getLineLength(i + 1);
 		if (firstNonWhitespace < lineLength) {
 			return textBuffer.getLineContent(i + 1);

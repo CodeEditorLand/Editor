@@ -3,11 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IStorageService, StorageScope } from '../../../../platform/storage/common/storage.js';
-import { resolveCommonProperties } from '../../../../platform/telemetry/common/commonProperties.js';
-import { ICommonProperties, firstSessionDateStorageKey, lastSessionDateStorageKey } from '../../../../platform/telemetry/common/telemetry.js';
-import { cleanRemoteAuthority } from '../../../../platform/telemetry/common/telemetryUtils.js';
-import { INodeProcess } from '../../../../base/common/platform.js';
+import { INodeProcess } from "../../../../base/common/platform.js";
+import {
+	IStorageService,
+	StorageScope,
+} from "../../../../platform/storage/common/storage.js";
+import { resolveCommonProperties } from "../../../../platform/telemetry/common/commonProperties.js";
+import {
+	firstSessionDateStorageKey,
+	ICommonProperties,
+	lastSessionDateStorageKey,
+} from "../../../../platform/telemetry/common/telemetry.js";
+import { cleanRemoteAuthority } from "../../../../platform/telemetry/common/telemetryUtils.js";
 
 export function resolveWorkbenchCommonProperties(
 	storageService: IStorageService,
@@ -20,26 +27,42 @@ export function resolveWorkbenchCommonProperties(
 	devDeviceId: string,
 	isInternalTelemetry: boolean,
 	process: INodeProcess,
-	remoteAuthority?: string
+	remoteAuthority?: string,
 ): ICommonProperties {
-	const result = resolveCommonProperties(release, hostname, process.arch, commit, version, machineId, sqmId, devDeviceId, isInternalTelemetry);
-	const firstSessionDate = storageService.get(firstSessionDateStorageKey, StorageScope.APPLICATION)!;
-	const lastSessionDate = storageService.get(lastSessionDateStorageKey, StorageScope.APPLICATION)!;
+	const result = resolveCommonProperties(
+		release,
+		hostname,
+		process.arch,
+		commit,
+		version,
+		machineId,
+		sqmId,
+		devDeviceId,
+		isInternalTelemetry,
+	);
+	const firstSessionDate = storageService.get(
+		firstSessionDateStorageKey,
+		StorageScope.APPLICATION,
+	)!;
+	const lastSessionDate = storageService.get(
+		lastSessionDateStorageKey,
+		StorageScope.APPLICATION,
+	)!;
 
 	// __GDPR__COMMON__ "common.version.shell" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth" }
-	result['common.version.shell'] = process.versions?.['electron'];
+	result["common.version.shell"] = process.versions?.["electron"];
 	// __GDPR__COMMON__ "common.version.renderer" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth" }
-	result['common.version.renderer'] = process.versions?.['chrome'];
+	result["common.version.renderer"] = process.versions?.["chrome"];
 	// __GDPR__COMMON__ "common.firstSessionDate" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['common.firstSessionDate'] = firstSessionDate;
+	result["common.firstSessionDate"] = firstSessionDate;
 	// __GDPR__COMMON__ "common.lastSessionDate" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['common.lastSessionDate'] = lastSessionDate || '';
+	result["common.lastSessionDate"] = lastSessionDate || "";
 	// __GDPR__COMMON__ "common.isNewSession" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['common.isNewSession'] = !lastSessionDate ? '1' : '0';
+	result["common.isNewSession"] = !lastSessionDate ? "1" : "0";
 	// __GDPR__COMMON__ "common.remoteAuthority" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth" }
-	result['common.remoteAuthority'] = cleanRemoteAuthority(remoteAuthority);
+	result["common.remoteAuthority"] = cleanRemoteAuthority(remoteAuthority);
 	// __GDPR__COMMON__ "common.cli" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['common.cli'] = !!process.env['VSCODE_CLI'];
+	result["common.cli"] = !!process.env["VSCODE_CLI"];
 
 	return result;
 }

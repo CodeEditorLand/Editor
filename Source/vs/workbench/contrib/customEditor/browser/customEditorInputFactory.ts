@@ -3,32 +3,54 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable } from '../../../../base/common/lifecycle.js';
-import { Schemas } from '../../../../base/common/network.js';
-import { isEqual } from '../../../../base/common/resources.js';
-import { URI, UriComponents } from '../../../../base/common/uri.js';
-import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { IWorkbenchContribution } from '../../../common/contributions.js';
-import { EditorInput } from '../../../common/editor/editorInput.js';
-import { CustomEditorInput } from './customEditorInput.js';
-import { ICustomEditorService } from '../common/customEditor.js';
-import { NotebookEditorInput } from '../../notebook/common/notebookEditorInput.js';
-import { IWebviewService, WebviewContentOptions, WebviewContentPurpose, WebviewExtensionDescription, WebviewOptions } from '../../webview/browser/webview.js';
-import { DeserializedWebview, restoreWebviewContentOptions, restoreWebviewOptions, reviveWebviewExtensionDescription, SerializedWebview, SerializedWebviewOptions, WebviewEditorInputSerializer } from '../../webviewPanel/browser/webviewEditorInputSerializer.js';
-import { IWebviewWorkbenchService } from '../../webviewPanel/browser/webviewWorkbenchService.js';
-import { IWorkingCopyBackupMeta, IWorkingCopyIdentifier } from '../../../services/workingCopy/common/workingCopy.js';
-import { IWorkingCopyBackupService } from '../../../services/workingCopy/common/workingCopyBackup.js';
-import { IWorkingCopyEditorHandler, IWorkingCopyEditorService } from '../../../services/workingCopy/common/workingCopyEditorService.js';
+import { Disposable } from "../../../../base/common/lifecycle.js";
+import { Schemas } from "../../../../base/common/network.js";
+import { isEqual } from "../../../../base/common/resources.js";
+import { URI, UriComponents } from "../../../../base/common/uri.js";
+import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
+import { IWorkbenchContribution } from "../../../common/contributions.js";
+import { EditorInput } from "../../../common/editor/editorInput.js";
+import {
+	IWorkingCopyBackupMeta,
+	IWorkingCopyIdentifier,
+} from "../../../services/workingCopy/common/workingCopy.js";
+import { IWorkingCopyBackupService } from "../../../services/workingCopy/common/workingCopyBackup.js";
+import {
+	IWorkingCopyEditorHandler,
+	IWorkingCopyEditorService,
+} from "../../../services/workingCopy/common/workingCopyEditorService.js";
+import { NotebookEditorInput } from "../../notebook/common/notebookEditorInput.js";
+import {
+	IWebviewService,
+	WebviewContentOptions,
+	WebviewContentPurpose,
+	WebviewExtensionDescription,
+	WebviewOptions,
+} from "../../webview/browser/webview.js";
+import {
+	DeserializedWebview,
+	restoreWebviewContentOptions,
+	restoreWebviewOptions,
+	reviveWebviewExtensionDescription,
+	SerializedWebview,
+	SerializedWebviewOptions,
+	WebviewEditorInputSerializer,
+} from "../../webviewPanel/browser/webviewEditorInputSerializer.js";
+import { IWebviewWorkbenchService } from "../../webviewPanel/browser/webviewWorkbenchService.js";
+import { ICustomEditorService } from "../common/customEditor.js";
+import { CustomEditorInput } from "./customEditorInput.js";
 
 export interface CustomDocumentBackupData extends IWorkingCopyBackupMeta {
 	readonly viewType: string;
 	readonly editorResource: UriComponents;
 	backupId: string;
 
-	readonly extension: undefined | {
-		readonly location: UriComponents;
-		readonly id: string;
-	};
+	readonly extension:
+		| undefined
+		| {
+				readonly location: UriComponents;
+				readonly id: string;
+		  };
 
 	readonly webview: {
 		readonly origin: string | undefined;
@@ -50,12 +72,13 @@ interface DeserializedCustomEditor extends DeserializedWebview {
 }
 
 export class CustomEditorInputSerializer extends WebviewEditorInputSerializer {
-
 	public static override readonly ID = CustomEditorInput.typeId;
 
 	public constructor(
-		@IWebviewWorkbenchService webviewWorkbenchService: IWebviewWorkbenchService,
-		@IInstantiationService private readonly _instantiationService: IInstantiationService,
+		@IWebviewWorkbenchService
+		webviewWorkbenchService: IWebviewWorkbenchService,
+		@IInstantiationService
+		private readonly _instantiationService: IInstantiationService,
 		@IWebviewService private readonly _webviewService: IWebviewService,
 	) {
 		super(webviewWorkbenchService);
@@ -77,7 +100,9 @@ export class CustomEditorInputSerializer extends WebviewEditorInputSerializer {
 		}
 	}
 
-	protected override fromJson(data: SerializedCustomEditor): DeserializedCustomEditor {
+	protected override fromJson(
+		data: SerializedCustomEditor,
+	): DeserializedCustomEditor {
 		return {
 			...super.fromJson(data),
 			editorResource: URI.from(data.editorResource),
@@ -87,20 +112,35 @@ export class CustomEditorInputSerializer extends WebviewEditorInputSerializer {
 
 	public override deserialize(
 		_instantiationService: IInstantiationService,
-		serializedEditorInput: string
+		serializedEditorInput: string,
 	): CustomEditorInput {
 		const data = this.fromJson(JSON.parse(serializedEditorInput));
 
 		const webview = reviveWebview(this._webviewService, data);
-		const customInput = this._instantiationService.createInstance(CustomEditorInput, { resource: data.editorResource, viewType: data.viewType }, webview, { startsDirty: data.dirty, backupId: data.backupId });
-		if (typeof data.group === 'number') {
+		const customInput = this._instantiationService.createInstance(
+			CustomEditorInput,
+			{ resource: data.editorResource, viewType: data.viewType },
+			webview,
+			{ startsDirty: data.dirty, backupId: data.backupId },
+		);
+		if (typeof data.group === "number") {
 			customInput.updateGroup(data.group);
 		}
 		return customInput;
 	}
 }
 
-function reviveWebview(webviewService: IWebviewService, data: { origin: string | undefined; viewType: string; state: any; webviewOptions: WebviewOptions; contentOptions: WebviewContentOptions; extension?: WebviewExtensionDescription }) {
+function reviveWebview(
+	webviewService: IWebviewService,
+	data: {
+		origin: string | undefined;
+		viewType: string;
+		state: any;
+		webviewOptions: WebviewOptions;
+		contentOptions: WebviewContentOptions;
+		extension?: WebviewExtensionDescription;
+	},
+) {
 	const webview = webviewService.createWebviewOverlay({
 		providedViewType: data.viewType,
 		origin: data.origin,
@@ -108,7 +148,8 @@ function reviveWebview(webviewService: IWebviewService, data: { origin: string |
 		options: {
 			purpose: WebviewContentPurpose.CustomEditor,
 			enableFindWidget: data.webviewOptions.enableFindWidget,
-			retainContextWhenHidden: data.webviewOptions.retainContextWhenHidden,
+			retainContextWhenHidden:
+				data.webviewOptions.retainContextWhenHidden,
 		},
 		contentOptions: data.contentOptions,
 		extension: data.extension,
@@ -117,16 +158,22 @@ function reviveWebview(webviewService: IWebviewService, data: { origin: string |
 	return webview;
 }
 
-export class ComplexCustomWorkingCopyEditorHandler extends Disposable implements IWorkbenchContribution, IWorkingCopyEditorHandler {
-
-	static readonly ID = 'workbench.contrib.complexCustomWorkingCopyEditorHandler';
+export class ComplexCustomWorkingCopyEditorHandler
+	extends Disposable
+	implements IWorkbenchContribution, IWorkingCopyEditorHandler
+{
+	static readonly ID =
+		"workbench.contrib.complexCustomWorkingCopyEditorHandler";
 
 	constructor(
-		@IInstantiationService private readonly _instantiationService: IInstantiationService,
-		@IWorkingCopyEditorService _workingCopyEditorService: IWorkingCopyEditorService,
-		@IWorkingCopyBackupService private readonly _workingCopyBackupService: IWorkingCopyBackupService,
+		@IInstantiationService
+		private readonly _instantiationService: IInstantiationService,
+		@IWorkingCopyEditorService
+		_workingCopyEditorService: IWorkingCopyEditorService,
+		@IWorkingCopyBackupService
+		private readonly _workingCopyBackupService: IWorkingCopyBackupService,
 		@IWebviewService private readonly _webviewService: IWebviewService,
-		@ICustomEditorService _customEditorService: ICustomEditorService // DO NOT REMOVE (needed on startup to register overrides properly)
+		@ICustomEditorService _customEditorService: ICustomEditorService, // DO NOT REMOVE (needed on startup to register overrides properly)
 	) {
 		super();
 
@@ -142,7 +189,10 @@ export class ComplexCustomWorkingCopyEditorHandler extends Disposable implements
 			return false;
 		}
 
-		if (workingCopy.resource.authority === 'jupyter-notebook-ipynb' && editor instanceof NotebookEditorInput) {
+		if (
+			workingCopy.resource.authority === "jupyter-notebook-ipynb" &&
+			editor instanceof NotebookEditorInput
+		) {
 			try {
 				const data = JSON.parse(workingCopy.resource.query);
 				const workingCopyResource = URI.from(data);
@@ -156,7 +206,10 @@ export class ComplexCustomWorkingCopyEditorHandler extends Disposable implements
 			return false;
 		}
 
-		if (workingCopy.resource.authority !== editor.viewType.replace(/[^a-z0-9\-_]/gi, '-').toLowerCase()) {
+		if (
+			workingCopy.resource.authority !==
+			editor.viewType.replace(/[^a-z0-9\-_]/gi, "-").toLowerCase()
+		) {
 			return false;
 		}
 
@@ -170,26 +223,45 @@ export class ComplexCustomWorkingCopyEditorHandler extends Disposable implements
 		}
 	}
 
-	async createEditor(workingCopy: IWorkingCopyIdentifier): Promise<EditorInput> {
-		const backup = await this._workingCopyBackupService.resolve<CustomDocumentBackupData>(workingCopy);
+	async createEditor(
+		workingCopy: IWorkingCopyIdentifier,
+	): Promise<EditorInput> {
+		const backup =
+			await this._workingCopyBackupService.resolve<CustomDocumentBackupData>(
+				workingCopy,
+			);
 		if (!backup?.meta) {
-			throw new Error(`No backup found for custom editor: ${workingCopy.resource}`);
+			throw new Error(
+				`No backup found for custom editor: ${workingCopy.resource}`,
+			);
 		}
 
 		const backupData = backup.meta;
-		const extension = reviveWebviewExtensionDescription(backupData.extension?.id, backupData.extension?.location);
+		const extension = reviveWebviewExtensionDescription(
+			backupData.extension?.id,
+			backupData.extension?.location,
+		);
 		const webview = reviveWebview(this._webviewService, {
 			viewType: backupData.viewType,
 			origin: backupData.webview.origin,
 			webviewOptions: restoreWebviewOptions(backupData.webview.options),
-			contentOptions: restoreWebviewContentOptions(backupData.webview.options),
+			contentOptions: restoreWebviewContentOptions(
+				backupData.webview.options,
+			),
 			state: backupData.webview.state,
 			extension,
 		});
 
-		const editor = this._instantiationService.createInstance(CustomEditorInput, { resource: URI.revive(backupData.editorResource), viewType: backupData.viewType }, webview, { backupId: backupData.backupId });
+		const editor = this._instantiationService.createInstance(
+			CustomEditorInput,
+			{
+				resource: URI.revive(backupData.editorResource),
+				viewType: backupData.viewType,
+			},
+			webview,
+			{ backupId: backupData.backupId },
+		);
 		editor.updateGroup(0);
 		return editor;
 	}
 }
-

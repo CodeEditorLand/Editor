@@ -34,7 +34,7 @@ var collections;
             if (hasOwnProperty.call(collection, key)) {
                 callback({
                     key: key,
-                    value: collection[key]
+                    value: collection[key],
                 });
             }
         }
@@ -50,8 +50,8 @@ var strings;
     /**
      * The empty string. The one and only.
      */
-    strings.empty = '';
-    strings.eolUnix = '\r\n';
+    strings.empty = "";
+    strings.eolUnix = "\r\n";
     function format(value, ...rest) {
         return value.replace(/({\d+})/g, function (match) {
             const index = Number(match.substring(1, match.length - 1));
@@ -66,7 +66,7 @@ var graph;
         return {
             data: data,
             incoming: {},
-            outgoing: {}
+            outgoing: {},
         };
     }
     graph.newNode = newNode;

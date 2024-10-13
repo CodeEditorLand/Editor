@@ -3,22 +3,37 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from '../../../../base/common/event.js';
-import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
-import { ThreeKeyMap } from '../../../../base/common/map.js';
-import { ILogService, LogLevel } from '../../../../platform/log/common/log.js';
-import { IThemeService } from '../../../../platform/theme/common/themeService.js';
-import type { IBoundingBox, IGlyphRasterizer } from '../raster/raster.js';
-import type { IReadableTextureAtlasPage, ITextureAtlasAllocator, ITextureAtlasPageGlyph, GlyphMap } from './atlas.js';
-import { TextureAtlasShelfAllocator } from './textureAtlasShelfAllocator.js';
-import { TextureAtlasSlabAllocator } from './textureAtlasSlabAllocator.js';
+import { Event } from "../../../../base/common/event.js";
+import { Disposable, toDisposable } from "../../../../base/common/lifecycle.js";
+import { ThreeKeyMap } from "../../../../base/common/map.js";
+import { ILogService, LogLevel } from "../../../../platform/log/common/log.js";
+import { IThemeService } from "../../../../platform/theme/common/themeService.js";
+import type { IBoundingBox, IGlyphRasterizer } from "../raster/raster.js";
+import type {
+	GlyphMap,
+	IReadableTextureAtlasPage,
+	ITextureAtlasAllocator,
+	ITextureAtlasPageGlyph,
+} from "./atlas.js";
+import { TextureAtlasShelfAllocator } from "./textureAtlasShelfAllocator.js";
+import { TextureAtlasSlabAllocator } from "./textureAtlasSlabAllocator.js";
 
-export type AllocatorType = 'shelf' | 'slab' | ((canvas: OffscreenCanvas, textureIndex: number) => ITextureAtlasAllocator);
+export type AllocatorType =
+	| "shelf"
+	| "slab"
+	| ((
+			canvas: OffscreenCanvas,
+			textureIndex: number,
+	  ) => ITextureAtlasAllocator);
 
-export class TextureAtlasPage extends Disposable implements IReadableTextureAtlasPage {
-
+export class TextureAtlasPage
+	extends Disposable
+	implements IReadableTextureAtlasPage
+{
 	private _version: number = 0;
-	get version(): number { return this._version; }
+	get version(): number {
+		return this._version;
+	}
 
 	/**
 	 * The maximum number of glyphs that can be drawn to the page. This is currently a hard static
@@ -27,12 +42,17 @@ export class TextureAtlasPage extends Disposable implements IReadableTextureAtla
 	static readonly maximumGlyphCount = 5_000;
 
 	private _usedArea: IBoundingBox = { left: 0, top: 0, right: 0, bottom: 0 };
-	public get usedArea(): Readonly<IBoundingBox> { return this._usedArea; }
+	public get usedArea(): Readonly<IBoundingBox> {
+		return this._usedArea;
+	}
 
 	private readonly _canvas: OffscreenCanvas;
-	get source(): OffscreenCanvas { return this._canvas; }
+	get source(): OffscreenCanvas {
+		return this._canvas;
+	}
 
-	private readonly _glyphMap: GlyphMap<ITextureAtlasPageGlyph> = new ThreeKeyMap();
+	private readonly _glyphMap: GlyphMap<ITextureAtlasPageGlyph> =
+		new ThreeKeyMap();
 	private readonly _glyphInOrderSet: Set<ITextureAtlasPageGlyph> = new Set();
 	get glyphs(): IterableIterator<ITextureAtlasPageGlyph> {
 		return this._glyphInOrderSet.values();
@@ -53,37 +73,72 @@ export class TextureAtlasPage extends Disposable implements IReadableTextureAtla
 		this._canvas = new OffscreenCanvas(pageSize, pageSize);
 
 		switch (allocatorType) {
-			case 'shelf': this._allocator = new TextureAtlasShelfAllocator(this._canvas, textureIndex); break;
-			case 'slab': this._allocator = new TextureAtlasSlabAllocator(this._canvas, textureIndex); break;
-			default: this._allocator = allocatorType(this._canvas, textureIndex); break;
+			case "shelf":
+				this._allocator = new TextureAtlasShelfAllocator(
+					this._canvas,
+					textureIndex,
+				);
+				break;
+			case "slab":
+				this._allocator = new TextureAtlasSlabAllocator(
+					this._canvas,
+					textureIndex,
+				);
+				break;
+			default:
+				this._allocator = allocatorType(this._canvas, textureIndex);
+				break;
 		}
 
-		this._register(Event.runAndSubscribe(this._themeService.onDidColorThemeChange, () => {
-			// TODO: Clear entire atlas on theme change
-			this._colorMap = this._themeService.getColorTheme().tokenColorMap;
-		}));
+		this._register(
+			Event.runAndSubscribe(
+				this._themeService.onDidColorThemeChange,
+				() => {
+					// TODO: Clear entire atlas on theme change
+					this._colorMap =
+						this._themeService.getColorTheme().tokenColorMap;
+				},
+			),
+		);
 
 		// Reduce impact of a memory leak if this object is not released
-		this._register(toDisposable(() => {
-			this._canvas.width = 1;
-			this._canvas.height = 1;
-		}));
+		this._register(
+			toDisposable(() => {
+				this._canvas.width = 1;
+				this._canvas.height = 1;
+			}),
+		);
 	}
 
-	public getGlyph(rasterizer: IGlyphRasterizer, chars: string, metadata: number): Readonly<ITextureAtlasPageGlyph> | undefined {
+	public getGlyph(
+		rasterizer: IGlyphRasterizer,
+		chars: string,
+		metadata: number,
+	): Readonly<ITextureAtlasPageGlyph> | undefined {
 		// IMPORTANT: There are intentionally no intermediate variables here to aid in runtime
 		// optimization as it's a very hot function
-		return this._glyphMap.get(chars, metadata, rasterizer.cacheKey) ?? this._createGlyph(rasterizer, chars, metadata);
+		return (
+			this._glyphMap.get(chars, metadata, rasterizer.cacheKey) ??
+			this._createGlyph(rasterizer, chars, metadata)
+		);
 	}
 
-	private _createGlyph(rasterizer: IGlyphRasterizer, chars: string, metadata: number): Readonly<ITextureAtlasPageGlyph> | undefined {
+	private _createGlyph(
+		rasterizer: IGlyphRasterizer,
+		chars: string,
+		metadata: number,
+	): Readonly<ITextureAtlasPageGlyph> | undefined {
 		// Ensure the glyph can fit on the page
 		if (this._glyphInOrderSet.size >= TextureAtlasPage.maximumGlyphCount) {
 			return undefined;
 		}
 
 		// Rasterize and allocate the glyph
-		const rasterizedGlyph = rasterizer.rasterizeGlyph(chars, metadata, this._colorMap);
+		const rasterizedGlyph = rasterizer.rasterizeGlyph(
+			chars,
+			metadata,
+			this._colorMap,
+		);
 		const glyph = this._allocator.allocate(rasterizedGlyph);
 
 		// Ensure the glyph was allocated
@@ -97,15 +152,21 @@ export class TextureAtlasPage extends Disposable implements IReadableTextureAtla
 
 		// Update page version and it's tracked used area
 		this._version++;
-		this._usedArea.right = Math.max(this._usedArea.right, glyph.x + glyph.w - 1);
-		this._usedArea.bottom = Math.max(this._usedArea.bottom, glyph.y + glyph.h - 1);
+		this._usedArea.right = Math.max(
+			this._usedArea.right,
+			glyph.x + glyph.w - 1,
+		);
+		this._usedArea.bottom = Math.max(
+			this._usedArea.bottom,
+			glyph.y + glyph.h - 1,
+		);
 
 		if (this._logService.getLevel() === LogLevel.Trace) {
-			this._logService.trace('New glyph', {
+			this._logService.trace("New glyph", {
 				chars,
 				metadata,
 				rasterizedGlyph,
-				glyph
+				glyph,
 			});
 		}
 

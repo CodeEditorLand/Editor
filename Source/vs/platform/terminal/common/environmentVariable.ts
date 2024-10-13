@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IProcessEnvironment } from '../../../base/common/platform.js';
-import { IWorkspaceFolderData } from '../../workspace/common/workspace.js';
+import { IProcessEnvironment } from "../../../base/common/platform.js";
+import { IWorkspaceFolderData } from "../../workspace/common/workspace.js";
 
 export enum EnvironmentVariableMutatorType {
 	Replace = 1,
 	Append = 2,
-	Prepend = 3
+	Prepend = 3,
 }
 export interface IEnvironmentVariableMutator {
 	readonly variable: string;
@@ -35,21 +35,36 @@ export type EnvironmentVariableScope = {
 
 export interface IEnvironmentVariableCollection {
 	readonly map: ReadonlyMap<string, IEnvironmentVariableMutator>;
-	readonly descriptionMap?: ReadonlyMap<string, IEnvironmentVariableCollectionDescription>;
+	readonly descriptionMap?: ReadonlyMap<
+		string,
+		IEnvironmentVariableCollectionDescription
+	>;
 }
 
 /** [variable, mutator] */
-export type ISerializableEnvironmentVariableCollection = [string, IEnvironmentVariableMutator][];
+export type ISerializableEnvironmentVariableCollection = [
+	string,
+	IEnvironmentVariableMutator,
+][];
 
-export type ISerializableEnvironmentDescriptionMap = [string, IEnvironmentVariableCollectionDescription][];
-export interface IExtensionOwnedEnvironmentDescriptionMutator extends IEnvironmentVariableCollectionDescription {
+export type ISerializableEnvironmentDescriptionMap = [
+	string,
+	IEnvironmentVariableCollectionDescription,
+][];
+export interface IExtensionOwnedEnvironmentDescriptionMutator
+	extends IEnvironmentVariableCollectionDescription {
 	readonly extensionIdentifier: string;
 }
 
 /** [extension, collection, description] */
-export type ISerializableEnvironmentVariableCollections = [string, ISerializableEnvironmentVariableCollection, ISerializableEnvironmentDescriptionMap][];
+export type ISerializableEnvironmentVariableCollections = [
+	string,
+	ISerializableEnvironmentVariableCollection,
+	ISerializableEnvironmentDescriptionMap,
+][];
 
-export interface IExtensionOwnedEnvironmentVariableMutator extends IEnvironmentVariableMutator {
+export interface IExtensionOwnedEnvironmentVariableMutator
+	extends IEnvironmentVariableMutator {
 	readonly extensionIdentifier: string;
 }
 
@@ -71,23 +86,34 @@ export interface IMergedEnvironmentVariableCollection {
 	 * Gets the variable map for a given scope.
 	 * @param scope The scope to get the variable map for. If undefined, the global scope is used.
 	 */
-	getVariableMap(scope: EnvironmentVariableScope | undefined): Map<string, IExtensionOwnedEnvironmentVariableMutator[]>;
+	getVariableMap(
+		scope: EnvironmentVariableScope | undefined,
+	): Map<string, IExtensionOwnedEnvironmentVariableMutator[]>;
 	/**
 	 * Gets the description map for a given scope.
 	 * @param scope The scope to get the description map for. If undefined, description map for the
 	 * global scope is returned.
 	 */
-	getDescriptionMap(scope: EnvironmentVariableScope | undefined): Map<string, string | undefined>;
+	getDescriptionMap(
+		scope: EnvironmentVariableScope | undefined,
+	): Map<string, string | undefined>;
 	/**
 	 * Applies this collection to a process environment.
 	 * @param variableResolver An optional function to use to resolve variables within the
 	 * environment values.
 	 */
-	applyToProcessEnvironment(env: IProcessEnvironment, scope: EnvironmentVariableScope | undefined, variableResolver?: VariableResolver): Promise<void>;
+	applyToProcessEnvironment(
+		env: IProcessEnvironment,
+		scope: EnvironmentVariableScope | undefined,
+		variableResolver?: VariableResolver,
+	): Promise<void>;
 
 	/**
 	 * Generates a diff of this collection against another. Returns undefined if the collections are
 	 * the same.
 	 */
-	diff(other: IMergedEnvironmentVariableCollection, scope: EnvironmentVariableScope | undefined): IMergedEnvironmentVariableCollectionDiff | undefined;
+	diff(
+		other: IMergedEnvironmentVariableCollection,
+		scope: EnvironmentVariableScope | undefined,
+	): IMergedEnvironmentVariableCollectionDiff | undefined;
 }

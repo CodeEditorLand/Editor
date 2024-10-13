@@ -3,17 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { URI } from '../../../base/common/uri.js';
-import { IBaseBackupInfo, IFolderBackupInfo, IWorkspaceBackupInfo } from '../common/backup.js';
+import { URI } from "../../../base/common/uri.js";
+import {
+	IBaseBackupInfo,
+	IFolderBackupInfo,
+	IWorkspaceBackupInfo,
+} from "../common/backup.js";
 
 export interface IEmptyWindowBackupInfo extends IBaseBackupInfo {
 	readonly backupFolder: string;
 }
 
-export function isEmptyWindowBackupInfo(obj: unknown): obj is IEmptyWindowBackupInfo {
+export function isEmptyWindowBackupInfo(
+	obj: unknown,
+): obj is IEmptyWindowBackupInfo {
 	const candidate = obj as IEmptyWindowBackupInfo | undefined;
 
-	return typeof candidate?.backupFolder === 'string';
+	return typeof candidate?.backupFolder === "string";
 }
 
 export interface ISerializedWorkspaceBackupInfo {
@@ -22,19 +28,21 @@ export interface ISerializedWorkspaceBackupInfo {
 	remoteAuthority?: string;
 }
 
-export function deserializeWorkspaceInfos(serializedBackupWorkspaces: ISerializedBackupWorkspaces): IWorkspaceBackupInfo[] {
+export function deserializeWorkspaceInfos(
+	serializedBackupWorkspaces: ISerializedBackupWorkspaces,
+): IWorkspaceBackupInfo[] {
 	let workspaceBackupInfos: IWorkspaceBackupInfo[] = [];
 	try {
 		if (Array.isArray(serializedBackupWorkspaces.workspaces)) {
-			workspaceBackupInfos = serializedBackupWorkspaces.workspaces.map(workspace => (
-				{
+			workspaceBackupInfos = serializedBackupWorkspaces.workspaces.map(
+				(workspace) => ({
 					workspace: {
 						id: workspace.id,
-						configPath: URI.parse(workspace.configURIPath)
+						configPath: URI.parse(workspace.configURIPath),
 					},
-					remoteAuthority: workspace.remoteAuthority
-				}
-			));
+					remoteAuthority: workspace.remoteAuthority,
+				}),
+			);
 		}
 	} catch (e) {
 		// ignore URI parsing exceptions
@@ -48,16 +56,18 @@ export interface ISerializedFolderBackupInfo {
 	remoteAuthority?: string;
 }
 
-export function deserializeFolderInfos(serializedBackupWorkspaces: ISerializedBackupWorkspaces): IFolderBackupInfo[] {
+export function deserializeFolderInfos(
+	serializedBackupWorkspaces: ISerializedBackupWorkspaces,
+): IFolderBackupInfo[] {
 	let folderBackupInfos: IFolderBackupInfo[] = [];
 	try {
 		if (Array.isArray(serializedBackupWorkspaces.folders)) {
-			folderBackupInfos = serializedBackupWorkspaces.folders.map(folder => (
-				{
+			folderBackupInfos = serializedBackupWorkspaces.folders.map(
+				(folder) => ({
 					folderUri: URI.parse(folder.folderUri),
-					remoteAuthority: folder.remoteAuthority
-				}
-			));
+					remoteAuthority: folder.remoteAuthority,
+				}),
+			);
 		}
 	} catch (e) {
 		// ignore URI parsing exceptions
@@ -66,7 +76,8 @@ export function deserializeFolderInfos(serializedBackupWorkspaces: ISerializedBa
 	return folderBackupInfos;
 }
 
-export interface ISerializedEmptyWindowBackupInfo extends IEmptyWindowBackupInfo { }
+export interface ISerializedEmptyWindowBackupInfo
+	extends IEmptyWindowBackupInfo {}
 
 export interface ILegacySerializedBackupWorkspaces {
 	readonly rootURIWorkspaces: ISerializedWorkspaceBackupInfo[];

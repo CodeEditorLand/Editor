@@ -3,8 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Color } from '../../../../base/common/color.js';
-import { LanguageId, FontStyle, ColorId, StandardTokenType, MetadataConsts } from '../../encodedTokenAttributes.js';
+import { Color } from "../../../../base/common/color.js";
+import {
+	ColorId,
+	FontStyle,
+	LanguageId,
+	MetadataConsts,
+	StandardTokenType,
+} from "../../encodedTokenAttributes.js";
 
 export interface ITokenThemeRule {
 	token: string;
@@ -44,7 +50,9 @@ export class ParsedTokenThemeRule {
 /**
  * Parse a raw theme into rules.
  */
-export function parseTokenTheme(source: ITokenThemeRule[]): ParsedTokenThemeRule[] {
+export function parseTokenTheme(
+	source: ITokenThemeRule[],
+): ParsedTokenThemeRule[] {
 	if (!source || !Array.isArray(source)) {
 		return [];
 	}
@@ -54,23 +62,23 @@ export function parseTokenTheme(source: ITokenThemeRule[]): ParsedTokenThemeRule
 		const entry = source[i];
 
 		let fontStyle: number = FontStyle.NotSet;
-		if (typeof entry.fontStyle === 'string') {
+		if (typeof entry.fontStyle === "string") {
 			fontStyle = FontStyle.None;
 
-			const segments = entry.fontStyle.split(' ');
+			const segments = entry.fontStyle.split(" ");
 			for (let j = 0, lenJ = segments.length; j < lenJ; j++) {
 				const segment = segments[j];
 				switch (segment) {
-					case 'italic':
+					case "italic":
 						fontStyle = fontStyle | FontStyle.Italic;
 						break;
-					case 'bold':
+					case "bold":
 						fontStyle = fontStyle | FontStyle.Bold;
 						break;
-					case 'underline':
+					case "underline":
 						fontStyle = fontStyle | FontStyle.Underline;
 						break;
-					case 'strikethrough':
+					case "strikethrough":
 						fontStyle = fontStyle | FontStyle.Strikethrough;
 						break;
 				}
@@ -78,21 +86,21 @@ export function parseTokenTheme(source: ITokenThemeRule[]): ParsedTokenThemeRule
 		}
 
 		let foreground: string | null = null;
-		if (typeof entry.foreground === 'string') {
+		if (typeof entry.foreground === "string") {
 			foreground = entry.foreground;
 		}
 
 		let background: string | null = null;
-		if (typeof entry.background === 'string') {
+		if (typeof entry.background === "string") {
 			background = entry.background;
 		}
 
 		result[resultLen++] = new ParsedTokenThemeRule(
-			entry.token || '',
+			entry.token || "",
 			i,
 			fontStyle,
 			foreground,
-			background
+			background,
 		);
 	}
 
@@ -102,8 +110,10 @@ export function parseTokenTheme(source: ITokenThemeRule[]): ParsedTokenThemeRule
 /**
  * Resolve rules (i.e. inheritance).
  */
-function resolveParsedTokenThemeRules(parsedThemeRules: ParsedTokenThemeRule[], customTokenColors: string[]): TokenTheme {
-
+function resolveParsedTokenThemeRules(
+	parsedThemeRules: ParsedTokenThemeRule[],
+	customTokenColors: string[],
+): TokenTheme {
 	// Sort rules lexicographically, and then by index if necessary
 	parsedThemeRules.sort((a, b) => {
 		const r = strcmp(a.token, b.token);
@@ -115,9 +125,9 @@ function resolveParsedTokenThemeRules(parsedThemeRules: ParsedTokenThemeRule[], 
 
 	// Determine defaults
 	let defaultFontStyle = FontStyle.None;
-	let defaultForeground = '000000';
-	let defaultBackground = 'ffffff';
-	while (parsedThemeRules.length >= 1 && parsedThemeRules[0].token === '') {
+	let defaultForeground = "000000";
+	let defaultBackground = "ffffff";
+	while (parsedThemeRules.length >= 1 && parsedThemeRules[0].token === "") {
 		const incomingDefaults = parsedThemeRules.shift()!;
 		if (incomingDefaults.fontStyle !== FontStyle.NotSet) {
 			defaultFontStyle = incomingDefaults.fontStyle;
@@ -136,15 +146,23 @@ function resolveParsedTokenThemeRules(parsedThemeRules: ParsedTokenThemeRule[], 
 		colorMap.getId(color);
 	}
 
-
 	const foregroundColorId = colorMap.getId(defaultForeground);
 	const backgroundColorId = colorMap.getId(defaultBackground);
 
-	const defaults = new ThemeTrieElementRule(defaultFontStyle, foregroundColorId, backgroundColorId);
+	const defaults = new ThemeTrieElementRule(
+		defaultFontStyle,
+		foregroundColorId,
+		backgroundColorId,
+	);
 	const root = new ThemeTrieElement(defaults);
 	for (let i = 0, len = parsedThemeRules.length; i < len; i++) {
 		const rule = parsedThemeRules[i];
-		root.insert(rule.token, rule.fontStyle, colorMap.getId(rule.foreground), colorMap.getId(rule.background));
+		root.insert(
+			rule.token,
+			rule.fontStyle,
+			colorMap.getId(rule.foreground),
+			colorMap.getId(rule.background),
+		);
 	}
 
 	return new TokenTheme(colorMap, root);
@@ -153,7 +171,6 @@ function resolveParsedTokenThemeRules(parsedThemeRules: ParsedTokenThemeRule[], 
 const colorRegExp = /^#?([0-9A-Fa-f]{6})([0-9A-Fa-f]{2})?$/;
 
 export class ColorMap {
-
 	private _lastColorId: number;
 	private readonly _id2color: Color[];
 	private readonly _color2id: Map<string, ColorId>;
@@ -170,7 +187,7 @@ export class ColorMap {
 		}
 		const match = color.match(colorRegExp);
 		if (!match) {
-			throw new Error('Illegal value for token color: ' + color);
+			throw new Error("Illegal value for token color: " + color);
 		}
 		color = match[1].toUpperCase();
 		let value = this._color2id.get(color);
@@ -179,23 +196,30 @@ export class ColorMap {
 		}
 		value = ++this._lastColorId;
 		this._color2id.set(color, value);
-		this._id2color[value] = Color.fromHex('#' + color);
+		this._id2color[value] = Color.fromHex("#" + color);
 		return value;
 	}
 
 	public getColorMap(): Color[] {
 		return this._id2color.slice(0);
 	}
-
 }
 
 export class TokenTheme {
-
-	public static createFromRawTokenTheme(source: ITokenThemeRule[], customTokenColors: string[]): TokenTheme {
-		return this.createFromParsedTokenTheme(parseTokenTheme(source), customTokenColors);
+	public static createFromRawTokenTheme(
+		source: ITokenThemeRule[],
+		customTokenColors: string[],
+	): TokenTheme {
+		return this.createFromParsedTokenTheme(
+			parseTokenTheme(source),
+			customTokenColors,
+		);
 	}
 
-	public static createFromParsedTokenTheme(source: ParsedTokenThemeRule[], customTokenColors: string[]): TokenTheme {
+	public static createFromParsedTokenTheme(
+		source: ParsedTokenThemeRule[],
+		customTokenColors: string[],
+	): TokenTheme {
 		return resolveParsedTokenThemeRules(source, customTokenColors);
 	}
 
@@ -227,20 +251,19 @@ export class TokenTheme {
 	public match(languageId: LanguageId, token: string): number {
 		// The cache contains the metadata without the language bits set.
 		let result = this._cache.get(token);
-		if (typeof result === 'undefined') {
+		if (typeof result === "undefined") {
 			const rule = this._match(token);
 			const standardToken = toStandardTokenType(token);
-			result = (
-				rule.metadata
-				| (standardToken << MetadataConsts.TOKEN_TYPE_OFFSET)
-			) >>> 0;
+			result =
+				(rule.metadata |
+					(standardToken << MetadataConsts.TOKEN_TYPE_OFFSET)) >>>
+				0;
 			this._cache.set(token, result);
 		}
 
 		return (
-			result
-			| (languageId << MetadataConsts.LANGUAGEID_OFFSET)
-		) >>> 0;
+			(result | (languageId << MetadataConsts.LANGUAGEID_OFFSET)) >>> 0
+		);
 	}
 }
 
@@ -251,16 +274,16 @@ export function toStandardTokenType(tokenType: string): StandardTokenType {
 		return StandardTokenType.Other;
 	}
 	switch (m[1]) {
-		case 'comment':
+		case "comment":
 			return StandardTokenType.Comment;
-		case 'string':
+		case "string":
 			return StandardTokenType.String;
-		case 'regex':
+		case "regex":
 			return StandardTokenType.RegEx;
-		case 'regexp':
+		case "regexp":
 			return StandardTokenType.RegEx;
 	}
-	throw new Error('Unexpected match for standard token type!');
+	throw new Error("Unexpected match for standard token type!");
 }
 
 export function strcmp(a: string, b: string): number {
@@ -281,22 +304,34 @@ export class ThemeTrieElementRule {
 	private _background: ColorId;
 	public metadata: number;
 
-	constructor(fontStyle: FontStyle, foreground: ColorId, background: ColorId) {
+	constructor(
+		fontStyle: FontStyle,
+		foreground: ColorId,
+		background: ColorId,
+	) {
 		this._fontStyle = fontStyle;
 		this._foreground = foreground;
 		this._background = background;
-		this.metadata = (
-			(this._fontStyle << MetadataConsts.FONT_STYLE_OFFSET)
-			| (this._foreground << MetadataConsts.FOREGROUND_OFFSET)
-			| (this._background << MetadataConsts.BACKGROUND_OFFSET)
-		) >>> 0;
+		this.metadata =
+			((this._fontStyle << MetadataConsts.FONT_STYLE_OFFSET) |
+				(this._foreground << MetadataConsts.FOREGROUND_OFFSET) |
+				(this._background << MetadataConsts.BACKGROUND_OFFSET)) >>>
+			0;
 	}
 
 	public clone(): ThemeTrieElementRule {
-		return new ThemeTrieElementRule(this._fontStyle, this._foreground, this._background);
+		return new ThemeTrieElementRule(
+			this._fontStyle,
+			this._foreground,
+			this._background,
+		);
 	}
 
-	public acceptOverwrite(fontStyle: FontStyle, foreground: ColorId, background: ColorId): void {
+	public acceptOverwrite(
+		fontStyle: FontStyle,
+		foreground: ColorId,
+		background: ColorId,
+	): void {
 		if (fontStyle !== FontStyle.NotSet) {
 			this._fontStyle = fontStyle;
 		}
@@ -306,22 +341,26 @@ export class ThemeTrieElementRule {
 		if (background !== ColorId.None) {
 			this._background = background;
 		}
-		this.metadata = (
-			(this._fontStyle << MetadataConsts.FONT_STYLE_OFFSET)
-			| (this._foreground << MetadataConsts.FOREGROUND_OFFSET)
-			| (this._background << MetadataConsts.BACKGROUND_OFFSET)
-		) >>> 0;
+		this.metadata =
+			((this._fontStyle << MetadataConsts.FONT_STYLE_OFFSET) |
+				(this._foreground << MetadataConsts.FOREGROUND_OFFSET) |
+				(this._background << MetadataConsts.BACKGROUND_OFFSET)) >>>
+			0;
 	}
 }
 
 export class ExternalThemeTrieElement {
-
 	public readonly mainRule: ThemeTrieElementRule;
 	public readonly children: Map<string, ExternalThemeTrieElement>;
 
 	constructor(
 		mainRule: ThemeTrieElementRule,
-		children: Map<string, ExternalThemeTrieElement> | { [key: string]: ExternalThemeTrieElement } = new Map<string, ExternalThemeTrieElement>()
+		children:
+			| Map<string, ExternalThemeTrieElement>
+			| { [key: string]: ExternalThemeTrieElement } = new Map<
+			string,
+			ExternalThemeTrieElement
+		>(),
 	) {
 		this.mainRule = mainRule;
 		if (children instanceof Map) {
@@ -358,49 +397,54 @@ export class ThemeTrieElement {
 	}
 
 	public match(token: string): ThemeTrieElementRule {
-		if (token === '') {
+		if (token === "") {
 			return this._mainRule;
 		}
 
-		const dotIndex = token.indexOf('.');
+		const dotIndex = token.indexOf(".");
 		let head: string;
 		let tail: string;
 		if (dotIndex === -1) {
 			head = token;
-			tail = '';
+			tail = "";
 		} else {
 			head = token.substring(0, dotIndex);
 			tail = token.substring(dotIndex + 1);
 		}
 
 		const child = this._children.get(head);
-		if (typeof child !== 'undefined') {
+		if (typeof child !== "undefined") {
 			return child.match(tail);
 		}
 
 		return this._mainRule;
 	}
 
-	public insert(token: string, fontStyle: FontStyle, foreground: ColorId, background: ColorId): void {
-		if (token === '') {
+	public insert(
+		token: string,
+		fontStyle: FontStyle,
+		foreground: ColorId,
+		background: ColorId,
+	): void {
+		if (token === "") {
 			// Merge into the main rule
 			this._mainRule.acceptOverwrite(fontStyle, foreground, background);
 			return;
 		}
 
-		const dotIndex = token.indexOf('.');
+		const dotIndex = token.indexOf(".");
 		let head: string;
 		let tail: string;
 		if (dotIndex === -1) {
 			head = token;
-			tail = '';
+			tail = "";
 		} else {
 			head = token.substring(0, dotIndex);
 			tail = token.substring(dotIndex + 1);
 		}
 
 		let child = this._children.get(head);
-		if (typeof child === 'undefined') {
+		if (typeof child === "undefined") {
 			child = new ThemeTrieElement(this._mainRule.clone());
 			this._children.set(head, child);
 		}
@@ -409,16 +453,22 @@ export class ThemeTrieElement {
 	}
 }
 
-export function generateTokensCSSForColorMap(colorMap: readonly Color[]): string {
+export function generateTokensCSSForColorMap(
+	colorMap: readonly Color[],
+): string {
 	const rules: string[] = [];
 	for (let i = 1, len = colorMap.length; i < len; i++) {
 		const color = colorMap[i];
 		rules[i] = `.mtk${i} { color: ${color}; }`;
 	}
-	rules.push('.mtki { font-style: italic; }');
-	rules.push('.mtkb { font-weight: bold; }');
-	rules.push('.mtku { text-decoration: underline; text-underline-position: under; }');
-	rules.push('.mtks { text-decoration: line-through; }');
-	rules.push('.mtks.mtku { text-decoration: underline line-through; text-underline-position: under; }');
-	return rules.join('\n');
+	rules.push(".mtki { font-style: italic; }");
+	rules.push(".mtkb { font-weight: bold; }");
+	rules.push(
+		".mtku { text-decoration: underline; text-underline-position: under; }",
+	);
+	rules.push(".mtks { text-decoration: line-through; }");
+	rules.push(
+		".mtks.mtku { text-decoration: underline line-through; text-underline-position: under; }",
+	);
+	return rules.join("\n");
 }

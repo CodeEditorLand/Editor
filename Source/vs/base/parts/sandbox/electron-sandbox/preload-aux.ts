@@ -4,11 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 (function () {
-
-	const { ipcRenderer, webFrame, contextBridge } = require('electron');
+	const { ipcRenderer, webFrame, contextBridge } = require("electron");
 
 	function validateIPC(channel: string): true | never {
-		if (!channel || !channel.startsWith('vscode:')) {
+		if (!channel || !channel.startsWith("vscode:")) {
 			throw new Error(`Unsupported event IPC channel '${channel}'`);
 		}
 
@@ -16,13 +15,11 @@
 	}
 
 	const globals = {
-
 		/**
 		 * A minimal set of methods exposed from Electron's `ipcRenderer`
 		 * to support communication to main process.
 		 */
 		ipcRenderer: {
-
 			send(channel: string, ...args: any[]): void {
 				if (validateIPC(channel)) {
 					ipcRenderer.send(channel, ...args);
@@ -33,25 +30,24 @@
 				validateIPC(channel);
 
 				return ipcRenderer.invoke(channel, ...args);
-			}
+			},
 		},
 
 		/**
 		 * Support for subset of methods of Electron's `webFrame` type.
 		 */
 		webFrame: {
-
 			setZoomLevel(level: number): void {
-				if (typeof level === 'number') {
+				if (typeof level === "number") {
 					webFrame.setZoomLevel(level);
 				}
-			}
-		}
+			},
+		},
 	};
 
 	try {
-		contextBridge.exposeInMainWorld('vscode', globals);
+		contextBridge.exposeInMainWorld("vscode", globals);
 	} catch (error) {
 		console.error(error);
 	}
-}());
+})();

@@ -10,10 +10,19 @@ export interface IRawChatCommandContribution {
 	isSticky?: boolean;
 	when?: string;
 	defaultImplicitVariables?: string[];
-	disambiguation?: { category: string; categoryName?: string /** Deprecated */; description: string; examples: string[] }[];
+	disambiguation?: {
+		category: string;
+		categoryName?: string /** Deprecated */;
+		description: string;
+		examples: string[];
+	}[];
 }
 
-export type RawChatParticipantLocation = 'panel' | 'terminal' | 'notebook' | 'editing-session';
+export type RawChatParticipantLocation =
+	| "panel"
+	| "terminal"
+	| "notebook"
+	| "editing-session";
 
 export interface IRawChatParticipantContribution {
 	id: string;
@@ -28,7 +37,12 @@ export interface IRawChatParticipantContribution {
 	commands?: IRawChatCommandContribution[];
 	defaultImplicitVariables?: string[];
 	locations?: RawChatParticipantLocation[];
-	disambiguation?: { category: string; categoryName?: string /** Deprecated */; description: string; examples: string[] }[];
+	disambiguation?: {
+		category: string;
+		categoryName?: string /** Deprecated */;
+		description: string;
+		examples: string[];
+	}[];
 	supportsToolReferences?: boolean;
 }
 
@@ -37,4 +51,4 @@ export interface IRawChatParticipantContribution {
  * DON'T use this for any new data, only for old persisted data.
  * @deprecated
  */
-export const CHAT_PROVIDER_ID = 'copilot';
+export const CHAT_PROVIDER_ID = "copilot";

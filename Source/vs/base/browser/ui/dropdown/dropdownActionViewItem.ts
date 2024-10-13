@@ -3,24 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as nls from '../../../../nls.js';
-import { IContextMenuProvider } from '../../contextmenu.js';
-import { $, addDisposableListener, append, EventType, h } from '../../dom.js';
-import { StandardKeyboardEvent } from '../../keyboardEvent.js';
-import { IActionViewItemProvider } from '../actionbar/actionbar.js';
-import { ActionViewItem, BaseActionViewItem, IActionViewItemOptions, IBaseActionViewItemOptions } from '../actionbar/actionViewItems.js';
-import { AnchorAlignment } from '../contextview/contextview.js';
-import { DropdownMenu, IActionProvider, IDropdownMenuOptions, ILabelRenderer } from './dropdown.js';
-import { Action, IAction, IActionRunner } from '../../../common/actions.js';
-import { Codicon } from '../../../common/codicons.js';
-import { ThemeIcon } from '../../../common/themables.js';
-import { Emitter } from '../../../common/event.js';
-import { KeyCode } from '../../../common/keyCodes.js';
-import { ResolvedKeybinding } from '../../../common/keybindings.js';
-import { IDisposable } from '../../../common/lifecycle.js';
-import './dropdown.css';
-import { getDefaultHoverDelegate } from '../hover/hoverDelegateFactory.js';
-import { getBaseLayerHoverDelegate } from '../hover/hoverDelegate2.js';
+import * as nls from "../../../../nls.js";
+import { Action, IAction, IActionRunner } from "../../../common/actions.js";
+import { Codicon } from "../../../common/codicons.js";
+import { Emitter } from "../../../common/event.js";
+import { ResolvedKeybinding } from "../../../common/keybindings.js";
+import { KeyCode } from "../../../common/keyCodes.js";
+import { IDisposable } from "../../../common/lifecycle.js";
+import { ThemeIcon } from "../../../common/themables.js";
+import { IContextMenuProvider } from "../../contextmenu.js";
+import { $, addDisposableListener, append, EventType, h } from "../../dom.js";
+import { StandardKeyboardEvent } from "../../keyboardEvent.js";
+import { IActionViewItemProvider } from "../actionbar/actionbar.js";
+import {
+	ActionViewItem,
+	BaseActionViewItem,
+	IActionViewItemOptions,
+	IBaseActionViewItemOptions,
+} from "../actionbar/actionViewItems.js";
+import { AnchorAlignment } from "../contextview/contextview.js";
+import {
+	DropdownMenu,
+	IActionProvider,
+	IDropdownMenuOptions,
+	ILabelRenderer,
+} from "./dropdown.js";
+
+import "./dropdown.css";
+
+import { getBaseLayerHoverDelegate } from "../hover/hoverDelegate2.js";
+import { getDefaultHoverDelegate } from "../hover/hoverDelegateFactory.js";
 
 export interface IKeybindingProvider {
 	(action: IAction): ResolvedKeybinding | undefined;
@@ -30,7 +42,8 @@ export interface IAnchorAlignmentProvider {
 	(): AnchorAlignment;
 }
 
-export interface IDropdownMenuActionViewItemOptions extends IBaseActionViewItemOptions {
+export interface IDropdownMenuActionViewItemOptions
+	extends IBaseActionViewItemOptions {
 	readonly actionViewItemProvider?: IActionViewItemProvider;
 	readonly keybindingProvider?: IKeybindingProvider;
 	readonly actionRunner?: IActionRunner;
@@ -55,7 +68,7 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
 		action: IAction,
 		menuActionsOrProvider: readonly IAction[] | IActionProvider,
 		contextMenuProvider: IContextMenuProvider,
-		options: IDropdownMenuActionViewItemOptions = Object.create(null)
+		options: IDropdownMenuActionViewItemOptions = Object.create(null),
 	) {
 		super(null, action, options);
 
@@ -71,31 +84,42 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
 	override render(container: HTMLElement): void {
 		this.actionItem = container;
 
-		const labelRenderer: ILabelRenderer = (el: HTMLElement): IDisposable | null => {
-			this.element = append(el, $('a.action-label'));
+		const labelRenderer: ILabelRenderer = (
+			el: HTMLElement,
+		): IDisposable | null => {
+			this.element = append(el, $("a.action-label"));
 
 			let classNames: string[] = [];
 
-			if (typeof this.options.classNames === 'string') {
-				classNames = this.options.classNames.split(/\s+/g).filter(s => !!s);
+			if (typeof this.options.classNames === "string") {
+				classNames = this.options.classNames
+					.split(/\s+/g)
+					.filter((s) => !!s);
 			} else if (this.options.classNames) {
 				classNames = this.options.classNames;
 			}
 
 			// todo@aeschli: remove codicon, should come through `this.options.classNames`
-			if (!classNames.find(c => c === 'icon')) {
-				classNames.push('codicon');
+			if (!classNames.find((c) => c === "icon")) {
+				classNames.push("codicon");
 			}
 
 			this.element.classList.add(...classNames);
 
-			this.element.setAttribute('role', 'button');
-			this.element.setAttribute('aria-haspopup', 'true');
-			this.element.setAttribute('aria-expanded', 'false');
+			this.element.setAttribute("role", "button");
+			this.element.setAttribute("aria-haspopup", "true");
+			this.element.setAttribute("aria-expanded", "false");
 			if (this._action.label) {
-				this._register(getBaseLayerHoverDelegate().setupManagedHover(this.options.hoverDelegate ?? getDefaultHoverDelegate('mouse'), this.element, this._action.label));
+				this._register(
+					getBaseLayerHoverDelegate().setupManagedHover(
+						this.options.hoverDelegate ??
+							getDefaultHoverDelegate("mouse"),
+						this.element,
+						this._action.label,
+					),
+				);
 			}
-			this.element.ariaLabel = this._action.label || '';
+			this.element.ariaLabel = this._action.label || "";
 
 			return null;
 		};
@@ -105,22 +129,30 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
 			contextMenuProvider: this.contextMenuProvider,
 			labelRenderer: labelRenderer,
 			menuAsChild: this.options.menuAsChild,
-			actions: isActionsArray ? this.menuActionsOrProvider as IAction[] : undefined,
-			actionProvider: isActionsArray ? undefined : this.menuActionsOrProvider as IActionProvider,
-			skipTelemetry: this.options.skipTelemetry
+			actions: isActionsArray
+				? (this.menuActionsOrProvider as IAction[])
+				: undefined,
+			actionProvider: isActionsArray
+				? undefined
+				: (this.menuActionsOrProvider as IActionProvider),
+			skipTelemetry: this.options.skipTelemetry,
 		};
 
-		this.dropdownMenu = this._register(new DropdownMenu(container, options));
-		this._register(this.dropdownMenu.onDidChangeVisibility(visible => {
-			this.element?.setAttribute('aria-expanded', `${visible}`);
-			this._onDidChangeVisibility.fire(visible);
-		}));
+		this.dropdownMenu = this._register(
+			new DropdownMenu(container, options),
+		);
+		this._register(
+			this.dropdownMenu.onDidChangeVisibility((visible) => {
+				this.element?.setAttribute("aria-expanded", `${visible}`);
+				this._onDidChangeVisibility.fire(visible);
+			}),
+		);
 
 		this.dropdownMenu.menuOptions = {
 			actionViewItemProvider: this.options.actionViewItemProvider,
 			actionRunner: this.actionRunner,
 			getKeyBinding: this.options.keybindingProvider,
-			context: this._context
+			context: this._context,
 		};
 
 		if (this.options.anchorAlignmentProvider) {
@@ -130,7 +162,7 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
 				...this.dropdownMenu.menuOptions,
 				get anchorAlignment(): AnchorAlignment {
 					return that.options.anchorAlignmentProvider!();
-				}
+				},
 			};
 		}
 
@@ -168,25 +200,27 @@ export class DropdownMenuActionViewItem extends BaseActionViewItem {
 
 	protected override updateEnabled(): void {
 		const disabled = !this.action.enabled;
-		this.actionItem?.classList.toggle('disabled', disabled);
-		this.element?.classList.toggle('disabled', disabled);
+		this.actionItem?.classList.toggle("disabled", disabled);
+		this.element?.classList.toggle("disabled", disabled);
 	}
 }
 
-export interface IActionWithDropdownActionViewItemOptions extends IActionViewItemOptions {
+export interface IActionWithDropdownActionViewItemOptions
+	extends IActionViewItemOptions {
 	readonly menuActionsOrProvider: readonly IAction[] | IActionProvider;
 	readonly menuActionClassNames?: string[];
 }
 
 export class ActionWithDropdownActionViewItem extends ActionViewItem {
-
-	protected dropdownMenuActionViewItem: DropdownMenuActionViewItem | undefined;
+	protected dropdownMenuActionViewItem:
+		| DropdownMenuActionViewItem
+		| undefined;
 
 	constructor(
 		context: unknown,
 		action: IAction,
 		options: IActionWithDropdownActionViewItemOptions,
-		private readonly contextMenuProvider: IContextMenuProvider
+		private readonly contextMenuProvider: IContextMenuProvider,
 	) {
 		super(context, action, options);
 	}
@@ -194,43 +228,83 @@ export class ActionWithDropdownActionViewItem extends ActionViewItem {
 	override render(container: HTMLElement): void {
 		super.render(container);
 		if (this.element) {
-			this.element.classList.add('action-dropdown-item');
+			this.element.classList.add("action-dropdown-item");
 			const menuActionsProvider = {
 				getActions: () => {
-					const actionsProvider = (<IActionWithDropdownActionViewItemOptions>this.options).menuActionsOrProvider;
-					return Array.isArray(actionsProvider) ? actionsProvider : (actionsProvider as IActionProvider).getActions(); // TODO: microsoft/TypeScript#42768
-				}
+					const actionsProvider = (<
+						IActionWithDropdownActionViewItemOptions
+					>this.options).menuActionsOrProvider;
+					return Array.isArray(actionsProvider)
+						? actionsProvider
+						: (actionsProvider as IActionProvider).getActions(); // TODO: microsoft/TypeScript#42768
+				},
 			};
 
-			const menuActionClassNames = (<IActionWithDropdownActionViewItemOptions>this.options).menuActionClassNames || [];
-			const separator = h('div.action-dropdown-item-separator', [h('div', {})]).root;
-			separator.classList.toggle('prominent', menuActionClassNames.includes('prominent'));
+			const menuActionClassNames =
+				(<IActionWithDropdownActionViewItemOptions>this.options)
+					.menuActionClassNames || [];
+			const separator = h("div.action-dropdown-item-separator", [
+				h("div", {}),
+			]).root;
+			separator.classList.toggle(
+				"prominent",
+				menuActionClassNames.includes("prominent"),
+			);
 			append(this.element, separator);
 
-			this.dropdownMenuActionViewItem = this._register(new DropdownMenuActionViewItem(this._register(new Action('dropdownAction', nls.localize('moreActions', "More Actions..."))), menuActionsProvider, this.contextMenuProvider, { classNames: ['dropdown', ...ThemeIcon.asClassNameArray(Codicon.dropDownButton), ...menuActionClassNames], hoverDelegate: this.options.hoverDelegate }));
+			this.dropdownMenuActionViewItem = this._register(
+				new DropdownMenuActionViewItem(
+					this._register(
+						new Action(
+							"dropdownAction",
+							nls.localize("moreActions", "More Actions..."),
+						),
+					),
+					menuActionsProvider,
+					this.contextMenuProvider,
+					{
+						classNames: [
+							"dropdown",
+							...ThemeIcon.asClassNameArray(
+								Codicon.dropDownButton,
+							),
+							...menuActionClassNames,
+						],
+						hoverDelegate: this.options.hoverDelegate,
+					},
+				),
+			);
 			this.dropdownMenuActionViewItem.render(this.element);
 
-			this._register(addDisposableListener(this.element, EventType.KEY_DOWN, e => {
-				// If we don't have any actions then the dropdown is hidden so don't try to focus it #164050
-				if (menuActionsProvider.getActions().length === 0) {
-					return;
-				}
-				const event = new StandardKeyboardEvent(e);
-				let handled: boolean = false;
-				if (this.dropdownMenuActionViewItem?.isFocused() && event.equals(KeyCode.LeftArrow)) {
-					handled = true;
-					this.dropdownMenuActionViewItem?.blur();
-					this.focus();
-				} else if (this.isFocused() && event.equals(KeyCode.RightArrow)) {
-					handled = true;
-					this.blur();
-					this.dropdownMenuActionViewItem?.focus();
-				}
-				if (handled) {
-					event.preventDefault();
-					event.stopPropagation();
-				}
-			}));
+			this._register(
+				addDisposableListener(this.element, EventType.KEY_DOWN, (e) => {
+					// If we don't have any actions then the dropdown is hidden so don't try to focus it #164050
+					if (menuActionsProvider.getActions().length === 0) {
+						return;
+					}
+					const event = new StandardKeyboardEvent(e);
+					let handled: boolean = false;
+					if (
+						this.dropdownMenuActionViewItem?.isFocused() &&
+						event.equals(KeyCode.LeftArrow)
+					) {
+						handled = true;
+						this.dropdownMenuActionViewItem?.blur();
+						this.focus();
+					} else if (
+						this.isFocused() &&
+						event.equals(KeyCode.RightArrow)
+					) {
+						handled = true;
+						this.blur();
+						this.dropdownMenuActionViewItem?.focus();
+					}
+					if (handled) {
+						event.preventDefault();
+						event.stopPropagation();
+					}
+				}),
+			);
 		}
 	}
 

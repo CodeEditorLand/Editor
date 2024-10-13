@@ -3,14 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Codicon } from '../../../../base/common/codicons.js';
-import { localize } from '../../../../nls.js';
-import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
+import { Codicon } from "../../../../base/common/codicons.js";
+import { localize } from "../../../../nls.js";
+import { registerIcon } from "../../../../platform/theme/common/iconRegistry.js";
 
-export const DEFAULT_ICON = registerIcon('settings-view-bar-icon', Codicon.settingsGear, localize('settingsViewBarIcon', "Settings icon in the view bar."));
+export const DEFAULT_ICON = registerIcon(
+	"settings-view-bar-icon",
+	Codicon.settingsGear,
+	localize("settingsViewBarIcon", "Settings icon in the view bar."),
+);
 
 export const ICONS = [
-
 	/* Default */
 	DEFAULT_ICON,
 
@@ -104,5 +107,4 @@ export const ICONS = [
 	Codicon.archive,
 	Codicon.mic,
 	Codicon.jersey,
-
 ];

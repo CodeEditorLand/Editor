@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter } from './event.js';
+import { Emitter } from "./event.js";
 
 export class IMEImpl {
-
 	private readonly _onDidChange = new Emitter<void>();
 	public readonly onDidChange = this._onDidChange.event;
 

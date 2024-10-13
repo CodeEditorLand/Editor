@@ -3,33 +3,46 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import './media/scm.css';
-import { localize } from '../../../../nls.js';
-import { Event } from '../../../../base/common/event.js';
-import { ViewPane, IViewPaneOptions } from '../../../browser/parts/views/viewPane.js';
-import { append, $ } from '../../../../base/browser/dom.js';
-import { IListVirtualDelegate, IListContextMenuEvent, IListEvent } from '../../../../base/browser/ui/list/list.js';
-import { ISCMRepository, ISCMViewService } from '../common/scm.js';
-import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
-import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
-import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
-import { IThemeService } from '../../../../platform/theme/common/themeService.js';
-import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
-import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { IViewDescriptorService } from '../../../common/views.js';
-import { IOpenerService } from '../../../../platform/opener/common/opener.js';
-import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
-import { RepositoryActionRunner, RepositoryRenderer } from './scmRepositoryRenderer.js';
-import { collectContextMenuActions, getActionViewItemProvider } from './util.js';
-import { Orientation } from '../../../../base/browser/ui/sash/sash.js';
-import { Iterable } from '../../../../base/common/iterator.js';
-import { DisposableStore } from '../../../../base/common/lifecycle.js';
-import { MenuId } from '../../../../platform/actions/common/actions.js';
-import { IHoverService } from '../../../../platform/hover/browser/hover.js';
+import "./media/scm.css";
+
+import { $, append } from "../../../../base/browser/dom.js";
+import {
+	IListContextMenuEvent,
+	IListEvent,
+	IListVirtualDelegate,
+} from "../../../../base/browser/ui/list/list.js";
+import { Orientation } from "../../../../base/browser/ui/sash/sash.js";
+import { Event } from "../../../../base/common/event.js";
+import { Iterable } from "../../../../base/common/iterator.js";
+import { DisposableStore } from "../../../../base/common/lifecycle.js";
+import { localize } from "../../../../nls.js";
+import { MenuId } from "../../../../platform/actions/common/actions.js";
+import { IConfigurationService } from "../../../../platform/configuration/common/configuration.js";
+import { IContextKeyService } from "../../../../platform/contextkey/common/contextkey.js";
+import { IContextMenuService } from "../../../../platform/contextview/browser/contextView.js";
+import { IHoverService } from "../../../../platform/hover/browser/hover.js";
+import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
+import { IKeybindingService } from "../../../../platform/keybinding/common/keybinding.js";
+import { WorkbenchList } from "../../../../platform/list/browser/listService.js";
+import { IOpenerService } from "../../../../platform/opener/common/opener.js";
+import { ITelemetryService } from "../../../../platform/telemetry/common/telemetry.js";
+import { IThemeService } from "../../../../platform/theme/common/themeService.js";
+import {
+	IViewPaneOptions,
+	ViewPane,
+} from "../../../browser/parts/views/viewPane.js";
+import { IViewDescriptorService } from "../../../common/views.js";
+import { ISCMRepository, ISCMViewService } from "../common/scm.js";
+import {
+	RepositoryActionRunner,
+	RepositoryRenderer,
+} from "./scmRepositoryRenderer.js";
+import {
+	collectContextMenuActions,
+	getActionViewItemProvider,
+} from "./util.js";
 
 class ListDelegate implements IListVirtualDelegate<ISCMRepository> {
-
 	getHeight(): number {
 		return 22;
 	}
@@ -40,7 +53,6 @@ class ListDelegate implements IListVirtualDelegate<ISCMRepository> {
 }
 
 export class SCMRepositoriesViewPane extends ViewPane {
-
 	private list!: WorkbenchList<ISCMRepository>;
 	private readonly disposables = new DisposableStore();
 
@@ -56,55 +68,112 @@ export class SCMRepositoriesViewPane extends ViewPane {
 		@IOpenerService openerService: IOpenerService,
 		@IThemeService themeService: IThemeService,
 		@ITelemetryService telemetryService: ITelemetryService,
-		@IHoverService hoverService: IHoverService
+		@IHoverService hoverService: IHoverService,
 	) {
-		super({ ...options, titleMenuId: MenuId.SCMSourceControlTitle }, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, telemetryService, hoverService);
+		super(
+			{ ...options, titleMenuId: MenuId.SCMSourceControlTitle },
+			keybindingService,
+			contextMenuService,
+			configurationService,
+			contextKeyService,
+			viewDescriptorService,
+			instantiationService,
+			openerService,
+			themeService,
+			telemetryService,
+			hoverService,
+		);
 	}
 
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 
-		const listContainer = append(container, $('.scm-view.scm-repositories-view'));
+		const listContainer = append(
+			container,
+			$(".scm-view.scm-repositories-view"),
+		);
 
 		const updateProviderCountVisibility = () => {
-			const value = this.configurationService.getValue<'hidden' | 'auto' | 'visible'>('scm.providerCountBadge');
-			listContainer.classList.toggle('hide-provider-counts', value === 'hidden');
-			listContainer.classList.toggle('auto-provider-counts', value === 'auto');
+			const value = this.configurationService.getValue<
+				"hidden" | "auto" | "visible"
+			>("scm.providerCountBadge");
+			listContainer.classList.toggle(
+				"hide-provider-counts",
+				value === "hidden",
+			);
+			listContainer.classList.toggle(
+				"auto-provider-counts",
+				value === "auto",
+			);
 		};
-		this._register(Event.filter(this.configurationService.onDidChangeConfiguration, e => e.affectsConfiguration('scm.providerCountBadge'), this.disposables)(updateProviderCountVisibility));
+		this._register(
+			Event.filter(
+				this.configurationService.onDidChangeConfiguration,
+				(e) => e.affectsConfiguration("scm.providerCountBadge"),
+				this.disposables,
+			)(updateProviderCountVisibility),
+		);
 		updateProviderCountVisibility();
 
 		const delegate = new ListDelegate();
-		const renderer = this.instantiationService.createInstance(RepositoryRenderer, MenuId.SCMSourceControlInline, getActionViewItemProvider(this.instantiationService));
-		const identityProvider = { getId: (r: ISCMRepository) => r.provider.id };
+		const renderer = this.instantiationService.createInstance(
+			RepositoryRenderer,
+			MenuId.SCMSourceControlInline,
+			getActionViewItemProvider(this.instantiationService),
+		);
+		const identityProvider = {
+			getId: (r: ISCMRepository) => r.provider.id,
+		};
 
-		this.list = this.instantiationService.createInstance(WorkbenchList, `SCM Main`, listContainer, delegate, [renderer], {
-			identityProvider,
-			horizontalScrolling: false,
-			overrideStyles: this.getLocationBasedColors().listOverrideStyles,
-			accessibilityProvider: {
-				getAriaLabel(r: ISCMRepository) {
-					return r.provider.label;
+		this.list = this.instantiationService.createInstance(
+			WorkbenchList,
+			`SCM Main`,
+			listContainer,
+			delegate,
+			[renderer],
+			{
+				identityProvider,
+				horizontalScrolling: false,
+				overrideStyles:
+					this.getLocationBasedColors().listOverrideStyles,
+				accessibilityProvider: {
+					getAriaLabel(r: ISCMRepository) {
+						return r.provider.label;
+					},
+					getWidgetAriaLabel() {
+						return localize("scm", "Source Control Repositories");
+					},
 				},
-				getWidgetAriaLabel() {
-					return localize('scm', "Source Control Repositories");
-				}
-			}
-		}) as WorkbenchList<ISCMRepository>;
+			},
+		) as WorkbenchList<ISCMRepository>;
 
 		this._register(this.list);
-		this._register(this.list.onDidChangeSelection(this.onListSelectionChange, this));
+		this._register(
+			this.list.onDidChangeSelection(this.onListSelectionChange, this),
+		);
 		this._register(this.list.onContextMenu(this.onListContextMenu, this));
 
-		this._register(this.scmViewService.onDidChangeRepositories(this.onDidChangeRepositories, this));
-		this._register(this.scmViewService.onDidChangeVisibleRepositories(this.updateListSelection, this));
+		this._register(
+			this.scmViewService.onDidChangeRepositories(
+				this.onDidChangeRepositories,
+				this,
+			),
+		);
+		this._register(
+			this.scmViewService.onDidChangeVisibleRepositories(
+				this.updateListSelection,
+				this,
+			),
+		);
 
 		if (this.orientation === Orientation.VERTICAL) {
-			this._register(this.configurationService.onDidChangeConfiguration(e => {
-				if (e.affectsConfiguration('scm.repositories.visible')) {
-					this.updateBodySize();
-				}
-			}));
+			this._register(
+				this.configurationService.onDidChangeConfiguration((e) => {
+					if (e.affectsConfiguration("scm.repositories.visible")) {
+						this.updateBodySize();
+					}
+				}),
+			);
 		}
 
 		this.onDidChangeRepositories();
@@ -131,12 +200,19 @@ export class SCMRepositoriesViewPane extends ViewPane {
 			return;
 		}
 
-		const visibleCount = this.configurationService.getValue<number>('scm.repositories.visible');
+		const visibleCount = this.configurationService.getValue<number>(
+			"scm.repositories.visible",
+		);
 		const empty = this.list.length === 0;
 		const size = Math.min(this.list.length, visibleCount) * 22;
 
 		this.minimumBodySize = visibleCount === 0 ? 22 : size;
-		this.maximumBodySize = visibleCount === 0 ? Number.POSITIVE_INFINITY : empty ? Number.POSITIVE_INFINITY : size;
+		this.maximumBodySize =
+			visibleCount === 0
+				? Number.POSITIVE_INFINITY
+				: empty
+					? Number.POSITIVE_INFINITY
+					: size;
 	}
 
 	private onListContextMenu(e: IListContextMenuEvent<ISCMRepository>): void {
@@ -149,16 +225,18 @@ export class SCMRepositoriesViewPane extends ViewPane {
 		const menu = menus.repositoryContextMenu;
 		const actions = collectContextMenuActions(menu);
 
-		const actionRunner = this._register(new RepositoryActionRunner(() => {
-			return this.list.getSelectedElements();
-		}));
+		const actionRunner = this._register(
+			new RepositoryActionRunner(() => {
+				return this.list.getSelectedElements();
+			}),
+		);
 		actionRunner.onWillRun(() => this.list.domFocus());
 
 		this.contextMenuService.showContextMenu({
 			actionRunner,
 			getAnchor: () => e.anchor,
 			getActions: () => actions,
-			getActionsContext: () => provider
+			getActionsContext: () => provider,
 		});
 	}
 
@@ -172,17 +250,20 @@ export class SCMRepositoriesViewPane extends ViewPane {
 
 	private updateListSelection(): void {
 		const oldSelection = this.list.getSelection();
-		const oldSet = new Set(Iterable.map(oldSelection, i => this.list.element(i)));
+		const oldSet = new Set(
+			Iterable.map(oldSelection, (i) => this.list.element(i)),
+		);
 		const set = new Set(this.scmViewService.visibleRepositories);
-		const added = new Set(Iterable.filter(set, r => !oldSet.has(r)));
-		const removed = new Set(Iterable.filter(oldSet, r => !set.has(r)));
+		const added = new Set(Iterable.filter(set, (r) => !oldSet.has(r)));
+		const removed = new Set(Iterable.filter(oldSet, (r) => !set.has(r)));
 
 		if (added.size === 0 && removed.size === 0) {
 			return;
 		}
 
-		const selection = oldSelection
-			.filter(i => !removed.has(this.list.element(i)));
+		const selection = oldSelection.filter(
+			(i) => !removed.has(this.list.element(i)),
+		);
 
 		for (let i = 0; i < this.list.length; i++) {
 			if (added.has(this.list.element(i))) {
@@ -192,7 +273,10 @@ export class SCMRepositoriesViewPane extends ViewPane {
 
 		this.list.setSelection(selection);
 
-		if (selection.length > 0 && selection.indexOf(this.list.getFocus()[0]) === -1) {
+		if (
+			selection.length > 0 &&
+			selection.indexOf(this.list.getFocus()[0]) === -1
+		) {
 			this.list.setAnchor(selection[0]);
 			this.list.setFocus([selection[0]]);
 		}

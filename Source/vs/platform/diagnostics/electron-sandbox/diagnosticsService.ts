@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDiagnosticsService } from '../common/diagnostics.js';
-import { registerSharedProcessRemoteService } from '../../ipc/electron-sandbox/services.js';
+import { registerSharedProcessRemoteService } from "../../ipc/electron-sandbox/services.js";
+import { IDiagnosticsService } from "../common/diagnostics.js";
 
-registerSharedProcessRemoteService(IDiagnosticsService, 'diagnostics');
+registerSharedProcessRemoteService(IDiagnosticsService, "diagnostics");

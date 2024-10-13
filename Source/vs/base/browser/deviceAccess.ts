@@ -22,7 +22,9 @@ export interface UsbDeviceData {
 	readonly vendorId: number;
 }
 
-export async function requestUsbDevice(options?: { filters?: unknown[] }): Promise<UsbDeviceData | undefined> {
+export async function requestUsbDevice(options?: {
+	filters?: unknown[];
+}): Promise<UsbDeviceData | undefined> {
 	const usb = (navigator as any).usb;
 	if (!usb) {
 		return undefined;
@@ -58,7 +60,9 @@ export interface SerialPortData {
 	readonly usbProductId?: number | undefined;
 }
 
-export async function requestSerialPort(options?: { filters?: unknown[] }): Promise<SerialPortData | undefined> {
+export async function requestSerialPort(options?: {
+	filters?: unknown[];
+}): Promise<SerialPortData | undefined> {
 	const serial = (navigator as any).serial;
 	if (!serial) {
 		return undefined;
@@ -72,7 +76,7 @@ export async function requestSerialPort(options?: { filters?: unknown[] }): Prom
 	const info = port.getInfo();
 	return {
 		usbVendorId: info.usbVendorId,
-		usbProductId: info.usbProductId
+		usbProductId: info.usbProductId,
 	};
 }
 
@@ -86,13 +90,17 @@ export interface HidDeviceData {
 	readonly collections: [];
 }
 
-export async function requestHidDevice(options?: { filters?: unknown[] }): Promise<HidDeviceData | undefined> {
+export async function requestHidDevice(options?: {
+	filters?: unknown[];
+}): Promise<HidDeviceData | undefined> {
 	const hid = (navigator as any).hid;
 	if (!hid) {
 		return undefined;
 	}
 
-	const devices = await hid.requestDevice({ filters: options?.filters ?? [] });
+	const devices = await hid.requestDevice({
+		filters: options?.filters ?? [],
+	});
 	if (!devices.length) {
 		return undefined;
 	}
@@ -103,6 +111,6 @@ export async function requestHidDevice(options?: { filters?: unknown[] }): Promi
 		vendorId: device.vendorId,
 		productId: device.productId,
 		productName: device.productName,
-		collections: device.collections
+		collections: device.collections,
 	};
 }

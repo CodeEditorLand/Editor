@@ -3,13 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from '../../../../base/common/event.js';
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
-import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
-import { Memento } from '../../../common/memento.js';
-import { ChatAgentLocation } from './chatAgents.js';
-import { IChatRequestVariableEntry } from './chatModel.js';
-import { CHAT_PROVIDER_ID } from './chatParticipantContribTypes.js';
+import { Emitter, Event } from "../../../../base/common/event.js";
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import {
+	IStorageService,
+	StorageScope,
+	StorageTarget,
+} from "../../../../platform/storage/common/storage.js";
+import { Memento } from "../../../common/memento.js";
+import { ChatAgentLocation } from "./chatAgents.js";
+import { IChatRequestVariableEntry } from "./chatModel.js";
+import { CHAT_PROVIDER_ID } from "./chatParticipantContribTypes.js";
 
 export interface IChatHistoryEntry {
 	text: string;
@@ -22,7 +26,8 @@ export interface IChatInputState {
 	chatContextAttachments?: ReadonlyArray<IChatRequestVariableEntry>;
 }
 
-export const IChatWidgetHistoryService = createDecorator<IChatWidgetHistoryService>('IChatWidgetHistoryService');
+export const IChatWidgetHistoryService =
+	createDecorator<IChatWidgetHistoryService>("IChatWidgetHistoryService");
 export interface IChatWidgetHistoryService {
 	_serviceBrand: undefined;
 
@@ -30,7 +35,10 @@ export interface IChatWidgetHistoryService {
 
 	clearHistory(): void;
 	getHistory(location: ChatAgentLocation): IChatHistoryEntry[];
-	saveHistory(location: ChatAgentLocation, history: IChatHistoryEntry[]): void;
+	saveHistory(
+		location: ChatAgentLocation,
+		history: IChatHistoryEntry[],
+	): void;
 }
 
 interface IChatHistory {
@@ -46,14 +54,18 @@ export class ChatWidgetHistoryService implements IChatWidgetHistoryService {
 	private readonly _onDidClearHistory = new Emitter<void>();
 	readonly onDidClearHistory: Event<void> = this._onDidClearHistory.event;
 
-	constructor(
-		@IStorageService storageService: IStorageService
-	) {
-		this.memento = new Memento('interactive-session', storageService);
-		const loadedState = this.memento.getMemento(StorageScope.WORKSPACE, StorageTarget.MACHINE) as IChatHistory;
+	constructor(@IStorageService storageService: IStorageService) {
+		this.memento = new Memento("interactive-session", storageService);
+		const loadedState = this.memento.getMemento(
+			StorageScope.WORKSPACE,
+			StorageTarget.MACHINE,
+		) as IChatHistory;
 		for (const provider in loadedState.history) {
 			// Migration from old format
-			loadedState.history[provider] = loadedState.history[provider].map(entry => typeof entry === 'string' ? { text: entry } : entry);
+			loadedState.history[provider] = loadedState.history[provider].map(
+				(entry) =>
+					typeof entry === "string" ? { text: entry } : entry,
+			);
 		}
 
 		this.viewState = loadedState;
@@ -66,10 +78,15 @@ export class ChatWidgetHistoryService implements IChatWidgetHistoryService {
 
 	private getKey(location: ChatAgentLocation): string {
 		// Preserve history for panel by continuing to use the same old provider id. Use the location as a key for other chat locations.
-		return location === ChatAgentLocation.Panel ? CHAT_PROVIDER_ID : location;
+		return location === ChatAgentLocation.Panel
+			? CHAT_PROVIDER_ID
+			: location;
 	}
 
-	saveHistory(location: ChatAgentLocation, history: IChatHistoryEntry[]): void {
+	saveHistory(
+		location: ChatAgentLocation,
+		history: IChatHistoryEntry[],
+	): void {
 		if (!this.viewState.history) {
 			this.viewState.history = {};
 		}

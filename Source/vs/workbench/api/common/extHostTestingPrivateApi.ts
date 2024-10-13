@@ -3,8 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ExtHostTestItemEvent, InvalidTestItemError } from '../../contrib/testing/common/testItemCollection.js';
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
+
+import {
+	ExtHostTestItemEvent,
+	InvalidTestItemError,
+} from "../../contrib/testing/common/testItemCollection.js";
 
 export interface IExtHostTestItemApi {
 	controllerId: string;
@@ -14,7 +18,10 @@ export interface IExtHostTestItemApi {
 
 const eventPrivateApis = new WeakMap<vscode.TestItem, IExtHostTestItemApi>();
 
-export const createPrivateApiFor = (impl: vscode.TestItem, controllerId: string) => {
+export const createPrivateApiFor = (
+	impl: vscode.TestItem,
+	controllerId: string,
+) => {
 	const api: IExtHostTestItemApi = { controllerId };
 	eventPrivateApis.set(impl, api);
 	return api;
@@ -28,7 +35,7 @@ export const createPrivateApiFor = (impl: vscode.TestItem, controllerId: string)
 export const getPrivateApiFor = (impl: vscode.TestItem) => {
 	const api = eventPrivateApis.get(impl);
 	if (!api) {
-		throw new InvalidTestItemError(impl?.id || '<unknown>');
+		throw new InvalidTestItemError(impl?.id || "<unknown>");
 	}
 
 	return api;

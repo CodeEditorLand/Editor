@@ -3,21 +3,42 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AccessibleViewRegistry } from '../../../../platform/accessibility/browser/accessibleViewRegistry.js';
-import { registerAction2 } from '../../../../platform/actions/common/actions.js';
-import { wrapInHotClass1 } from '../../../../platform/observable/common/wrapInHotClass.js';
-import { EditorContributionInstantiation, registerEditorAction, registerEditorContribution } from '../../../browser/editorExtensions.js';
-import { HoverParticipantRegistry } from '../../hover/browser/hoverTypes.js';
-import { AcceptInlineCompletion, AcceptNextLineOfInlineCompletion, AcceptNextWordOfInlineCompletion, HideInlineCompletion, JumpToNextInlineEdit, ShowNextInlineSuggestionAction, ShowPreviousInlineSuggestionAction, ToggleAlwaysShowInlineSuggestionToolbar, TriggerInlineSuggestionAction } from './controller/commands.js';
-import { InlineCompletionsController } from './controller/inlineCompletionsController.js';
-import { InlineCompletionsHoverParticipant } from './hintsWidget/hoverParticipant.js';
-import { InlineCompletionsAccessibleView } from './inlineCompletionsAccessibleView.js';
-import { InlineEditsAdapterContribution } from './model/inlineEditsAdapter.js';
+import { AccessibleViewRegistry } from "../../../../platform/accessibility/browser/accessibleViewRegistry.js";
+import { registerAction2 } from "../../../../platform/actions/common/actions.js";
+import { wrapInHotClass1 } from "../../../../platform/observable/common/wrapInHotClass.js";
+import {
+	EditorContributionInstantiation,
+	registerEditorAction,
+	registerEditorContribution,
+} from "../../../browser/editorExtensions.js";
+import { HoverParticipantRegistry } from "../../hover/browser/hoverTypes.js";
+import {
+	AcceptInlineCompletion,
+	AcceptNextLineOfInlineCompletion,
+	AcceptNextWordOfInlineCompletion,
+	HideInlineCompletion,
+	JumpToNextInlineEdit,
+	ShowNextInlineSuggestionAction,
+	ShowPreviousInlineSuggestionAction,
+	ToggleAlwaysShowInlineSuggestionToolbar,
+	TriggerInlineSuggestionAction,
+} from "./controller/commands.js";
+import { InlineCompletionsController } from "./controller/inlineCompletionsController.js";
+import { InlineCompletionsHoverParticipant } from "./hintsWidget/hoverParticipant.js";
+import { InlineCompletionsAccessibleView } from "./inlineCompletionsAccessibleView.js";
+import { InlineEditsAdapterContribution } from "./model/inlineEditsAdapter.js";
 
-registerEditorContribution(InlineEditsAdapterContribution.ID, InlineEditsAdapterContribution, EditorContributionInstantiation.Eventually);
+registerEditorContribution(
+	InlineEditsAdapterContribution.ID,
+	InlineEditsAdapterContribution,
+	EditorContributionInstantiation.Eventually,
+);
 
-
-registerEditorContribution(InlineCompletionsController.ID, wrapInHotClass1(InlineCompletionsController.hot), EditorContributionInstantiation.Eventually);
+registerEditorContribution(
+	InlineCompletionsController.ID,
+	wrapInHotClass1(InlineCompletionsController.hot),
+	EditorContributionInstantiation.Eventually,
+);
 
 registerEditorAction(TriggerInlineSuggestionAction);
 registerEditorAction(ShowNextInlineSuggestionAction);

@@ -3,16 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createFastDomNode, FastDomNode } from '../../../../base/browser/fastDomNode.js';
-import './blockDecorations.css';
-import { RenderingContext, RestrictedRenderingContext } from '../../view/renderingContext.js';
-import { ViewPart } from '../../view/viewPart.js';
-import { EditorOption } from '../../../common/config/editorOptions.js';
-import * as viewEvents from '../../../common/viewEvents.js';
-import { ViewContext } from '../../../common/viewModel/viewContext.js';
+import {
+	createFastDomNode,
+	FastDomNode,
+} from "../../../../base/browser/fastDomNode.js";
+
+import "./blockDecorations.css";
+
+import { EditorOption } from "../../../common/config/editorOptions.js";
+import * as viewEvents from "../../../common/viewEvents.js";
+import { ViewContext } from "../../../common/viewModel/viewContext.js";
+import {
+	RenderingContext,
+	RestrictedRenderingContext,
+} from "../../view/renderingContext.js";
+import { ViewPart } from "../../view/viewPart.js";
 
 export class BlockDecorations extends ViewPart {
-
 	public domNode: FastDomNode<HTMLElement>;
 
 	private readonly blocks: FastDomNode<HTMLElement>[] = [];
@@ -23,10 +30,12 @@ export class BlockDecorations extends ViewPart {
 	constructor(context: ViewContext) {
 		super(context);
 
-		this.domNode = createFastDomNode<HTMLElement>(document.createElement('div'));
-		this.domNode.setAttribute('role', 'presentation');
-		this.domNode.setAttribute('aria-hidden', 'true');
-		this.domNode.setClassName('blockDecorations-container');
+		this.domNode = createFastDomNode<HTMLElement>(
+			document.createElement("div"),
+		);
+		this.domNode.setAttribute("role", "presentation");
+		this.domNode.setAttribute("aria-hidden", "true");
+		this.domNode.setClassName("blockDecorations-container");
 
 		this.update();
 	}
@@ -35,7 +44,8 @@ export class BlockDecorations extends ViewPart {
 		let didChange = false;
 		const options = this._context.configuration.options;
 		const layoutInfo = options.get(EditorOption.layoutInfo);
-		const newContentWidth = layoutInfo.contentWidth - layoutInfo.verticalScrollbarWidth;
+		const newContentWidth =
+			layoutInfo.contentWidth - layoutInfo.verticalScrollbarWidth;
 
 		if (this.contentWidth !== newContentWidth) {
 			this.contentWidth = newContentWidth;
@@ -57,17 +67,25 @@ export class BlockDecorations extends ViewPart {
 
 	// --- begin event handlers
 
-	public override onConfigurationChanged(e: viewEvents.ViewConfigurationChangedEvent): boolean {
+	public override onConfigurationChanged(
+		e: viewEvents.ViewConfigurationChangedEvent,
+	): boolean {
 		return this.update();
 	}
-	public override onScrollChanged(e: viewEvents.ViewScrollChangedEvent): boolean {
+	public override onScrollChanged(
+		e: viewEvents.ViewScrollChangedEvent,
+	): boolean {
 		return e.scrollTopChanged || e.scrollLeftChanged;
 	}
-	public override onDecorationsChanged(e: viewEvents.ViewDecorationsChangedEvent): boolean {
+	public override onDecorationsChanged(
+		e: viewEvents.ViewDecorationsChangedEvent,
+	): boolean {
 		return true;
 	}
 
-	public override onZonesChanged(e: viewEvents.ViewZonesChangedEvent): boolean {
+	public override onZonesChanged(
+		e: viewEvents.ViewZonesChangedEvent,
+	): boolean {
 		return true;
 	}
 
@@ -86,7 +104,9 @@ export class BlockDecorations extends ViewPart {
 
 			let block = this.blocks[count];
 			if (!block) {
-				block = this.blocks[count] = createFastDomNode(document.createElement('div'));
+				block = this.blocks[count] = createFastDomNode(
+					document.createElement("div"),
+				);
 				this.domNode.appendChild(block);
 			}
 
@@ -95,18 +115,38 @@ export class BlockDecorations extends ViewPart {
 
 			if (decoration.options.blockIsAfterEnd) {
 				// range must be empty
-				top = ctx.getVerticalOffsetAfterLineNumber(decoration.range.endLineNumber, false);
-				bottom = ctx.getVerticalOffsetAfterLineNumber(decoration.range.endLineNumber, true);
+				top = ctx.getVerticalOffsetAfterLineNumber(
+					decoration.range.endLineNumber,
+					false,
+				);
+				bottom = ctx.getVerticalOffsetAfterLineNumber(
+					decoration.range.endLineNumber,
+					true,
+				);
 			} else {
-				top = ctx.getVerticalOffsetForLineNumber(decoration.range.startLineNumber, true);
-				bottom = decoration.range.isEmpty() && !decoration.options.blockDoesNotCollapse
-					? ctx.getVerticalOffsetForLineNumber(decoration.range.startLineNumber, false)
-					: ctx.getVerticalOffsetAfterLineNumber(decoration.range.endLineNumber, true);
+				top = ctx.getVerticalOffsetForLineNumber(
+					decoration.range.startLineNumber,
+					true,
+				);
+				bottom =
+					decoration.range.isEmpty() &&
+					!decoration.options.blockDoesNotCollapse
+						? ctx.getVerticalOffsetForLineNumber(
+								decoration.range.startLineNumber,
+								false,
+							)
+						: ctx.getVerticalOffsetAfterLineNumber(
+								decoration.range.endLineNumber,
+								true,
+							);
 			}
 
-			const [paddingTop, paddingRight, paddingBottom, paddingLeft] = decoration.options.blockPadding ?? [0, 0, 0, 0];
+			const [paddingTop, paddingRight, paddingBottom, paddingLeft] =
+				decoration.options.blockPadding ?? [0, 0, 0, 0];
 
-			block.setClassName('blockDecorations-block ' + decoration.options.blockClassName);
+			block.setClassName(
+				"blockDecorations-block " + decoration.options.blockClassName,
+			);
 			block.setLeft(this.contentLeft - paddingLeft);
 			block.setWidth(this.contentWidth + paddingLeft + paddingRight);
 			block.setTop(top - ctx.scrollTop - paddingTop);

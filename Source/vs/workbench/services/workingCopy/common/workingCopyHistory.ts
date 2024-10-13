@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from '../../../../base/common/event.js';
-import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { URI } from '../../../../base/common/uri.js';
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
-import { SaveSource } from '../../../common/editor.js';
+import { CancellationToken } from "../../../../base/common/cancellation.js";
+import { Event } from "../../../../base/common/event.js";
+import { URI } from "../../../../base/common/uri.js";
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import { SaveSource } from "../../../common/editor.js";
 
-export const IWorkingCopyHistoryService = createDecorator<IWorkingCopyHistoryService>('workingCopyHistoryService');
+export const IWorkingCopyHistoryService =
+	createDecorator<IWorkingCopyHistoryService>("workingCopyHistoryService");
 
 export interface IWorkingCopyHistoryEvent {
-
 	/**
 	 * The entry this event is about.
 	 */
@@ -20,7 +20,6 @@ export interface IWorkingCopyHistoryEvent {
 }
 
 export interface IWorkingCopyHistoryEntry {
-
 	/**
 	 * Unique identifier of this entry for the working copy.
 	 */
@@ -57,7 +56,6 @@ export interface IWorkingCopyHistoryEntry {
 }
 
 export interface IWorkingCopyHistoryEntryDescriptor {
-
 	/**
 	 * The associated resource of this history entry.
 	 */
@@ -77,7 +75,6 @@ export interface IWorkingCopyHistoryEntryDescriptor {
 }
 
 export interface IWorkingCopyHistoryService {
-
 	readonly _serviceBrand: undefined;
 
 	/**
@@ -114,17 +111,27 @@ export interface IWorkingCopyHistoryService {
 	 * Adds a new entry to the history for the given working copy
 	 * with an optional associated descriptor.
 	 */
-	addEntry(descriptor: IWorkingCopyHistoryEntryDescriptor, token: CancellationToken): Promise<IWorkingCopyHistoryEntry | undefined>;
+	addEntry(
+		descriptor: IWorkingCopyHistoryEntryDescriptor,
+		token: CancellationToken,
+	): Promise<IWorkingCopyHistoryEntry | undefined>;
 
 	/**
 	 * Updates an entry in the local history if found.
 	 */
-	updateEntry(entry: IWorkingCopyHistoryEntry, properties: { source: SaveSource }, token: CancellationToken): Promise<void>;
+	updateEntry(
+		entry: IWorkingCopyHistoryEntry,
+		properties: { source: SaveSource },
+		token: CancellationToken,
+	): Promise<void>;
 
 	/**
 	 * Removes an entry from the local history if found.
 	 */
-	removeEntry(entry: IWorkingCopyHistoryEntry, token: CancellationToken): Promise<boolean>;
+	removeEntry(
+		entry: IWorkingCopyHistoryEntry,
+		token: CancellationToken,
+	): Promise<boolean>;
 
 	/**
 	 * Moves entries that either match the `source` or are a child
@@ -137,7 +144,10 @@ export interface IWorkingCopyHistoryService {
 	/**
 	 * Gets all history entries for the provided resource.
 	 */
-	getEntries(resource: URI, token: CancellationToken): Promise<readonly IWorkingCopyHistoryEntry[]>;
+	getEntries(
+		resource: URI,
+		token: CancellationToken,
+	): Promise<readonly IWorkingCopyHistoryEntry[]>;
 
 	/**
 	 * Returns all resources for which history entries exist.

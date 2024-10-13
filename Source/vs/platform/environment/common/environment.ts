@@ -3,12 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { URI } from '../../../base/common/uri.js';
-import { NativeParsedArgs } from './argv.js';
-import { createDecorator, refineServiceDecorator } from '../../instantiation/common/instantiation.js';
+import { URI } from "../../../base/common/uri.js";
+import {
+	createDecorator,
+	refineServiceDecorator,
+} from "../../instantiation/common/instantiation.js";
+import { NativeParsedArgs } from "./argv.js";
 
-export const IEnvironmentService = createDecorator<IEnvironmentService>('environmentService');
-export const INativeEnvironmentService = refineServiceDecorator<IEnvironmentService, INativeEnvironmentService>(IEnvironmentService);
+export const IEnvironmentService =
+	createDecorator<IEnvironmentService>("environmentService");
+export const INativeEnvironmentService = refineServiceDecorator<
+	IEnvironmentService,
+	INativeEnvironmentService
+>(IEnvironmentService);
 
 export interface IDebugParams {
 	port: number | null;
@@ -25,7 +32,7 @@ export interface IExtensionHostDebugParams extends IDebugParams {
  *
  * **NOTE**: This is defined in `platform/environment` because it can appear as a CLI argument.
  */
-export type ExtensionKind = 'ui' | 'workspace' | 'web';
+export type ExtensionKind = "ui" | "workspace" | "web";
 
 /**
  * A basic environment service that can be used in various processes,
@@ -33,7 +40,6 @@ export type ExtensionKind = 'ui' | 'workspace' | 'web';
  * service for specific environment.
  */
 export interface IEnvironmentService {
-
 	readonly _serviceBrand: undefined;
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -61,7 +67,7 @@ export interface IEnvironmentService {
 
 	// --- settings sync
 	userDataSyncHome: URI;
-	sync: 'on' | 'off' | undefined;
+	sync: "on" | "off" | undefined;
 
 	// --- continue edit session
 	continueOn?: string;
@@ -107,7 +113,6 @@ export interface IEnvironmentService {
  * environments (Windows, Linux, macOS) but not e.g. web.
  */
 export interface INativeEnvironmentService extends IEnvironmentService {
-
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	//
 	// NOTE: KEEP THIS INTERFACE AS SMALL AS POSSIBLE.

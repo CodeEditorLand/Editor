@@ -3,11 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SimpleCompletionItem } from './simpleCompletionItem.js';
-import { quickSelect } from '../../../../base/common/arrays.js';
-import { CharCode } from '../../../../base/common/charCode.js';
-import { FuzzyScore, fuzzyScore, fuzzyScoreGracefulAggressive, FuzzyScoreOptions, FuzzyScorer } from '../../../../base/common/filters.js';
-import { isWindows } from '../../../../base/common/platform.js';
+import { quickSelect } from "../../../../base/common/arrays.js";
+import { CharCode } from "../../../../base/common/charCode.js";
+import {
+	FuzzyScore,
+	fuzzyScore,
+	fuzzyScoreGracefulAggressive,
+	FuzzyScoreOptions,
+	FuzzyScorer,
+} from "../../../../base/common/filters.js";
+import { isWindows } from "../../../../base/common/platform.js";
+import { SimpleCompletionItem } from "./simpleCompletionItem.js";
 
 export interface ISimpleCompletionStats {
 	pLabelLen: number;
@@ -17,20 +23,21 @@ export class LineContext {
 	constructor(
 		readonly leadingLineContent: string,
 		readonly characterCountDelta: number,
-	) { }
+	) {}
 }
 
 const enum Refilter {
 	Nothing = 0,
 	All = 1,
-	Incr = 2
+	Incr = 2,
 }
 
 export class SimpleCompletionModel {
 	private _stats?: ISimpleCompletionStats;
 	private _filteredItems?: SimpleCompletionItem[];
 	private _refilterKind: Refilter = Refilter.All;
-	private _fuzzyScoreOptions: FuzzyScoreOptions | undefined = FuzzyScoreOptions.default;
+	private _fuzzyScoreOptions: FuzzyScoreOptions | undefined =
+		FuzzyScoreOptions.default;
 
 	// TODO: Pass in options
 	private _options: {
@@ -42,8 +49,7 @@ export class SimpleCompletionModel {
 		private _lineContext: LineContext,
 		readonly replacementIndex: number,
 		readonly replacementLength: number,
-	) {
-	}
+	) {}
 
 	get items(): SimpleCompletionItem[] {
 		this._ensureCachedState();
@@ -55,16 +61,20 @@ export class SimpleCompletionModel {
 		return this._stats!;
 	}
 
-
 	get lineContext(): LineContext {
 		return this._lineContext;
 	}
 
 	set lineContext(value: LineContext) {
-		if (this._lineContext.leadingLineContent !== value.leadingLineContent
-			|| this._lineContext.characterCountDelta !== value.characterCountDelta
+		if (
+			this._lineContext.leadingLineContent !== value.leadingLineContent ||
+			this._lineContext.characterCountDelta !== value.characterCountDelta
 		) {
-			this._refilterKind = this._lineContext.characterCountDelta < value.characterCountDelta && this._filteredItems ? Refilter.Incr : Refilter.All;
+			this._refilterKind =
+				this._lineContext.characterCountDelta <
+					value.characterCountDelta && this._filteredItems
+					? Refilter.Incr
+					: Refilter.All;
 			this._lineContext = value;
 		}
 	}
@@ -75,26 +85,30 @@ export class SimpleCompletionModel {
 		}
 	}
 	private _createCachedState(): void {
-
 		// this._providerInfo = new Map();
 
 		const labelLengths: number[] = [];
 
 		const { leadingLineContent, characterCountDelta } = this._lineContext;
-		let word = '';
-		let wordLow = '';
+		let word = "";
+		let wordLow = "";
 
 		// incrementally filter less
-		const source = this._refilterKind === Refilter.All ? this._items : this._filteredItems!;
+		const source =
+			this._refilterKind === Refilter.All
+				? this._items
+				: this._filteredItems!;
 		const target: SimpleCompletionItem[] = [];
 
 		// picks a score function based on the number of
 		// items that we have to score/filter and based on the
 		// user-configuration
-		const scoreFn: FuzzyScorer = (!this._options.filterGraceful || source.length > 2000) ? fuzzyScore : fuzzyScoreGracefulAggressive;
+		const scoreFn: FuzzyScorer =
+			!this._options.filterGraceful || source.length > 2000
+				? fuzzyScore
+				: fuzzyScoreGracefulAggressive;
 
 		for (let i = 0; i < source.length; i++) {
-
 			const item = source[i];
 
 			// if (item.isInvalid) {
@@ -111,7 +125,7 @@ export class SimpleCompletionModel {
 			const overwriteBefore = this.replacementLength; // item.position.column - item.editStart.column;
 			const wordLen = overwriteBefore + characterCountDelta; // - (item.position.column - this._column);
 			if (word.length !== wordLen) {
-				word = wordLen === 0 ? '' : leadingLineContent.slice(-wordLen);
+				word = wordLen === 0 ? "" : leadingLineContent.slice(-wordLen);
 				wordLow = word.toLowerCase();
 			}
 
@@ -126,7 +140,6 @@ export class SimpleCompletionModel {
 				// use a score of `-100` because that is out of the
 				// bound of values `fuzzyScore` will return
 				item.score = FuzzyScore.Default;
-
 			} else {
 				// skip word characters that are whitespace until
 				// we have hit the replace range (overwriteBefore)
@@ -163,10 +176,17 @@ export class SimpleCompletionModel {
 					// 		item.score = anyScore(word, wordLow, wordPos, item.textLabel, item.labelLow, 0);
 					// 		item.score[0] = match[0]; // use score from filterText
 					// 	}
-
 				} else {
 					// by default match `word` against the `label`
-					const match = scoreFn(word, wordLow, wordPos, item.completion.label, item.labelLow, 0, this._fuzzyScoreOptions);
+					const match = scoreFn(
+						word,
+						wordLow,
+						wordPos,
+						item.completion.label,
+						item.labelLow,
+						0,
+						this._fuzzyScoreOptions,
+					);
 					if (!match) {
 						continue; // NO match
 					}
@@ -184,8 +204,13 @@ export class SimpleCompletionModel {
 		this._filteredItems = target.sort((a, b) => {
 			// Keywords should always appear at the bottom when they are not an exact match
 			let score = 0;
-			if (a.completion.isKeyword && a.labelLow !== wordLow || b.completion.isKeyword && b.labelLow !== wordLow) {
-				score = (a.completion.isKeyword ? 1 : 0) - (b.completion.isKeyword ? 1 : 0);
+			if (
+				(a.completion.isKeyword && a.labelLow !== wordLow) ||
+				(b.completion.isKeyword && b.labelLow !== wordLow)
+			) {
+				score =
+					(a.completion.isKeyword ? 1 : 0) -
+					(b.completion.isKeyword ? 1 : 0);
 				if (score !== 0) {
 					return score;
 				}
@@ -196,10 +221,12 @@ export class SimpleCompletionModel {
 				return score;
 			}
 			// Sort files with the same score against each other specially
-			const isArg = leadingLineContent.includes(' ');
+			const isArg = leadingLineContent.includes(" ");
 			if (!isArg && a.fileExtLow.length > 0 && b.fileExtLow.length > 0) {
 				// Then by label length ascending (excluding file extension if it's a file)
-				score = a.labelLowExcludeFileExt.length - b.labelLowExcludeFileExt.length;
+				score =
+					a.labelLowExcludeFileExt.length -
+					b.labelLowExcludeFileExt.length;
 				if (score !== 0) {
 					return score;
 				}
@@ -216,9 +243,13 @@ export class SimpleCompletionModel {
 		this._refilterKind = Refilter.Nothing;
 
 		this._stats = {
-			pLabelLen: labelLengths.length ?
-				quickSelect(labelLengths.length - .85, labelLengths, (a, b) => a - b)
-				: 0
+			pLabelLen: labelLengths.length
+				? quickSelect(
+						labelLengths.length - 0.85,
+						labelLengths,
+						(a, b) => a - b,
+					)
+				: 0,
 		};
 	}
 }
@@ -226,40 +257,44 @@ export class SimpleCompletionModel {
 // TODO: This should be based on the process OS, not the local OS
 // File score boosts for specific file extensions on Windows. This only applies when the file is the
 // _first_ part of the command line.
-const fileExtScores = new Map<string, number>(isWindows ? [
-	// Windows - .ps1 > .exe > .bat > .cmd. This is the command precedence when running the files
-	//           without an extension, tested manually in pwsh v7.4.4
-	['ps1', 0.09],
-	['exe', 0.08],
-	['bat', 0.07],
-	['cmd', 0.07],
-	// Non-Windows
-	['sh', -0.05],
-	['bash', -0.05],
-	['zsh', -0.05],
-	['fish', -0.05],
-	['csh', -0.06], // C shell
-	['ksh', -0.06], // Korn shell
-	// Scripting language files are excluded here as the standard behavior on Windows will just open
-	// the file in a text editor, not run the file
-] : [
-	// Pwsh
-	['ps1', 0.05],
-	// Windows
-	['bat', -0.05],
-	['cmd', -0.05],
-	['exe', -0.05],
-	// Non-Windows
-	['sh', 0.05],
-	['bash', 0.05],
-	['zsh', 0.05],
-	['fish', 0.05],
-	['csh', 0.04], // C shell
-	['ksh', 0.04], // Korn shell
-	// Scripting languages
-	['py', 0.05], // Python
-	['pl', 0.05], // Perl
-]);
+const fileExtScores = new Map<string, number>(
+	isWindows
+		? [
+				// Windows - .ps1 > .exe > .bat > .cmd. This is the command precedence when running the files
+				//           without an extension, tested manually in pwsh v7.4.4
+				["ps1", 0.09],
+				["exe", 0.08],
+				["bat", 0.07],
+				["cmd", 0.07],
+				// Non-Windows
+				["sh", -0.05],
+				["bash", -0.05],
+				["zsh", -0.05],
+				["fish", -0.05],
+				["csh", -0.06], // C shell
+				["ksh", -0.06], // Korn shell
+				// Scripting language files are excluded here as the standard behavior on Windows will just open
+				// the file in a text editor, not run the file
+			]
+		: [
+				// Pwsh
+				["ps1", 0.05],
+				// Windows
+				["bat", -0.05],
+				["cmd", -0.05],
+				["exe", -0.05],
+				// Non-Windows
+				["sh", 0.05],
+				["bash", 0.05],
+				["zsh", 0.05],
+				["fish", 0.05],
+				["csh", 0.04], // C shell
+				["ksh", 0.04], // Korn shell
+				// Scripting languages
+				["py", 0.05], // Python
+				["pl", 0.05], // Perl
+			],
+);
 
 function fileExtScore(ext: string): number {
 	return fileExtScores.get(ext) || 0;

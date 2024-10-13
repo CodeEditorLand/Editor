@@ -3,13 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type * as vscode from 'vscode';
-import { CancellationToken } from '../../../base/common/cancellation.js';
-import { URI, UriComponents } from '../../../base/common/uri.js';
-import { ExtHostQuickDiffShape, IMainContext, MainContext, MainThreadQuickDiffShape } from './extHost.protocol.js';
-import { asPromise } from '../../../base/common/async.js';
-import { DocumentSelector } from './extHostTypeConverters.js';
-import { IURITransformer } from '../../../base/common/uriIpc.js';
+import type * as vscode from "vscode";
+
+import { asPromise } from "../../../base/common/async.js";
+import { CancellationToken } from "../../../base/common/cancellation.js";
+import { URI, UriComponents } from "../../../base/common/uri.js";
+import { IURITransformer } from "../../../base/common/uriIpc.js";
+import {
+	ExtHostQuickDiffShape,
+	IMainContext,
+	MainContext,
+	MainThreadQuickDiffShape,
+} from "./extHost.protocol.js";
+import { DocumentSelector } from "./extHostTypeConverters.js";
 
 export class ExtHostQuickDiff implements ExtHostQuickDiffShape {
 	private static handlePool: number = 0;
@@ -19,12 +25,16 @@ export class ExtHostQuickDiff implements ExtHostQuickDiffShape {
 
 	constructor(
 		mainContext: IMainContext,
-		private readonly uriTransformer: IURITransformer | undefined
+		private readonly uriTransformer: IURITransformer | undefined,
 	) {
 		this.proxy = mainContext.getProxy(MainContext.MainThreadQuickDiff);
 	}
 
-	$provideOriginalResource(handle: number, uriComponents: UriComponents, token: CancellationToken): Promise<UriComponents | null> {
+	$provideOriginalResource(
+		handle: number,
+		uriComponents: UriComponents,
+		token: CancellationToken,
+	): Promise<UriComponents | null> {
 		const uri = URI.revive(uriComponents);
 		const provider = this.providers.get(handle);
 
@@ -32,19 +42,30 @@ export class ExtHostQuickDiff implements ExtHostQuickDiffShape {
 			return Promise.resolve(null);
 		}
 
-		return asPromise(() => provider.provideOriginalResource!(uri, token))
-			.then<UriComponents | null>(r => r || null);
+		return asPromise(() =>
+			provider.provideOriginalResource!(uri, token),
+		).then<UriComponents | null>((r) => r || null);
 	}
 
-	registerQuickDiffProvider(selector: vscode.DocumentSelector, quickDiffProvider: vscode.QuickDiffProvider, label: string, rootUri?: vscode.Uri): vscode.Disposable {
+	registerQuickDiffProvider(
+		selector: vscode.DocumentSelector,
+		quickDiffProvider: vscode.QuickDiffProvider,
+		label: string,
+		rootUri?: vscode.Uri,
+	): vscode.Disposable {
 		const handle = ExtHostQuickDiff.handlePool++;
 		this.providers.set(handle, quickDiffProvider);
-		this.proxy.$registerQuickDiffProvider(handle, DocumentSelector.from(selector, this.uriTransformer), label, rootUri);
+		this.proxy.$registerQuickDiffProvider(
+			handle,
+			DocumentSelector.from(selector, this.uriTransformer),
+			label,
+			rootUri,
+		);
 		return {
 			dispose: () => {
 				this.proxy.$unregisterQuickDiffProvider(handle);
 				this.providers.delete(handle);
-			}
+			},
 		};
 	}
 }

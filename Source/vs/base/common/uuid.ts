@@ -3,32 +3,35 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-
-const _UUIDPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const _UUIDPattern =
+	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function isUUID(value: string): boolean {
 	return _UUIDPattern.test(value);
 }
 
-declare const crypto: undefined | {
-	//https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues#browser_compatibility
-	getRandomValues?(data: Uint8Array): Uint8Array;
-	//https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID#browser_compatibility
-	randomUUID?(): string;
-};
+declare const crypto:
+	| undefined
+	| {
+			//https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues#browser_compatibility
+			getRandomValues?(data: Uint8Array): Uint8Array;
+			//https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID#browser_compatibility
+			randomUUID?(): string;
+	  };
 
 export const generateUuid = (function (): () => string {
-
 	// use `randomUUID` if possible
-	if (typeof crypto === 'object' && typeof crypto.randomUUID === 'function') {
+	if (typeof crypto === "object" && typeof crypto.randomUUID === "function") {
 		return crypto.randomUUID.bind(crypto);
 	}
 
 	// use `randomValues` if possible
 	let getRandomValues: (bucket: Uint8Array) => Uint8Array;
-	if (typeof crypto === 'object' && typeof crypto.getRandomValues === 'function') {
+	if (
+		typeof crypto === "object" &&
+		typeof crypto.getRandomValues === "function"
+	) {
 		getRandomValues = crypto.getRandomValues.bind(crypto);
-
 	} else {
 		getRandomValues = function (bucket: Uint8Array): Uint8Array {
 			for (let i = 0; i < bucket.length; i++) {
@@ -42,7 +45,7 @@ export const generateUuid = (function (): () => string {
 	const _data = new Uint8Array(16);
 	const _hex: string[] = [];
 	for (let i = 0; i < 256; i++) {
-		_hex.push(i.toString(16).padStart(2, '0'));
+		_hex.push(i.toString(16).padStart(2, "0"));
 	}
 
 	return function generateUuid(): string {
@@ -55,21 +58,21 @@ export const generateUuid = (function (): () => string {
 
 		// print as string
 		let i = 0;
-		let result = '';
+		let result = "";
 		result += _hex[_data[i++]];
 		result += _hex[_data[i++]];
 		result += _hex[_data[i++]];
 		result += _hex[_data[i++]];
-		result += '-';
+		result += "-";
 		result += _hex[_data[i++]];
 		result += _hex[_data[i++]];
-		result += '-';
+		result += "-";
 		result += _hex[_data[i++]];
 		result += _hex[_data[i++]];
-		result += '-';
+		result += "-";
 		result += _hex[_data[i++]];
 		result += _hex[_data[i++]];
-		result += '-';
+		result += "-";
 		result += _hex[_data[i++]];
 		result += _hex[_data[i++]];
 		result += _hex[_data[i++]];

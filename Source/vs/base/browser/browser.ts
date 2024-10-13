@@ -3,11 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CodeWindow, mainWindow } from './window.js';
-import { Emitter } from '../common/event.js';
+import { Emitter } from "../common/event.js";
+import { CodeWindow, mainWindow } from "./window.js";
 
 class WindowManager {
-
 	static readonly INSTANCE = new WindowManager();
 
 	// --- Zoom Level
@@ -18,7 +17,9 @@ class WindowManager {
 	readonly onDidChangeZoomLevel = this._onDidChangeZoomLevel.event;
 
 	getZoomLevel(targetWindow: Window): number {
-		return this.mapWindowIdToZoomLevel.get(this.getWindowId(targetWindow)) ?? 0;
+		return (
+			this.mapWindowIdToZoomLevel.get(this.getWindowId(targetWindow)) ?? 0
+		);
 	}
 	setZoomLevel(zoomLevel: number, targetWindow: Window): void {
 		if (this.getZoomLevel(targetWindow) === zoomLevel) {
@@ -35,10 +36,16 @@ class WindowManager {
 	private readonly mapWindowIdToZoomFactor = new Map<number, number>();
 
 	getZoomFactor(targetWindow: Window): number {
-		return this.mapWindowIdToZoomFactor.get(this.getWindowId(targetWindow)) ?? 1;
+		return (
+			this.mapWindowIdToZoomFactor.get(this.getWindowId(targetWindow)) ??
+			1
+		);
 	}
 	setZoomFactor(zoomFactor: number, targetWindow: Window): void {
-		this.mapWindowIdToZoomFactor.set(this.getWindowId(targetWindow), zoomFactor);
+		this.mapWindowIdToZoomFactor.set(
+			this.getWindowId(targetWindow),
+			zoomFactor,
+		);
 	}
 
 	// --- Fullscreen
@@ -58,7 +65,9 @@ class WindowManager {
 		this._onDidChangeFullscreen.fire(windowId);
 	}
 	isFullscreen(targetWindow: Window): boolean {
-		return !!this.mapWindowIdToFullScreen.get(this.getWindowId(targetWindow));
+		return !!this.mapWindowIdToFullScreen.get(
+			this.getWindowId(targetWindow),
+		);
 	}
 
 	private getWindowId(targetWindow: Window): number {
@@ -66,11 +75,15 @@ class WindowManager {
 	}
 }
 
-export function addMatchMediaChangeListener(targetWindow: Window, query: string | MediaQueryList, callback: (this: MediaQueryList, ev: MediaQueryListEvent) => unknown): void {
-	if (typeof query === 'string') {
+export function addMatchMediaChangeListener(
+	targetWindow: Window,
+	query: string | MediaQueryList,
+	callback: (this: MediaQueryList, ev: MediaQueryListEvent) => unknown,
+): void {
+	if (typeof query === "string") {
 		query = targetWindow.matchMedia(query);
 	}
-	query.addEventListener('change', callback);
+	query.addEventListener("change", callback);
 }
 
 /** A zoom index, e.g. 1, 2, 3 */
@@ -96,32 +109,41 @@ export function setFullscreen(fullscreen: boolean, targetWindow: Window): void {
 export function isFullscreen(targetWindow: Window): boolean {
 	return WindowManager.INSTANCE.isFullscreen(targetWindow);
 }
-export const onDidChangeFullscreen = WindowManager.INSTANCE.onDidChangeFullscreen;
+export const onDidChangeFullscreen =
+	WindowManager.INSTANCE.onDidChangeFullscreen;
 
 const userAgent = navigator.userAgent;
 
-export const isFirefox = (userAgent.indexOf('Firefox') >= 0);
-export const isWebKit = (userAgent.indexOf('AppleWebKit') >= 0);
-export const isChrome = (userAgent.indexOf('Chrome') >= 0);
-export const isSafari = (!isChrome && (userAgent.indexOf('Safari') >= 0));
-export const isWebkitWebView = (!isChrome && !isSafari && isWebKit);
-export const isElectron = (userAgent.indexOf('Electron/') >= 0);
-export const isAndroid = (userAgent.indexOf('Android') >= 0);
+export const isFirefox = userAgent.indexOf("Firefox") >= 0;
+export const isWebKit = userAgent.indexOf("AppleWebKit") >= 0;
+export const isChrome = userAgent.indexOf("Chrome") >= 0;
+export const isSafari = !isChrome && userAgent.indexOf("Safari") >= 0;
+export const isWebkitWebView = !isChrome && !isSafari && isWebKit;
+export const isElectron = userAgent.indexOf("Electron/") >= 0;
+export const isAndroid = userAgent.indexOf("Android") >= 0;
 
 let standalone = false;
-if (typeof mainWindow.matchMedia === 'function') {
-	const standaloneMatchMedia = mainWindow.matchMedia('(display-mode: standalone) or (display-mode: window-controls-overlay)');
-	const fullScreenMatchMedia = mainWindow.matchMedia('(display-mode: fullscreen)');
+if (typeof mainWindow.matchMedia === "function") {
+	const standaloneMatchMedia = mainWindow.matchMedia(
+		"(display-mode: standalone) or (display-mode: window-controls-overlay)",
+	);
+	const fullScreenMatchMedia = mainWindow.matchMedia(
+		"(display-mode: fullscreen)",
+	);
 	standalone = standaloneMatchMedia.matches;
-	addMatchMediaChangeListener(mainWindow, standaloneMatchMedia, ({ matches }) => {
-		// entering fullscreen would change standaloneMatchMedia.matches to false
-		// if standalone is true (running as PWA) and entering fullscreen, skip this change
-		if (standalone && fullScreenMatchMedia.matches) {
-			return;
-		}
-		// otherwise update standalone (browser to PWA or PWA to browser)
-		standalone = matches;
-	});
+	addMatchMediaChangeListener(
+		mainWindow,
+		standaloneMatchMedia,
+		({ matches }) => {
+			// entering fullscreen would change standaloneMatchMedia.matches to false
+			// if standalone is true (running as PWA) and entering fullscreen, skip this change
+			if (standalone && fullScreenMatchMedia.matches) {
+				return;
+			}
+			// otherwise update standalone (browser to PWA or PWA to browser)
+			standalone = matches;
+		},
+	);
 }
 export function isStandalone(): boolean {
 	return standalone;
@@ -136,6 +158,10 @@ export function isWCOEnabled(): boolean {
 
 // Returns the bounding rect of the titlebar area if it is supported and defined
 // See docs at https://developer.mozilla.org/en-US/docs/Web/API/WindowControlsOverlay/getTitlebarAreaRect
-export function getWCOTitlebarAreaRect(targetWindow: Window): DOMRect | undefined {
-	return (targetWindow.navigator as any)?.windowControlsOverlay?.getTitlebarAreaRect();
+export function getWCOTitlebarAreaRect(
+	targetWindow: Window,
+): DOMRect | undefined {
+	return (
+		targetWindow.navigator as any
+	)?.windowControlsOverlay?.getTitlebarAreaRect();
 }

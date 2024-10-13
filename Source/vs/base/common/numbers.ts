@@ -20,7 +20,6 @@ export class Counter {
 }
 
 export class MovingAverage {
-
 	private _n = 1;
 	private _val = 0;
 
@@ -36,7 +35,6 @@ export class MovingAverage {
 }
 
 export class SlidingWindowAverage {
-
 	private _n: number = 0;
 	private _val = 0;
 
@@ -72,10 +70,14 @@ export class SlidingWindowAverage {
 
 /** Returns whether the point is within the triangle formed by the following 6 x/y point pairs */
 export function isPointWithinTriangle(
-	x: number, y: number,
-	ax: number, ay: number,
-	bx: number, by: number,
-	cx: number, cy: number
+	x: number,
+	y: number,
+	ax: number,
+	ay: number,
+	bx: number,
+	by: number,
+	cx: number,
+	cy: number,
 ) {
 	const v0x = cx - ax;
 	const v0y = cy - ay;

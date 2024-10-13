@@ -3,18 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IRemoteConsoleLog, parse } from '../../../../base/common/console.js';
-import { ILogService } from '../../../../platform/log/common/log.js';
+import { IRemoteConsoleLog, parse } from "../../../../base/common/console.js";
+import { ILogService } from "../../../../platform/log/common/log.js";
 
-export function logRemoteEntry(logService: ILogService, entry: IRemoteConsoleLog, label: string | null = null): void {
+export function logRemoteEntry(
+	logService: ILogService,
+	entry: IRemoteConsoleLog,
+	label: string | null = null,
+): void {
 	const args = parse(entry).args;
 	let firstArg = args.shift();
-	if (typeof firstArg !== 'string') {
+	if (typeof firstArg !== "string") {
 		return;
 	}
 
 	if (!entry.severity) {
-		entry.severity = 'info';
+		entry.severity = "info";
 	}
 
 	if (label) {
@@ -28,23 +32,27 @@ export function logRemoteEntry(logService: ILogService, entry: IRemoteConsoleLog
 	}
 
 	switch (entry.severity) {
-		case 'log':
-		case 'info':
+		case "log":
+		case "info":
 			logService.info(firstArg, ...args);
 			break;
-		case 'warn':
+		case "warn":
 			logService.warn(firstArg, ...args);
 			break;
-		case 'error':
+		case "error":
 			logService.error(firstArg, ...args);
 			break;
 	}
 }
 
-export function logRemoteEntryIfError(logService: ILogService, entry: IRemoteConsoleLog, label: string): void {
+export function logRemoteEntryIfError(
+	logService: ILogService,
+	entry: IRemoteConsoleLog,
+	label: string,
+): void {
 	const args = parse(entry).args;
 	const firstArg = args.shift();
-	if (typeof firstArg !== 'string' || entry.severity !== 'error') {
+	if (typeof firstArg !== "string" || entry.severity !== "error") {
 		return;
 	}
 

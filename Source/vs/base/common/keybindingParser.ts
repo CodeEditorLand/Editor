@@ -3,11 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { KeyCodeUtils, ScanCodeUtils } from './keyCodes.js';
-import { KeyCodeChord, ScanCodeChord, Keybinding, Chord } from './keybindings.js';
+import {
+	Chord,
+	Keybinding,
+	KeyCodeChord,
+	ScanCodeChord,
+} from "./keybindings.js";
+import { KeyCodeUtils, ScanCodeUtils } from "./keyCodes.js";
 
 export class KeybindingParser {
-
 	private static _readModifiers(input: string) {
 		input = input.toLowerCase().trim();
 
@@ -22,45 +26,45 @@ export class KeybindingParser {
 			matchedModifier = false;
 			if (/^ctrl(\+|\-)/.test(input)) {
 				ctrl = true;
-				input = input.substr('ctrl-'.length);
+				input = input.substr("ctrl-".length);
 				matchedModifier = true;
 			}
 			if (/^shift(\+|\-)/.test(input)) {
 				shift = true;
-				input = input.substr('shift-'.length);
+				input = input.substr("shift-".length);
 				matchedModifier = true;
 			}
 			if (/^alt(\+|\-)/.test(input)) {
 				alt = true;
-				input = input.substr('alt-'.length);
+				input = input.substr("alt-".length);
 				matchedModifier = true;
 			}
 			if (/^meta(\+|\-)/.test(input)) {
 				meta = true;
-				input = input.substr('meta-'.length);
+				input = input.substr("meta-".length);
 				matchedModifier = true;
 			}
 			if (/^win(\+|\-)/.test(input)) {
 				meta = true;
-				input = input.substr('win-'.length);
+				input = input.substr("win-".length);
 				matchedModifier = true;
 			}
 			if (/^cmd(\+|\-)/.test(input)) {
 				meta = true;
-				input = input.substr('cmd-'.length);
+				input = input.substr("cmd-".length);
 				matchedModifier = true;
 			}
 		} while (matchedModifier);
 
 		let key: string;
 
-		const firstSpaceIdx = input.indexOf(' ');
+		const firstSpaceIdx = input.indexOf(" ");
 		if (firstSpaceIdx > 0) {
 			key = input.substring(0, firstSpaceIdx);
 			input = input.substring(firstSpaceIdx);
 		} else {
 			key = input;
-			input = '';
+			input = "";
 		}
 
 		return {
@@ -69,7 +73,7 @@ export class KeybindingParser {
 			shift,
 			alt,
 			meta,
-			key
+			key,
 		};
 	}
 
@@ -79,10 +83,28 @@ export class KeybindingParser {
 		if (scanCodeMatch) {
 			const strScanCode = scanCodeMatch[1];
 			const scanCode = ScanCodeUtils.lowerCaseToEnum(strScanCode);
-			return [new ScanCodeChord(mods.ctrl, mods.shift, mods.alt, mods.meta, scanCode), mods.remains];
+			return [
+				new ScanCodeChord(
+					mods.ctrl,
+					mods.shift,
+					mods.alt,
+					mods.meta,
+					scanCode,
+				),
+				mods.remains,
+			];
 		}
 		const keyCode = KeyCodeUtils.fromUserSettings(mods.key);
-		return [new KeyCodeChord(mods.ctrl, mods.shift, mods.alt, mods.meta, keyCode), mods.remains];
+		return [
+			new KeyCodeChord(
+				mods.ctrl,
+				mods.shift,
+				mods.alt,
+				mods.meta,
+				keyCode,
+			),
+			mods.remains,
+		];
 	}
 
 	static parseKeybinding(input: string): Keybinding | null {
@@ -97,6 +119,6 @@ export class KeybindingParser {
 			[chord, input] = this.parseChord(input);
 			chords.push(chord);
 		}
-		return (chords.length > 0 ? new Keybinding(chords) : null);
+		return chords.length > 0 ? new Keybinding(chords) : null;
 	}
 }

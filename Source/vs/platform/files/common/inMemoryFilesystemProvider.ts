@@ -3,16 +3,37 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { VSBuffer } from '../../../base/common/buffer.js';
-import { Emitter, Event } from '../../../base/common/event.js';
-import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
-import * as resources from '../../../base/common/resources.js';
-import { ReadableStreamEvents, newWriteableStream } from '../../../base/common/stream.js';
-import { URI } from '../../../base/common/uri.js';
-import { FileChangeType, IFileDeleteOptions, IFileOverwriteOptions, FileSystemProviderCapabilities, FileSystemProviderErrorCode, FileType, IFileWriteOptions, IFileChange, IFileSystemProviderWithFileReadWriteCapability, IStat, IWatchOptions, createFileSystemProviderError, IFileSystemProviderWithOpenReadWriteCloseCapability, IFileOpenOptions, IFileSystemProviderWithFileAtomicDeleteCapability, IFileSystemProviderWithFileAtomicReadCapability, IFileSystemProviderWithFileAtomicWriteCapability, IFileSystemProviderWithFileReadStreamCapability } from './files.js';
+import { VSBuffer } from "../../../base/common/buffer.js";
+import { Emitter, Event } from "../../../base/common/event.js";
+import { Disposable, IDisposable } from "../../../base/common/lifecycle.js";
+import * as resources from "../../../base/common/resources.js";
+import {
+	newWriteableStream,
+	ReadableStreamEvents,
+} from "../../../base/common/stream.js";
+import { URI } from "../../../base/common/uri.js";
+import {
+	createFileSystemProviderError,
+	FileChangeType,
+	FileSystemProviderCapabilities,
+	FileSystemProviderErrorCode,
+	FileType,
+	IFileChange,
+	IFileDeleteOptions,
+	IFileOpenOptions,
+	IFileOverwriteOptions,
+	IFileSystemProviderWithFileAtomicDeleteCapability,
+	IFileSystemProviderWithFileAtomicReadCapability,
+	IFileSystemProviderWithFileAtomicWriteCapability,
+	IFileSystemProviderWithFileReadStreamCapability,
+	IFileSystemProviderWithFileReadWriteCapability,
+	IFileSystemProviderWithOpenReadWriteCloseCapability,
+	IFileWriteOptions,
+	IStat,
+	IWatchOptions,
+} from "./files.js";
 
 class File implements IStat {
-
 	readonly type: FileType.File;
 	readonly ctime: number;
 	mtime: number;
@@ -31,7 +52,6 @@ class File implements IStat {
 }
 
 class Directory implements IStat {
-
 	readonly type: FileType.Directory;
 	readonly ctime: number;
 	mtime: number;
@@ -52,32 +72,44 @@ class Directory implements IStat {
 
 type Entry = File | Directory;
 
-export class InMemoryFileSystemProvider extends Disposable implements
-	IFileSystemProviderWithFileReadWriteCapability,
-	IFileSystemProviderWithOpenReadWriteCloseCapability,
-	IFileSystemProviderWithFileReadStreamCapability,
-	IFileSystemProviderWithFileAtomicReadCapability,
-	IFileSystemProviderWithFileAtomicWriteCapability,
-	IFileSystemProviderWithFileAtomicDeleteCapability {
-
+export class InMemoryFileSystemProvider
+	extends Disposable
+	implements
+		IFileSystemProviderWithFileReadWriteCapability,
+		IFileSystemProviderWithOpenReadWriteCloseCapability,
+		IFileSystemProviderWithFileReadStreamCapability,
+		IFileSystemProviderWithFileAtomicReadCapability,
+		IFileSystemProviderWithFileAtomicWriteCapability,
+		IFileSystemProviderWithFileAtomicDeleteCapability
+{
 	private memoryFdCounter = 0;
 	private readonly fdMemory = new Map<number, Uint8Array>();
 	private _onDidChangeCapabilities = this._register(new Emitter<void>());
 	readonly onDidChangeCapabilities = this._onDidChangeCapabilities.event;
 
-	private _capabilities = FileSystemProviderCapabilities.FileReadWrite | FileSystemProviderCapabilities.PathCaseSensitive;
-	get capabilities(): FileSystemProviderCapabilities { return this._capabilities; }
+	private _capabilities =
+		FileSystemProviderCapabilities.FileReadWrite |
+		FileSystemProviderCapabilities.PathCaseSensitive;
+	get capabilities(): FileSystemProviderCapabilities {
+		return this._capabilities;
+	}
 
 	setReadOnly(readonly: boolean) {
-		const isReadonly = !!(this._capabilities & FileSystemProviderCapabilities.Readonly);
+		const isReadonly = !!(
+			this._capabilities & FileSystemProviderCapabilities.Readonly
+		);
 		if (readonly !== isReadonly) {
-			this._capabilities = readonly ? FileSystemProviderCapabilities.Readonly | FileSystemProviderCapabilities.PathCaseSensitive | FileSystemProviderCapabilities.FileReadWrite
-				: FileSystemProviderCapabilities.FileReadWrite | FileSystemProviderCapabilities.PathCaseSensitive;
+			this._capabilities = readonly
+				? FileSystemProviderCapabilities.Readonly |
+					FileSystemProviderCapabilities.PathCaseSensitive |
+					FileSystemProviderCapabilities.FileReadWrite
+				: FileSystemProviderCapabilities.FileReadWrite |
+					FileSystemProviderCapabilities.PathCaseSensitive;
 			this._onDidChangeCapabilities.fire();
 		}
 	}
 
-	root = new Directory('');
+	root = new Directory("");
 
 	// --- manage file metadata
 
@@ -99,30 +131,49 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		if (data) {
 			return data;
 		}
-		throw createFileSystemProviderError('file not found', FileSystemProviderErrorCode.FileNotFound);
+		throw createFileSystemProviderError(
+			"file not found",
+			FileSystemProviderErrorCode.FileNotFound,
+		);
 	}
 
 	readFileStream(resource: URI): ReadableStreamEvents<Uint8Array> {
 		const data = this._lookupAsFile(resource, false).data;
 
-		const stream = newWriteableStream<Uint8Array>(data => VSBuffer.concat(data.map(data => VSBuffer.wrap(data))).buffer);
+		const stream = newWriteableStream<Uint8Array>(
+			(data) =>
+				VSBuffer.concat(data.map((data) => VSBuffer.wrap(data))).buffer,
+		);
 		stream.end(data);
 
 		return stream;
 	}
 
-	async writeFile(resource: URI, content: Uint8Array, opts: IFileWriteOptions): Promise<void> {
+	async writeFile(
+		resource: URI,
+		content: Uint8Array,
+		opts: IFileWriteOptions,
+	): Promise<void> {
 		const basename = resources.basename(resource);
 		const parent = this._lookupParentDirectory(resource);
 		let entry = parent.entries.get(basename);
 		if (entry instanceof Directory) {
-			throw createFileSystemProviderError('file is directory', FileSystemProviderErrorCode.FileIsADirectory);
+			throw createFileSystemProviderError(
+				"file is directory",
+				FileSystemProviderErrorCode.FileIsADirectory,
+			);
 		}
 		if (!entry && !opts.create) {
-			throw createFileSystemProviderError('file not found', FileSystemProviderErrorCode.FileNotFound);
+			throw createFileSystemProviderError(
+				"file not found",
+				FileSystemProviderErrorCode.FileNotFound,
+			);
 		}
 		if (entry && opts.create && !opts.overwrite) {
-			throw createFileSystemProviderError('file exists already', FileSystemProviderErrorCode.FileExists);
+			throw createFileSystemProviderError(
+				"file exists already",
+				FileSystemProviderErrorCode.FileExists,
+			);
 		}
 		if (!entry) {
 			entry = new File(basename);
@@ -144,7 +195,10 @@ export class InMemoryFileSystemProvider extends Disposable implements
 			this.fdMemory.set(fd, data);
 			return Promise.resolve(fd);
 		}
-		throw createFileSystemProviderError('file not found', FileSystemProviderErrorCode.FileNotFound);
+		throw createFileSystemProviderError(
+			"file not found",
+			FileSystemProviderErrorCode.FileNotFound,
+		);
 	}
 
 	close(fd: number): Promise<void> {
@@ -152,10 +206,19 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		return Promise.resolve();
 	}
 
-	read(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number> {
+	read(
+		fd: number,
+		pos: number,
+		data: Uint8Array,
+		offset: number,
+		length: number,
+	): Promise<number> {
 		const memory = this.fdMemory.get(fd);
 		if (!memory) {
-			throw createFileSystemProviderError(`No file with that descriptor open`, FileSystemProviderErrorCode.Unavailable);
+			throw createFileSystemProviderError(
+				`No file with that descriptor open`,
+				FileSystemProviderErrorCode.Unavailable,
+			);
 		}
 
 		const toWrite = VSBuffer.wrap(memory).slice(pos, pos + length);
@@ -163,10 +226,19 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		return Promise.resolve(toWrite.byteLength);
 	}
 
-	write(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number> {
+	write(
+		fd: number,
+		pos: number,
+		data: Uint8Array,
+		offset: number,
+		length: number,
+	): Promise<number> {
 		const memory = this.fdMemory.get(fd);
 		if (!memory) {
-			throw createFileSystemProviderError(`No file with that descriptor open`, FileSystemProviderErrorCode.Unavailable);
+			throw createFileSystemProviderError(
+				`No file with that descriptor open`,
+				FileSystemProviderErrorCode.Unavailable,
+			);
 		}
 
 		const toWrite = VSBuffer.wrap(data).slice(offset, offset + length);
@@ -176,9 +248,16 @@ export class InMemoryFileSystemProvider extends Disposable implements
 
 	// --- manage files/folders
 
-	async rename(from: URI, to: URI, opts: IFileOverwriteOptions): Promise<void> {
+	async rename(
+		from: URI,
+		to: URI,
+		opts: IFileOverwriteOptions,
+	): Promise<void> {
 		if (!opts.overwrite && this._lookup(to, true)) {
-			throw createFileSystemProviderError('file exists already', FileSystemProviderErrorCode.FileExists);
+			throw createFileSystemProviderError(
+				"file exists already",
+				FileSystemProviderErrorCode.FileExists,
+			);
 		}
 
 		const entry = this._lookup(from, false);
@@ -193,7 +272,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 
 		this._fireSoon(
 			{ type: FileChangeType.DELETED, resource: from },
-			{ type: FileChangeType.ADDED, resource: to }
+			{ type: FileChangeType.ADDED, resource: to },
 		);
 	}
 
@@ -205,13 +284,19 @@ export class InMemoryFileSystemProvider extends Disposable implements
 			parent.entries.delete(basename);
 			parent.mtime = Date.now();
 			parent.size -= 1;
-			this._fireSoon({ type: FileChangeType.UPDATED, resource: dirname }, { resource, type: FileChangeType.DELETED });
+			this._fireSoon(
+				{ type: FileChangeType.UPDATED, resource: dirname },
+				{ resource, type: FileChangeType.DELETED },
+			);
 		}
 	}
 
 	async mkdir(resource: URI): Promise<void> {
 		if (this._lookup(resource, true)) {
-			throw createFileSystemProviderError('file exists already', FileSystemProviderErrorCode.FileExists);
+			throw createFileSystemProviderError(
+				"file exists already",
+				FileSystemProviderErrorCode.FileExists,
+			);
 		}
 
 		const basename = resources.basename(resource);
@@ -222,7 +307,10 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		parent.entries.set(entry.name, entry);
 		parent.mtime = Date.now();
 		parent.size += 1;
-		this._fireSoon({ type: FileChangeType.UPDATED, resource: dirname }, { type: FileChangeType.ADDED, resource });
+		this._fireSoon(
+			{ type: FileChangeType.UPDATED, resource: dirname },
+			{ type: FileChangeType.ADDED, resource },
+		);
 	}
 
 	// --- lookup
@@ -230,7 +318,7 @@ export class InMemoryFileSystemProvider extends Disposable implements
 	private _lookup(uri: URI, silent: false): Entry;
 	private _lookup(uri: URI, silent: boolean): Entry | undefined;
 	private _lookup(uri: URI, silent: boolean): Entry | undefined {
-		const parts = uri.path.split('/');
+		const parts = uri.path.split("/");
 		let entry: Entry = this.root;
 		for (const part of parts) {
 			if (!part) {
@@ -242,7 +330,10 @@ export class InMemoryFileSystemProvider extends Disposable implements
 			}
 			if (!child) {
 				if (!silent) {
-					throw createFileSystemProviderError('file not found', FileSystemProviderErrorCode.FileNotFound);
+					throw createFileSystemProviderError(
+						"file not found",
+						FileSystemProviderErrorCode.FileNotFound,
+					);
 				} else {
 					return undefined;
 				}
@@ -257,7 +348,10 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		if (entry instanceof Directory) {
 			return entry;
 		}
-		throw createFileSystemProviderError('file not a directory', FileSystemProviderErrorCode.FileNotADirectory);
+		throw createFileSystemProviderError(
+			"file not a directory",
+			FileSystemProviderErrorCode.FileNotADirectory,
+		);
 	}
 
 	private _lookupAsFile(uri: URI, silent: boolean): File {
@@ -265,7 +359,10 @@ export class InMemoryFileSystemProvider extends Disposable implements
 		if (entry instanceof File) {
 			return entry;
 		}
-		throw createFileSystemProviderError('file is a directory', FileSystemProviderErrorCode.FileIsADirectory);
+		throw createFileSystemProviderError(
+			"file is a directory",
+			FileSystemProviderErrorCode.FileIsADirectory,
+		);
 	}
 
 	private _lookupParentDirectory(uri: URI): Directory {
@@ -275,8 +372,11 @@ export class InMemoryFileSystemProvider extends Disposable implements
 
 	// --- manage file events
 
-	private readonly _onDidChangeFile = this._register(new Emitter<readonly IFileChange[]>());
-	readonly onDidChangeFile: Event<readonly IFileChange[]> = this._onDidChangeFile.event;
+	private readonly _onDidChangeFile = this._register(
+		new Emitter<readonly IFileChange[]>(),
+	);
+	readonly onDidChangeFile: Event<readonly IFileChange[]> =
+		this._onDidChangeFile.event;
 
 	private _bufferedChanges: IFileChange[] = [];
 	private _fireSoonHandle?: any;

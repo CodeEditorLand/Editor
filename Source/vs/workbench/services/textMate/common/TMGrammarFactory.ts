@@ -3,10 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable } from '../../../../base/common/lifecycle.js';
-import { URI } from '../../../../base/common/uri.js';
-import { IValidEmbeddedLanguagesMap, IValidGrammarDefinition, TMScopeRegistry } from './TMScopeRegistry.js';
-import type { IGrammar, IOnigLib, IRawTheme, Registry, StateStack } from 'vscode-textmate';
+import type {
+	IGrammar,
+	IOnigLib,
+	IRawTheme,
+	Registry,
+	StateStack,
+} from "vscode-textmate";
+
+import { Disposable } from "../../../../base/common/lifecycle.js";
+import { URI } from "../../../../base/common/uri.js";
+import {
+	IValidEmbeddedLanguagesMap,
+	IValidGrammarDefinition,
+	TMScopeRegistry,
+} from "./TMScopeRegistry.js";
 
 interface ITMGrammarFactoryHost {
 	logTrace(msg: string): void;
@@ -22,19 +33,26 @@ export interface ICreateGrammarResult {
 	sourceExtensionId?: string;
 }
 
-export const missingTMGrammarErrorMessage = 'No TM Grammar registered for this language.';
+export const missingTMGrammarErrorMessage =
+	"No TM Grammar registered for this language.";
 
 export class TMGrammarFactory extends Disposable {
-
 	private readonly _host: ITMGrammarFactoryHost;
 	private readonly _initialState: StateStack;
 	private readonly _scopeRegistry: TMScopeRegistry;
 	private readonly _injections: { [scopeName: string]: string[] };
-	private readonly _injectedEmbeddedLanguages: { [scopeName: string]: IValidEmbeddedLanguagesMap[] };
+	private readonly _injectedEmbeddedLanguages: {
+		[scopeName: string]: IValidEmbeddedLanguagesMap[];
+	};
 	private readonly _languageToScope: Map<string, string>;
 	private readonly _grammarRegistry: Registry;
 
-	constructor(host: ITMGrammarFactoryHost, grammarDefinitions: IValidGrammarDefinition[], vscodeTextmate: typeof import('vscode-textmate'), onigLib: Promise<IOnigLib>) {
+	constructor(
+		host: ITMGrammarFactoryHost,
+		grammarDefinitions: IValidGrammarDefinition[],
+		vscodeTextmate: typeof import("vscode-textmate"),
+		onigLib: Promise<IOnigLib>,
+	) {
 		super();
 		this._host = host;
 		this._initialState = vscodeTextmate.INITIAL;
@@ -42,33 +60,47 @@ export class TMGrammarFactory extends Disposable {
 		this._injections = {};
 		this._injectedEmbeddedLanguages = {};
 		this._languageToScope = new Map<string, string>();
-		this._grammarRegistry = this._register(new vscodeTextmate.Registry({
-			onigLib: onigLib,
-			loadGrammar: async (scopeName: string) => {
-				const grammarDefinition = this._scopeRegistry.getGrammarDefinition(scopeName);
-				if (!grammarDefinition) {
-					this._host.logTrace(`No grammar found for scope ${scopeName}`);
-					return null;
-				}
-				const location = grammarDefinition.location;
-				try {
-					const content = await this._host.readFile(location);
-					return vscodeTextmate.parseRawGrammar(content, location.path);
-				} catch (e) {
-					this._host.logError(`Unable to load and parse grammar for scope ${scopeName} from ${location}`, e);
-					return null;
-				}
-			},
-			getInjections: (scopeName: string) => {
-				const scopeParts = scopeName.split('.');
-				let injections: string[] = [];
-				for (let i = 1; i <= scopeParts.length; i++) {
-					const subScopeName = scopeParts.slice(0, i).join('.');
-					injections = [...injections, ...(this._injections[subScopeName] || [])];
-				}
-				return injections;
-			}
-		}));
+		this._grammarRegistry = this._register(
+			new vscodeTextmate.Registry({
+				onigLib: onigLib,
+				loadGrammar: async (scopeName: string) => {
+					const grammarDefinition =
+						this._scopeRegistry.getGrammarDefinition(scopeName);
+					if (!grammarDefinition) {
+						this._host.logTrace(
+							`No grammar found for scope ${scopeName}`,
+						);
+						return null;
+					}
+					const location = grammarDefinition.location;
+					try {
+						const content = await this._host.readFile(location);
+						return vscodeTextmate.parseRawGrammar(
+							content,
+							location.path,
+						);
+					} catch (e) {
+						this._host.logError(
+							`Unable to load and parse grammar for scope ${scopeName} from ${location}`,
+							e,
+						);
+						return null;
+					}
+				},
+				getInjections: (scopeName: string) => {
+					const scopeParts = scopeName.split(".");
+					let injections: string[] = [];
+					for (let i = 1; i <= scopeParts.length; i++) {
+						const subScopeName = scopeParts.slice(0, i).join(".");
+						injections = [
+							...injections,
+							...(this._injections[subScopeName] || []),
+						];
+					}
+					return injections;
+				},
+			}),
+		);
 
 		for (const validGrammar of grammarDefinitions) {
 			this._scopeRegistry.register(validGrammar);
@@ -84,17 +116,24 @@ export class TMGrammarFactory extends Disposable {
 
 				if (validGrammar.embeddedLanguages) {
 					for (const injectScope of validGrammar.injectTo) {
-						let injectedEmbeddedLanguages = this._injectedEmbeddedLanguages[injectScope];
+						let injectedEmbeddedLanguages =
+							this._injectedEmbeddedLanguages[injectScope];
 						if (!injectedEmbeddedLanguages) {
-							this._injectedEmbeddedLanguages[injectScope] = injectedEmbeddedLanguages = [];
+							this._injectedEmbeddedLanguages[injectScope] =
+								injectedEmbeddedLanguages = [];
 						}
-						injectedEmbeddedLanguages.push(validGrammar.embeddedLanguages);
+						injectedEmbeddedLanguages.push(
+							validGrammar.embeddedLanguages,
+						);
 					}
 				}
 			}
 
 			if (validGrammar.language) {
-				this._languageToScope.set(validGrammar.language, validGrammar.scopeName);
+				this._languageToScope.set(
+					validGrammar.language,
+					validGrammar.scopeName,
+				);
 			}
 		}
 	}
@@ -111,14 +150,18 @@ export class TMGrammarFactory extends Disposable {
 		return this._grammarRegistry.getColorMap();
 	}
 
-	public async createGrammar(languageId: string, encodedLanguageId: number): Promise<ICreateGrammarResult> {
+	public async createGrammar(
+		languageId: string,
+		encodedLanguageId: number,
+	): Promise<ICreateGrammarResult> {
 		const scopeName = this._languageToScope.get(languageId);
-		if (typeof scopeName !== 'string') {
+		if (typeof scopeName !== "string") {
 			// No TM grammar defined
 			throw new Error(missingTMGrammarErrorMessage);
 		}
 
-		const grammarDefinition = this._scopeRegistry.getGrammarDefinition(scopeName);
+		const grammarDefinition =
+			this._scopeRegistry.getGrammarDefinition(scopeName);
 		if (!grammarDefinition) {
 			// No TM grammar defined
 			throw new Error(missingTMGrammarErrorMessage);
@@ -126,7 +169,8 @@ export class TMGrammarFactory extends Disposable {
 
 		const embeddedLanguages = grammarDefinition.embeddedLanguages;
 		if (this._injectedEmbeddedLanguages[scopeName]) {
-			const injectedEmbeddedLanguages = this._injectedEmbeddedLanguages[scopeName];
+			const injectedEmbeddedLanguages =
+				this._injectedEmbeddedLanguages[scopeName];
 			for (const injected of injectedEmbeddedLanguages) {
 				for (const scope of Object.keys(injected)) {
 					embeddedLanguages[scope] = injected[scope];
@@ -134,7 +178,8 @@ export class TMGrammarFactory extends Disposable {
 			}
 		}
 
-		const containsEmbeddedLanguages = (Object.keys(embeddedLanguages).length > 0);
+		const containsEmbeddedLanguages =
+			Object.keys(embeddedLanguages).length > 0;
 
 		let grammar: IGrammar | null;
 
@@ -145,12 +190,17 @@ export class TMGrammarFactory extends Disposable {
 				{
 					embeddedLanguages,
 					tokenTypes: <any>grammarDefinition.tokenTypes,
-					balancedBracketSelectors: grammarDefinition.balancedBracketSelectors,
-					unbalancedBracketSelectors: grammarDefinition.unbalancedBracketSelectors,
-				}
+					balancedBracketSelectors:
+						grammarDefinition.balancedBracketSelectors,
+					unbalancedBracketSelectors:
+						grammarDefinition.unbalancedBracketSelectors,
+				},
 			);
 		} catch (err) {
-			if (err.message && err.message.startsWith('No grammar provided for')) {
+			if (
+				err.message &&
+				err.message.startsWith("No grammar provided for")
+			) {
 				// No TM grammar defined
 				throw new Error(missingTMGrammarErrorMessage);
 			}

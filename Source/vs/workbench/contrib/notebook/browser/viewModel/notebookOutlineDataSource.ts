@@ -3,26 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from '../../../../../base/common/event.js';
-import { DisposableStore, MutableDisposable } from '../../../../../base/common/lifecycle.js';
-import { isEqual } from '../../../../../base/common/resources.js';
-import { URI } from '../../../../../base/common/uri.js';
-import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { IMarkerService } from '../../../../../platform/markers/common/markers.js';
-import { IActiveNotebookEditor, INotebookEditor } from '../notebookBrowser.js';
-import { CellKind } from '../../common/notebookCommon.js';
-import { OutlineChangeEvent, OutlineConfigKeys } from '../../../../services/outline/browser/outline.js';
-import { OutlineEntry } from './OutlineEntry.js';
-import { CancellationToken } from '../../../../../base/common/cancellation.js';
-import { INotebookOutlineEntryFactory, NotebookOutlineEntryFactory } from './notebookOutlineEntryFactory.js';
+import { CancellationToken } from "../../../../../base/common/cancellation.js";
+import { Emitter, Event } from "../../../../../base/common/event.js";
+import {
+	DisposableStore,
+	MutableDisposable,
+} from "../../../../../base/common/lifecycle.js";
+import { isEqual } from "../../../../../base/common/resources.js";
+import { URI } from "../../../../../base/common/uri.js";
+import { IConfigurationService } from "../../../../../platform/configuration/common/configuration.js";
+import { IMarkerService } from "../../../../../platform/markers/common/markers.js";
+import {
+	OutlineChangeEvent,
+	OutlineConfigKeys,
+} from "../../../../services/outline/browser/outline.js";
+import { CellKind } from "../../common/notebookCommon.js";
+import { IActiveNotebookEditor, INotebookEditor } from "../notebookBrowser.js";
+import {
+	INotebookOutlineEntryFactory,
+	NotebookOutlineEntryFactory,
+} from "./notebookOutlineEntryFactory.js";
+import { OutlineEntry } from "./OutlineEntry.js";
 
 export interface INotebookCellOutlineDataSource {
 	readonly activeElement: OutlineEntry | undefined;
 	readonly entries: OutlineEntry[];
 }
 
-export class NotebookCellOutlineDataSource implements INotebookCellOutlineDataSource {
-
+export class NotebookCellOutlineDataSource
+	implements INotebookCellOutlineDataSource
+{
 	private readonly _disposables = new DisposableStore();
 
 	private readonly _onDidChange = new Emitter<OutlineChangeEvent>();
@@ -35,8 +45,10 @@ export class NotebookCellOutlineDataSource implements INotebookCellOutlineDataSo
 	constructor(
 		private readonly _editor: INotebookEditor,
 		@IMarkerService private readonly _markerService: IMarkerService,
-		@IConfigurationService private readonly _configurationService: IConfigurationService,
-		@INotebookOutlineEntryFactory private readonly _outlineEntryFactory: NotebookOutlineEntryFactory
+		@IConfigurationService
+		private readonly _configurationService: IConfigurationService,
+		@INotebookOutlineEntryFactory
+		private readonly _outlineEntryFactory: NotebookOutlineEntryFactory,
 	) {
 		this.recomputeState();
 	}
@@ -57,14 +69,18 @@ export class NotebookCellOutlineDataSource implements INotebookCellOutlineDataSo
 	public async computeFullSymbols(cancelToken: CancellationToken) {
 		const notebookEditorWidget = this._editor;
 
-		const notebookCells = notebookEditorWidget?.getViewModel()?.viewCells.filter((cell) => cell.cellKind === CellKind.Code);
+		const notebookCells = notebookEditorWidget
+			?.getViewModel()
+			?.viewCells.filter((cell) => cell.cellKind === CellKind.Code);
 
 		if (notebookCells) {
 			const promises: Promise<void>[] = [];
 			// limit the number of cells so that we don't resolve an excessive amount of text models
 			for (const cell of notebookCells.slice(0, 50)) {
 				// gather all symbols asynchronously
-				promises.push(this._outlineEntryFactory.cacheSymbols(cell, cancelToken));
+				promises.push(
+					this._outlineEntryFactory.cacheSymbols(cell, cancelToken),
+				);
 			}
 			await Promise.allSettled(promises);
 		}
@@ -92,7 +108,12 @@ export class NotebookCellOutlineDataSource implements INotebookCellOutlineDataSo
 
 		const entries: OutlineEntry[] = [];
 		for (const cell of notebookCells) {
-			entries.push(...this._outlineEntryFactory.getOutlineEntries(cell, entries.length));
+			entries.push(
+				...this._outlineEntryFactory.getOutlineEntries(
+					cell,
+					entries.length,
+				),
+			);
 		}
 
 		// build a tree from the list of entries
@@ -110,7 +131,6 @@ export class NotebookCellOutlineDataSource implements INotebookCellOutlineDataSo
 						result.push(entry);
 						parentStack.push(entry);
 						break;
-
 					} else {
 						const parentCandidate = parentStack[len - 1];
 						if (parentCandidate.level < entry.level) {
@@ -143,25 +163,36 @@ export class NotebookCellOutlineDataSource implements INotebookCellOutlineDataSo
 					}
 				}
 			};
-			const problem = this._configurationService.getValue('problems.visibility');
+			const problem = this._configurationService.getValue(
+				"problems.visibility",
+			);
 			if (problem === undefined) {
 				return;
 			}
 
-			const config = this._configurationService.getValue(OutlineConfigKeys.problemsEnabled);
+			const config = this._configurationService.getValue(
+				OutlineConfigKeys.problemsEnabled,
+			);
 
 			if (problem && config) {
-				markerServiceListener.value = this._markerService.onMarkerChanged(e => {
-					if (notebookEditorWidget.isDisposed) {
-						console.error('notebook editor is disposed');
-						return;
-					}
+				markerServiceListener.value =
+					this._markerService.onMarkerChanged((e) => {
+						if (notebookEditorWidget.isDisposed) {
+							console.error("notebook editor is disposed");
+							return;
+						}
 
-					if (e.some(uri => notebookEditorWidget.getCellsInRange().some(cell => isEqual(cell.uri, uri)))) {
-						doUpdateMarker(false);
-						this._onDidChange.fire({});
-					}
-				});
+						if (
+							e.some((uri) =>
+								notebookEditorWidget
+									.getCellsInRange()
+									.some((cell) => isEqual(cell.uri, uri)),
+							)
+						) {
+							doUpdateMarker(false);
+							this._onDidChange.fire({});
+						}
+					});
 				doUpdateMarker(false);
 			} else {
 				markerServiceListener.clear();
@@ -169,12 +200,17 @@ export class NotebookCellOutlineDataSource implements INotebookCellOutlineDataSo
 			}
 		};
 		updateMarkerUpdater();
-		this._disposables.add(this._configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration('problems.visibility') || e.affectsConfiguration(OutlineConfigKeys.problemsEnabled)) {
-				updateMarkerUpdater();
-				this._onDidChange.fire({});
-			}
-		}));
+		this._disposables.add(
+			this._configurationService.onDidChangeConfiguration((e) => {
+				if (
+					e.affectsConfiguration("problems.visibility") ||
+					e.affectsConfiguration(OutlineConfigKeys.problemsEnabled)
+				) {
+					updateMarkerUpdater();
+					this._onDidChange.fire({});
+				}
+			}),
+		);
 
 		const { changeEventTriggered } = this.recomputeActive();
 		if (!changeEventTriggered) {
@@ -186,9 +222,15 @@ export class NotebookCellOutlineDataSource implements INotebookCellOutlineDataSo
 		let newActive: OutlineEntry | undefined;
 		const notebookEditorWidget = this._editor;
 
-		if (notebookEditorWidget) {//TODO don't check for widget, only here if we do have
-			if (notebookEditorWidget.hasModel() && notebookEditorWidget.getLength() > 0) {
-				const cell = notebookEditorWidget.cellAt(notebookEditorWidget.getFocus().start);
+		if (notebookEditorWidget) {
+			//TODO don't check for widget, only here if we do have
+			if (
+				notebookEditorWidget.hasModel() &&
+				notebookEditorWidget.getLength() > 0
+			) {
+				const cell = notebookEditorWidget.cellAt(
+					notebookEditorWidget.getFocus().start,
+				);
 				if (cell) {
 					for (const entry of this._entries) {
 						newActive = entry.find(cell, []);

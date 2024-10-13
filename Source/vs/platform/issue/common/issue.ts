@@ -3,10 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { UriComponents } from '../../../base/common/uri.js';
-import { ISandboxConfiguration } from '../../../base/parts/sandbox/common/sandboxTypes.js';
-import { PerformanceInfo, SystemInfo } from '../../diagnostics/common/diagnostics.js';
-import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { UriComponents } from "../../../base/common/uri.js";
+import { ISandboxConfiguration } from "../../../base/parts/sandbox/common/sandboxTypes.js";
+import {
+	PerformanceInfo,
+	SystemInfo,
+} from "../../diagnostics/common/diagnostics.js";
+import { createDecorator } from "../../instantiation/common/instantiation.js";
 
 // Since data sent through the service is serialized to JSON, functions will be lost, so Color objects
 // should not be sent as their 'toString' method will be stripped. Instead convert to strings before sending.
@@ -22,13 +25,13 @@ export interface WindowData {
 export const enum OldIssueType {
 	Bug,
 	PerformanceIssue,
-	FeatureRequest
+	FeatureRequest,
 }
 
 export enum IssueSource {
-	VSCode = 'vscode',
-	Extension = 'extension',
-	Marketplace = 'marketplace'
+	VSCode = "vscode",
+	Extension = "extension",
+	Marketplace = "marketplace",
 }
 
 export interface OldIssueReporterStyles extends WindowStyles {
@@ -109,7 +112,8 @@ export interface ProcessExplorerData extends WindowData {
 	applicationName: string;
 }
 
-export interface OldIssueReporterWindowConfiguration extends ISandboxConfiguration {
+export interface OldIssueReporterWindowConfiguration
+	extends ISandboxConfiguration {
 	disableExtensions: boolean;
 	data: OldIssueReporterData;
 	os: {
@@ -119,11 +123,13 @@ export interface OldIssueReporterWindowConfiguration extends ISandboxConfigurati
 	};
 }
 
-export interface ProcessExplorerWindowConfiguration extends ISandboxConfiguration {
+export interface ProcessExplorerWindowConfiguration
+	extends ISandboxConfiguration {
 	data: ProcessExplorerData;
 }
 
-export const IIssueMainService = createDecorator<IIssueMainService>('issueService');
+export const IIssueMainService =
+	createDecorator<IIssueMainService>("issueService");
 
 export interface IIssueMainService {
 	readonly _serviceBrand: undefined;
@@ -132,11 +138,15 @@ export interface IIssueMainService {
 	$reloadWithExtensionsDisabled(): Promise<void>;
 	$showConfirmCloseDialog(): Promise<void>;
 	$showClipboardDialog(): Promise<boolean>;
-	$sendReporterMenu(extensionId: string, extensionName: string): Promise<OldIssueReporterData | undefined>;
+	$sendReporterMenu(
+		extensionId: string,
+		extensionName: string,
+	): Promise<OldIssueReporterData | undefined>;
 	$closeReporter(): Promise<void>;
 }
 
-export const IProcessMainService = createDecorator<IProcessMainService>('processService');
+export const IProcessMainService =
+	createDecorator<IProcessMainService>("processService");
 
 export interface IProcessMainService {
 	readonly _serviceBrand: undefined;

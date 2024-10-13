@@ -3,19 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { isValidBasename } from '../../../../base/common/extpath.js';
-import { Schemas } from '../../../../base/common/network.js';
-import { IPath, win32, posix } from '../../../../base/common/path.js';
-import { OperatingSystem, OS } from '../../../../base/common/platform.js';
-import { basename } from '../../../../base/common/resources.js';
-import { URI } from '../../../../base/common/uri.js';
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
-import { getVirtualWorkspaceScheme } from '../../../../platform/workspace/common/virtualWorkspace.js';
-import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
-import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
-import { IRemoteAgentService } from '../../remote/common/remoteAgentService.js';
+import { isValidBasename } from "../../../../base/common/extpath.js";
+import { Schemas } from "../../../../base/common/network.js";
+import { IPath, posix, win32 } from "../../../../base/common/path.js";
+import { OperatingSystem, OS } from "../../../../base/common/platform.js";
+import { basename } from "../../../../base/common/resources.js";
+import { URI } from "../../../../base/common/uri.js";
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import { getVirtualWorkspaceScheme } from "../../../../platform/workspace/common/virtualWorkspace.js";
+import { IWorkspaceContextService } from "../../../../platform/workspace/common/workspace.js";
+import { IWorkbenchEnvironmentService } from "../../environment/common/environmentService.js";
+import { IRemoteAgentService } from "../../remote/common/remoteAgentService.js";
 
-export const IPathService = createDecorator<IPathService>('pathService');
+export const IPathService = createDecorator<IPathService>("pathService");
 
 /**
  * Provides access to path related properties that will match the
@@ -23,7 +23,6 @@ export const IPathService = createDecorator<IPathService>('pathService');
  * path properties will match that of the remotes operating system.
  */
 export interface IPathService {
-
 	readonly _serviceBrand: undefined;
 
 	/**
@@ -70,7 +69,11 @@ export interface IPathService {
 	 * will always return `true` for them.
 	 */
 	hasValidBasename(resource: URI, basename?: string): Promise<boolean>;
-	hasValidBasename(resource: URI, os: OperatingSystem, basename?: string): boolean;
+	hasValidBasename(
+		resource: URI,
+		os: OperatingSystem,
+		basename?: string,
+	): boolean;
 
 	/**
 	 * @deprecated use `userHome` instead.
@@ -79,7 +82,6 @@ export interface IPathService {
 }
 
 export abstract class AbstractPathService implements IPathService {
-
 	declare readonly _serviceBrand: undefined;
 
 	private resolveOS: Promise<OperatingSystem>;
@@ -89,11 +91,13 @@ export abstract class AbstractPathService implements IPathService {
 
 	constructor(
 		private localUserHome: URI,
-		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
-		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
-		@IWorkspaceContextService private contextService: IWorkspaceContextService
+		@IRemoteAgentService
+		private readonly remoteAgentService: IRemoteAgentService,
+		@IWorkbenchEnvironmentService
+		private readonly environmentService: IWorkbenchEnvironmentService,
+		@IWorkspaceContextService
+		private contextService: IWorkspaceContextService,
 	) {
-
 		// OS
 		this.resolveOS = (async () => {
 			const env = await this.remoteAgentService.getEnvironment();
@@ -104,47 +108,74 @@ export abstract class AbstractPathService implements IPathService {
 		// User Home
 		this.resolveUserHome = (async () => {
 			const env = await this.remoteAgentService.getEnvironment();
-			const userHome = this.maybeUnresolvedUserHome = env?.userHome ?? localUserHome;
+			const userHome = (this.maybeUnresolvedUserHome =
+				env?.userHome ?? localUserHome);
 
 			return userHome;
 		})();
 	}
 
 	hasValidBasename(resource: URI, basename?: string): Promise<boolean>;
-	hasValidBasename(resource: URI, os: OperatingSystem, basename?: string): boolean;
-	hasValidBasename(resource: URI, arg2?: string | OperatingSystem, basename?: string): boolean | Promise<boolean> {
-
+	hasValidBasename(
+		resource: URI,
+		os: OperatingSystem,
+		basename?: string,
+	): boolean;
+	hasValidBasename(
+		resource: URI,
+		arg2?: string | OperatingSystem,
+		basename?: string,
+	): boolean | Promise<boolean> {
 		// async version
-		if (typeof arg2 === 'string' || typeof arg2 === 'undefined') {
-			return this.resolveOS.then(os => this.doHasValidBasename(resource, os, arg2));
+		if (typeof arg2 === "string" || typeof arg2 === "undefined") {
+			return this.resolveOS.then((os) =>
+				this.doHasValidBasename(resource, os, arg2),
+			);
 		}
 
 		// sync version
 		return this.doHasValidBasename(resource, arg2, basename);
 	}
 
-	private doHasValidBasename(resource: URI, os: OperatingSystem, name?: string): boolean {
-
+	private doHasValidBasename(
+		resource: URI,
+		os: OperatingSystem,
+		name?: string,
+	): boolean {
 		// Our `isValidBasename` method only works with our
 		// standard schemes for files on disk, either locally
 		// or remote.
-		if (resource.scheme === Schemas.file || resource.scheme === Schemas.vscodeRemote) {
-			return isValidBasename(name ?? basename(resource), os === OperatingSystem.Windows);
+		if (
+			resource.scheme === Schemas.file ||
+			resource.scheme === Schemas.vscodeRemote
+		) {
+			return isValidBasename(
+				name ?? basename(resource),
+				os === OperatingSystem.Windows,
+			);
 		}
 
 		return true;
 	}
 
 	get defaultUriScheme(): string {
-		return AbstractPathService.findDefaultUriScheme(this.environmentService, this.contextService);
+		return AbstractPathService.findDefaultUriScheme(
+			this.environmentService,
+			this.contextService,
+		);
 	}
 
-	static findDefaultUriScheme(environmentService: IWorkbenchEnvironmentService, contextService: IWorkspaceContextService): string {
+	static findDefaultUriScheme(
+		environmentService: IWorkbenchEnvironmentService,
+		contextService: IWorkspaceContextService,
+	): string {
 		if (environmentService.remoteAuthority) {
 			return Schemas.vscodeRemote;
 		}
 
-		const virtualWorkspace = getVirtualWorkspaceScheme(contextService.getWorkspace());
+		const virtualWorkspace = getVirtualWorkspaceScheme(
+			contextService.getWorkspace(),
+		);
 		if (virtualWorkspace) {
 			return virtualWorkspace;
 		}
@@ -173,34 +204,32 @@ export abstract class AbstractPathService implements IPathService {
 	}
 
 	get path(): Promise<IPath> {
-		return this.resolveOS.then(os => {
-			return os === OperatingSystem.Windows ?
-				win32 :
-				posix;
+		return this.resolveOS.then((os) => {
+			return os === OperatingSystem.Windows ? win32 : posix;
 		});
 	}
 
 	async fileURI(_path: string): Promise<URI> {
-		let authority = '';
+		let authority = "";
 
 		// normalize to fwd-slashes on windows,
 		// on other systems bwd-slashes are valid
 		// filename character, eg /f\oo/ba\r.txt
 		const os = await this.resolveOS;
 		if (os === OperatingSystem.Windows) {
-			_path = _path.replace(/\\/g, '/');
+			_path = _path.replace(/\\/g, "/");
 		}
 
 		// check for authority as used in UNC shares
 		// or use the path as given
-		if (_path[0] === '/' && _path[1] === '/') {
-			const idx = _path.indexOf('/', 2);
+		if (_path[0] === "/" && _path[1] === "/") {
+			const idx = _path.indexOf("/", 2);
 			if (idx === -1) {
 				authority = _path.substring(2);
-				_path = '/';
+				_path = "/";
 			} else {
 				authority = _path.substring(2, idx);
-				_path = _path.substring(idx) || '/';
+				_path = _path.substring(idx) || "/";
 			}
 		}
 
@@ -208,8 +237,8 @@ export abstract class AbstractPathService implements IPathService {
 			scheme: Schemas.file,
 			authority,
 			path: _path,
-			query: '',
-			fragment: ''
+			query: "",
+			fragment: "",
 		});
 	}
 }

@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SyncDescriptor } from './descriptors.js';
-import { BrandedService, ServiceIdentifier } from './instantiation.js';
+import { SyncDescriptor } from "./descriptors.js";
+import { BrandedService, ServiceIdentifier } from "./instantiation.js";
 
 const _registry: [ServiceIdentifier<any>, SyncDescriptor<any>][] = [];
 
@@ -19,19 +19,37 @@ export const enum InstantiationType {
 	 * Instantiate this service as soon as a consumer uses it. This is the _better_
 	 * way of registering a service.
 	 */
-	Delayed = 1
+	Delayed = 1,
 }
 
-export function registerSingleton<T, Services extends BrandedService[]>(id: ServiceIdentifier<T>, ctor: new (...services: Services) => T, supportsDelayedInstantiation: InstantiationType): void;
-export function registerSingleton<T, Services extends BrandedService[]>(id: ServiceIdentifier<T>, descriptor: SyncDescriptor<any>): void;
-export function registerSingleton<T, Services extends BrandedService[]>(id: ServiceIdentifier<T>, ctorOrDescriptor: { new(...services: Services): T } | SyncDescriptor<any>, supportsDelayedInstantiation?: boolean | InstantiationType): void {
+export function registerSingleton<T, Services extends BrandedService[]>(
+	id: ServiceIdentifier<T>,
+	ctor: new (...services: Services) => T,
+	supportsDelayedInstantiation: InstantiationType,
+): void;
+export function registerSingleton<T, Services extends BrandedService[]>(
+	id: ServiceIdentifier<T>,
+	descriptor: SyncDescriptor<any>,
+): void;
+export function registerSingleton<T, Services extends BrandedService[]>(
+	id: ServiceIdentifier<T>,
+	ctorOrDescriptor: { new (...services: Services): T } | SyncDescriptor<any>,
+	supportsDelayedInstantiation?: boolean | InstantiationType,
+): void {
 	if (!(ctorOrDescriptor instanceof SyncDescriptor)) {
-		ctorOrDescriptor = new SyncDescriptor<T>(ctorOrDescriptor as new (...args: any[]) => T, [], Boolean(supportsDelayedInstantiation));
+		ctorOrDescriptor = new SyncDescriptor<T>(
+			ctorOrDescriptor as new (...args: any[]) => T,
+			[],
+			Boolean(supportsDelayedInstantiation),
+		);
 	}
 
 	_registry.push([id, ctorOrDescriptor]);
 }
 
-export function getSingletonServiceDescriptors(): [ServiceIdentifier<any>, SyncDescriptor<any>][] {
+export function getSingletonServiceDescriptors(): [
+	ServiceIdentifier<any>,
+	SyncDescriptor<any>,
+][] {
 	return _registry;
 }

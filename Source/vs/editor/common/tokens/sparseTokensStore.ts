@@ -3,18 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as arrays from '../../../base/common/arrays.js';
-import { IRange, Range } from '../core/range.js';
-import { LineTokens } from './lineTokens.js';
-import { SparseMultilineTokens } from './sparseMultilineTokens.js';
-import { ILanguageIdCodec } from '../languages.js';
-import { MetadataConsts } from '../encodedTokenAttributes.js';
+import * as arrays from "../../../base/common/arrays.js";
+import { IRange, Range } from "../core/range.js";
+import { MetadataConsts } from "../encodedTokenAttributes.js";
+import { ILanguageIdCodec } from "../languages.js";
+import { LineTokens } from "./lineTokens.js";
+import { SparseMultilineTokens } from "./sparseMultilineTokens.js";
 
 /**
  * Represents sparse tokens in a text model.
  */
 export class SparseTokensStore {
-
 	private _pieces: SparseMultilineTokens[];
 	private _isComplete: boolean;
 	private readonly _languageIdCodec: ILanguageIdCodec;
@@ -31,10 +30,13 @@ export class SparseTokensStore {
 	}
 
 	public isEmpty(): boolean {
-		return (this._pieces.length === 0);
+		return this._pieces.length === 0;
 	}
 
-	public set(pieces: SparseMultilineTokens[] | null, isComplete: boolean): void {
+	public set(
+		pieces: SparseMultilineTokens[] | null,
+		isComplete: boolean,
+	): void {
 		this._pieces = pieces || [];
 		this._isComplete = isComplete;
 	}
@@ -110,7 +112,11 @@ export class SparseTokensStore {
 		insertPosition = insertPosition || { index: this._pieces.length };
 
 		if (pieces.length > 0) {
-			this._pieces = arrays.arrayInsert(this._pieces, insertPosition.index, pieces);
+			this._pieces = arrays.arrayInsert(
+				this._pieces,
+				insertPosition.index,
+				pieces,
+			);
 		}
 
 		// console.log(`I HAVE ${this._pieces.length} pieces`);
@@ -123,7 +129,10 @@ export class SparseTokensStore {
 		return this._isComplete;
 	}
 
-	public addSparseTokens(lineNumber: number, aTokens: LineTokens): LineTokens {
+	public addSparseTokens(
+		lineNumber: number,
+		aTokens: LineTokens,
+	): LineTokens {
 		if (aTokens.getLineContent().length === 0) {
 			// Don't do anything for empty lines
 			return aTokens;
@@ -135,7 +144,10 @@ export class SparseTokensStore {
 			return aTokens;
 		}
 
-		const pieceIndex = SparseTokensStore._findFirstPieceWithLine(pieces, lineNumber);
+		const pieceIndex = SparseTokensStore._findFirstPieceWithLine(
+			pieces,
+			lineNumber,
+		);
 		const bTokens = pieces[pieceIndex].getLineTokens(lineNumber);
 
 		if (!bTokens) {
@@ -164,35 +176,65 @@ export class SparseTokensStore {
 			const bEndCharacter = bTokens.getEndCharacter(bIndex);
 			const bMetadata = bTokens.getMetadata(bIndex);
 
-			const bMask = (
-				((bMetadata & MetadataConsts.SEMANTIC_USE_ITALIC) ? MetadataConsts.ITALIC_MASK : 0)
-				| ((bMetadata & MetadataConsts.SEMANTIC_USE_BOLD) ? MetadataConsts.BOLD_MASK : 0)
-				| ((bMetadata & MetadataConsts.SEMANTIC_USE_UNDERLINE) ? MetadataConsts.UNDERLINE_MASK : 0)
-				| ((bMetadata & MetadataConsts.SEMANTIC_USE_STRIKETHROUGH) ? MetadataConsts.STRIKETHROUGH_MASK : 0)
-				| ((bMetadata & MetadataConsts.SEMANTIC_USE_FOREGROUND) ? MetadataConsts.FOREGROUND_MASK : 0)
-				| ((bMetadata & MetadataConsts.SEMANTIC_USE_BACKGROUND) ? MetadataConsts.BACKGROUND_MASK : 0)
-			) >>> 0;
-			const aMask = (~bMask) >>> 0;
+			const bMask =
+				((bMetadata & MetadataConsts.SEMANTIC_USE_ITALIC
+					? MetadataConsts.ITALIC_MASK
+					: 0) |
+					(bMetadata & MetadataConsts.SEMANTIC_USE_BOLD
+						? MetadataConsts.BOLD_MASK
+						: 0) |
+					(bMetadata & MetadataConsts.SEMANTIC_USE_UNDERLINE
+						? MetadataConsts.UNDERLINE_MASK
+						: 0) |
+					(bMetadata & MetadataConsts.SEMANTIC_USE_STRIKETHROUGH
+						? MetadataConsts.STRIKETHROUGH_MASK
+						: 0) |
+					(bMetadata & MetadataConsts.SEMANTIC_USE_FOREGROUND
+						? MetadataConsts.FOREGROUND_MASK
+						: 0) |
+					(bMetadata & MetadataConsts.SEMANTIC_USE_BACKGROUND
+						? MetadataConsts.BACKGROUND_MASK
+						: 0)) >>>
+				0;
+			const aMask = ~bMask >>> 0;
 
 			// push any token from `a` that is before `b`
-			while (aIndex < aLen && aTokens.getEndOffset(aIndex) <= bStartCharacter) {
-				emitToken(aTokens.getEndOffset(aIndex), aTokens.getMetadata(aIndex));
+			while (
+				aIndex < aLen &&
+				aTokens.getEndOffset(aIndex) <= bStartCharacter
+			) {
+				emitToken(
+					aTokens.getEndOffset(aIndex),
+					aTokens.getMetadata(aIndex),
+				);
 				aIndex++;
 			}
 
 			// push the token from `a` if it intersects the token from `b`
-			if (aIndex < aLen && aTokens.getStartOffset(aIndex) < bStartCharacter) {
+			if (
+				aIndex < aLen &&
+				aTokens.getStartOffset(aIndex) < bStartCharacter
+			) {
 				emitToken(bStartCharacter, aTokens.getMetadata(aIndex));
 			}
 
 			// skip any tokens from `a` that are contained inside `b`
-			while (aIndex < aLen && aTokens.getEndOffset(aIndex) < bEndCharacter) {
-				emitToken(aTokens.getEndOffset(aIndex), (aTokens.getMetadata(aIndex) & aMask) | (bMetadata & bMask));
+			while (
+				aIndex < aLen &&
+				aTokens.getEndOffset(aIndex) < bEndCharacter
+			) {
+				emitToken(
+					aTokens.getEndOffset(aIndex),
+					(aTokens.getMetadata(aIndex) & aMask) | (bMetadata & bMask),
+				);
 				aIndex++;
 			}
 
 			if (aIndex < aLen) {
-				emitToken(bEndCharacter, (aTokens.getMetadata(aIndex) & aMask) | (bMetadata & bMask));
+				emitToken(
+					bEndCharacter,
+					(aTokens.getMetadata(aIndex) & aMask) | (bMetadata & bMask),
+				);
 				if (aTokens.getEndOffset(aIndex) === bEndCharacter) {
 					// `a` ends exactly at the same spot as `b`!
 					aIndex++;
@@ -201,20 +243,34 @@ export class SparseTokensStore {
 				const aMergeIndex = Math.min(Math.max(0, aIndex - 1), aLen - 1);
 
 				// push the token from `b`
-				emitToken(bEndCharacter, (aTokens.getMetadata(aMergeIndex) & aMask) | (bMetadata & bMask));
+				emitToken(
+					bEndCharacter,
+					(aTokens.getMetadata(aMergeIndex) & aMask) |
+						(bMetadata & bMask),
+				);
 			}
 		}
 
 		// push the remaining tokens from `a`
 		while (aIndex < aLen) {
-			emitToken(aTokens.getEndOffset(aIndex), aTokens.getMetadata(aIndex));
+			emitToken(
+				aTokens.getEndOffset(aIndex),
+				aTokens.getMetadata(aIndex),
+			);
 			aIndex++;
 		}
 
-		return new LineTokens(new Uint32Array(result), aTokens.getLineContent(), this._languageIdCodec);
+		return new LineTokens(
+			new Uint32Array(result),
+			aTokens.getLineContent(),
+			this._languageIdCodec,
+		);
 	}
 
-	private static _findFirstPieceWithLine(pieces: SparseMultilineTokens[], lineNumber: number): number {
+	private static _findFirstPieceWithLine(
+		pieces: SparseMultilineTokens[],
+		lineNumber: number,
+	): number {
 		let low = 0;
 		let high = pieces.length - 1;
 
@@ -226,7 +282,11 @@ export class SparseTokensStore {
 			} else if (pieces[mid].startLineNumber > lineNumber) {
 				high = mid - 1;
 			} else {
-				while (mid > low && pieces[mid - 1].startLineNumber <= lineNumber && lineNumber <= pieces[mid - 1].endLineNumber) {
+				while (
+					mid > low &&
+					pieces[mid - 1].startLineNumber <= lineNumber &&
+					lineNumber <= pieces[mid - 1].endLineNumber
+				) {
 					mid--;
 				}
 				return mid;
@@ -236,9 +296,21 @@ export class SparseTokensStore {
 		return low;
 	}
 
-	public acceptEdit(range: IRange, eolCount: number, firstLineLength: number, lastLineLength: number, firstCharCode: number): void {
+	public acceptEdit(
+		range: IRange,
+		eolCount: number,
+		firstLineLength: number,
+		lastLineLength: number,
+		firstCharCode: number,
+	): void {
 		for (const piece of this._pieces) {
-			piece.acceptEdit(range, eolCount, firstLineLength, lastLineLength, firstCharCode);
+			piece.acceptEdit(
+				range,
+				eolCount,
+				firstLineLength,
+				lastLineLength,
+				firstCharCode,
+			);
 		}
 	}
 }

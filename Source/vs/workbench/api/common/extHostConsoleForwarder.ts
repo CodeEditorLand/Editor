@@ -3,14 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IStackArgument } from '../../../base/common/console.js';
-import { safeStringify } from '../../../base/common/objects.js';
-import { MainContext, MainThreadConsoleShape } from './extHost.protocol.js';
-import { IExtHostInitDataService } from './extHostInitDataService.js';
-import { IExtHostRpcService } from './extHostRpcService.js';
+import { IStackArgument } from "../../../base/common/console.js";
+import { safeStringify } from "../../../base/common/objects.js";
+import { MainContext, MainThreadConsoleShape } from "./extHost.protocol.js";
+import { IExtHostInitDataService } from "./extHostInitDataService.js";
+import { IExtHostRpcService } from "./extHostRpcService.js";
 
 export abstract class AbstractExtHostConsoleForwarder {
-
 	private readonly _mainThreadConsole: MainThreadConsoleShape;
 	private readonly _includeStack: boolean;
 	private readonly _logNative: boolean;
@@ -19,16 +18,18 @@ export abstract class AbstractExtHostConsoleForwarder {
 		@IExtHostRpcService extHostRpc: IExtHostRpcService,
 		@IExtHostInitDataService initData: IExtHostInitDataService,
 	) {
-		this._mainThreadConsole = extHostRpc.getProxy(MainContext.MainThreadConsole);
+		this._mainThreadConsole = extHostRpc.getProxy(
+			MainContext.MainThreadConsole,
+		);
 		this._includeStack = initData.consoleForward.includeStack;
 		this._logNative = initData.consoleForward.logNative;
 
 		// Pass console logging to the outside so that we have it in the main side if told so
-		this._wrapConsoleMethod('info', 'log');
-		this._wrapConsoleMethod('log', 'log');
-		this._wrapConsoleMethod('warn', 'warn');
-		this._wrapConsoleMethod('debug', 'debug');
-		this._wrapConsoleMethod('error', 'error');
+		this._wrapConsoleMethod("info", "log");
+		this._wrapConsoleMethod("log", "log");
+		this._wrapConsoleMethod("warn", "warn");
+		this._wrapConsoleMethod("debug", "debug");
+		this._wrapConsoleMethod("error", "error");
 	}
 
 	/**
@@ -40,31 +41,48 @@ export abstract class AbstractExtHostConsoleForwarder {
 	 * The wrapped property is not defined with `writable: false` to avoid
 	 * throwing errors, but rather a no-op setting. See https://github.com/microsoft/vscode-extension-telemetry/issues/88
 	 */
-	private _wrapConsoleMethod(method: 'log' | 'info' | 'warn' | 'error' | 'debug', severity: 'log' | 'warn' | 'error' | 'debug') {
+	private _wrapConsoleMethod(
+		method: "log" | "info" | "warn" | "error" | "debug",
+		severity: "log" | "warn" | "error" | "debug",
+	) {
 		const that = this;
 		const original = console[method];
 
 		Object.defineProperty(console, method, {
-			set: () => { },
-			get: () => function () {
-				that._handleConsoleCall(method, severity, original, arguments);
-			},
+			set: () => {},
+			get: () =>
+				function () {
+					that._handleConsoleCall(
+						method,
+						severity,
+						original,
+						arguments,
+					);
+				},
 		});
 	}
 
-	private _handleConsoleCall(method: 'log' | 'info' | 'warn' | 'error' | 'debug', severity: 'log' | 'warn' | 'error' | 'debug', original: (...args: any[]) => void, args: IArguments): void {
+	private _handleConsoleCall(
+		method: "log" | "info" | "warn" | "error" | "debug",
+		severity: "log" | "warn" | "error" | "debug",
+		original: (...args: any[]) => void,
+		args: IArguments,
+	): void {
 		this._mainThreadConsole.$logExtensionHostMessage({
-			type: '__$console',
+			type: "__$console",
 			severity,
-			arguments: safeStringifyArgumentsToArray(args, this._includeStack)
+			arguments: safeStringifyArgumentsToArray(args, this._includeStack),
 		});
 		if (this._logNative) {
 			this._nativeConsoleLogMessage(method, original, args);
 		}
 	}
 
-	protected abstract _nativeConsoleLogMessage(method: 'log' | 'info' | 'warn' | 'error' | 'debug', original: (...args: any[]) => void, args: IArguments): void;
-
+	protected abstract _nativeConsoleLogMessage(
+		method: "log" | "info" | "warn" | "error" | "debug",
+		original: (...args: any[]) => void,
+		args: IArguments,
+	): void;
 }
 
 const MAX_LENGTH = 100000;
@@ -72,7 +90,10 @@ const MAX_LENGTH = 100000;
 /**
  * Prevent circular stringify and convert arguments to real array
  */
-function safeStringifyArgumentsToArray(args: IArguments, includeStack: boolean): string {
+function safeStringifyArgumentsToArray(
+	args: IArguments,
+	includeStack: boolean,
+): string {
 	const argsArray = [];
 
 	// Massage some arguments with special treatment
@@ -83,8 +104,8 @@ function safeStringifyArgumentsToArray(args: IArguments, includeStack: boolean):
 			// Any argument of type 'undefined' needs to be specially treated because
 			// JSON.stringify will simply ignore those. We replace them with the string
 			// 'undefined' which is not 100% right, but good enough to be logged to console
-			if (typeof arg === 'undefined') {
-				arg = 'undefined';
+			if (typeof arg === "undefined") {
+				arg = "undefined";
 			}
 
 			// Any argument that is an Error will be changed to be just the error stack/message
@@ -107,7 +128,9 @@ function safeStringifyArgumentsToArray(args: IArguments, includeStack: boolean):
 	if (includeStack) {
 		const stack = new Error().stack;
 		if (stack) {
-			argsArray.push({ __$stack: stack.split('\n').slice(3).join('\n') } satisfies IStackArgument);
+			argsArray.push({
+				__$stack: stack.split("\n").slice(3).join("\n"),
+			} satisfies IStackArgument);
 		}
 	}
 
@@ -115,7 +138,7 @@ function safeStringifyArgumentsToArray(args: IArguments, includeStack: boolean):
 		const res = safeStringify(argsArray);
 
 		if (res.length > MAX_LENGTH) {
-			return 'Output omitted for a large object that exceeds the limits';
+			return "Output omitted for a large object that exceeds the limits";
 		}
 
 		return res;

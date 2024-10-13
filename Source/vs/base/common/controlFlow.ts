@@ -2,15 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { BugIndicatingError } from './errors.js';
+import { BugIndicatingError } from "./errors.js";
 
 /*
  * This file contains helper classes to manage control flow.
-*/
+ */
 
 /**
  * Prevents code from being re-entrant.
-*/
+ */
 export class ReentrancyBarrier {
 	private _isOccupied = false;
 
@@ -36,7 +36,9 @@ export class ReentrancyBarrier {
 	 */
 	public runExclusivelyOrThrow(runner: () => void): void {
 		if (this._isOccupied) {
-			throw new BugIndicatingError(`ReentrancyBarrier: reentrant call detected!`);
+			throw new BugIndicatingError(
+				`ReentrancyBarrier: reentrant call detected!`,
+			);
 		}
 		this._isOccupied = true;
 		try {
@@ -48,12 +50,14 @@ export class ReentrancyBarrier {
 
 	/**
 	 * Indicates if some runner occupies this barrier.
-	*/
+	 */
 	public get isOccupied() {
 		return this._isOccupied;
 	}
 
-	public makeExclusiveOrSkip<TFunction extends Function>(fn: TFunction): TFunction {
+	public makeExclusiveOrSkip<TFunction extends Function>(
+		fn: TFunction,
+	): TFunction {
 		return ((...args: any[]) => {
 			if (this._isOccupied) {
 				return;

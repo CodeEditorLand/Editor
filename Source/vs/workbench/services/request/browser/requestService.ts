@@ -3,35 +3,58 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IRequestOptions, IRequestContext } from '../../../../base/parts/request/common/request.js';
-import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { RequestChannelClient } from '../../../../platform/request/common/requestIpc.js';
-import { IRemoteAgentService, IRemoteAgentConnection } from '../../remote/common/remoteAgentService.js';
-import { ServicesAccessor } from '../../../../editor/browser/editorExtensions.js';
-import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
-import { AbstractRequestService, AuthInfo, Credentials, IRequestService } from '../../../../platform/request/common/request.js';
-import { request } from '../../../../base/parts/request/browser/request.js';
-import { ILogService } from '../../../../platform/log/common/log.js';
+import { CancellationToken } from "../../../../base/common/cancellation.js";
+import { request } from "../../../../base/parts/request/browser/request.js";
+import {
+	IRequestContext,
+	IRequestOptions,
+} from "../../../../base/parts/request/common/request.js";
+import { ServicesAccessor } from "../../../../editor/browser/editorExtensions.js";
+import { CommandsRegistry } from "../../../../platform/commands/common/commands.js";
+import { IConfigurationService } from "../../../../platform/configuration/common/configuration.js";
+import { ILogService } from "../../../../platform/log/common/log.js";
+import {
+	AbstractRequestService,
+	AuthInfo,
+	Credentials,
+	IRequestService,
+} from "../../../../platform/request/common/request.js";
+import { RequestChannelClient } from "../../../../platform/request/common/requestIpc.js";
+import {
+	IRemoteAgentConnection,
+	IRemoteAgentService,
+} from "../../remote/common/remoteAgentService.js";
 
-export class BrowserRequestService extends AbstractRequestService implements IRequestService {
-
+export class BrowserRequestService
+	extends AbstractRequestService
+	implements IRequestService
+{
 	declare readonly _serviceBrand: undefined;
 
 	constructor(
-		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
-		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IRemoteAgentService
+		private readonly remoteAgentService: IRemoteAgentService,
+		@IConfigurationService
+		private readonly configurationService: IConfigurationService,
 		@ILogService logService: ILogService,
 	) {
 		super(logService);
 	}
 
-	async request(options: IRequestOptions, token: CancellationToken): Promise<IRequestContext> {
+	async request(
+		options: IRequestOptions,
+		token: CancellationToken,
+	): Promise<IRequestContext> {
 		try {
 			if (!options.proxyAuthorization) {
-				options.proxyAuthorization = this.configurationService.getValue<string>('http.proxyAuthorization');
+				options.proxyAuthorization =
+					this.configurationService.getValue<string>(
+						"http.proxyAuthorization",
+					);
 			}
-			const context = await this.logAndRequest(options, () => request(options, token));
+			const context = await this.logAndRequest(options, () =>
+				request(options, token),
+			);
 
 			const connection = this.remoteAgentService.getConnection();
 			if (connection && context.res.statusCode === 405) {
@@ -51,11 +74,15 @@ export class BrowserRequestService extends AbstractRequestService implements IRe
 		return undefined; // not implemented in the web
 	}
 
-	async lookupAuthorization(authInfo: AuthInfo): Promise<Credentials | undefined> {
+	async lookupAuthorization(
+		authInfo: AuthInfo,
+	): Promise<Credentials | undefined> {
 		return undefined; // not implemented in the web
 	}
 
-	async lookupKerberosAuthorization(url: string): Promise<string | undefined> {
+	async lookupKerberosAuthorization(
+		url: string,
+	): Promise<string | undefined> {
 		return undefined; // not implemented in the web
 	}
 
@@ -63,19 +90,31 @@ export class BrowserRequestService extends AbstractRequestService implements IRe
 		return []; // not implemented in the web
 	}
 
-	private _makeRemoteRequest(connection: IRemoteAgentConnection, options: IRequestOptions, token: CancellationToken): Promise<IRequestContext> {
-		return connection.withChannel('request', channel => new RequestChannelClient(channel).request(options, token));
+	private _makeRemoteRequest(
+		connection: IRemoteAgentConnection,
+		options: IRequestOptions,
+		token: CancellationToken,
+	): Promise<IRequestContext> {
+		return connection.withChannel("request", (channel) =>
+			new RequestChannelClient(channel).request(options, token),
+		);
 	}
 }
 
 // --- Internal commands to help authentication for extensions
 
-CommandsRegistry.registerCommand('_workbench.fetchJSON', async function (accessor: ServicesAccessor, url: string, method: string) {
-	const result = await fetch(url, { method, headers: { Accept: 'application/json' } });
+CommandsRegistry.registerCommand(
+	"_workbench.fetchJSON",
+	async function (accessor: ServicesAccessor, url: string, method: string) {
+		const result = await fetch(url, {
+			method,
+			headers: { Accept: "application/json" },
+		});
 
-	if (result.ok) {
-		return result.json();
-	} else {
-		throw new Error(result.statusText);
-	}
-});
+		if (result.ok) {
+			return result.json();
+		} else {
+			throw new Error(result.statusText);
+		}
+	},
+);

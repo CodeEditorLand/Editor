@@ -3,8 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ResolvedKeybinding, Keybinding } from '../../../base/common/keybindings.js';
-import { IKeyboardEvent } from '../../keybinding/common/keybinding.js';
+import {
+	Keybinding,
+	ResolvedKeybinding,
+} from "../../../base/common/keybindings.js";
+import { IKeyboardEvent } from "../../keybinding/common/keybinding.js";
 
 export interface IKeyboardMapper {
 	dumpDebugInfo(): string;
@@ -13,7 +16,6 @@ export interface IKeyboardMapper {
 }
 
 export class CachedKeyboardMapper implements IKeyboardMapper {
-
 	private _actual: IKeyboardMapper;
 	private _cache: Map<string, ResolvedKeybinding[]>;
 
@@ -26,7 +28,9 @@ export class CachedKeyboardMapper implements IKeyboardMapper {
 		return this._actual.dumpDebugInfo();
 	}
 
-	public resolveKeyboardEvent(keyboardEvent: IKeyboardEvent): ResolvedKeybinding {
+	public resolveKeyboardEvent(
+		keyboardEvent: IKeyboardEvent,
+	): ResolvedKeybinding {
 		return this._actual.resolveKeyboardEvent(keyboardEvent);
 	}
 

@@ -3,21 +3,31 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { compareBy, numberComparator } from '../../../../../base/common/arrays.js';
-import { findFirstMax } from '../../../../../base/common/arraysFind.js';
-import { Emitter, Event } from '../../../../../base/common/event.js';
-import { Disposable } from '../../../../../base/common/lifecycle.js';
-import { ICodeEditor } from '../../../../browser/editorBrowser.js';
-import { Position } from '../../../../common/core/position.js';
-import { Range } from '../../../../common/core/range.js';
-import { SingleTextEdit } from '../../../../common/core/textEdit.js';
-import { CompletionItemInsertTextRule, CompletionItemKind, SelectedSuggestionInfo } from '../../../../common/languages.js';
-import { ITextModel } from '../../../../common/model.js';
-import { singleTextEditAugments, singleTextRemoveCommonPrefix } from './singleTextEditHelpers.js';
-import { SnippetParser } from '../../../snippet/browser/snippetParser.js';
-import { SnippetSession } from '../../../snippet/browser/snippetSession.js';
-import { CompletionItem } from '../../../suggest/browser/suggest.js';
-import { SuggestController } from '../../../suggest/browser/suggestController.js';
+import {
+	compareBy,
+	numberComparator,
+} from "../../../../../base/common/arrays.js";
+import { findFirstMax } from "../../../../../base/common/arraysFind.js";
+import { Emitter, Event } from "../../../../../base/common/event.js";
+import { Disposable } from "../../../../../base/common/lifecycle.js";
+import { ICodeEditor } from "../../../../browser/editorBrowser.js";
+import { Position } from "../../../../common/core/position.js";
+import { Range } from "../../../../common/core/range.js";
+import { SingleTextEdit } from "../../../../common/core/textEdit.js";
+import {
+	CompletionItemInsertTextRule,
+	CompletionItemKind,
+	SelectedSuggestionInfo,
+} from "../../../../common/languages.js";
+import { ITextModel } from "../../../../common/model.js";
+import { SnippetParser } from "../../../snippet/browser/snippetParser.js";
+import { SnippetSession } from "../../../snippet/browser/snippetSession.js";
+import { CompletionItem } from "../../../suggest/browser/suggest.js";
+import { SuggestController } from "../../../suggest/browser/suggestController.js";
+import {
+	singleTextEditAugments,
+	singleTextRemoveCommonPrefix,
+} from "./singleTextEditHelpers.js";
 
 export class SuggestWidgetAdaptor extends Disposable {
 	private isSuggestWidgetVisible: boolean = false;
@@ -28,63 +38,97 @@ export class SuggestWidgetAdaptor extends Disposable {
 		return this._currentSuggestItemInfo;
 	}
 	private _onDidSelectedItemChange = this._register(new Emitter<void>());
-	public readonly onDidSelectedItemChange: Event<void> = this._onDidSelectedItemChange.event;
+	public readonly onDidSelectedItemChange: Event<void> =
+		this._onDidSelectedItemChange.event;
 
 	constructor(
 		private readonly editor: ICodeEditor,
-		private readonly suggestControllerPreselector: () => SingleTextEdit | undefined,
+		private readonly suggestControllerPreselector: () =>
+			| SingleTextEdit
+			| undefined,
 		private readonly onWillAccept: (item: SuggestItemInfo) => void,
 	) {
 		super();
 
 		// See the command acceptAlternativeSelectedSuggestion that is bound to shift+tab
-		this._register(editor.onKeyDown(e => {
-			if (e.shiftKey && !this.isShiftKeyPressed) {
-				this.isShiftKeyPressed = true;
-				this.update(this._isActive);
-			}
-		}));
-		this._register(editor.onKeyUp(e => {
-			if (e.shiftKey && this.isShiftKeyPressed) {
-				this.isShiftKeyPressed = false;
-				this.update(this._isActive);
-			}
-		}));
+		this._register(
+			editor.onKeyDown((e) => {
+				if (e.shiftKey && !this.isShiftKeyPressed) {
+					this.isShiftKeyPressed = true;
+					this.update(this._isActive);
+				}
+			}),
+		);
+		this._register(
+			editor.onKeyUp((e) => {
+				if (e.shiftKey && this.isShiftKeyPressed) {
+					this.isShiftKeyPressed = false;
+					this.update(this._isActive);
+				}
+			}),
+		);
 
 		const suggestController = SuggestController.get(this.editor);
 		if (suggestController) {
-			this._register(suggestController.registerSelector({
-				priority: 100,
-				select: (model, pos, suggestItems) => {
-					const textModel = this.editor.getModel();
-					if (!textModel) {
-						// Should not happen
-						return -1;
-					}
+			this._register(
+				suggestController.registerSelector({
+					priority: 100,
+					select: (model, pos, suggestItems) => {
+						const textModel = this.editor.getModel();
+						if (!textModel) {
+							// Should not happen
+							return -1;
+						}
 
-					const i = this.suggestControllerPreselector();
-					const itemToPreselect = i ? singleTextRemoveCommonPrefix(i, textModel) : undefined;
-					if (!itemToPreselect) {
-						return -1;
-					}
-					const position = Position.lift(pos);
+						const i = this.suggestControllerPreselector();
+						const itemToPreselect = i
+							? singleTextRemoveCommonPrefix(i, textModel)
+							: undefined;
+						if (!itemToPreselect) {
+							return -1;
+						}
+						const position = Position.lift(pos);
 
-					const candidates = suggestItems
-						.map((suggestItem, index) => {
-							const suggestItemInfo = SuggestItemInfo.fromSuggestion(suggestController, textModel, position, suggestItem, this.isShiftKeyPressed);
-							const suggestItemTextEdit = singleTextRemoveCommonPrefix(suggestItemInfo.toSingleTextEdit(), textModel);
-							const valid = singleTextEditAugments(itemToPreselect, suggestItemTextEdit);
-							return { index, valid, prefixLength: suggestItemTextEdit.text.length, suggestItem };
-						})
-						.filter(item => item && item.valid && item.prefixLength > 0);
+						const candidates = suggestItems
+							.map((suggestItem, index) => {
+								const suggestItemInfo =
+									SuggestItemInfo.fromSuggestion(
+										suggestController,
+										textModel,
+										position,
+										suggestItem,
+										this.isShiftKeyPressed,
+									);
+								const suggestItemTextEdit =
+									singleTextRemoveCommonPrefix(
+										suggestItemInfo.toSingleTextEdit(),
+										textModel,
+									);
+								const valid = singleTextEditAugments(
+									itemToPreselect,
+									suggestItemTextEdit,
+								);
+								return {
+									index,
+									valid,
+									prefixLength:
+										suggestItemTextEdit.text.length,
+									suggestItem,
+								};
+							})
+							.filter(
+								(item) =>
+									item && item.valid && item.prefixLength > 0,
+							);
 
-					const result = findFirstMax(
-						candidates,
-						compareBy(s => s!.prefixLength, numberComparator)
-					);
-					return result ? result.index : - 1;
-				}
-			}));
+						const result = findFirstMax(
+							candidates,
+							compareBy((s) => s!.prefixLength, numberComparator),
+						);
+						return result ? result.index : -1;
+					},
+				}),
+			);
 
 			let isBoundToSuggestWidget = false;
 			const bindToSuggestWidget = () => {
@@ -93,39 +137,51 @@ export class SuggestWidgetAdaptor extends Disposable {
 				}
 				isBoundToSuggestWidget = true;
 
-				this._register(suggestController.widget.value.onDidShow(() => {
-					this.isSuggestWidgetVisible = true;
-					this.update(true);
-				}));
-				this._register(suggestController.widget.value.onDidHide(() => {
-					this.isSuggestWidgetVisible = false;
-					this.update(false);
-				}));
-				this._register(suggestController.widget.value.onDidFocus(() => {
-					this.isSuggestWidgetVisible = true;
-					this.update(true);
-				}));
+				this._register(
+					suggestController.widget.value.onDidShow(() => {
+						this.isSuggestWidgetVisible = true;
+						this.update(true);
+					}),
+				);
+				this._register(
+					suggestController.widget.value.onDidHide(() => {
+						this.isSuggestWidgetVisible = false;
+						this.update(false);
+					}),
+				);
+				this._register(
+					suggestController.widget.value.onDidFocus(() => {
+						this.isSuggestWidgetVisible = true;
+						this.update(true);
+					}),
+				);
 			};
 
-			this._register(Event.once(suggestController.model.onDidTrigger)(e => {
-				bindToSuggestWidget();
-			}));
+			this._register(
+				Event.once(suggestController.model.onDidTrigger)((e) => {
+					bindToSuggestWidget();
+				}),
+			);
 
-			this._register(suggestController.onWillInsertSuggestItem(e => {
-				const position = this.editor.getPosition();
-				const model = this.editor.getModel();
-				if (!position || !model) { return undefined; }
+			this._register(
+				suggestController.onWillInsertSuggestItem((e) => {
+					const position = this.editor.getPosition();
+					const model = this.editor.getModel();
+					if (!position || !model) {
+						return undefined;
+					}
 
-				const suggestItemInfo = SuggestItemInfo.fromSuggestion(
-					suggestController,
-					model,
-					position,
-					e.item,
-					this.isShiftKeyPressed
-				);
+					const suggestItemInfo = SuggestItemInfo.fromSuggestion(
+						suggestController,
+						model,
+						position,
+						e.item,
+						this.isShiftKeyPressed,
+					);
 
-				this.onWillAccept(suggestItemInfo);
-			}));
+					this.onWillAccept(suggestItemInfo);
+				}),
+			);
 		}
 		this.update(this._isActive);
 	}
@@ -133,7 +189,13 @@ export class SuggestWidgetAdaptor extends Disposable {
 	private update(newActive: boolean): void {
 		const newInlineCompletion = this.getSuggestItemInfo();
 
-		if (this._isActive !== newActive || !suggestItemInfoEquals(this._currentSuggestItemInfo, newInlineCompletion)) {
+		if (
+			this._isActive !== newActive ||
+			!suggestItemInfoEquals(
+				this._currentSuggestItemInfo,
+				newInlineCompletion,
+			)
+		) {
 			this._isActive = newActive;
 			this._currentSuggestItemInfo = newInlineCompletion;
 
@@ -160,7 +222,7 @@ export class SuggestWidgetAdaptor extends Disposable {
 			model,
 			position,
 			focusedItem.item,
-			this.isShiftKeyPressed
+			this.isShiftKeyPressed,
 		);
 	}
 
@@ -176,10 +238,19 @@ export class SuggestWidgetAdaptor extends Disposable {
 }
 
 export class SuggestItemInfo {
-	public static fromSuggestion(suggestController: SuggestController, model: ITextModel, position: Position, item: CompletionItem, toggleMode: boolean): SuggestItemInfo {
+	public static fromSuggestion(
+		suggestController: SuggestController,
+		model: ITextModel,
+		position: Position,
+		item: CompletionItem,
+		toggleMode: boolean,
+	): SuggestItemInfo {
 		let { insertText } = item.completion;
 		let isSnippetText = false;
-		if (item.completion.insertTextRules! & CompletionItemInsertTextRule.InsertAsSnippet) {
+		if (
+			item.completion.insertTextRules! &
+			CompletionItemInsertTextRule.InsertAsSnippet
+		) {
 			const snippet = new SnippetParser().parse(insertText);
 
 			if (snippet.children.length < 100) {
@@ -196,7 +267,7 @@ export class SuggestItemInfo {
 		return new SuggestItemInfo(
 			Range.fromPositions(
 				position.delta(0, -info.overwriteBefore),
-				position.delta(0, Math.max(info.overwriteAfter, 0))
+				position.delta(0, Math.max(info.overwriteAfter, 0)),
 			),
 			insertText,
 			item.completion.kind,
@@ -209,17 +280,24 @@ export class SuggestItemInfo {
 		public readonly insertText: string,
 		public readonly completionItemKind: CompletionItemKind,
 		public readonly isSnippetText: boolean,
-	) { }
+	) {}
 
 	public equals(other: SuggestItemInfo): boolean {
-		return this.range.equalsRange(other.range)
-			&& this.insertText === other.insertText
-			&& this.completionItemKind === other.completionItemKind
-			&& this.isSnippetText === other.isSnippetText;
+		return (
+			this.range.equalsRange(other.range) &&
+			this.insertText === other.insertText &&
+			this.completionItemKind === other.completionItemKind &&
+			this.isSnippetText === other.isSnippetText
+		);
 	}
 
 	public toSelectedSuggestionInfo(): SelectedSuggestionInfo {
-		return new SelectedSuggestionInfo(this.range, this.insertText, this.completionItemKind, this.isSnippetText);
+		return new SelectedSuggestionInfo(
+			this.range,
+			this.insertText,
+			this.completionItemKind,
+			this.isSnippetText,
+		);
 	}
 
 	public toSingleTextEdit(): SingleTextEdit {
@@ -227,7 +305,10 @@ export class SuggestItemInfo {
 	}
 }
 
-function suggestItemInfoEquals(a: SuggestItemInfo | undefined, b: SuggestItemInfo | undefined): boolean {
+function suggestItemInfoEquals(
+	a: SuggestItemInfo | undefined,
+	b: SuggestItemInfo | undefined,
+): boolean {
 	if (a === b) {
 		return true;
 	}

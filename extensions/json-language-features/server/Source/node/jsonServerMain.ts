@@ -3,13 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createConnection, Connection, Disposable } from 'vscode-languageserver/node';
-import { formatError } from '../utils/runner';
-import { RequestService, RuntimeEnvironment, startServer } from '../jsonServer';
+import * as fs from "fs";
+import {
+	configure as configureHttpRequests,
+	getErrorStatusDescription,
+	xhr,
+	XHRResponse,
+} from "request-light";
+import {
+	Connection,
+	createConnection,
+	Disposable,
+} from "vscode-languageserver/node";
+import { URI as Uri } from "vscode-uri";
 
-import { xhr, XHRResponse, configure as configureHttpRequests, getErrorStatusDescription } from 'request-light';
-import { URI as Uri } from 'vscode-uri';
-import * as fs from 'fs';
+import { RequestService, RuntimeEnvironment, startServer } from "../jsonServer";
+import { formatError } from "../utils/runner";
 
 // Create a connection for the server.
 const connection: Connection = createConnection();
@@ -17,20 +26,27 @@ const connection: Connection = createConnection();
 console.log = connection.console.log.bind(connection.console);
 console.error = connection.console.error.bind(connection.console);
 
-process.on('unhandledRejection', (e: any) => {
+process.on("unhandledRejection", (e: any) => {
 	connection.console.error(formatError(`Unhandled exception`, e));
 });
 
 function getHTTPRequestService(): RequestService {
 	return {
 		getContent(uri: string, _encoding?: string) {
-			const headers = { 'Accept-Encoding': 'gzip, deflate' };
-			return xhr({ url: uri, followRedirects: 5, headers }).then(response => {
-				return response.responseText;
-			}, (error: XHRResponse) => {
-				return Promise.reject(error.responseText || getErrorStatusDescription(error.status) || error.toString());
-			});
-		}
+			const headers = { "Accept-Encoding": "gzip, deflate" };
+			return xhr({ url: uri, followRedirects: 5, headers }).then(
+				(response) => {
+					return response.responseText;
+				},
+				(error: XHRResponse) => {
+					return Promise.reject(
+						error.responseText ||
+							getErrorStatusDescription(error.status) ||
+							error.toString(),
+					);
+				},
+			);
+		},
 	};
 }
 
@@ -46,26 +62,31 @@ function getFileRequestService(): RequestService {
 					c(buf.toString());
 				});
 			});
-		}
+		},
 	};
 }
 
 const runtime: RuntimeEnvironment = {
 	timer: {
-		setImmediate(callback: (...args: any[]) => void, ...args: any[]): Disposable {
+		setImmediate(
+			callback: (...args: any[]) => void,
+			...args: any[]
+		): Disposable {
 			const handle = setImmediate(callback, ...args);
 			return { dispose: () => clearImmediate(handle) };
 		},
-		setTimeout(callback: (...args: any[]) => void, ms: number, ...args: any[]): Disposable {
+		setTimeout(
+			callback: (...args: any[]) => void,
+			ms: number,
+			...args: any[]
+		): Disposable {
 			const handle = setTimeout(callback, ms, ...args);
 			return { dispose: () => clearTimeout(handle) };
-		}
+		},
 	},
 	file: getFileRequestService(),
 	http: getHTTPRequestService(),
-	configureHttpRequests
+	configureHttpRequests,
 };
-
-
 
 startServer(connection, runtime);

@@ -3,13 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
-import * as Platform from '../../../../base/common/platform.js';
-import * as uuid from '../../../../base/common/uuid.js';
-import { cleanRemoteAuthority } from '../../../../platform/telemetry/common/telemetryUtils.js';
-import { mixin } from '../../../../base/common/objects.js';
-import { ICommonProperties, firstSessionDateStorageKey, lastSessionDateStorageKey, machineIdKey } from '../../../../platform/telemetry/common/telemetry.js';
-import { Gesture } from '../../../../base/browser/touch.js';
+import { Gesture } from "../../../../base/browser/touch.js";
+import { mixin } from "../../../../base/common/objects.js";
+import * as Platform from "../../../../base/common/platform.js";
+import * as uuid from "../../../../base/common/uuid.js";
+import {
+	IStorageService,
+	StorageScope,
+	StorageTarget,
+} from "../../../../platform/storage/common/storage.js";
+import {
+	firstSessionDateStorageKey,
+	ICommonProperties,
+	lastSessionDateStorageKey,
+	machineIdKey,
+} from "../../../../platform/telemetry/common/telemetry.js";
+import { cleanRemoteAuthority } from "../../../../platform/telemetry/common/telemetryUtils.js";
 
 /**
  * General function to help reduce the individuality of user agents
@@ -17,7 +26,7 @@ import { Gesture } from '../../../../base/browser/touch.js';
  * @returns A simplified user agent with less detail
  */
 function cleanUserAgent(userAgent: string): string {
-	return userAgent.replace(/(\d+\.\d+)(\.\d+)+/g, '$1');
+	return userAgent.replace(/(\d+\.\d+)(\.\d+)+/g, "$1");
 }
 
 export function resolveWorkbenchCommonProperties(
@@ -28,57 +37,69 @@ export function resolveWorkbenchCommonProperties(
 	remoteAuthority?: string,
 	productIdentifier?: string,
 	removeMachineId?: boolean,
-	resolveAdditionalProperties?: () => { [key: string]: any }
+	resolveAdditionalProperties?: () => { [key: string]: any },
 ): ICommonProperties {
 	const result: ICommonProperties = Object.create(null);
-	const firstSessionDate = storageService.get(firstSessionDateStorageKey, StorageScope.APPLICATION)!;
-	const lastSessionDate = storageService.get(lastSessionDateStorageKey, StorageScope.APPLICATION)!;
+	const firstSessionDate = storageService.get(
+		firstSessionDateStorageKey,
+		StorageScope.APPLICATION,
+	)!;
+	const lastSessionDate = storageService.get(
+		lastSessionDateStorageKey,
+		StorageScope.APPLICATION,
+	)!;
 
 	let machineId: string | undefined;
 	if (!removeMachineId) {
 		machineId = storageService.get(machineIdKey, StorageScope.APPLICATION);
 		if (!machineId) {
 			machineId = uuid.generateUuid();
-			storageService.store(machineIdKey, machineId, StorageScope.APPLICATION, StorageTarget.MACHINE);
+			storageService.store(
+				machineIdKey,
+				machineId,
+				StorageScope.APPLICATION,
+				StorageTarget.MACHINE,
+			);
 		}
 	} else {
-		machineId = `Redacted-${productIdentifier ?? 'web'}`;
+		machineId = `Redacted-${productIdentifier ?? "web"}`;
 	}
-
 
 	/**
 	 * Note: In the web, session date information is fetched from browser storage, so these dates are tied to a specific
 	 * browser and not the machine overall.
 	 */
 	// __GDPR__COMMON__ "common.firstSessionDate" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['common.firstSessionDate'] = firstSessionDate;
+	result["common.firstSessionDate"] = firstSessionDate;
 	// __GDPR__COMMON__ "common.lastSessionDate" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['common.lastSessionDate'] = lastSessionDate || '';
+	result["common.lastSessionDate"] = lastSessionDate || "";
 	// __GDPR__COMMON__ "common.isNewSession" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['common.isNewSession'] = !lastSessionDate ? '1' : '0';
+	result["common.isNewSession"] = !lastSessionDate ? "1" : "0";
 	// __GDPR__COMMON__ "common.remoteAuthority" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth" }
-	result['common.remoteAuthority'] = cleanRemoteAuthority(remoteAuthority);
+	result["common.remoteAuthority"] = cleanRemoteAuthority(remoteAuthority);
 
 	// __GDPR__COMMON__ "common.machineId" : { "endPoint": "MacAddressHash", "classification": "EndUserPseudonymizedInformation", "purpose": "FeatureInsight" }
-	result['common.machineId'] = machineId;
+	result["common.machineId"] = machineId;
 	// __GDPR__COMMON__ "sessionID" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['sessionID'] = uuid.generateUuid() + Date.now();
+	result["sessionID"] = uuid.generateUuid() + Date.now();
 	// __GDPR__COMMON__ "commitHash" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth" }
-	result['commitHash'] = commit;
+	result["commitHash"] = commit;
 	// __GDPR__COMMON__ "version" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['version'] = version;
+	result["version"] = version;
 	// __GDPR__COMMON__ "common.platform" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['common.platform'] = Platform.PlatformToString(Platform.platform);
+	result["common.platform"] = Platform.PlatformToString(Platform.platform);
 	// __GDPR__COMMON__ "common.product" : { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth" }
-	result['common.product'] = productIdentifier ?? 'web';
+	result["common.product"] = productIdentifier ?? "web";
 	// __GDPR__COMMON__ "common.userAgent" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['common.userAgent'] = Platform.userAgent ? cleanUserAgent(Platform.userAgent) : undefined;
+	result["common.userAgent"] = Platform.userAgent
+		? cleanUserAgent(Platform.userAgent)
+		: undefined;
 	// __GDPR__COMMON__ "common.isTouchDevice" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-	result['common.isTouchDevice'] = String(Gesture.isTouchDevice());
+	result["common.isTouchDevice"] = String(Gesture.isTouchDevice());
 
 	if (isInternalTelemetry) {
 		// __GDPR__COMMON__ "common.msftInternal" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true }
-		result['common.msftInternal'] = isInternalTelemetry;
+		result["common.msftInternal"] = isInternalTelemetry;
 	}
 
 	// dynamic properties which value differs on each call
@@ -86,20 +107,20 @@ export function resolveWorkbenchCommonProperties(
 	const startTime = Date.now();
 	Object.defineProperties(result, {
 		// __GDPR__COMMON__ "timestamp" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
-		'timestamp': {
+		"timestamp": {
 			get: () => new Date(),
-			enumerable: true
+			enumerable: true,
 		},
 		// __GDPR__COMMON__ "common.timesincesessionstart" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true }
-		'common.timesincesessionstart': {
+		"common.timesincesessionstart": {
 			get: () => Date.now() - startTime,
-			enumerable: true
+			enumerable: true,
 		},
 		// __GDPR__COMMON__ "common.sequence" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true }
-		'common.sequence': {
+		"common.sequence": {
 			get: () => seq++,
-			enumerable: true
-		}
+			enumerable: true,
+		},
 	});
 
 	if (resolveAdditionalProperties) {
@@ -108,4 +129,3 @@ export function resolveWorkbenchCommonProperties(
 
 	return result;
 }
-

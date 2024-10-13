@@ -3,23 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IContentActionHandler } from '../../formattedTextRenderer.js';
-import { IContextViewProvider } from '../contextview/contextview.js';
-import { IListStyles, unthemedListStyles } from '../list/listWidget.js';
-import { SelectBoxList } from './selectBoxCustom.js';
-import { SelectBoxNative } from './selectBoxNative.js';
-import { Widget } from '../widget.js';
-import { Event } from '../../../common/event.js';
-import { IDisposable } from '../../../common/lifecycle.js';
-import { isMacintosh } from '../../../common/platform.js';
-import './selectBox.css';
+import { Event } from "../../../common/event.js";
+import { IDisposable } from "../../../common/lifecycle.js";
+import { isMacintosh } from "../../../common/platform.js";
+import { IContentActionHandler } from "../../formattedTextRenderer.js";
+import { IContextViewProvider } from "../contextview/contextview.js";
+import { IListStyles, unthemedListStyles } from "../list/listWidget.js";
+import { Widget } from "../widget.js";
+import { SelectBoxList } from "./selectBoxCustom.js";
+import { SelectBoxNative } from "./selectBoxNative.js";
 
-
+import "./selectBox.css";
 
 // Public SelectBox interface - Calls routed to appropriate select implementation class
 
 export interface ISelectBoxDelegate extends IDisposable {
-
 	// Public SelectBox Interface
 	readonly onDidSelect: Event<ISelectData>;
 	setOptions(options: ISelectOptionItem[], selected?: number): void;
@@ -65,9 +63,9 @@ export interface ISelectBoxStyles extends IListStyles {
 
 export const unthemedSelectBoxStyles: ISelectBoxStyles = {
 	...unthemedListStyles,
-	selectBackground: '#3C3C3C',
-	selectForeground: '#F0F0F0',
-	selectBorder: '#3C3C3C',
+	selectBackground: "#3C3C3C",
+	selectForeground: "#F0F0F0",
+	selectBorder: "#3C3C3C",
 	decoratorRightForeground: undefined,
 	selectListBackground: undefined,
 	selectListBorder: undefined,
@@ -82,14 +80,31 @@ export interface ISelectData {
 export class SelectBox extends Widget implements ISelectBoxDelegate {
 	private selectBoxDelegate: ISelectBoxDelegate;
 
-	constructor(options: ISelectOptionItem[], selected: number, contextViewProvider: IContextViewProvider, styles: ISelectBoxStyles, selectBoxOptions?: ISelectBoxOptions) {
+	constructor(
+		options: ISelectOptionItem[],
+		selected: number,
+		contextViewProvider: IContextViewProvider,
+		styles: ISelectBoxStyles,
+		selectBoxOptions?: ISelectBoxOptions,
+	) {
 		super();
 
 		// Default to native SelectBox for OSX unless overridden
 		if (isMacintosh && !selectBoxOptions?.useCustomDrawn) {
-			this.selectBoxDelegate = new SelectBoxNative(options, selected, styles, selectBoxOptions);
+			this.selectBoxDelegate = new SelectBoxNative(
+				options,
+				selected,
+				styles,
+				selectBoxOptions,
+			);
 		} else {
-			this.selectBoxDelegate = new SelectBoxList(options, selected, contextViewProvider, styles, selectBoxOptions);
+			this.selectBoxDelegate = new SelectBoxList(
+				options,
+				selected,
+				contextViewProvider,
+				styles,
+				selectBoxOptions,
+			);
 		}
 
 		this._register(this.selectBoxDelegate);

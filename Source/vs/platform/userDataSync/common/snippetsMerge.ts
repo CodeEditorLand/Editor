@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IStringDictionary } from '../../../base/common/collections.js';
+import { IStringDictionary } from "../../../base/common/collections.js";
 
 export interface IMergeResult {
 	local: {
@@ -19,26 +19,42 @@ export interface IMergeResult {
 	conflicts: string[];
 }
 
-export function merge(local: IStringDictionary<string>, remote: IStringDictionary<string> | null, base: IStringDictionary<string> | null): IMergeResult {
+export function merge(
+	local: IStringDictionary<string>,
+	remote: IStringDictionary<string> | null,
+	base: IStringDictionary<string> | null,
+): IMergeResult {
 	const localAdded: IStringDictionary<string> = {};
 	const localUpdated: IStringDictionary<string> = {};
 	const localRemoved: Set<string> = new Set<string>();
 
 	if (!remote) {
 		return {
-			local: { added: localAdded, updated: localUpdated, removed: [...localRemoved.values()] },
+			local: {
+				added: localAdded,
+				updated: localUpdated,
+				removed: [...localRemoved.values()],
+			},
 			remote: { added: local, updated: {}, removed: [] },
-			conflicts: []
+			conflicts: [],
 		};
 	}
 
 	const localToRemote = compare(local, remote);
-	if (localToRemote.added.size === 0 && localToRemote.removed.size === 0 && localToRemote.updated.size === 0) {
+	if (
+		localToRemote.added.size === 0 &&
+		localToRemote.removed.size === 0 &&
+		localToRemote.updated.size === 0
+	) {
 		// No changes found between local and remote.
 		return {
-			local: { added: localAdded, updated: localUpdated, removed: [...localRemoved.values()] },
+			local: {
+				added: localAdded,
+				updated: localUpdated,
+				removed: [...localRemoved.values()],
+			},
 			remote: { added: {}, updated: {}, removed: [] },
-			conflicts: []
+			conflicts: [],
 		};
 	}
 
@@ -144,17 +160,38 @@ export function merge(local: IStringDictionary<string>, remote: IStringDictionar
 	}
 
 	return {
-		local: { added: localAdded, removed: [...localRemoved.values()], updated: localUpdated },
-		remote: { added: remoteAdded, removed: [...remoteRemoved.values()], updated: remoteUpdated },
+		local: {
+			added: localAdded,
+			removed: [...localRemoved.values()],
+			updated: localUpdated,
+		},
+		remote: {
+			added: remoteAdded,
+			removed: [...remoteRemoved.values()],
+			updated: remoteUpdated,
+		},
 		conflicts: [...conflicts.values()],
 	};
 }
 
-function compare(from: IStringDictionary<string> | null, to: IStringDictionary<string> | null): { added: Set<string>; removed: Set<string>; updated: Set<string> } {
+function compare(
+	from: IStringDictionary<string> | null,
+	to: IStringDictionary<string> | null,
+): { added: Set<string>; removed: Set<string>; updated: Set<string> } {
 	const fromKeys = from ? Object.keys(from) : [];
 	const toKeys = to ? Object.keys(to) : [];
-	const added = toKeys.filter(key => !fromKeys.includes(key)).reduce((r, key) => { r.add(key); return r; }, new Set<string>());
-	const removed = fromKeys.filter(key => !toKeys.includes(key)).reduce((r, key) => { r.add(key); return r; }, new Set<string>());
+	const added = toKeys
+		.filter((key) => !fromKeys.includes(key))
+		.reduce((r, key) => {
+			r.add(key);
+			return r;
+		}, new Set<string>());
+	const removed = fromKeys
+		.filter((key) => !toKeys.includes(key))
+		.reduce((r, key) => {
+			r.add(key);
+			return r;
+		}, new Set<string>());
 	const updated: Set<string> = new Set<string>();
 
 	for (const key of fromKeys) {
@@ -171,7 +208,10 @@ function compare(from: IStringDictionary<string> | null, to: IStringDictionary<s
 	return { added, removed, updated };
 }
 
-export function areSame(a: IStringDictionary<string>, b: IStringDictionary<string>): boolean {
+export function areSame(
+	a: IStringDictionary<string>,
+	b: IStringDictionary<string>,
+): boolean {
 	const { added, removed, updated } = compare(a, b);
 	return added.size === 0 && removed.size === 0 && updated.size === 0;
 }

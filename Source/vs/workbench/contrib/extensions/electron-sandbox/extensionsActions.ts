@@ -3,32 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { localize2 } from '../../../../nls.js';
-import { IFileService } from '../../../../platform/files/common/files.js';
-import { URI } from '../../../../base/common/uri.js';
-import { INativeWorkbenchEnvironmentService } from '../../../services/environment/electron-sandbox/environmentService.js';
-import { INativeHostService } from '../../../../platform/native/common/native.js';
-import { Schemas } from '../../../../base/common/network.js';
-import { Action2 } from '../../../../platform/actions/common/actions.js';
-import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
-import { ExtensionsLocalizedLabel, IExtensionManagementService } from '../../../../platform/extensionManagement/common/extensionManagement.js';
-import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
+import { Schemas } from "../../../../base/common/network.js";
+import { URI } from "../../../../base/common/uri.js";
+import { localize2 } from "../../../../nls.js";
+import { Categories } from "../../../../platform/action/common/actionCommonCategories.js";
+import { Action2 } from "../../../../platform/actions/common/actions.js";
+import {
+	ExtensionsLocalizedLabel,
+	IExtensionManagementService,
+} from "../../../../platform/extensionManagement/common/extensionManagement.js";
+import { IFileService } from "../../../../platform/files/common/files.js";
+import { ServicesAccessor } from "../../../../platform/instantiation/common/instantiation.js";
+import { INativeHostService } from "../../../../platform/native/common/native.js";
+import { INativeWorkbenchEnvironmentService } from "../../../services/environment/electron-sandbox/environmentService.js";
 
 export class OpenExtensionsFolderAction extends Action2 {
-
 	constructor() {
 		super({
-			id: 'workbench.extensions.action.openExtensionsFolder',
-			title: localize2('openExtensionsFolder', 'Open Extensions Folder'),
+			id: "workbench.extensions.action.openExtensionsFolder",
+			title: localize2("openExtensionsFolder", "Open Extensions Folder"),
 			category: ExtensionsLocalizedLabel,
-			f1: true
+			f1: true,
 		});
 	}
 
 	async run(accessor: ServicesAccessor): Promise<void> {
 		const nativeHostService = accessor.get(INativeHostService);
 		const fileService = accessor.get(IFileService);
-		const environmentService = accessor.get(INativeWorkbenchEnvironmentService);
+		const environmentService = accessor.get(
+			INativeWorkbenchEnvironmentService,
+		);
 
 		const extensionsHome = URI.file(environmentService.extensionsPath);
 		const file = await fileService.resolve(extensionsHome);
@@ -47,19 +51,22 @@ export class OpenExtensionsFolderAction extends Action2 {
 }
 
 export class CleanUpExtensionsFolderAction extends Action2 {
-
 	constructor() {
 		super({
-			id: '_workbench.extensions.action.cleanUpExtensionsFolder',
-			title: localize2('cleanUpExtensionsFolder', 'Cleanup Extensions Folder'),
+			id: "_workbench.extensions.action.cleanUpExtensionsFolder",
+			title: localize2(
+				"cleanUpExtensionsFolder",
+				"Cleanup Extensions Folder",
+			),
 			category: Categories.Developer,
-			f1: true
+			f1: true,
 		});
 	}
 
 	async run(accessor: ServicesAccessor): Promise<void> {
-		const extensionManagementService = accessor.get(IExtensionManagementService);
+		const extensionManagementService = accessor.get(
+			IExtensionManagementService,
+		);
 		return extensionManagementService.cleanUp();
 	}
 }
-

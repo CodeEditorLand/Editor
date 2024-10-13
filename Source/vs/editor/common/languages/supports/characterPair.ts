@@ -3,13 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IAutoClosingPair, StandardAutoClosingPairConditional, LanguageConfiguration } from '../languageConfiguration.js';
+import {
+	IAutoClosingPair,
+	LanguageConfiguration,
+	StandardAutoClosingPairConditional,
+} from "../languageConfiguration.js";
 
 export class CharacterPairSupport {
-
-	static readonly DEFAULT_AUTOCLOSE_BEFORE_LANGUAGE_DEFINED_QUOTES = ';:.,=}])> \n\t';
-	static readonly DEFAULT_AUTOCLOSE_BEFORE_LANGUAGE_DEFINED_BRACKETS = '\'"`;:.,=}])> \n\t';
-	static readonly DEFAULT_AUTOCLOSE_BEFORE_WHITESPACE = ' \n\t';
+	static readonly DEFAULT_AUTOCLOSE_BEFORE_LANGUAGE_DEFINED_QUOTES =
+		";:.,=}])> \n\t";
+	static readonly DEFAULT_AUTOCLOSE_BEFORE_LANGUAGE_DEFINED_BRACKETS =
+		"'\"`;:.,=}])> \n\t";
+	static readonly DEFAULT_AUTOCLOSE_BEFORE_WHITESPACE = " \n\t";
 
 	private readonly _autoClosingPairs: StandardAutoClosingPairConditional[];
 	private readonly _surroundingPairs: IAutoClosingPair[];
@@ -18,23 +23,46 @@ export class CharacterPairSupport {
 
 	constructor(config: LanguageConfiguration) {
 		if (config.autoClosingPairs) {
-			this._autoClosingPairs = config.autoClosingPairs.map(el => new StandardAutoClosingPairConditional(el));
+			this._autoClosingPairs = config.autoClosingPairs.map(
+				(el) => new StandardAutoClosingPairConditional(el),
+			);
 		} else if (config.brackets) {
-			this._autoClosingPairs = config.brackets.map(b => new StandardAutoClosingPairConditional({ open: b[0], close: b[1] }));
+			this._autoClosingPairs = config.brackets.map(
+				(b) =>
+					new StandardAutoClosingPairConditional({
+						open: b[0],
+						close: b[1],
+					}),
+			);
 		} else {
 			this._autoClosingPairs = [];
 		}
 
-		if (config.__electricCharacterSupport && config.__electricCharacterSupport.docComment) {
+		if (
+			config.__electricCharacterSupport &&
+			config.__electricCharacterSupport.docComment
+		) {
 			const docComment = config.__electricCharacterSupport.docComment;
 			// IDocComment is legacy, only partially supported
-			this._autoClosingPairs.push(new StandardAutoClosingPairConditional({ open: docComment.open, close: docComment.close || '' }));
+			this._autoClosingPairs.push(
+				new StandardAutoClosingPairConditional({
+					open: docComment.open,
+					close: docComment.close || "",
+				}),
+			);
 		}
 
-		this._autoCloseBeforeForQuotes = typeof config.autoCloseBefore === 'string' ? config.autoCloseBefore : CharacterPairSupport.DEFAULT_AUTOCLOSE_BEFORE_LANGUAGE_DEFINED_QUOTES;
-		this._autoCloseBeforeForBrackets = typeof config.autoCloseBefore === 'string' ? config.autoCloseBefore : CharacterPairSupport.DEFAULT_AUTOCLOSE_BEFORE_LANGUAGE_DEFINED_BRACKETS;
+		this._autoCloseBeforeForQuotes =
+			typeof config.autoCloseBefore === "string"
+				? config.autoCloseBefore
+				: CharacterPairSupport.DEFAULT_AUTOCLOSE_BEFORE_LANGUAGE_DEFINED_QUOTES;
+		this._autoCloseBeforeForBrackets =
+			typeof config.autoCloseBefore === "string"
+				? config.autoCloseBefore
+				: CharacterPairSupport.DEFAULT_AUTOCLOSE_BEFORE_LANGUAGE_DEFINED_BRACKETS;
 
-		this._surroundingPairs = config.surroundingPairs || this._autoClosingPairs;
+		this._surroundingPairs =
+			config.surroundingPairs || this._autoClosingPairs;
 	}
 
 	public getAutoClosingPairs(): StandardAutoClosingPairConditional[] {
@@ -42,7 +70,9 @@ export class CharacterPairSupport {
 	}
 
 	public getAutoCloseBeforeSet(forQuotes: boolean): string {
-		return (forQuotes ? this._autoCloseBeforeForQuotes : this._autoCloseBeforeForBrackets);
+		return forQuotes
+			? this._autoCloseBeforeForQuotes
+			: this._autoCloseBeforeForBrackets;
 	}
 
 	public getSurroundingPairs(): IAutoClosingPair[] {

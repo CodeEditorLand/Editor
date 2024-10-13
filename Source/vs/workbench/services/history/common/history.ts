@@ -3,19 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
-import { IResourceEditorInput } from '../../../../platform/editor/common/editor.js';
-import { GroupIdentifier } from '../../../common/editor.js';
-import { EditorInput } from '../../../common/editor/editorInput.js';
-import { URI } from '../../../../base/common/uri.js';
+import { URI } from "../../../../base/common/uri.js";
+import { IResourceEditorInput } from "../../../../platform/editor/common/editor.js";
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import { GroupIdentifier } from "../../../common/editor.js";
+import { EditorInput } from "../../../common/editor/editorInput.js";
 
-export const IHistoryService = createDecorator<IHistoryService>('historyService');
+export const IHistoryService =
+	createDecorator<IHistoryService>("historyService");
 
 /**
  * Limit editor navigation to certain kinds.
  */
 export const enum GoFilter {
-
 	/**
 	 * Navigate between editor navigation history
 	 * entries from any kind of navigation source.
@@ -33,14 +33,13 @@ export const enum GoFilter {
 	 * entries that were resulting from navigations, such
 	 * as "Go to definition".
 	 */
-	NAVIGATION
+	NAVIGATION,
 }
 
 /**
  * Limit editor navigation to certain scopes.
  */
 export const enum GoScope {
-
 	/**
 	 * Navigate across all editors and editor groups.
 	 */
@@ -54,11 +53,10 @@ export const enum GoScope {
 	/**
 	 * Navigate only in the active editor.
 	 */
-	EDITOR
+	EDITOR,
 }
 
 export interface IHistoryService {
-
 	readonly _serviceBrand: undefined;
 
 	/**
@@ -105,14 +103,20 @@ export interface IHistoryService {
 	 *
 	 * @param schemeFilter filter to restrict roots by scheme.
 	 */
-	getLastActiveWorkspaceRoot(schemeFilter?: string, authorityFilter?: string): URI | undefined;
+	getLastActiveWorkspaceRoot(
+		schemeFilter?: string,
+		authorityFilter?: string,
+	): URI | undefined;
 
 	/**
 	 * Looking at the editor history, returns the resource of the last file that was opened.
 	 *
 	 * @param schemeFilter filter to restrict roots by scheme.
 	 */
-	getLastActiveFile(schemeFilter: string, authorityFilter?: string): URI | undefined;
+	getLastActiveFile(
+		schemeFilter: string,
+		authorityFilter?: string,
+	): URI | undefined;
 
 	/**
 	 * Opens the next used editor if any.

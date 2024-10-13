@@ -3,9 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from '../../../../../../base/common/event.js';
-import { Disposable } from '../../../../../../base/common/lifecycle.js';
-import { INotebookFindScope, NotebookFindScopeType } from '../../../common/notebookCommon.js';
+import { Emitter, Event } from "../../../../../../base/common/event.js";
+import { Disposable } from "../../../../../../base/common/lifecycle.js";
+import {
+	INotebookFindScope,
+	NotebookFindScopeType,
+} from "../../../common/notebookCommon.js";
 
 export interface INotebookFindChangeEvent {
 	markupInput?: boolean;
@@ -16,8 +19,10 @@ export interface INotebookFindChangeEvent {
 }
 
 export class NotebookFindFilters extends Disposable {
-	private readonly _onDidChange: Emitter<INotebookFindChangeEvent> = this._register(new Emitter<INotebookFindChangeEvent>());
-	readonly onDidChange: Event<INotebookFindChangeEvent> = this._onDidChange.event;
+	private readonly _onDidChange: Emitter<INotebookFindChangeEvent> =
+		this._register(new Emitter<INotebookFindChangeEvent>());
+	readonly onDidChange: Event<INotebookFindChangeEvent> =
+		this._onDidChange.event;
 
 	private _markupInput: boolean = true;
 
@@ -70,7 +75,9 @@ export class NotebookFindFilters extends Disposable {
 		}
 	}
 
-	private _findScope: INotebookFindScope = { findScopeType: NotebookFindScopeType.None };
+	private _findScope: INotebookFindScope = {
+		findScopeType: NotebookFindScopeType.None,
+	};
 
 	get findScope(): INotebookFindScope {
 		return this._findScope;
@@ -83,7 +90,6 @@ export class NotebookFindFilters extends Disposable {
 		}
 	}
 
-
 	private readonly _initialMarkupInput: boolean;
 	private readonly _initialMarkupPreview: boolean;
 	private readonly _initialCodeInput: boolean;
@@ -94,7 +100,7 @@ export class NotebookFindFilters extends Disposable {
 		markupPreview: boolean,
 		codeInput: boolean,
 		codeOutput: boolean,
-		findScope: INotebookFindScope
+		findScope: INotebookFindScope,
 	) {
 		super();
 
@@ -113,10 +119,10 @@ export class NotebookFindFilters extends Disposable {
 	isModified(): boolean {
 		// do not include findInSelection or either selectedRanges in the check. This will incorrectly mark the filter icon as modified
 		return (
-			this._markupInput !== this._initialMarkupInput
-			|| this._markupPreview !== this._initialMarkupPreview
-			|| this._codeInput !== this._initialCodeInput
-			|| this._codeOutput !== this._initialCodeOutput
+			this._markupInput !== this._initialMarkupInput ||
+			this._markupPreview !== this._initialMarkupPreview ||
+			this._codeInput !== this._initialCodeInput ||
+			this._codeOutput !== this._initialCodeOutput
 		);
 	}
 

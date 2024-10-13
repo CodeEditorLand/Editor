@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
-import type { IView } from '../../../common/views.js';
+import { RawContextKey } from "../../../../platform/contextkey/common/contextkey.js";
+import type { IView } from "../../../common/views.js";
 
 export const enum OutlineSortOrder {
 	ByPosition,
 	ByName,
-	ByKind
+	ByKind,
 }
 
 export interface IOutlineViewState {
@@ -19,7 +19,7 @@ export interface IOutlineViewState {
 }
 
 export namespace IOutlinePane {
-	export const Id = 'outline';
+	export const Id = "outline";
 }
 
 export interface IOutlinePane extends IView {
@@ -30,7 +30,19 @@ export interface IOutlinePane extends IView {
 
 // --- context keys
 
-export const ctxFollowsCursor = new RawContextKey<boolean>('outlineFollowsCursor', false);
-export const ctxFilterOnType = new RawContextKey<boolean>('outlineFiltersOnType', false);
-export const ctxSortMode = new RawContextKey<OutlineSortOrder>('outlineSortMode', OutlineSortOrder.ByPosition);
-export const ctxAllCollapsed = new RawContextKey<boolean>('outlineAllCollapsed', false);
+export const ctxFollowsCursor = new RawContextKey<boolean>(
+	"outlineFollowsCursor",
+	false,
+);
+export const ctxFilterOnType = new RawContextKey<boolean>(
+	"outlineFiltersOnType",
+	false,
+);
+export const ctxSortMode = new RawContextKey<OutlineSortOrder>(
+	"outlineSortMode",
+	OutlineSortOrder.ByPosition,
+);
+export const ctxAllCollapsed = new RawContextKey<boolean>(
+	"outlineAllCollapsed",
+	false,
+);

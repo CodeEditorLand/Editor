@@ -3,19 +3,31 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AccessibleViewProviderId, AccessibleViewType, AccessibleContentProvider } from '../../../../../platform/accessibility/browser/accessibleView.js';
-import { AccessibilityVerbositySettingId } from '../../../accessibility/browser/accessibilityConfiguration.js';
-import { ITerminalService } from '../../../terminal/browser/terminal.js';
-import { TerminalChatController } from './terminalChatController.js';
-import { IAccessibleViewImplentation } from '../../../../../platform/accessibility/browser/accessibleViewRegistry.js';
-import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
-import { IMenuService, MenuItemAction } from '../../../../../platform/actions/common/actions.js';
-import { MENU_TERMINAL_CHAT_WIDGET_STATUS, TerminalChatContextKeys } from './terminalChat.js';
-import { IAction } from '../../../../../base/common/actions.js';
+import { IAction } from "../../../../../base/common/actions.js";
+import {
+	AccessibleContentProvider,
+	AccessibleViewProviderId,
+	AccessibleViewType,
+} from "../../../../../platform/accessibility/browser/accessibleView.js";
+import { IAccessibleViewImplentation } from "../../../../../platform/accessibility/browser/accessibleViewRegistry.js";
+import {
+	IMenuService,
+	MenuItemAction,
+} from "../../../../../platform/actions/common/actions.js";
+import { ServicesAccessor } from "../../../../../platform/instantiation/common/instantiation.js";
+import { AccessibilityVerbositySettingId } from "../../../accessibility/browser/accessibilityConfiguration.js";
+import { ITerminalService } from "../../../terminal/browser/terminal.js";
+import {
+	MENU_TERMINAL_CHAT_WIDGET_STATUS,
+	TerminalChatContextKeys,
+} from "./terminalChat.js";
+import { TerminalChatController } from "./terminalChatController.js";
 
-export class TerminalInlineChatAccessibleView implements IAccessibleViewImplentation {
+export class TerminalInlineChatAccessibleView
+	implements IAccessibleViewImplentation
+{
 	readonly priority = 105;
-	readonly name = 'terminalInlineChat';
+	readonly name = "terminalInlineChat";
 	readonly type = AccessibleViewType.View;
 	readonly when = TerminalChatContextKeys.focused;
 
@@ -23,9 +35,14 @@ export class TerminalInlineChatAccessibleView implements IAccessibleViewImplenta
 		const terminalService = accessor.get(ITerminalService);
 		const menuService = accessor.get(IMenuService);
 		const actions: IAction[] = [];
-		const contextKeyService = TerminalChatController.activeChatController?.scopedContextKeyService;
+		const contextKeyService =
+			TerminalChatController.activeChatController
+				?.scopedContextKeyService;
 		if (contextKeyService) {
-			const menuActions = menuService.getMenuActions(MENU_TERMINAL_CHAT_WIDGET_STATUS, contextKeyService);
+			const menuActions = menuService.getMenuActions(
+				MENU_TERMINAL_CHAT_WIDGET_STATUS,
+				contextKeyService,
+			);
 			for (const action of menuActions) {
 				for (const a of action[1]) {
 					if (a instanceof MenuItemAction) {
@@ -35,7 +52,10 @@ export class TerminalInlineChatAccessibleView implements IAccessibleViewImplenta
 			}
 		}
 
-		const controller: TerminalChatController | undefined = terminalService.activeInstance?.getContribution(TerminalChatController.ID) ?? undefined;
+		const controller: TerminalChatController | undefined =
+			terminalService.activeInstance?.getContribution(
+				TerminalChatController.ID,
+			) ?? undefined;
 		if (!controller?.lastResponseContent) {
 			return;
 		}
@@ -43,13 +63,15 @@ export class TerminalInlineChatAccessibleView implements IAccessibleViewImplenta
 		return new AccessibleContentProvider(
 			AccessibleViewProviderId.TerminalChat,
 			{ type: AccessibleViewType.View },
-			() => { return responseContent; },
+			() => {
+				return responseContent;
+			},
 			() => {
 				controller.focus();
 			},
 			AccessibilityVerbositySettingId.InlineChat,
 			undefined,
-			actions
+			actions,
 		);
 	}
 }

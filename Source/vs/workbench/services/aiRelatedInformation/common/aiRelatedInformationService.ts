@@ -3,32 +3,51 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { CancelablePromise, createCancelablePromise, raceTimeout } from '../../../../base/common/async.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
-import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
-import { StopWatch } from '../../../../base/common/stopwatch.js';
-import { ILogService } from '../../../../platform/log/common/log.js';
-import { IAiRelatedInformationService, IAiRelatedInformationProvider, RelatedInformationType, RelatedInformationResult } from './aiRelatedInformation.js';
+import {
+	CancelablePromise,
+	createCancelablePromise,
+	raceTimeout,
+} from "../../../../base/common/async.js";
+import { CancellationToken } from "../../../../base/common/cancellation.js";
+import { IDisposable } from "../../../../base/common/lifecycle.js";
+import { StopWatch } from "../../../../base/common/stopwatch.js";
+import {
+	InstantiationType,
+	registerSingleton,
+} from "../../../../platform/instantiation/common/extensions.js";
+import { ILogService } from "../../../../platform/log/common/log.js";
+import {
+	IAiRelatedInformationProvider,
+	IAiRelatedInformationService,
+	RelatedInformationResult,
+	RelatedInformationType,
+} from "./aiRelatedInformation.js";
 
-export class AiRelatedInformationService implements IAiRelatedInformationService {
+export class AiRelatedInformationService
+	implements IAiRelatedInformationService
+{
 	readonly _serviceBrand: undefined;
 
 	static readonly DEFAULT_TIMEOUT = 1000 * 10; // 10 seconds
 
-	private readonly _providers: Map<RelatedInformationType, IAiRelatedInformationProvider[]> = new Map();
+	private readonly _providers: Map<
+		RelatedInformationType,
+		IAiRelatedInformationProvider[]
+	> = new Map();
 
-	constructor(@ILogService private readonly logService: ILogService) { }
+	constructor(@ILogService private readonly logService: ILogService) {}
 
 	isEnabled(): boolean {
 		return this._providers.size > 0;
 	}
 
-	registerAiRelatedInformationProvider(type: RelatedInformationType, provider: IAiRelatedInformationProvider): IDisposable {
+	registerAiRelatedInformationProvider(
+		type: RelatedInformationType,
+		provider: IAiRelatedInformationProvider,
+	): IDisposable {
 		const providers = this._providers.get(type) ?? [];
 		providers.push(provider);
 		this._providers.set(type, providers);
-
 
 		return {
 			dispose: () => {
@@ -40,13 +59,17 @@ export class AiRelatedInformationService implements IAiRelatedInformationService
 				if (providers.length === 0) {
 					this._providers.delete(type);
 				}
-			}
+			},
 		};
 	}
 
-	async getRelatedInformation(query: string, types: RelatedInformationType[], token: CancellationToken): Promise<RelatedInformationResult[]> {
+	async getRelatedInformation(
+		query: string,
+		types: RelatedInformationType[],
+		token: CancellationToken,
+	): Promise<RelatedInformationResult[]> {
 		if (this._providers.size === 0) {
-			throw new Error('No related information providers registered');
+			throw new Error("No related information providers registered");
 		}
 
 		// get providers for each type
@@ -59,17 +82,24 @@ export class AiRelatedInformationService implements IAiRelatedInformationService
 		}
 
 		if (providers.length === 0) {
-			throw new Error('No related information providers registered for the given types');
+			throw new Error(
+				"No related information providers registered for the given types",
+			);
 		}
 
 		const stopwatch = StopWatch.create();
 
-		const cancellablePromises: Array<CancelablePromise<RelatedInformationResult[]>> = providers.map((provider) => {
-			return createCancelablePromise(async t => {
+		const cancellablePromises: Array<
+			CancelablePromise<RelatedInformationResult[]>
+		> = providers.map((provider) => {
+			return createCancelablePromise(async (t) => {
 				try {
-					const result = await provider.provideAiRelatedInformation(query, t);
+					const result = await provider.provideAiRelatedInformation(
+						query,
+						t,
+					);
 					// double filter just in case
-					return result.filter(r => types.includes(r.type));
+					return result.filter((r) => types.includes(r.type));
 				} catch (e) {
 					// logged in extension host
 				}
@@ -82,22 +112,37 @@ export class AiRelatedInformationService implements IAiRelatedInformationService
 				Promise.allSettled(cancellablePromises),
 				AiRelatedInformationService.DEFAULT_TIMEOUT,
 				() => {
-					cancellablePromises.forEach(p => p.cancel());
-					this.logService.warn('[AiRelatedInformationService]: Related information provider timed out');
-				}
+					cancellablePromises.forEach((p) => p.cancel());
+					this.logService.warn(
+						"[AiRelatedInformationService]: Related information provider timed out",
+					);
+				},
 			);
 			if (!results) {
 				return [];
 			}
 			const result = results
-				.filter(r => r.status === 'fulfilled')
-				.flatMap(r => (r as PromiseFulfilledResult<RelatedInformationResult[]>).value);
+				.filter((r) => r.status === "fulfilled")
+				.flatMap(
+					(r) =>
+						(
+							r as PromiseFulfilledResult<
+								RelatedInformationResult[]
+							>
+						).value,
+				);
 			return result;
 		} finally {
 			stopwatch.stop();
-			this.logService.trace(`[AiRelatedInformationService]: getRelatedInformation took ${stopwatch.elapsed()}ms`);
+			this.logService.trace(
+				`[AiRelatedInformationService]: getRelatedInformation took ${stopwatch.elapsed()}ms`,
+			);
 		}
 	}
 }
 
-registerSingleton(IAiRelatedInformationService, AiRelatedInformationService, InstantiationType.Delayed);
+registerSingleton(
+	IAiRelatedInformationService,
+	AiRelatedInformationService,
+	InstantiationType.Delayed,
+);

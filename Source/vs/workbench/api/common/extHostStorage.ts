@@ -3,12 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { MainContext, MainThreadStorageShape, ExtHostStorageShape } from './extHost.protocol.js';
-import { Emitter } from '../../../base/common/event.js';
-import { IExtHostRpcService } from './extHostRpcService.js';
-import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
-import { IExtensionIdWithVersion } from '../../../platform/extensionManagement/common/extensionStorage.js';
-import { ILogService } from '../../../platform/log/common/log.js';
+import { Emitter } from "../../../base/common/event.js";
+import { IExtensionIdWithVersion } from "../../../platform/extensionManagement/common/extensionStorage.js";
+import { createDecorator } from "../../../platform/instantiation/common/instantiation.js";
+import { ILogService } from "../../../platform/log/common/log.js";
+import {
+	ExtHostStorageShape,
+	MainContext,
+	MainThreadStorageShape,
+} from "./extHost.protocol.js";
+import { IExtHostRpcService } from "./extHostRpcService.js";
 
 export interface IStorageChangeEvent {
 	shared: boolean;
@@ -17,7 +21,6 @@ export interface IStorageChangeEvent {
 }
 
 export class ExtHostStorage implements ExtHostStorageShape {
-
 	readonly _serviceBrand: undefined;
 
 	private _proxy: MainThreadStorageShape;
@@ -27,17 +30,27 @@ export class ExtHostStorage implements ExtHostStorageShape {
 
 	constructor(
 		mainContext: IExtHostRpcService,
-		private readonly _logService: ILogService
+		private readonly _logService: ILogService,
 	) {
 		this._proxy = mainContext.getProxy(MainContext.MainThreadStorage);
 	}
 
-	registerExtensionStorageKeysToSync(extension: IExtensionIdWithVersion, keys: string[]): void {
+	registerExtensionStorageKeysToSync(
+		extension: IExtensionIdWithVersion,
+		keys: string[],
+	): void {
 		this._proxy.$registerExtensionStorageKeysToSync(extension, keys);
 	}
 
-	async initializeExtensionStorage(shared: boolean, key: string, defaultValue?: object): Promise<object | undefined> {
-		const value = await this._proxy.$initializeExtensionStorage(shared, key);
+	async initializeExtensionStorage(
+		shared: boolean,
+		key: string,
+		defaultValue?: object,
+	): Promise<object | undefined> {
+		const value = await this._proxy.$initializeExtensionStorage(
+			shared,
+			key,
+		);
 
 		let parsedValue: object | undefined;
 		if (value) {
@@ -58,18 +71,25 @@ export class ExtHostStorage implements ExtHostStorageShape {
 		}
 	}
 
-	private safeParseValue(shared: boolean, key: string, value: string): object | undefined {
+	private safeParseValue(
+		shared: boolean,
+		key: string,
+		value: string,
+	): object | undefined {
 		try {
 			return JSON.parse(value);
 		} catch (error) {
 			// Do not fail this call but log it for diagnostics
 			// https://github.com/microsoft/vscode/issues/132777
-			this._logService.error(`[extHostStorage] unexpected error parsing storage contents (extensionId: ${key}, global: ${shared}): ${error}`);
+			this._logService.error(
+				`[extHostStorage] unexpected error parsing storage contents (extensionId: ${key}, global: ${shared}): ${error}`,
+			);
 		}
 
 		return undefined;
 	}
 }
 
-export interface IExtHostStorage extends ExtHostStorage { }
-export const IExtHostStorage = createDecorator<IExtHostStorage>('IExtHostStorage');
+export interface IExtHostStorage extends ExtHostStorage {}
+export const IExtHostStorage =
+	createDecorator<IExtHostStorage>("IExtHostStorage");

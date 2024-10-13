@@ -3,27 +3,31 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { BugIndicatingError } from '../../../../base/common/errors.js';
-import { ensureNonNullable } from '../gpuUtils.js';
-import type { IRasterizedGlyph } from '../raster/raster.js';
-import { UsagePreviewColors, type ITextureAtlasAllocator, type ITextureAtlasPageGlyph } from './atlas.js';
+import { BugIndicatingError } from "../../../../base/common/errors.js";
+import { ensureNonNullable } from "../gpuUtils.js";
+import type { IRasterizedGlyph } from "../raster/raster.js";
+import {
+	UsagePreviewColors,
+	type ITextureAtlasAllocator,
+	type ITextureAtlasPageGlyph,
+} from "./atlas.js";
 
 /**
  * The shelf allocator is a simple allocator that places glyphs in rows, starting a new row when the
  * current row is full. Due to its simplicity, it can waste space but it is very fast.
  */
 export class TextureAtlasShelfAllocator implements ITextureAtlasAllocator {
-
 	private readonly _ctx: OffscreenCanvasRenderingContext2D;
 
 	private _currentRow: ITextureAtlasShelf = {
 		x: 0,
 		y: 0,
-		h: 0
+		h: 0,
 	};
 
 	/** A set of all glyphs allocated, this is only tracked to enable debug related functionality */
-	private readonly _allocatedGlyphs: Set<Readonly<ITextureAtlasPageGlyph>> = new Set();
+	private readonly _allocatedGlyphs: Set<Readonly<ITextureAtlasPageGlyph>> =
+		new Set();
 
 	private _nextIndex = 0;
 
@@ -31,28 +35,54 @@ export class TextureAtlasShelfAllocator implements ITextureAtlasAllocator {
 		private readonly _canvas: OffscreenCanvas,
 		private readonly _textureIndex: number,
 	) {
-		this._ctx = ensureNonNullable(this._canvas.getContext('2d', {
-			willReadFrequently: true
-		}));
+		this._ctx = ensureNonNullable(
+			this._canvas.getContext("2d", {
+				willReadFrequently: true,
+			}),
+		);
 	}
 
-	public allocate(rasterizedGlyph: IRasterizedGlyph): ITextureAtlasPageGlyph | undefined {
+	public allocate(
+		rasterizedGlyph: IRasterizedGlyph,
+	): ITextureAtlasPageGlyph | undefined {
 		// The glyph does not fit into the atlas page
-		const glyphWidth = rasterizedGlyph.boundingBox.right - rasterizedGlyph.boundingBox.left + 1;
-		const glyphHeight = rasterizedGlyph.boundingBox.bottom - rasterizedGlyph.boundingBox.top + 1;
-		if (glyphWidth > this._canvas.width || glyphHeight > this._canvas.height) {
-			throw new BugIndicatingError('Glyph is too large for the atlas page');
+		const glyphWidth =
+			rasterizedGlyph.boundingBox.right -
+			rasterizedGlyph.boundingBox.left +
+			1;
+		const glyphHeight =
+			rasterizedGlyph.boundingBox.bottom -
+			rasterizedGlyph.boundingBox.top +
+			1;
+		if (
+			glyphWidth > this._canvas.width ||
+			glyphHeight > this._canvas.height
+		) {
+			throw new BugIndicatingError(
+				"Glyph is too large for the atlas page",
+			);
 		}
 
 		// Finalize and increment row if it doesn't fix horizontally
-		if (rasterizedGlyph.boundingBox.right - rasterizedGlyph.boundingBox.left + 1 > this._canvas.width - this._currentRow.x) {
+		if (
+			rasterizedGlyph.boundingBox.right -
+				rasterizedGlyph.boundingBox.left +
+				1 >
+			this._canvas.width - this._currentRow.x
+		) {
 			this._currentRow.x = 0;
 			this._currentRow.y += this._currentRow.h;
 			this._currentRow.h = 1;
 		}
 
 		// Return undefined if there isn't any room left
-		if (this._currentRow.y + rasterizedGlyph.boundingBox.bottom - rasterizedGlyph.boundingBox.top + 1 > this._canvas.height) {
+		if (
+			this._currentRow.y +
+				rasterizedGlyph.boundingBox.bottom -
+				rasterizedGlyph.boundingBox.top +
+				1 >
+			this._canvas.height
+		) {
 			return undefined;
 		}
 
@@ -68,7 +98,7 @@ export class TextureAtlasShelfAllocator implements ITextureAtlasAllocator {
 			this._currentRow.x,
 			this._currentRow.y,
 			glyphWidth,
-			glyphHeight
+			glyphHeight,
 		);
 
 		// Create glyph object
@@ -80,7 +110,7 @@ export class TextureAtlasShelfAllocator implements ITextureAtlasAllocator {
 			w: glyphWidth,
 			h: glyphHeight,
 			originOffsetX: rasterizedGlyph.originOffset.x,
-			originOffsetY: rasterizedGlyph.originOffset.y
+			originOffsetY: rasterizedGlyph.originOffset.y,
 		};
 
 		// Shift current row
@@ -97,7 +127,7 @@ export class TextureAtlasShelfAllocator implements ITextureAtlasAllocator {
 		const w = this._canvas.width;
 		const h = this._canvas.height;
 		const canvas = new OffscreenCanvas(w, h);
-		const ctx = ensureNonNullable(canvas.getContext('2d'));
+		const ctx = ensureNonNullable(canvas.getContext("2d"));
 		ctx.fillStyle = UsagePreviewColors.Unused;
 		ctx.fillRect(0, 0, w, h);
 
@@ -151,7 +181,7 @@ export class TextureAtlasShelfAllocator implements ITextureAtlasAllocator {
 			`      Used: ${usedPixels} (${((usedPixels / totalPixels) * 100).toPrecision(2)}%)`,
 			`    Wasted: ${wastedPixels} (${((wastedPixels / totalPixels) * 100).toPrecision(2)}%)`,
 			`Efficiency: ${((usedPixels / (usedPixels + wastedPixels)) * 100).toPrecision(2)}%`,
-		].join('\n');
+		].join("\n");
 	}
 }
 

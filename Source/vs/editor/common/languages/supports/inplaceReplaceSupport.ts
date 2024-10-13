@@ -3,21 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IRange } from '../../core/range.js';
-import { IInplaceReplaceSupportResult } from '../../languages.js';
+import { IRange } from "../../core/range.js";
+import { IInplaceReplaceSupportResult } from "../../languages.js";
 
 export class BasicInplaceReplace {
-
 	public static readonly INSTANCE = new BasicInplaceReplace();
 
-	public navigateValueSet(range1: IRange, text1: string, range2: IRange, text2: string | null, up: boolean): IInplaceReplaceSupportResult | null {
-
+	public navigateValueSet(
+		range1: IRange,
+		text1: string,
+		range2: IRange,
+		text2: string | null,
+		up: boolean,
+	): IInplaceReplaceSupportResult | null {
 		if (range1 && text1) {
 			const result = this.doNavigateValueSet(text1, up);
 			if (result) {
 				return {
 					range: range1,
-					value: result
+					value: result,
 				};
 			}
 		}
@@ -27,7 +31,7 @@ export class BasicInplaceReplace {
 			if (result) {
 				return {
 					range: range2,
-					value: result
+					value: result,
 				};
 			}
 		}
@@ -44,12 +48,14 @@ export class BasicInplaceReplace {
 	}
 
 	private numberReplace(value: string, up: boolean): string | null {
-		const precision = Math.pow(10, value.length - (value.lastIndexOf('.') + 1));
+		const precision = Math.pow(
+			10,
+			value.length - (value.lastIndexOf(".") + 1),
+		);
 		let n1 = Number(value);
 		const n2 = parseFloat(value);
 
 		if (!isNaN(n1) && !isNaN(n2) && n1 === n2) {
-
 			if (n1 === 0 && !up) {
 				return null; // don't do negative
 				//			} else if(n1 === 9 && up) {
@@ -65,25 +71,45 @@ export class BasicInplaceReplace {
 	}
 
 	private readonly _defaultValueSet: string[][] = [
-		['true', 'false'],
-		['True', 'False'],
-		['Private', 'Public', 'Friend', 'ReadOnly', 'Partial', 'Protected', 'WriteOnly'],
-		['public', 'protected', 'private'],
+		["true", "false"],
+		["True", "False"],
+		[
+			"Private",
+			"Public",
+			"Friend",
+			"ReadOnly",
+			"Partial",
+			"Protected",
+			"WriteOnly",
+		],
+		["public", "protected", "private"],
 	];
 
 	private textReplace(value: string, up: boolean): string | null {
 		return this.valueSetsReplace(this._defaultValueSet, value, up);
 	}
 
-	private valueSetsReplace(valueSets: string[][], value: string, up: boolean): string | null {
+	private valueSetsReplace(
+		valueSets: string[][],
+		value: string,
+		up: boolean,
+	): string | null {
 		let result: string | null = null;
-		for (let i = 0, len = valueSets.length; result === null && i < len; i++) {
+		for (
+			let i = 0, len = valueSets.length;
+			result === null && i < len;
+			i++
+		) {
 			result = this.valueSetReplace(valueSets[i], value, up);
 		}
 		return result;
 	}
 
-	private valueSetReplace(valueSet: string[], value: string, up: boolean): string | null {
+	private valueSetReplace(
+		valueSet: string[],
+		value: string,
+		up: boolean,
+	): string | null {
 		let idx = valueSet.indexOf(value);
 		if (idx >= 0) {
 			idx += up ? +1 : -1;

@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { URI } from '../../../../base/common/uri.js';
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
-import { LanguageSelector } from '../../../../editor/common/languageSelector.js';
-import { Event } from '../../../../base/common/event.js';
+import { Event } from "../../../../base/common/event.js";
+import { IDisposable } from "../../../../base/common/lifecycle.js";
+import { URI } from "../../../../base/common/uri.js";
+import { LanguageSelector } from "../../../../editor/common/languageSelector.js";
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
 
-export const IQuickDiffService = createDecorator<IQuickDiffService>('quickDiff');
+export const IQuickDiffService =
+	createDecorator<IQuickDiffService>("quickDiff");
 
 export interface QuickDiffProvider {
 	label: string;
@@ -30,5 +31,9 @@ export interface IQuickDiffService {
 
 	readonly onDidChangeQuickDiffProviders: Event<void>;
 	addQuickDiffProvider(quickDiff: QuickDiffProvider): IDisposable;
-	getQuickDiffs(uri: URI, language?: string, isSynchronized?: boolean): Promise<QuickDiff[]>;
+	getQuickDiffs(
+		uri: URI,
+		language?: string,
+		isSynchronized?: boolean,
+	): Promise<QuickDiff[]>;
 }

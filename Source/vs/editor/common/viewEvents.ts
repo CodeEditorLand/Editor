@@ -3,14 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ScrollEvent } from '../../base/common/scrollable.js';
-import { ConfigurationChangedEvent, EditorOption } from './config/editorOptions.js';
-import { Range } from './core/range.js';
-import { Selection } from './core/selection.js';
-import { CursorChangeReason } from './cursorEvents.js';
-import { ScrollType } from './editorCommon.js';
-import { IModelDecorationsChangedEvent } from './textModelEvents.js';
-import { IColorTheme } from '../../platform/theme/common/themeService.js';
+import { ScrollEvent } from "../../base/common/scrollable.js";
+import { IColorTheme } from "../../platform/theme/common/themeService.js";
+import {
+	ConfigurationChangedEvent,
+	EditorOption,
+} from "./config/editorOptions.js";
+import { Range } from "./core/range.js";
+import { Selection } from "./core/selection.js";
+import { CursorChangeReason } from "./cursorEvents.js";
+import { ScrollType } from "./editorCommon.js";
+import { IModelDecorationsChangedEvent } from "./textModelEvents.js";
 
 export const enum ViewEventType {
 	ViewCompositionStart,
@@ -35,16 +38,15 @@ export const enum ViewEventType {
 
 export class ViewCompositionStartEvent {
 	public readonly type = ViewEventType.ViewCompositionStart;
-	constructor() { }
+	constructor() {}
 }
 
 export class ViewCompositionEndEvent {
 	public readonly type = ViewEventType.ViewCompositionEnd;
-	constructor() { }
+	constructor() {}
 }
 
 export class ViewConfigurationChangedEvent {
-
 	public readonly type = ViewEventType.ViewConfigurationChanged;
 
 	public readonly _source: ConfigurationChangedEvent;
@@ -59,18 +61,16 @@ export class ViewConfigurationChangedEvent {
 }
 
 export class ViewCursorStateChangedEvent {
-
 	public readonly type = ViewEventType.ViewCursorStateChanged;
 
 	constructor(
 		public readonly selections: Selection[],
 		public readonly modelSelections: Selection[],
-		public readonly reason: CursorChangeReason
-	) { }
+		public readonly reason: CursorChangeReason,
+	) {}
 }
 
 export class ViewDecorationsChangedEvent {
-
 	public readonly type = ViewEventType.ViewDecorationsChanged;
 
 	readonly affectsMinimap: boolean;
@@ -94,7 +94,6 @@ export class ViewDecorationsChangedEvent {
 }
 
 export class ViewFlushedEvent {
-
 	public readonly type = ViewEventType.ViewFlushed;
 
 	constructor() {
@@ -103,7 +102,6 @@ export class ViewFlushedEvent {
 }
 
 export class ViewFocusChangedEvent {
-
 	public readonly type = ViewEventType.ViewFocusChanged;
 
 	public readonly isFocused: boolean;
@@ -114,12 +112,10 @@ export class ViewFocusChangedEvent {
 }
 
 export class ViewLanguageConfigurationEvent {
-
 	public readonly type = ViewEventType.ViewLanguageConfigurationChanged;
 }
 
 export class ViewLineMappingChangedEvent {
-
 	public readonly type = ViewEventType.ViewLineMappingChanged;
 
 	constructor() {
@@ -128,7 +124,6 @@ export class ViewLineMappingChangedEvent {
 }
 
 export class ViewLinesChangedEvent {
-
 	public readonly type = ViewEventType.ViewLinesChanged;
 
 	constructor(
@@ -140,11 +135,10 @@ export class ViewLinesChangedEvent {
 		 * The number of lines that have changed.
 		 */
 		public readonly count: number,
-	) { }
+	) {}
 }
 
 export class ViewLinesDeletedEvent {
-
 	public readonly type = ViewEventType.ViewLinesDeleted;
 
 	/**
@@ -163,7 +157,6 @@ export class ViewLinesDeletedEvent {
 }
 
 export class ViewLinesInsertedEvent {
-
 	public readonly type = ViewEventType.ViewLinesInserted;
 
 	/**
@@ -192,9 +185,7 @@ export const enum VerticalRevealType {
 }
 
 export class ViewRevealRangeRequestEvent {
-
 	public readonly type = ViewEventType.ViewRevealRangeRequest;
-
 
 	constructor(
 		/**
@@ -225,12 +216,11 @@ export class ViewRevealRangeRequestEvent {
 		/**
 		 * The scroll type.
 		 */
-		public readonly scrollType: ScrollType
-	) { }
+		public readonly scrollType: ScrollType,
+	) {}
 }
 
 export class ViewScrollChangedEvent {
-
 	public readonly type = ViewEventType.ViewScrollChanged;
 
 	public readonly scrollWidth: number;
@@ -257,16 +247,12 @@ export class ViewScrollChangedEvent {
 }
 
 export class ViewThemeChangedEvent {
-
 	public readonly type = ViewEventType.ViewThemeChanged;
 
-	constructor(
-		public readonly theme: IColorTheme
-	) { }
+	constructor(public readonly theme: IColorTheme) {}
 }
 
 export class ViewTokensChangedEvent {
-
 	public readonly type = ViewEventType.ViewTokensChanged;
 
 	public readonly ranges: {
@@ -286,7 +272,6 @@ export class ViewTokensChangedEvent {
 }
 
 export class ViewTokensColorsChangedEvent {
-
 	public readonly type = ViewEventType.ViewTokensColorsChanged;
 
 	constructor() {
@@ -295,7 +280,6 @@ export class ViewTokensColorsChangedEvent {
 }
 
 export class ViewZonesChangedEvent {
-
 	public readonly type = ViewEventType.ViewZonesChanged;
 
 	constructor() {
@@ -303,8 +287,8 @@ export class ViewZonesChangedEvent {
 	}
 }
 
-export type ViewEvent = (
-	ViewCompositionStartEvent
+export type ViewEvent =
+	| ViewCompositionStartEvent
 	| ViewCompositionEndEvent
 	| ViewConfigurationChangedEvent
 	| ViewCursorStateChangedEvent
@@ -321,5 +305,4 @@ export type ViewEvent = (
 	| ViewThemeChangedEvent
 	| ViewTokensChangedEvent
 	| ViewTokensColorsChangedEvent
-	| ViewZonesChangedEvent
-);
+	| ViewZonesChangedEvent;

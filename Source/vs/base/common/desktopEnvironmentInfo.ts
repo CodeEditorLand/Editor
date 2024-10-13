@@ -3,94 +3,104 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { env } from './process.js';
+import { env } from "./process.js";
 
 // Define the enumeration for Desktop Environments
 enum DesktopEnvironment {
-	UNKNOWN = 'UNKNOWN',
-	CINNAMON = 'CINNAMON',
-	DEEPIN = 'DEEPIN',
-	GNOME = 'GNOME',
-	KDE3 = 'KDE3',
-	KDE4 = 'KDE4',
-	KDE5 = 'KDE5',
-	KDE6 = 'KDE6',
-	PANTHEON = 'PANTHEON',
-	UNITY = 'UNITY',
-	XFCE = 'XFCE',
-	UKUI = 'UKUI',
-	LXQT = 'LXQT',
+	UNKNOWN = "UNKNOWN",
+	CINNAMON = "CINNAMON",
+	DEEPIN = "DEEPIN",
+	GNOME = "GNOME",
+	KDE3 = "KDE3",
+	KDE4 = "KDE4",
+	KDE5 = "KDE5",
+	KDE6 = "KDE6",
+	PANTHEON = "PANTHEON",
+	UNITY = "UNITY",
+	XFCE = "XFCE",
+	UKUI = "UKUI",
+	LXQT = "LXQT",
 }
 
-const kXdgCurrentDesktopEnvVar = 'XDG_CURRENT_DESKTOP';
-const kKDESessionEnvVar = 'KDE_SESSION_VERSION';
+const kXdgCurrentDesktopEnvVar = "XDG_CURRENT_DESKTOP";
+const kKDESessionEnvVar = "KDE_SESSION_VERSION";
 
 export function getDesktopEnvironment(): DesktopEnvironment {
 	const xdgCurrentDesktop = env[kXdgCurrentDesktopEnvVar];
 	if (xdgCurrentDesktop) {
-		const values = xdgCurrentDesktop.split(':').map(value => value.trim()).filter(value => value.length > 0);
+		const values = xdgCurrentDesktop
+			.split(":")
+			.map((value) => value.trim())
+			.filter((value) => value.length > 0);
 		for (const value of values) {
 			switch (value) {
-				case 'Unity': {
-					const desktopSessionUnity = env['DESKTOP_SESSION'];
-					if (desktopSessionUnity && desktopSessionUnity.includes('gnome-fallback')) {
+				case "Unity": {
+					const desktopSessionUnity = env["DESKTOP_SESSION"];
+					if (
+						desktopSessionUnity &&
+						desktopSessionUnity.includes("gnome-fallback")
+					) {
 						return DesktopEnvironment.GNOME;
 					}
 
 					return DesktopEnvironment.UNITY;
 				}
-				case 'Deepin':
+				case "Deepin":
 					return DesktopEnvironment.DEEPIN;
-				case 'GNOME':
+				case "GNOME":
 					return DesktopEnvironment.GNOME;
-				case 'X-Cinnamon':
+				case "X-Cinnamon":
 					return DesktopEnvironment.CINNAMON;
-				case 'KDE': {
+				case "KDE": {
 					const kdeSession = env[kKDESessionEnvVar];
-					if (kdeSession === '5') { return DesktopEnvironment.KDE5; }
-					if (kdeSession === '6') { return DesktopEnvironment.KDE6; }
+					if (kdeSession === "5") {
+						return DesktopEnvironment.KDE5;
+					}
+					if (kdeSession === "6") {
+						return DesktopEnvironment.KDE6;
+					}
 					return DesktopEnvironment.KDE4;
 				}
-				case 'Pantheon':
+				case "Pantheon":
 					return DesktopEnvironment.PANTHEON;
-				case 'XFCE':
+				case "XFCE":
 					return DesktopEnvironment.XFCE;
-				case 'UKUI':
+				case "UKUI":
 					return DesktopEnvironment.UKUI;
-				case 'LXQt':
+				case "LXQt":
 					return DesktopEnvironment.LXQT;
 			}
 		}
 	}
 
-	const desktopSession = env['DESKTOP_SESSION'];
+	const desktopSession = env["DESKTOP_SESSION"];
 	if (desktopSession) {
 		switch (desktopSession) {
-			case 'deepin':
+			case "deepin":
 				return DesktopEnvironment.DEEPIN;
-			case 'gnome':
-			case 'mate':
+			case "gnome":
+			case "mate":
 				return DesktopEnvironment.GNOME;
-			case 'kde4':
-			case 'kde-plasma':
+			case "kde4":
+			case "kde-plasma":
 				return DesktopEnvironment.KDE4;
-			case 'kde':
+			case "kde":
 				if (kKDESessionEnvVar in env) {
 					return DesktopEnvironment.KDE4;
 				}
 				return DesktopEnvironment.KDE3;
-			case 'xfce':
-			case 'xubuntu':
+			case "xfce":
+			case "xubuntu":
 				return DesktopEnvironment.XFCE;
-			case 'ukui':
+			case "ukui":
 				return DesktopEnvironment.UKUI;
 		}
 	}
 
-	if ('GNOME_DESKTOP_SESSION_ID' in env) {
+	if ("GNOME_DESKTOP_SESSION_ID" in env) {
 		return DesktopEnvironment.GNOME;
 	}
-	if ('KDE_FULL_SESSION' in env) {
+	if ("KDE_FULL_SESSION" in env) {
 		if (kKDESessionEnvVar in env) {
 			return DesktopEnvironment.KDE4;
 		}

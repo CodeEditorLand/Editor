@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	/**
 	 * A NotebookExecution is how {@link NotebookController notebook controller} can indicate whether the notebook controller is busy or not.
 	 *

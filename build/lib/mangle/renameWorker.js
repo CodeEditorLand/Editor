@@ -12,11 +12,11 @@ function findRenameLocations(projectPath, fileName, position) {
     if (!service) {
         service = ts.createLanguageService(new staticLanguageServiceHost_1.StaticLanguageServiceHost(projectPath));
     }
-    return service.findRenameLocations(fileName, position, false, false, {
+    return (service.findRenameLocations(fileName, position, false, false, {
         providePrefixAndSuffixTextForRename: true,
-    }) ?? [];
+    }) ?? []);
 }
 workerpool.worker({
-    findRenameLocations
+    findRenameLocations,
 });
 //# sourceMappingURL=renameWorker.js.map

@@ -16,14 +16,23 @@ export interface ITokenColorizationRule {
 export interface ITokenColorizationSetting {
 	foreground?: string;
 	background?: string;
-	fontStyle?: string;  // italic, underline, strikethrough, bold
+	fontStyle?: string; // italic, underline, strikethrough, bold
 }
 
-export function findMatchingThemeRule(theme: IColorTheme, scopes: string[], onlyColorRules: boolean = true): ThemeRule | null {
+export function findMatchingThemeRule(
+	theme: IColorTheme,
+	scopes: string[],
+	onlyColorRules: boolean = true,
+): ThemeRule | null {
 	for (let i = scopes.length - 1; i >= 0; i--) {
 		const parentScopes = scopes.slice(0, i);
 		const scope = scopes[i];
-		const r = findMatchingThemeRule2(theme, scope, parentScopes, onlyColorRules);
+		const r = findMatchingThemeRule2(
+			theme,
+			scope,
+			parentScopes,
+			onlyColorRules,
+		);
 		if (r) {
 			return r;
 		}
@@ -31,7 +40,12 @@ export function findMatchingThemeRule(theme: IColorTheme, scopes: string[], only
 	return null;
 }
 
-function findMatchingThemeRule2(theme: IColorTheme, scope: string, parentScopes: string[], onlyColorRules: boolean): ThemeRule | null {
+function findMatchingThemeRule2(
+	theme: IColorTheme,
+	scope: string,
+	parentScopes: string[],
+	onlyColorRules: boolean,
+): ThemeRule | null {
 	let result: ThemeRule | null = null;
 
 	// Loop backwards, to ensure the last most specific rule wins
@@ -42,8 +56,8 @@ function findMatchingThemeRule2(theme: IColorTheme, scope: string, parentScopes:
 		}
 
 		let selectors: string[];
-		if (typeof rule.scope === 'string') {
-			selectors = rule.scope.split(/,/).map(scope => scope.trim());
+		if (typeof rule.scope === "string") {
+			selectors = rule.scope.split(/,/).map((scope) => scope.trim());
 		} else if (Array.isArray(rule.scope)) {
 			selectors = rule.scope;
 		} else {
@@ -76,11 +90,19 @@ export class ThemeRule {
 		this.settings = settings;
 		const rawSelectorPieces = this.rawSelector.split(/ /);
 		this.scope = rawSelectorPieces[rawSelectorPieces.length - 1];
-		this.parentScopes = rawSelectorPieces.slice(0, rawSelectorPieces.length - 1);
+		this.parentScopes = rawSelectorPieces.slice(
+			0,
+			rawSelectorPieces.length - 1,
+		);
 	}
 
 	public matches(scope: string, parentScopes: string[]): boolean {
-		return ThemeRule._matches(this.scope, this.parentScopes, scope, parentScopes);
+		return ThemeRule._matches(
+			this.scope,
+			this.parentScopes,
+			scope,
+			parentScopes,
+		);
 	}
 
 	private static _cmp(a: ThemeRule | null, b: ThemeRule | null): number {
@@ -116,18 +138,26 @@ export class ThemeRule {
 	}
 
 	public isMoreSpecific(other: ThemeRule | null): boolean {
-		return (ThemeRule._cmp(this, other) > 0);
+		return ThemeRule._cmp(this, other) > 0;
 	}
 
 	private static _matchesOne(selectorScope: string, scope: string): boolean {
-		const selectorPrefix = selectorScope + '.';
-		if (selectorScope === scope || scope.substring(0, selectorPrefix.length) === selectorPrefix) {
+		const selectorPrefix = selectorScope + ".";
+		if (
+			selectorScope === scope ||
+			scope.substring(0, selectorPrefix.length) === selectorPrefix
+		) {
 			return true;
 		}
 		return false;
 	}
 
-	private static _matches(selectorScope: string, selectorParentScopes: string[], scope: string, parentScopes: string[]): boolean {
+	private static _matches(
+		selectorScope: string,
+		selectorParentScopes: string[],
+		scope: string,
+		parentScopes: string[],
+	): boolean {
 		if (!this._matchesOne(selectorScope, scope)) {
 			return false;
 		}
@@ -135,7 +165,12 @@ export class ThemeRule {
 		let selectorParentIndex = selectorParentScopes.length - 1;
 		let parentIndex = parentScopes.length - 1;
 		while (selectorParentIndex >= 0 && parentIndex >= 0) {
-			if (this._matchesOne(selectorParentScopes[selectorParentIndex], parentScopes[parentIndex])) {
+			if (
+				this._matchesOne(
+					selectorParentScopes[selectorParentIndex],
+					parentScopes[parentIndex],
+				)
+			) {
 				selectorParentIndex--;
 			}
 			parentIndex--;

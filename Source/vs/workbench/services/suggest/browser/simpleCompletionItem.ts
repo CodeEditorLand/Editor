@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FuzzyScore } from '../../../../base/common/filters.js';
-import { isWindows } from '../../../../base/common/platform.js';
-import { ThemeIcon } from '../../../../base/common/themables.js';
+import { FuzzyScore } from "../../../../base/common/filters.js";
+import { isWindows } from "../../../../base/common/platform.js";
+import { ThemeIcon } from "../../../../base/common/themables.js";
 
 export interface ISimpleCompletion {
 	/**
@@ -39,26 +39,27 @@ export class SimpleCompletionItem {
 	// perf
 	readonly labelLow: string;
 	readonly labelLowExcludeFileExt: string;
-	readonly fileExtLow: string = '';
+	readonly fileExtLow: string = "";
 
 	// sorting, filtering
 	score: FuzzyScore = FuzzyScore.Default;
 	idx?: number;
 	word?: string;
 
-	constructor(
-		readonly completion: ISimpleCompletion
-	) {
+	constructor(readonly completion: ISimpleCompletion) {
 		// ensure lower-variants (perf)
 		this.labelLow = this.completion.label.toLowerCase();
 		this.labelLowExcludeFileExt = this.labelLow;
 		if (completion.isFile) {
 			if (isWindows) {
-				this.labelLow = this.labelLow.replaceAll('/', '\\');
+				this.labelLow = this.labelLow.replaceAll("/", "\\");
 			}
-			const extIndex = this.labelLow.lastIndexOf('.');
+			const extIndex = this.labelLow.lastIndexOf(".");
 			if (extIndex !== -1) {
-				this.labelLowExcludeFileExt = this.labelLow.substring(0, extIndex);
+				this.labelLowExcludeFileExt = this.labelLow.substring(
+					0,
+					extIndex,
+				);
 				this.fileExtLow = this.labelLow.substring(extIndex + 1);
 			}
 		}

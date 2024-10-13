@@ -3,10 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { shuffle } from './arrays.js';
-import { CharCode } from './charCode.js';
-import { compare, compareIgnoreCase, compareSubstring, compareSubstringIgnoreCase } from './strings.js';
-import { URI } from './uri.js';
+import { shuffle } from "./arrays.js";
+import { CharCode } from "./charCode.js";
+import {
+	compare,
+	compareIgnoreCase,
+	compareSubstring,
+	compareSubstringIgnoreCase,
+} from "./strings.js";
+import { URI } from "./uri.js";
 
 export interface IKeyIterator<K> {
 	reset(key: K): this;
@@ -18,8 +23,7 @@ export interface IKeyIterator<K> {
 }
 
 export class StringIterator implements IKeyIterator<string> {
-
-	private _value: string = '';
+	private _value: string = "";
 	private _pos: number = 0;
 
 	reset(key: string): this {
@@ -49,14 +53,11 @@ export class StringIterator implements IKeyIterator<string> {
 }
 
 export class ConfigKeysIterator implements IKeyIterator<string> {
-
 	private _value!: string;
 	private _from!: number;
 	private _to!: number;
 
-	constructor(
-		private readonly _caseSensitive: boolean = true
-	) { }
+	constructor(private readonly _caseSensitive: boolean = true) {}
 
 	reset(key: string): this {
 		this._value = key;
@@ -90,8 +91,22 @@ export class ConfigKeysIterator implements IKeyIterator<string> {
 
 	cmp(a: string): number {
 		return this._caseSensitive
-			? compareSubstring(a, this._value, 0, a.length, this._from, this._to)
-			: compareSubstringIgnoreCase(a, this._value, 0, a.length, this._from, this._to);
+			? compareSubstring(
+					a,
+					this._value,
+					0,
+					a.length,
+					this._from,
+					this._to,
+				)
+			: compareSubstringIgnoreCase(
+					a,
+					this._value,
+					0,
+					a.length,
+					this._from,
+					this._to,
+				);
 	}
 
 	value(): string {
@@ -100,7 +115,6 @@ export class ConfigKeysIterator implements IKeyIterator<string> {
 }
 
 export class PathIterator implements IKeyIterator<string> {
-
 	private _value!: string;
 	private _valueLen!: number;
 	private _from!: number;
@@ -108,8 +122,8 @@ export class PathIterator implements IKeyIterator<string> {
 
 	constructor(
 		private readonly _splitOnBackslash: boolean = true,
-		private readonly _caseSensitive: boolean = true
-	) { }
+		private readonly _caseSensitive: boolean = true,
+	) {}
 
 	reset(key: string): this {
 		this._from = 0;
@@ -118,7 +132,12 @@ export class PathIterator implements IKeyIterator<string> {
 		this._valueLen = key.length;
 		for (let pos = key.length - 1; pos >= 0; pos--, this._valueLen--) {
 			const ch = this._value.charCodeAt(pos);
-			if (!(ch === CharCode.Slash || this._splitOnBackslash && ch === CharCode.Backslash)) {
+			if (
+				!(
+					ch === CharCode.Slash ||
+					(this._splitOnBackslash && ch === CharCode.Backslash)
+				)
+			) {
 				break;
 			}
 		}
@@ -136,7 +155,10 @@ export class PathIterator implements IKeyIterator<string> {
 		let justSeps = true;
 		for (; this._to < this._valueLen; this._to++) {
 			const ch = this._value.charCodeAt(this._to);
-			if (ch === CharCode.Slash || this._splitOnBackslash && ch === CharCode.Backslash) {
+			if (
+				ch === CharCode.Slash ||
+				(this._splitOnBackslash && ch === CharCode.Backslash)
+			) {
 				if (justSeps) {
 					this._from++;
 				} else {
@@ -151,8 +173,22 @@ export class PathIterator implements IKeyIterator<string> {
 
 	cmp(a: string): number {
 		return this._caseSensitive
-			? compareSubstring(a, this._value, 0, a.length, this._from, this._to)
-			: compareSubstringIgnoreCase(a, this._value, 0, a.length, this._from, this._to);
+			? compareSubstring(
+					a,
+					this._value,
+					0,
+					a.length,
+					this._from,
+					this._to,
+				)
+			: compareSubstringIgnoreCase(
+					a,
+					this._value,
+					0,
+					a.length,
+					this._from,
+					this._to,
+				);
 	}
 
 	value(): string {
@@ -161,11 +197,14 @@ export class PathIterator implements IKeyIterator<string> {
 }
 
 const enum UriIteratorState {
-	Scheme = 1, Authority = 2, Path = 3, Query = 4, Fragment = 5
+	Scheme = 1,
+	Authority = 2,
+	Path = 3,
+	Query = 4,
+	Fragment = 5,
 }
 
 export class UriIterator implements IKeyIterator<URI> {
-
 	private _pathIterator!: PathIterator;
 	private _value!: URI;
 	private _states: UriIteratorState[] = [];
@@ -173,7 +212,8 @@ export class UriIterator implements IKeyIterator<URI> {
 
 	constructor(
 		private readonly _ignorePathCasing: (uri: URI) => boolean,
-		private readonly _ignoreQueryAndFragment: (uri: URI) => boolean) { }
+		private readonly _ignoreQueryAndFragment: (uri: URI) => boolean,
+	) {}
 
 	reset(key: URI): this {
 		this._value = key;
@@ -185,7 +225,10 @@ export class UriIterator implements IKeyIterator<URI> {
 			this._states.push(UriIteratorState.Authority);
 		}
 		if (this._value.path) {
-			this._pathIterator = new PathIterator(false, !this._ignorePathCasing(key));
+			this._pathIterator = new PathIterator(
+				false,
+				!this._ignorePathCasing(key),
+			);
 			this._pathIterator.reset(key.path);
 			if (this._pathIterator.value()) {
 				this._states.push(UriIteratorState.Path);
@@ -204,7 +247,10 @@ export class UriIterator implements IKeyIterator<URI> {
 	}
 
 	next(): this {
-		if (this._states[this._stateIdx] === UriIteratorState.Path && this._pathIterator.hasNext()) {
+		if (
+			this._states[this._stateIdx] === UriIteratorState.Path &&
+			this._pathIterator.hasNext()
+		) {
 			this._pathIterator.next();
 		} else {
 			this._stateIdx += 1;
@@ -213,14 +259,19 @@ export class UriIterator implements IKeyIterator<URI> {
 	}
 
 	hasNext(): boolean {
-		return (this._states[this._stateIdx] === UriIteratorState.Path && this._pathIterator.hasNext())
-			|| this._stateIdx < this._states.length - 1;
+		return (
+			(this._states[this._stateIdx] === UriIteratorState.Path &&
+				this._pathIterator.hasNext()) ||
+			this._stateIdx < this._states.length - 1
+		);
 	}
 
 	cmp(a: string): number {
 		if (this._states[this._stateIdx] === UriIteratorState.Scheme) {
 			return compareIgnoreCase(a, this._value.scheme);
-		} else if (this._states[this._stateIdx] === UriIteratorState.Authority) {
+		} else if (
+			this._states[this._stateIdx] === UriIteratorState.Authority
+		) {
 			return compareIgnoreCase(a, this._value.authority);
 		} else if (this._states[this._stateIdx] === UriIteratorState.Path) {
 			return this._pathIterator.cmp(a);
@@ -235,7 +286,9 @@ export class UriIterator implements IKeyIterator<URI> {
 	value(): string {
 		if (this._states[this._stateIdx] === UriIteratorState.Scheme) {
 			return this._value.scheme;
-		} else if (this._states[this._stateIdx] === UriIteratorState.Authority) {
+		} else if (
+			this._states[this._stateIdx] === UriIteratorState.Authority
+		) {
 			return this._value.authority;
 		} else if (this._states[this._stateIdx] === UriIteratorState.Path) {
 			return this._pathIterator.value();
@@ -298,17 +351,23 @@ class TernarySearchTreeNode<K, V> {
 const enum Dir {
 	Left = -1,
 	Mid = 0,
-	Right = 1
+	Right = 1,
 }
 
 export class TernarySearchTree<K, V> {
-
-	static forUris<E>(ignorePathCasing: (key: URI) => boolean = () => false, ignoreQueryAndFragment: (key: URI) => boolean = () => false): TernarySearchTree<URI, E> {
-		return new TernarySearchTree<URI, E>(new UriIterator(ignorePathCasing, ignoreQueryAndFragment));
+	static forUris<E>(
+		ignorePathCasing: (key: URI) => boolean = () => false,
+		ignoreQueryAndFragment: (key: URI) => boolean = () => false,
+	): TernarySearchTree<URI, E> {
+		return new TernarySearchTree<URI, E>(
+			new UriIterator(ignorePathCasing, ignoreQueryAndFragment),
+		);
 	}
 
 	static forPaths<E>(ignorePathCasing = false): TernarySearchTree<string, E> {
-		return new TernarySearchTree<string, E>(new PathIterator(undefined, !ignorePathCasing));
+		return new TernarySearchTree<string, E>(
+			new PathIterator(undefined, !ignorePathCasing),
+		);
 	}
 
 	static forStrings<E>(): TernarySearchTree<string, E> {
@@ -343,7 +402,7 @@ export class TernarySearchTree<K, V> {
 			const arr = keys.slice(0);
 			shuffle(arr);
 			for (const k of arr) {
-				this.set(k, (<V>values));
+				this.set(k, <V>values);
 			}
 		} else {
 			const arr = (<[K, V][]>values).slice(0);
@@ -376,7 +435,6 @@ export class TernarySearchTree<K, V> {
 				}
 				stack.push([Dir.Left, node]);
 				node = node.left;
-
 			} else if (val < 0) {
 				// right
 				if (!node.right) {
@@ -385,7 +443,6 @@ export class TernarySearchTree<K, V> {
 				}
 				stack.push([Dir.Right, node]);
 				node = node.right;
-
 			} else if (iter.hasNext()) {
 				// mid
 				iter.next();
@@ -420,21 +477,18 @@ export class TernarySearchTree<K, V> {
 				if (d1 === Dir.Right && d2 === Dir.Right) {
 					//right, right -> rotate left
 					stack[i][1] = node.rotateLeft();
-
 				} else if (d1 === Dir.Left && d2 === Dir.Left) {
 					// left, left -> rotate right
 					stack[i][1] = node.rotateRight();
-
 				} else if (d1 === Dir.Right && d2 === Dir.Left) {
 					// right, left -> double rotate right, left
-					node.right = stack[i + 1][1] = stack[i + 1][1].rotateRight();
+					node.right = stack[i + 1][1] =
+						stack[i + 1][1].rotateRight();
 					stack[i][1] = node.rotateLeft();
-
 				} else if (d1 === Dir.Left && d2 === Dir.Right) {
 					// left, right -> double rotate left, right
 					node.left = stack[i + 1][1] = stack[i + 1][1].rotateLeft();
 					stack[i][1] = node.rotateRight();
-
 				} else {
 					throw new Error();
 				}
@@ -557,16 +611,21 @@ export class TernarySearchTree<K, V> {
 					node.value = value;
 					node.segment = segment;
 				}
-
 			} else {
 				// empty or half empty
 				const newChild = node.left ?? node.right;
 				if (stack.length > 0) {
 					const [dir, parent] = stack[stack.length - 1];
 					switch (dir) {
-						case Dir.Left: parent.left = newChild; break;
-						case Dir.Mid: parent.mid = newChild; break;
-						case Dir.Right: parent.right = newChild; break;
+						case Dir.Left:
+							parent.left = newChild;
+							break;
+						case Dir.Mid:
+							parent.mid = newChild;
+							break;
+						case Dir.Right:
+							parent.right = newChild;
+							break;
 					}
 				} else {
 					this._root = newChild;
@@ -590,7 +649,6 @@ export class TernarySearchTree<K, V> {
 					node.right = node.right!.rotateRight();
 					stack[i][1] = node.rotateLeft();
 				}
-
 			} else if (bf < -1) {
 				// left heavy
 				if (node.left!.balanceFactor() <= 0) {
@@ -622,7 +680,9 @@ export class TernarySearchTree<K, V> {
 		}
 	}
 
-	private _min(node: TernarySearchTreeNode<K, V>): TernarySearchTreeNode<K, V> {
+	private _min(
+		node: TernarySearchTreeNode<K, V>,
+	): TernarySearchTreeNode<K, V> {
 		while (node.left) {
 			node = node.left;
 		}
@@ -650,16 +710,25 @@ export class TernarySearchTree<K, V> {
 				break;
 			}
 		}
-		return node && node.value || candidate;
+		return (node && node.value) || candidate;
 	}
 
 	findSuperstr(key: K): IterableIterator<[K, V]> | undefined {
 		return this._findSuperstrOrElement(key, false);
 	}
 
-	private _findSuperstrOrElement(key: K, allowValue: true): IterableIterator<[K, V]> | V | undefined;
-	private _findSuperstrOrElement(key: K, allowValue: false): IterableIterator<[K, V]> | undefined;
-	private _findSuperstrOrElement(key: K, allowValue: boolean): IterableIterator<[K, V]> | V | undefined {
+	private _findSuperstrOrElement(
+		key: K,
+		allowValue: true,
+	): IterableIterator<[K, V]> | V | undefined;
+	private _findSuperstrOrElement(
+		key: K,
+		allowValue: false,
+	): IterableIterator<[K, V]> | undefined;
+	private _findSuperstrOrElement(
+		key: K,
+		allowValue: boolean,
+	): IterableIterator<[K, V]> | V | undefined {
 		const iter = this._iter.reset(key);
 		let node = this._root;
 		while (node) {
@@ -704,13 +773,18 @@ export class TernarySearchTree<K, V> {
 		yield* this._entries(this._root);
 	}
 
-	private _entries(node: TernarySearchTreeNode<K, V> | undefined): IterableIterator<[K, V]> {
+	private _entries(
+		node: TernarySearchTreeNode<K, V> | undefined,
+	): IterableIterator<[K, V]> {
 		const result: [K, V][] = [];
 		this._dfsEntries(node, result);
 		return result[Symbol.iterator]();
 	}
 
-	private _dfsEntries(node: TernarySearchTreeNode<K, V> | undefined, bucket: [K, V][]) {
+	private _dfsEntries(
+		node: TernarySearchTreeNode<K, V> | undefined,
+		bucket: [K, V][],
+	) {
 		// DFS
 		if (!node) {
 			return;
@@ -731,7 +805,9 @@ export class TernarySearchTree<K, V> {
 
 	// for debug/testing
 	_isBalanced(): boolean {
-		const nodeIsBalanced = (node: TernarySearchTreeNode<any, any> | undefined): boolean => {
+		const nodeIsBalanced = (
+			node: TernarySearchTreeNode<any, any> | undefined,
+		): boolean => {
 			if (!node) {
 				return true;
 			}

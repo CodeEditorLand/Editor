@@ -3,15 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from '../../../base/common/event.js';
-import { IMarkdownString } from '../../../base/common/htmlContent.js';
-import { IDisposable, IReference } from '../../../base/common/lifecycle.js';
-import { URI } from '../../../base/common/uri.js';
-import { ITextModel, ITextSnapshot } from '../model.js';
-import { IResolvableEditorModel } from '../../../platform/editor/common/editor.js';
-import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
+import { Event } from "../../../base/common/event.js";
+import { IMarkdownString } from "../../../base/common/htmlContent.js";
+import { IDisposable, IReference } from "../../../base/common/lifecycle.js";
+import { URI } from "../../../base/common/uri.js";
+import { IResolvableEditorModel } from "../../../platform/editor/common/editor.js";
+import { createDecorator } from "../../../platform/instantiation/common/instantiation.js";
+import { ITextModel, ITextSnapshot } from "../model.js";
 
-export const ITextModelService = createDecorator<ITextModelService>('textModelService');
+export const ITextModelService =
+	createDecorator<ITextModelService>("textModelService");
 
 export interface ITextModelService {
 	readonly _serviceBrand: undefined;
@@ -20,12 +21,17 @@ export interface ITextModelService {
 	 * Provided a resource URI, it will return a model reference
 	 * which should be disposed once not needed anymore.
 	 */
-	createModelReference(resource: URI): Promise<IReference<IResolvedTextEditorModel>>;
+	createModelReference(
+		resource: URI,
+	): Promise<IReference<IResolvedTextEditorModel>>;
 
 	/**
 	 * Registers a specific `scheme` content provider.
 	 */
-	registerTextModelContentProvider(scheme: string, provider: ITextModelContentProvider): IDisposable;
+	registerTextModelContentProvider(
+		scheme: string,
+		provider: ITextModelContentProvider,
+	): IDisposable;
 
 	/**
 	 * Check if the given resource can be resolved to a text model.
@@ -34,7 +40,6 @@ export interface ITextModelService {
 }
 
 export interface ITextModelContentProvider {
-
 	/**
 	 * Given a resource, return the content of the resource as `ITextModel`.
 	 */
@@ -42,7 +47,6 @@ export interface ITextModelContentProvider {
 }
 
 export interface ITextEditorModel extends IResolvableEditorModel {
-
 	/**
 	 * Emitted when the text model is about to be disposed.
 	 */
@@ -76,14 +80,15 @@ export interface ITextEditorModel extends IResolvableEditorModel {
 }
 
 export interface IResolvedTextEditorModel extends ITextEditorModel {
-
 	/**
 	 * Same as ITextEditorModel#textEditorModel, but never null.
 	 */
 	readonly textEditorModel: ITextModel;
 }
 
-export function isResolvedTextEditorModel(model: ITextEditorModel): model is IResolvedTextEditorModel {
+export function isResolvedTextEditorModel(
+	model: ITextEditorModel,
+): model is IResolvedTextEditorModel {
 	const candidate = model as IResolvedTextEditorModel;
 
 	return !!candidate.textEditorModel;

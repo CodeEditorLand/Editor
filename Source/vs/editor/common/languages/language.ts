@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from '../../../base/common/event.js';
-import { IDisposable } from '../../../base/common/lifecycle.js';
-import { URI } from '../../../base/common/uri.js';
-import { ILanguageIdCodec } from '../languages.js';
-import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
+import { Event } from "../../../base/common/event.js";
+import { IDisposable } from "../../../base/common/lifecycle.js";
+import { URI } from "../../../base/common/uri.js";
+import { createDecorator } from "../../../platform/instantiation/common/instantiation.js";
+import { ILanguageIdCodec } from "../languages.js";
 
-export const ILanguageService = createDecorator<ILanguageService>('languageService');
+export const ILanguageService =
+	createDecorator<ILanguageService>("languageService");
 
 export interface ILanguageExtensionPoint {
 	id: string;
@@ -138,7 +139,10 @@ export interface ILanguageService {
 	/**
 	 * Guess the language id for a resource.
 	 */
-	guessLanguageIdByFilepathOrFirstLine(resource: URI, firstLine?: string): string | null;
+	guessLanguageIdByFilepathOrFirstLine(
+		resource: URI,
+		firstLine?: string,
+	): string | null;
 
 	/**
 	 * Will fall back to 'plaintext' if `languageId` is unknown.
@@ -153,7 +157,10 @@ export interface ILanguageService {
 	/**
 	 * Will fall back to 'plaintext' if the `languageId` cannot be determined.
 	 */
-	createByFilepathOrFirstLine(resource: URI | null, firstLine?: string): ILanguageSelection;
+	createByFilepathOrFirstLine(
+		resource: URI | null,
+		firstLine?: string,
+	): ILanguageSelection;
 
 	/**
 	 * Request basic language features for a language.
@@ -164,5 +171,4 @@ export interface ILanguageService {
 	 * Request rich language features for a language.
 	 */
 	requestRichLanguageFeatures(languageId: string): void;
-
 }

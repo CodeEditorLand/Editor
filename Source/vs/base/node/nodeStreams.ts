@@ -2,8 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Transform } from 'stream';
-import { binaryIndexOf } from '../common/buffer.js';
+import { Transform } from "stream";
+
+import { binaryIndexOf } from "../common/buffer.js";
 
 /**
  * A Transform stream that splits the input on the "splitter" substring.
@@ -18,17 +19,23 @@ export class StreamSplitter extends Transform {
 
 	constructor(splitter: string | number | Buffer) {
 		super();
-		if (typeof splitter === 'number') {
+		if (typeof splitter === "number") {
 			this.splitter = splitter;
 			this.spitterLen = 1;
 		} else {
-			const buf = Buffer.isBuffer(splitter) ? splitter : Buffer.from(splitter);
+			const buf = Buffer.isBuffer(splitter)
+				? splitter
+				: Buffer.from(splitter);
 			this.splitter = buf.length === 1 ? buf[0] : buf;
 			this.spitterLen = buf.length;
 		}
 	}
 
-	override _transform(chunk: Buffer, _encoding: string, callback: (error?: Error | null, data?: any) => void): void {
+	override _transform(
+		chunk: Buffer,
+		_encoding: string,
+		callback: (error?: Error | null, data?: any) => void,
+	): void {
 		if (!this.buffer) {
 			this.buffer = chunk;
 		} else {
@@ -37,9 +44,10 @@ export class StreamSplitter extends Transform {
 
 		let offset = 0;
 		while (offset < this.buffer.length) {
-			const index = typeof this.splitter === 'number'
-				? this.buffer.indexOf(this.splitter, offset)
-				: binaryIndexOf(this.buffer, this.splitter, offset);
+			const index =
+				typeof this.splitter === "number"
+					? this.buffer.indexOf(this.splitter, offset)
+					: binaryIndexOf(this.buffer, this.splitter, offset);
 			if (index === -1) {
 				break;
 			}
@@ -48,11 +56,16 @@ export class StreamSplitter extends Transform {
 			offset = index + this.spitterLen;
 		}
 
-		this.buffer = offset === this.buffer.length ? undefined : this.buffer.slice(offset);
+		this.buffer =
+			offset === this.buffer.length
+				? undefined
+				: this.buffer.slice(offset);
 		callback();
 	}
 
-	override _flush(callback: (error?: Error | null, data?: any) => void): void {
+	override _flush(
+		callback: (error?: Error | null, data?: any) => void,
+	): void {
 		if (this.buffer) {
 			this.push(this.buffer);
 		}

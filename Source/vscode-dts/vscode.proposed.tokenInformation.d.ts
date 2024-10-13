@@ -3,15 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	// https://github.com/microsoft/vscode/issues/91555
 
 	export enum StandardTokenType {
 		Other = 0,
 		Comment = 1,
 		String = 2,
-		RegEx = 3
+		RegEx = 3,
 	}
 
 	export interface TokenInformation {
@@ -21,6 +20,9 @@ declare module 'vscode' {
 
 	export namespace languages {
 		/** @deprecated */
-		export function getTokenInformationAtPosition(document: TextDocument, position: Position): Thenable<TokenInformation>;
+		export function getTokenInformationAtPosition(
+			document: TextDocument,
+			position: Position,
+		): Thenable<TokenInformation>;
 	}
 }

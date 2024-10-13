@@ -3,16 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from '../../../base/common/event.js';
-import { Iterable } from '../../../base/common/iterator.js';
-import { IJSONSchema } from '../../../base/common/jsonSchema.js';
-import { IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
-import { LinkedList } from '../../../base/common/linkedList.js';
-import { TypeConstraint, validateConstraints } from '../../../base/common/types.js';
-import { ILocalizedString } from '../../action/common/action.js';
-import { createDecorator, ServicesAccessor } from '../../instantiation/common/instantiation.js';
+import { Emitter, Event } from "../../../base/common/event.js";
+import { Iterable } from "../../../base/common/iterator.js";
+import { IJSONSchema } from "../../../base/common/jsonSchema.js";
+import { IDisposable, toDisposable } from "../../../base/common/lifecycle.js";
+import { LinkedList } from "../../../base/common/linkedList.js";
+import {
+	TypeConstraint,
+	validateConstraints,
+} from "../../../base/common/types.js";
+import { ILocalizedString } from "../../action/common/action.js";
+import {
+	createDecorator,
+	ServicesAccessor,
+} from "../../instantiation/common/instantiation.js";
 
-export const ICommandService = createDecorator<ICommandService>('commandService');
+export const ICommandService =
+	createDecorator<ICommandService>("commandService");
 
 export interface ICommandEvent {
 	commandId: string;
@@ -23,7 +30,10 @@ export interface ICommandService {
 	readonly _serviceBrand: undefined;
 	onWillExecuteCommand: Event<ICommandEvent>;
 	onDidExecuteCommand: Event<ICommandEvent>;
-	executeCommand<T = any>(commandId: string, ...args: any[]): Promise<T | undefined>;
+	executeCommand<T = any>(
+		commandId: string,
+		...args: any[]
+	): Promise<T | undefined>;
 }
 
 export type ICommandsMap = Map<string, ICommand>;
@@ -66,20 +76,24 @@ export interface ICommandRegistry {
 	getCommands(): ICommandsMap;
 }
 
-export const CommandsRegistry: ICommandRegistry = new class implements ICommandRegistry {
-
+export const CommandsRegistry: ICommandRegistry = new (class
+	implements ICommandRegistry
+{
 	private readonly _commands = new Map<string, LinkedList<ICommand>>();
 
 	private readonly _onDidRegisterCommand = new Emitter<string>();
-	readonly onDidRegisterCommand: Event<string> = this._onDidRegisterCommand.event;
+	readonly onDidRegisterCommand: Event<string> =
+		this._onDidRegisterCommand.event;
 
-	registerCommand(idOrCommand: string | ICommand, handler?: ICommandHandler): IDisposable {
-
+	registerCommand(
+		idOrCommand: string | ICommand,
+		handler?: ICommandHandler,
+	): IDisposable {
 		if (!idOrCommand) {
 			throw new Error(`invalid command`);
 		}
 
-		if (typeof idOrCommand === 'string') {
+		if (typeof idOrCommand === "string") {
 			if (!handler) {
 				throw new Error(`invalid command`);
 			}
@@ -125,7 +139,9 @@ export const CommandsRegistry: ICommandRegistry = new class implements ICommandR
 	}
 
 	registerCommandAlias(oldId: string, newId: string): IDisposable {
-		return CommandsRegistry.registerCommand(oldId, (accessor, ...args) => accessor.get(ICommandService).executeCommand(newId, ...args));
+		return CommandsRegistry.registerCommand(oldId, (accessor, ...args) =>
+			accessor.get(ICommandService).executeCommand(newId, ...args),
+		);
 	}
 
 	getCommand(id: string): ICommand | undefined {
@@ -146,6 +162,6 @@ export const CommandsRegistry: ICommandRegistry = new class implements ICommandR
 		}
 		return result;
 	}
-};
+})();
 
-CommandsRegistry.registerCommand('noop', () => { });
+CommandsRegistry.registerCommand("noop", () => {});

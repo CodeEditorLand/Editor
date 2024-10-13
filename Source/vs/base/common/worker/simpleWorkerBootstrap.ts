@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IRequestHandlerFactory, SimpleWorkerServer } from './simpleWorker.js';
+import { IRequestHandlerFactory, SimpleWorkerServer } from "./simpleWorker.js";
 
 type MessageEvent = {
 	data: any;
@@ -23,8 +23,8 @@ function initialize(factory: IRequestHandlerFactory) {
 	initialized = true;
 
 	const simpleWorker = new SimpleWorkerServer(
-		msg => globalThis.postMessage(msg),
-		(workerServer) => factory(workerServer)
+		(msg) => globalThis.postMessage(msg),
+		(workerServer) => factory(workerServer),
 	);
 
 	globalThis.onmessage = (e: MessageEvent) => {

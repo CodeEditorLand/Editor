@@ -3,15 +3,29 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FileSystemProviderCapabilities, IStat, FileType, IFileDeleteOptions, IFileOverwriteOptions, IFileWriteOptions, FileSystemProviderErrorCode, IFileSystemProviderWithFileReadWriteCapability, createFileSystemProviderError } from '../../../../platform/files/common/files.js';
-import { Event } from '../../../../base/common/event.js';
-import { IDisposable, Disposable } from '../../../../base/common/lifecycle.js';
-import { URI } from '../../../../base/common/uri.js';
-import { NotSupportedError } from '../../../../base/common/errors.js';
+import { NotSupportedError } from "../../../../base/common/errors.js";
+import { Event } from "../../../../base/common/event.js";
+import { Disposable, IDisposable } from "../../../../base/common/lifecycle.js";
+import { URI } from "../../../../base/common/uri.js";
+import {
+	createFileSystemProviderError,
+	FileSystemProviderCapabilities,
+	FileSystemProviderErrorCode,
+	FileType,
+	IFileDeleteOptions,
+	IFileOverwriteOptions,
+	IFileSystemProviderWithFileReadWriteCapability,
+	IFileWriteOptions,
+	IStat,
+} from "../../../../platform/files/common/files.js";
 
-export class FetchFileSystemProvider implements IFileSystemProviderWithFileReadWriteCapability {
-
-	readonly capabilities = FileSystemProviderCapabilities.Readonly + FileSystemProviderCapabilities.FileReadWrite + FileSystemProviderCapabilities.PathCaseSensitive;
+export class FetchFileSystemProvider
+	implements IFileSystemProviderWithFileReadWriteCapability
+{
+	readonly capabilities =
+		FileSystemProviderCapabilities.Readonly +
+		FileSystemProviderCapabilities.FileReadWrite +
+		FileSystemProviderCapabilities.PathCaseSensitive;
 	readonly onDidChangeCapabilities = Event.None;
 	readonly onDidChangeFile = Event.None;
 
@@ -22,9 +36,15 @@ export class FetchFileSystemProvider implements IFileSystemProviderWithFileReadW
 			if (res.status === 200) {
 				return new Uint8Array(await res.arrayBuffer());
 			}
-			throw createFileSystemProviderError(res.statusText, FileSystemProviderErrorCode.Unknown);
+			throw createFileSystemProviderError(
+				res.statusText,
+				FileSystemProviderErrorCode.Unknown,
+			);
 		} catch (err) {
-			throw createFileSystemProviderError(err, FileSystemProviderErrorCode.Unknown);
+			throw createFileSystemProviderError(
+				err,
+				FileSystemProviderErrorCode.Unknown,
+			);
 		}
 	}
 
@@ -34,7 +54,7 @@ export class FetchFileSystemProvider implements IFileSystemProviderWithFileReadW
 			type: FileType.File,
 			size: 0,
 			mtime: 0,
-			ctime: 0
+			ctime: 0,
 		};
 	}
 
@@ -43,7 +63,11 @@ export class FetchFileSystemProvider implements IFileSystemProviderWithFileReadW
 	}
 
 	// error implementations
-	writeFile(_resource: URI, _content: Uint8Array, _opts: IFileWriteOptions): Promise<void> {
+	writeFile(
+		_resource: URI,
+		_content: Uint8Array,
+		_opts: IFileWriteOptions,
+	): Promise<void> {
 		throw new NotSupportedError();
 	}
 	readdir(_resource: URI): Promise<[string, FileType][]> {

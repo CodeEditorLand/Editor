@@ -3,21 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TableColumnResizeQuickPick } from './tableColumnResizeQuickPick.js';
-import { Table } from '../../../../base/browser/ui/table/tableWidget.js';
-import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
-import { IListService, WorkbenchListFocusContextKey } from '../../../../platform/list/browser/listService.js';
-import { Action2 } from '../../../../platform/actions/common/actions.js';
-import { localize } from '../../../../nls.js';
+import { Table } from "../../../../base/browser/ui/table/tableWidget.js";
+import { localize } from "../../../../nls.js";
+import { Action2 } from "../../../../platform/actions/common/actions.js";
+import {
+	IInstantiationService,
+	ServicesAccessor,
+} from "../../../../platform/instantiation/common/instantiation.js";
+import {
+	IListService,
+	WorkbenchListFocusContextKey,
+} from "../../../../platform/list/browser/listService.js";
+import { TableColumnResizeQuickPick } from "./tableColumnResizeQuickPick.js";
 
 export class ListResizeColumnAction extends Action2 {
 	constructor() {
 		super({
-			id: 'list.resizeColumn',
-			title: { value: localize('list.resizeColumn', "Resize Column"), original: 'Resize Column' },
-			category: { value: localize('list', "List"), original: 'List' },
+			id: "list.resizeColumn",
+			title: {
+				value: localize("list.resizeColumn", "Resize Column"),
+				original: "Resize Column",
+			},
+			category: { value: localize("list", "List"), original: "List" },
 			precondition: WorkbenchListFocusContextKey,
-			f1: true
+			f1: true,
 		});
 	}
 
@@ -27,8 +36,9 @@ export class ListResizeColumnAction extends Action2 {
 
 		const list = listService.lastFocusedList;
 		if (list instanceof Table) {
-			await instantiationService.createInstance(TableColumnResizeQuickPick, list).show();
+			await instantiationService
+				.createInstance(TableColumnResizeQuickPick, list)
+				.show();
 		}
 	}
 }
-

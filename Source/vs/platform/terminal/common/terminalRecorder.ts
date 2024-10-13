@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IPtyHostProcessReplayEvent } from './capabilities/capabilities.js';
-import { ReplayEntry } from './terminalProcess.js';
+import { IPtyHostProcessReplayEvent } from "./capabilities/capabilities.js";
+import { ReplayEntry } from "./terminalProcess.js";
 
 const enum Constants {
-	MaxRecorderDataSize = 10 * 1024 * 1024 // 10MB
+	MaxRecorderDataSize = 10 * 1024 * 1024, // 10MB
 }
 
 interface RecorderEntry {
@@ -21,7 +21,6 @@ export interface IRemoteTerminalProcessReplayEvent {
 }
 
 export class TerminalRecorder {
-
 	private _entries: RecorderEntry[];
 	private _totalDataLength: number = 0;
 
@@ -62,7 +61,8 @@ export class TerminalRecorder {
 		this._totalDataLength += data.length;
 		while (this._totalDataLength > Constants.MaxRecorderDataSize) {
 			const firstEntry = this._entries[0];
-			const remainingToDelete = this._totalDataLength - Constants.MaxRecorderDataSize;
+			const remainingToDelete =
+				this._totalDataLength - Constants.MaxRecorderDataSize;
 			if (remainingToDelete >= firstEntry.data[0].length) {
 				// the first data piece must be deleted
 				this._totalDataLength -= firstEntry.data[0].length;
@@ -73,7 +73,8 @@ export class TerminalRecorder {
 				}
 			} else {
 				// the first data piece must be partially deleted
-				firstEntry.data[0] = firstEntry.data[0].substr(remainingToDelete);
+				firstEntry.data[0] =
+					firstEntry.data[0].substr(remainingToDelete);
 				this._totalDataLength -= remainingToDelete;
 			}
 		}
@@ -83,17 +84,21 @@ export class TerminalRecorder {
 		// normalize entries to one element per data array
 		this._entries.forEach((entry) => {
 			if (entry.data.length > 0) {
-				entry.data = [entry.data.join('')];
+				entry.data = [entry.data.join("")];
 			}
 		});
 		return {
-			events: this._entries.map(entry => ({ cols: entry.cols, rows: entry.rows, data: entry.data[0] ?? '' })),
+			events: this._entries.map((entry) => ({
+				cols: entry.cols,
+				rows: entry.rows,
+				data: entry.data[0] ?? "",
+			})),
 			// No command restoration is needed when relaunching terminals
 			commands: {
 				isWindowsPty: false,
 				commands: [],
 				promptInputModel: undefined,
-			}
+			},
 		};
 	}
 

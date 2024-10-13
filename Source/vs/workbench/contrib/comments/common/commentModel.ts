@@ -3,11 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { URI } from '../../../../base/common/uri.js';
-import { IRange } from '../../../../editor/common/core/range.js';
-import { Comment, CommentThread, CommentThreadChangedEvent, CommentThreadApplicability, CommentThreadState } from '../../../../editor/common/languages.js';
+import { URI } from "../../../../base/common/uri.js";
+import { IRange } from "../../../../editor/common/core/range.js";
+import {
+	Comment,
+	CommentThread,
+	CommentThreadApplicability,
+	CommentThreadChangedEvent,
+	CommentThreadState,
+} from "../../../../editor/common/languages.js";
 
-export interface ICommentThreadChangedEvent extends CommentThreadChangedEvent<IRange> {
+export interface ICommentThreadChangedEvent
+	extends CommentThreadChangedEvent<IRange> {
 	uniqueOwner: string;
 	owner: string;
 	ownerLabel: string;
@@ -29,7 +36,8 @@ export class CommentNode {
 		public readonly owner: string,
 		public readonly resource: URI,
 		public readonly comment: Comment,
-		public readonly thread: CommentThread) {
+		public readonly thread: CommentThread,
+	) {
 		this.threadId = thread.threadId;
 		this.range = thread.range;
 		this.threadState = thread.state;
@@ -47,7 +55,7 @@ export class CommentNode {
 
 	get lastUpdatedAt(): string {
 		if (this._lastUpdatedAt === undefined) {
-			let updatedAt = this.comment.timestamp || '';
+			let updatedAt = this.comment.timestamp || "";
 			if (this.replies.length) {
 				const reply = this.replies[this.replies.length - 1];
 				const replyUpdatedAt = reply.lastUpdatedAt;
@@ -69,19 +77,50 @@ export class ResourceWithCommentThreads {
 	commentThreads: CommentNode[]; // The top level comments on the file. Replys are nested under each node.
 	resource: URI;
 
-	constructor(uniqueOwner: string, owner: string, resource: URI, commentThreads: CommentThread[]) {
+	constructor(
+		uniqueOwner: string,
+		owner: string,
+		resource: URI,
+		commentThreads: CommentThread[],
+	) {
 		this.uniqueOwner = uniqueOwner;
 		this.owner = owner;
 		this.id = resource.toString();
 		this.resource = resource;
-		this.commentThreads = commentThreads.filter(thread => thread.comments && thread.comments.length).map(thread => ResourceWithCommentThreads.createCommentNode(uniqueOwner, owner, resource, thread));
+		this.commentThreads = commentThreads
+			.filter((thread) => thread.comments && thread.comments.length)
+			.map((thread) =>
+				ResourceWithCommentThreads.createCommentNode(
+					uniqueOwner,
+					owner,
+					resource,
+					thread,
+				),
+			);
 	}
 
-	public static createCommentNode(uniqueOwner: string, owner: string, resource: URI, commentThread: CommentThread): CommentNode {
+	public static createCommentNode(
+		uniqueOwner: string,
+		owner: string,
+		resource: URI,
+		commentThread: CommentThread,
+	): CommentNode {
 		const { comments } = commentThread;
-		const commentNodes: CommentNode[] = comments!.map(comment => new CommentNode(uniqueOwner, owner, resource, comment, commentThread));
+		const commentNodes: CommentNode[] = comments!.map(
+			(comment) =>
+				new CommentNode(
+					uniqueOwner,
+					owner,
+					resource,
+					comment,
+					commentThread,
+				),
+		);
 		if (commentNodes.length > 1) {
-			commentNodes[0].replies = commentNodes.slice(1, commentNodes.length);
+			commentNodes[0].replies = commentNodes.slice(
+				1,
+				commentNodes.length,
+			);
 		}
 
 		commentNodes[0].isRoot = true;
@@ -93,7 +132,7 @@ export class ResourceWithCommentThreads {
 
 	get lastUpdatedAt() {
 		if (this._lastUpdatedAt === undefined) {
-			let updatedAt = '';
+			let updatedAt = "";
 			// Return result without cahcing as we expect data to arrive later
 			if (!this.commentThreads.length) {
 				return updatedAt;
@@ -109,4 +148,3 @@ export class ResourceWithCommentThreads {
 		return this._lastUpdatedAt;
 	}
 }
-

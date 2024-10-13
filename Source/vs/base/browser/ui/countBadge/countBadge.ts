@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, append } from '../../dom.js';
-import { format } from '../../../common/strings.js';
-import './countBadge.css';
+import { format } from "../../../common/strings.js";
+import { $, append } from "../../dom.js";
+
+import "./countBadge.css";
 
 export interface ICountBadgeOptions {
 	readonly count?: number;
@@ -20,23 +21,25 @@ export interface ICountBadgeStyles {
 }
 
 export const unthemedCountStyles: ICountBadgeStyles = {
-	badgeBackground: '#4D4D4D',
-	badgeForeground: '#FFFFFF',
-	badgeBorder: undefined
+	badgeBackground: "#4D4D4D",
+	badgeForeground: "#FFFFFF",
+	badgeBorder: undefined,
 };
 
 export class CountBadge {
-
 	private element: HTMLElement;
 	private count: number = 0;
 	private countFormat: string;
 	private titleFormat: string;
 
-	constructor(container: HTMLElement, private readonly options: ICountBadgeOptions, private readonly styles: ICountBadgeStyles) {
-
-		this.element = append(container, $('.monaco-count-badge'));
-		this.countFormat = this.options.countFormat || '{0}';
-		this.titleFormat = this.options.titleFormat || '';
+	constructor(
+		container: HTMLElement,
+		private readonly options: ICountBadgeOptions,
+		private readonly styles: ICountBadgeStyles,
+	) {
+		this.element = append(container, $(".monaco-count-badge"));
+		this.countFormat = this.options.countFormat || "{0}";
+		this.titleFormat = this.options.titleFormat || "";
 		this.setCount(this.options.count || 0);
 	}
 
@@ -59,8 +62,8 @@ export class CountBadge {
 		this.element.textContent = format(this.countFormat, this.count);
 		this.element.title = format(this.titleFormat, this.count);
 
-		this.element.style.backgroundColor = this.styles.badgeBackground ?? '';
-		this.element.style.color = this.styles.badgeForeground ?? '';
+		this.element.style.backgroundColor = this.styles.badgeBackground ?? "";
+		this.element.style.color = this.styles.badgeForeground ?? "";
 
 		if (this.styles.badgeBorder) {
 			this.element.style.border = `1px solid ${this.styles.badgeBorder}`;

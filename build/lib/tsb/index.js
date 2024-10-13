@@ -5,23 +5,29 @@
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.create = create;
-const Vinyl = require("vinyl");
-const through = require("through");
-const builder = require("./builder");
-const ts = require("typescript");
-const stream_1 = require("stream");
-const path_1 = require("path");
-const utils_1 = require("./utils");
 const fs_1 = require("fs");
+const path_1 = require("path");
+const stream_1 = require("stream");
 const log = require("fancy-log");
+const through = require("through");
+const ts = require("typescript");
+const Vinyl = require("vinyl");
+const builder = require("./builder");
 const transpiler_1 = require("./transpiler");
+const utils_1 = require("./utils");
 const colors = require("ansi-colors");
 class EmptyDuplex extends stream_1.Duplex {
-    _write(_chunk, _encoding, callback) { callback(); }
-    _read() { this.push(null); }
+    _write(_chunk, _encoding, callback) {
+        callback();
+    }
+    _read() {
+        this.push(null);
+    }
 }
 function createNullCompiler() {
-    const result = function () { return new EmptyDuplex(); };
+    const result = function () {
+        return new EmptyDuplex();
+    };
     result.src = () => new EmptyDuplex();
     return result;
 }
@@ -32,11 +38,11 @@ function create(projectPath, existingOptions, config, onError = _defaultOnError)
             onError(diag.message);
         }
         else if (!diag.file || !diag.start) {
-            onError(ts.flattenDiagnosticMessageText(diag.messageText, '\n'));
+            onError(ts.flattenDiagnosticMessageText(diag.messageText, "\n"));
         }
         else {
             const lineAndCh = diag.file.getLineAndCharacterOfPosition(diag.start);
-            onError(utils_1.strings.format('{0}({1},{2}): {3}', diag.file.fileName, lineAndCh.line + 1, lineAndCh.character + 1, ts.flattenDiagnosticMessageText(diag.messageText, '\n')));
+            onError(utils_1.strings.format("{0}({1},{2}): {3}", diag.file.fileName, lineAndCh.line + 1, lineAndCh.character + 1, ts.flattenDiagnosticMessageText(diag.messageText, "\n")));
         }
     }
     const parsed = ts.readConfigFile(projectPath, ts.sys.readFile);
@@ -59,13 +65,16 @@ function create(projectPath, existingOptions, config, onError = _defaultOnError)
         return through(function (file) {
             // give the file to the compiler
             if (file.isStream()) {
-                this.emit('error', 'no support for streams');
+                this.emit("error", "no support for streams");
                 return;
             }
             builder.file(file);
         }, function () {
             // start the compilation process
-            builder.build(file => this.queue(file), printDiagnostic, token).catch(e => console.error(e)).then(() => this.queue(null));
+            builder
+                .build((file) => this.queue(file), printDiagnostic, token)
+                .catch((e) => console.error(e))
+                .then(() => this.queue(null));
         });
     }
     // TRANSPILE ONLY stream doing just TS to JS conversion
@@ -73,17 +82,18 @@ function create(projectPath, existingOptions, config, onError = _defaultOnError)
         return through(function (file) {
             // give the file to the compiler
             if (file.isStream()) {
-                this.emit('error', 'no support for streams');
+                this.emit("error", "no support for streams");
                 return;
             }
             if (!file.contents) {
                 return;
             }
-            if (!config.transpileOnlyIncludesDts && file.path.endsWith('.d.ts')) {
+            if (!config.transpileOnlyIncludesDts &&
+                file.path.endsWith(".d.ts")) {
                 return;
             }
             if (!transpiler.onOutfile) {
-                transpiler.onOutfile = file => this.queue(file);
+                transpiler.onOutfile = (file) => this.queue(file);
             }
             transpiler.transpile(file);
         }, function () {
@@ -102,12 +112,12 @@ function create(projectPath, existingOptions, config, onError = _defaultOnError)
     }
     else {
         const _builder = builder.createTypeScriptBuilder({ logFn }, projectPath, cmdLine);
-        result = ((token) => createCompileStream(_builder, token));
+        result = (((token) => createCompileStream(_builder, token)));
     }
     result.src = (opts) => {
         let _pos = 0;
         const _fileNames = cmdLine.fileNames.slice(0);
-        return new class extends stream_1.Readable {
+        return new (class extends stream_1.Readable {
             constructor() {
                 super({ objectMode: true });
             }
@@ -121,14 +131,14 @@ function create(projectPath, existingOptions, config, onError = _defaultOnError)
                         contents: (0, fs_1.readFileSync)(path),
                         stat: (0, fs_1.statSync)(path),
                         cwd: opts && opts.cwd,
-                        base: opts && opts.base || (0, path_1.dirname)(projectPath)
+                        base: (opts && opts.base) || (0, path_1.dirname)(projectPath),
                     }));
                 }
                 if (_pos >= _fileNames.length) {
                     this.push(null);
                 }
             }
-        };
+        })();
     };
     return result;
 }

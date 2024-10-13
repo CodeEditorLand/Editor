@@ -3,10 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-
 class Node<K, V> {
 	readonly forward: Node<K, V>[];
-	constructor(readonly level: number, readonly key: K, public value: V) {
+	constructor(
+		readonly level: number,
+		readonly key: K,
+		public value: V,
+	) {
 		this.forward = [];
 	}
 }
@@ -18,8 +21,7 @@ interface Comparator<K> {
 }
 
 export class SkipList<K, V> implements Map<K, V> {
-
-	readonly [Symbol.toStringTag] = 'SkipList';
+	readonly [Symbol.toStringTag] = "SkipList";
 
 	private _maxLevel: number;
 	private _level: number = 0;
@@ -32,7 +34,7 @@ export class SkipList<K, V> implements Map<K, V> {
 	 */
 	constructor(
 		readonly comparator: (a: K, b: K) => number,
-		capacity: number = 2 ** 16
+		capacity: number = 2 ** 16,
 	) {
 		this._maxLevel = Math.max(1, Math.log2(capacity) | 0);
 		this._header = <any>new Node(this._maxLevel, NIL, NIL);
@@ -72,7 +74,10 @@ export class SkipList<K, V> implements Map<K, V> {
 
 	// --- iteration
 
-	forEach(callbackfn: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void {
+	forEach(
+		callbackfn: (value: V, key: K, map: Map<K, V>) => void,
+		thisArg?: any,
+	): void {
 		let node = this._header.forward[0];
 		while (node) {
 			callbackfn.call(thisArg, node.value, node.key, this);
@@ -110,7 +115,7 @@ export class SkipList<K, V> implements Map<K, V> {
 
 	toString(): string {
 		// debug string...
-		let result = '[SkipList]:';
+		let result = "[SkipList]:";
 		let node = this._header.forward[0];
 		while (node) {
 			result += `node(${node.key}, ${node.value}, lvl:${node.level})`;
@@ -121,10 +126,17 @@ export class SkipList<K, V> implements Map<K, V> {
 
 	// from https://www.epaperpress.com/sortsearch/download/skiplist.pdf
 
-	private static _search<K, V>(list: SkipList<K, V>, searchKey: K, comparator: Comparator<K>) {
+	private static _search<K, V>(
+		list: SkipList<K, V>,
+		searchKey: K,
+		comparator: Comparator<K>,
+	) {
 		let x = list._header;
 		for (let i = list._level - 1; i >= 0; i--) {
-			while (x.forward[i] && comparator(x.forward[i].key, searchKey) < 0) {
+			while (
+				x.forward[i] &&
+				comparator(x.forward[i].key, searchKey) < 0
+			) {
 				x = x.forward[i];
 			}
 		}
@@ -135,11 +147,19 @@ export class SkipList<K, V> implements Map<K, V> {
 		return undefined;
 	}
 
-	private static _insert<K, V>(list: SkipList<K, V>, searchKey: K, value: V, comparator: Comparator<K>) {
+	private static _insert<K, V>(
+		list: SkipList<K, V>,
+		searchKey: K,
+		value: V,
+		comparator: Comparator<K>,
+	) {
 		const update: Node<K, V>[] = [];
 		let x = list._header;
 		for (let i = list._level - 1; i >= 0; i--) {
-			while (x.forward[i] && comparator(x.forward[i].key, searchKey) < 0) {
+			while (
+				x.forward[i] &&
+				comparator(x.forward[i].key, searchKey) < 0
+			) {
 				x = x.forward[i];
 			}
 			update[i] = x;
@@ -167,7 +187,10 @@ export class SkipList<K, V> implements Map<K, V> {
 		}
 	}
 
-	private static _randomLevel(list: SkipList<any, any>, p: number = 0.5): number {
+	private static _randomLevel(
+		list: SkipList<any, any>,
+		p: number = 0.5,
+	): number {
 		let lvl = 1;
 		while (Math.random() < p && lvl < list._maxLevel) {
 			lvl += 1;
@@ -175,11 +198,18 @@ export class SkipList<K, V> implements Map<K, V> {
 		return lvl;
 	}
 
-	private static _delete<K, V>(list: SkipList<K, V>, searchKey: K, comparator: Comparator<K>) {
+	private static _delete<K, V>(
+		list: SkipList<K, V>,
+		searchKey: K,
+		comparator: Comparator<K>,
+	) {
 		const update: Node<K, V>[] = [];
 		let x = list._header;
 		for (let i = list._level - 1; i >= 0; i--) {
-			while (x.forward[i] && comparator(x.forward[i].key, searchKey) < 0) {
+			while (
+				x.forward[i] &&
+				comparator(x.forward[i].key, searchKey) < 0
+			) {
 				x = x.forward[i];
 			}
 			update[i] = x;
@@ -195,10 +225,12 @@ export class SkipList<K, V> implements Map<K, V> {
 			}
 			update[i].forward[i] = x.forward[i];
 		}
-		while (list._level > 0 && list._header.forward[list._level - 1] === NIL) {
+		while (
+			list._level > 0 &&
+			list._header.forward[list._level - 1] === NIL
+		) {
 			list._level -= 1;
 		}
 		return true;
 	}
-
 }

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { compareBy, numberComparator } from '../../../../base/common/arrays.js';
+import { compareBy, numberComparator } from "../../../../base/common/arrays.js";
 
 export class ArrayEdit {
 	public readonly edits: readonly SingleArrayEdit[];
@@ -12,9 +12,11 @@ export class ArrayEdit {
 		/**
 		 * Disjoint edits that are applied in parallel
 		 */
-		edits: readonly SingleArrayEdit[]
+		edits: readonly SingleArrayEdit[],
 	) {
-		this.edits = edits.slice().sort(compareBy(c => c.offset, numberComparator));
+		this.edits = edits
+			.slice()
+			.sort(compareBy((c) => c.offset, numberComparator));
 	}
 
 	applyToArray(array: any[]): void {
@@ -30,7 +32,7 @@ export class SingleArrayEdit {
 		public readonly offset: number,
 		public readonly length: number,
 		public readonly newLength: number,
-	) { }
+	) {}
 
 	toString() {
 		return `[${this.offset}, +${this.length}) -> +${this.newLength}}`;
@@ -43,25 +45,28 @@ export interface IIndexTransformer {
 
 /**
  * Can only be called with increasing values of `index`.
-*/
+ */
 export class MonotonousIndexTransformer implements IIndexTransformer {
 	public static fromMany(transformations: ArrayEdit[]): IIndexTransformer {
 		// TODO improve performance by combining transformations first
-		const transformers = transformations.map(t => new MonotonousIndexTransformer(t));
+		const transformers = transformations.map(
+			(t) => new MonotonousIndexTransformer(t),
+		);
 		return new CombinedIndexTransformer(transformers);
 	}
 
 	private idx = 0;
 	private offset = 0;
 
-	constructor(private readonly transformation: ArrayEdit) {
-	}
+	constructor(private readonly transformation: ArrayEdit) {}
 
 	/**
 	 * Precondition: index >= previous-value-of(index).
 	 */
 	transform(index: number): number | undefined {
-		let nextChange = this.transformation.edits[this.idx] as SingleArrayEdit | undefined;
+		let nextChange = this.transformation.edits[this.idx] as
+			| SingleArrayEdit
+			| undefined;
 		while (nextChange && nextChange.offset + nextChange.length <= index) {
 			this.offset += nextChange.newLength - nextChange.length;
 			this.idx++;
@@ -79,9 +84,7 @@ export class MonotonousIndexTransformer implements IIndexTransformer {
 }
 
 export class CombinedIndexTransformer implements IIndexTransformer {
-	constructor(
-		private readonly transformers: IIndexTransformer[]
-	) { }
+	constructor(private readonly transformers: IIndexTransformer[]) {}
 
 	transform(index: number): number | undefined {
 		for (const transformer of this.transformers) {

@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Schemas } from '../../../../base/common/network.js';
-import { IEnvironmentService } from '../../../../platform/environment/common/environment.js';
+import { Schemas } from "../../../../base/common/network.js";
+import { IEnvironmentService } from "../../../../platform/environment/common/environment.js";
 
 export interface IExtensionDevOptions {
 	readonly isExtensionDevHost: boolean;
@@ -13,7 +13,9 @@ export interface IExtensionDevOptions {
 	readonly isExtensionDevTestFromCli: boolean;
 }
 
-export function parseExtensionDevOptions(environmentService: IEnvironmentService): IExtensionDevOptions {
+export function parseExtensionDevOptions(
+	environmentService: IEnvironmentService,
+): IExtensionDevOptions {
 	// handle extension host lifecycle a bit special when we know we are developing an extension that runs inside
 	const isExtensionDevHost = environmentService.isExtensionDevelopment;
 
@@ -27,13 +29,19 @@ export function parseExtensionDevOptions(environmentService: IEnvironmentService
 		}
 	}
 
-	const isExtensionDevDebug = debugOk && typeof environmentService.debugExtensionHost.port === 'number';
-	const isExtensionDevDebugBrk = debugOk && !!environmentService.debugExtensionHost.break;
-	const isExtensionDevTestFromCli = isExtensionDevHost && !!environmentService.extensionTestsLocationURI && !environmentService.debugExtensionHost.debugId;
+	const isExtensionDevDebug =
+		debugOk &&
+		typeof environmentService.debugExtensionHost.port === "number";
+	const isExtensionDevDebugBrk =
+		debugOk && !!environmentService.debugExtensionHost.break;
+	const isExtensionDevTestFromCli =
+		isExtensionDevHost &&
+		!!environmentService.extensionTestsLocationURI &&
+		!environmentService.debugExtensionHost.debugId;
 	return {
 		isExtensionDevHost,
 		isExtensionDevDebug,
 		isExtensionDevDebugBrk,
-		isExtensionDevTestFromCli
+		isExtensionDevTestFromCli,
 	};
 }

@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $ } from '../../dom.js';
-import { IDisposable } from '../../../common/lifecycle.js';
-import { IListRenderer } from './list.js';
+import { IDisposable } from "../../../common/lifecycle.js";
+import { $ } from "../../dom.js";
+import { IListRenderer } from "./list.js";
 
 export interface IRow {
 	domNode: HTMLElement;
@@ -14,13 +14,12 @@ export interface IRow {
 }
 
 export class RowCache<T> implements IDisposable {
-
 	private cache = new Map<string, IRow[]>();
 
 	private readonly transactionNodesPendingRemoval = new Set<HTMLElement>();
 	private inTransaction = false;
 
-	constructor(private renderers: Map<string, IListRenderer<T, any>>) { }
+	constructor(private renderers: Map<string, IListRenderer<T, any>>) {}
 
 	/**
 	 * Returns a row either by creating a new one or reusing
@@ -28,7 +27,10 @@ export class RowCache<T> implements IDisposable {
 	 *
 	 * @returns A row and `isReusingConnectedDomNode` if the row's node is already in the dom in a stale position.
 	 */
-	alloc(templateId: string): { row: IRow; isReusingConnectedDomNode: boolean } {
+	alloc(templateId: string): {
+		row: IRow;
+		isReusingConnectedDomNode: boolean;
+	} {
 		let result = this.getTemplateCache(templateId).pop();
 
 		let isStale = false;
@@ -38,7 +40,7 @@ export class RowCache<T> implements IDisposable {
 				this.transactionNodesPendingRemoval.delete(result.domNode);
 			}
 		} else {
-			const domNode = $('.monaco-list-row');
+			const domNode = $(".monaco-list-row");
 			const renderer = this.getRenderer(templateId);
 			const templateData = renderer.renderTemplate(domNode);
 			result = { domNode, templateId, templateData };
@@ -63,7 +65,7 @@ export class RowCache<T> implements IDisposable {
 	 */
 	transact(makeChanges: () => void) {
 		if (this.inTransaction) {
-			throw new Error('Already in transaction');
+			throw new Error("Already in transaction");
 		}
 
 		this.inTransaction = true;
@@ -95,7 +97,7 @@ export class RowCache<T> implements IDisposable {
 	}
 
 	private doRemoveNode(domNode: HTMLElement) {
-		domNode.classList.remove('scrolling');
+		domNode.classList.remove("scrolling");
 		domNode.remove();
 	}
 

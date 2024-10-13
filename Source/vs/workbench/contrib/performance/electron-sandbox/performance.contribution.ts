@@ -3,45 +3,56 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
-import { Registry } from '../../../../platform/registry/common/platform.js';
-import { Extensions, IWorkbenchContributionsRegistry } from '../../../common/contributions.js';
-import { StartupProfiler } from './startupProfiler.js';
-import { NativeStartupTimings } from './startupTimings.js';
-import { RendererProfiling } from './rendererAutoProfiler.js';
-import { IConfigurationRegistry, Extensions as ConfigExt } from '../../../../platform/configuration/common/configurationRegistry.js';
-import { localize } from '../../../../nls.js';
-import { applicationConfigurationNodeBase } from '../../../common/configuration.js';
+import { localize } from "../../../../nls.js";
+import {
+	Extensions as ConfigExt,
+	IConfigurationRegistry,
+} from "../../../../platform/configuration/common/configurationRegistry.js";
+import { Registry } from "../../../../platform/registry/common/platform.js";
+import { applicationConfigurationNodeBase } from "../../../common/configuration.js";
+import {
+	Extensions,
+	IWorkbenchContributionsRegistry,
+} from "../../../common/contributions.js";
+import { LifecyclePhase } from "../../../services/lifecycle/common/lifecycle.js";
+import { RendererProfiling } from "./rendererAutoProfiler.js";
+import { StartupProfiler } from "./startupProfiler.js";
+import { NativeStartupTimings } from "./startupTimings.js";
 
 // -- auto profiler
 
-Registry.as<IWorkbenchContributionsRegistry>(Extensions.Workbench).registerWorkbenchContribution(
-	RendererProfiling,
-	LifecyclePhase.Eventually
-);
+Registry.as<IWorkbenchContributionsRegistry>(
+	Extensions.Workbench,
+).registerWorkbenchContribution(RendererProfiling, LifecyclePhase.Eventually);
 
 // -- startup profiler
 
-Registry.as<IWorkbenchContributionsRegistry>(Extensions.Workbench).registerWorkbenchContribution(
-	StartupProfiler,
-	LifecyclePhase.Restored
-);
+Registry.as<IWorkbenchContributionsRegistry>(
+	Extensions.Workbench,
+).registerWorkbenchContribution(StartupProfiler, LifecyclePhase.Restored);
 
 // -- startup timings
 
-Registry.as<IWorkbenchContributionsRegistry>(Extensions.Workbench).registerWorkbenchContribution(
+Registry.as<IWorkbenchContributionsRegistry>(
+	Extensions.Workbench,
+).registerWorkbenchContribution(
 	NativeStartupTimings,
-	LifecyclePhase.Eventually
+	LifecyclePhase.Eventually,
 );
 
-Registry.as<IConfigurationRegistry>(ConfigExt.Configuration).registerConfiguration({
+Registry.as<IConfigurationRegistry>(
+	ConfigExt.Configuration,
+).registerConfiguration({
 	...applicationConfigurationNodeBase,
-	'properties': {
-		'application.experimental.rendererProfiling': {
-			type: 'boolean',
+	"properties": {
+		"application.experimental.rendererProfiling": {
+			type: "boolean",
 			default: false,
-			tags: ['experimental'],
-			markdownDescription: localize('experimental.rendererProfiling', "When enabled slow renderers are automatically profiled")
-		}
-	}
+			tags: ["experimental"],
+			markdownDescription: localize(
+				"experimental.rendererProfiling",
+				"When enabled slow renderers are automatically profiled",
+			),
+		},
+	},
 });

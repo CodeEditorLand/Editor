@@ -3,12 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IEditorAction } from './editorCommon.js';
-import { ICommandMetadata } from '../../platform/commands/common/commands.js';
-import { ContextKeyExpression, IContextKeyService } from '../../platform/contextkey/common/contextkey.js';
+import { ICommandMetadata } from "../../platform/commands/common/commands.js";
+import {
+	ContextKeyExpression,
+	IContextKeyService,
+} from "../../platform/contextkey/common/contextkey.js";
+import { IEditorAction } from "./editorCommon.js";
 
 export class InternalEditorAction implements IEditorAction {
-
 	constructor(
 		public readonly id: string,
 		public readonly label: string,
@@ -16,8 +18,8 @@ export class InternalEditorAction implements IEditorAction {
 		public readonly metadata: ICommandMetadata | undefined,
 		private readonly _precondition: ContextKeyExpression | undefined,
 		private readonly _run: (args: unknown) => Promise<void>,
-		private readonly _contextKeyService: IContextKeyService
-	) { }
+		private readonly _contextKeyService: IContextKeyService,
+	) {}
 
 	public isSupported(): boolean {
 		return this._contextKeyService.contextMatchesRules(this._precondition);

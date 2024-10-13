@@ -57,9 +57,16 @@ export interface IMonarchLanguage {
  * 		shorthands: [reg,act] == { regex: reg, action: act}
  *		and       : [reg,act,nxt] == { regex: reg, action: act{ next: nxt }}
  */
-export type IShortMonarchLanguageRule1 = [string | RegExp, IMonarchLanguageAction];
+export type IShortMonarchLanguageRule1 = [
+	string | RegExp,
+	IMonarchLanguageAction,
+];
 
-export type IShortMonarchLanguageRule2 = [string | RegExp, IMonarchLanguageAction, string];
+export type IShortMonarchLanguageRule2 = [
+	string | RegExp,
+	IMonarchLanguageAction,
+	string,
+];
 
 export interface IExpandedMonarchLanguageRule {
 	/**
@@ -77,7 +84,8 @@ export interface IExpandedMonarchLanguageRule {
 	include?: string;
 }
 
-export type IMonarchLanguageRule = IShortMonarchLanguageRule1
+export type IMonarchLanguageRule =
+	| IShortMonarchLanguageRule1
 	| IShortMonarchLanguageRule2
 	| IExpandedMonarchLanguageRule;
 
@@ -127,7 +135,10 @@ export interface IExpandedMonarchLanguageAction {
 	log?: string;
 }
 
-export type IMonarchLanguageAction = IShortMonarchLanguageAction | IExpandedMonarchLanguageAction | (IShortMonarchLanguageAction | IExpandedMonarchLanguageAction)[];
+export type IMonarchLanguageAction =
+	| IShortMonarchLanguageAction
+	| IExpandedMonarchLanguageAction
+	| (IShortMonarchLanguageAction | IExpandedMonarchLanguageAction)[];
 
 /**
  * This interface can be shortened as an array, ie. ['{','}','delimiter.curly']

@@ -5,7 +5,7 @@
 
 export const enum TestIdPathParts {
 	/** Delimiter for path parts in test IDs */
-	Delimiter = '\0',
+	Delimiter = "\0",
 }
 
 /**
@@ -34,7 +34,11 @@ export class TestId {
 	/**
 	 * Creates a test ID from an ext host test item.
 	 */
-	public static fromExtHostTestItem(item: TestItemLike, rootId: string, parent = item.parent) {
+	public static fromExtHostTestItem(
+		item: TestItemLike,
+		rootId: string,
+		parent = item.parent,
+	) {
 		if (item._isRoot) {
 			return new TestId([rootId]);
 		}
@@ -97,7 +101,9 @@ export class TestId {
 	 */
 	public static localId(idString: string) {
 		const idx = idString.lastIndexOf(TestIdPathParts.Delimiter);
-		return idx === -1 ? idString : idString.slice(idx + TestIdPathParts.Delimiter.length);
+		return idx === -1
+			? idString
+			: idString.slice(idx + TestIdPathParts.Delimiter.length);
 	}
 
 	/**
@@ -105,7 +111,10 @@ export class TestId {
 	 * todo@connor4312: review usages of this to see if using the WellDefinedPrefixTree is better
 	 */
 	public static isChild(maybeParent: string, maybeChild: string) {
-		return maybeChild[maybeParent.length] === TestIdPathParts.Delimiter && maybeChild.startsWith(maybeParent);
+		return (
+			maybeChild[maybeParent.length] === TestIdPathParts.Delimiter &&
+			maybeChild.startsWith(maybeParent)
+		);
 	}
 
 	/**
@@ -128,7 +137,10 @@ export class TestId {
 		return TestPosition.Disconnected;
 	}
 
-	public static getLengthOfCommonPrefix(length: number, getId: (i: number) => TestId): number {
+	public static getLengthOfCommonPrefix(
+		length: number,
+		getId: (i: number) => TestId,
+	): number {
 		if (length === 0) {
 			return 0;
 		}
@@ -154,7 +166,7 @@ export class TestId {
 		private readonly viewEnd = path.length,
 	) {
 		if (path.length === 0 || viewEnd < 1) {
-			throw new Error('cannot create test with empty path');
+			throw new Error("cannot create test with empty path");
 		}
 	}
 
@@ -169,7 +181,9 @@ export class TestId {
 	 * Gets the ID of the parent test.
 	 */
 	public get parentId(): TestId | undefined {
-		return this.viewEnd > 1 ? new TestId(this.path, this.viewEnd - 1) : undefined;
+		return this.viewEnd > 1
+			? new TestId(this.path, this.viewEnd - 1)
+			: undefined;
 	}
 
 	/**
@@ -217,7 +231,7 @@ export class TestId {
 	 * Compares the other test ID with this one.
 	 */
 	public compare(other: TestId | string) {
-		if (typeof other === 'string') {
+		if (typeof other === "string") {
 			return TestId.compare(this.toString(), other);
 		}
 

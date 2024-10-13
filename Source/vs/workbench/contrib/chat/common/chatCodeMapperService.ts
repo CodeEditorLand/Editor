@@ -3,19 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { CharCode } from '../../../../base/common/charCode.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
-import { ResourceMap } from '../../../../base/common/map.js';
-import { splitLinesIncludeSeparators } from '../../../../base/common/strings.js';
-import { isString } from '../../../../base/common/types.js';
-import { URI } from '../../../../base/common/uri.js';
-import { DocumentContextItem, isLocation, TextEdit } from '../../../../editor/common/languages.js';
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
-import { IChatAgentResult } from './chatAgents.js';
-import { IChatResponseModel } from './chatModel.js';
-import { IChatContentReference } from './chatService.js';
-
+import { CancellationToken } from "../../../../base/common/cancellation.js";
+import { CharCode } from "../../../../base/common/charCode.js";
+import { IDisposable } from "../../../../base/common/lifecycle.js";
+import { ResourceMap } from "../../../../base/common/map.js";
+import { splitLinesIncludeSeparators } from "../../../../base/common/strings.js";
+import { isString } from "../../../../base/common/types.js";
+import { URI } from "../../../../base/common/uri.js";
+import {
+	DocumentContextItem,
+	isLocation,
+	TextEdit,
+} from "../../../../editor/common/languages.js";
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import { IChatAgentResult } from "./chatAgents.js";
+import { IChatResponseModel } from "./chatModel.js";
+import { IChatContentReference } from "./chatService.js";
 
 export interface ICodeMapperResponse {
 	textEdit: (resource: URI, textEdit: TextEdit[]) => void;
@@ -28,12 +31,12 @@ export interface ICodeMapperCodeBlock {
 }
 
 export interface ConversationRequest {
-	readonly type: 'request';
+	readonly type: "request";
 	readonly message: string;
 }
 
 export interface ConversationResponse {
-	readonly type: 'response';
+	readonly type: "response";
 	readonly message: string;
 	readonly result?: IChatAgentResult;
 	readonly references?: DocumentContextItem[];
@@ -49,16 +52,32 @@ export interface ICodeMapperResult {
 }
 
 export interface ICodeMapperProvider {
-	mapCode(request: ICodeMapperRequest, response: ICodeMapperResponse, token: CancellationToken): Promise<ICodeMapperResult | undefined>;
+	mapCode(
+		request: ICodeMapperRequest,
+		response: ICodeMapperResponse,
+		token: CancellationToken,
+	): Promise<ICodeMapperResult | undefined>;
 }
 
-export const ICodeMapperService = createDecorator<ICodeMapperService>('codeMapperService');
+export const ICodeMapperService =
+	createDecorator<ICodeMapperService>("codeMapperService");
 
 export interface ICodeMapperService {
 	readonly _serviceBrand: undefined;
-	registerCodeMapperProvider(handle: number, provider: ICodeMapperProvider): IDisposable;
-	mapCode(request: ICodeMapperRequest, response: ICodeMapperResponse, token: CancellationToken): Promise<ICodeMapperResult | undefined>;
-	mapCodeFromResponse(responseModel: IChatResponseModel, response: ICodeMapperResponse, token: CancellationToken): Promise<ICodeMapperResult | undefined>;
+	registerCodeMapperProvider(
+		handle: number,
+		provider: ICodeMapperProvider,
+	): IDisposable;
+	mapCode(
+		request: ICodeMapperRequest,
+		response: ICodeMapperResponse,
+		token: CancellationToken,
+	): Promise<ICodeMapperResult | undefined>;
+	mapCodeFromResponse(
+		responseModel: IChatResponseModel,
+		response: ICodeMapperResponse,
+		token: CancellationToken,
+	): Promise<ICodeMapperResult | undefined>;
 }
 
 export class CodeMapperService implements ICodeMapperService {
@@ -66,7 +85,10 @@ export class CodeMapperService implements ICodeMapperService {
 
 	private readonly providers: ICodeMapperProvider[] = [];
 
-	registerCodeMapperProvider(handle: number, provider: ICodeMapperProvider): IDisposable {
+	registerCodeMapperProvider(
+		handle: number,
+		provider: ICodeMapperProvider,
+	): IDisposable {
 		this.providers.push(provider);
 		return {
 			dispose: () => {
@@ -74,11 +96,15 @@ export class CodeMapperService implements ICodeMapperService {
 				if (index >= 0) {
 					this.providers.splice(index, 1);
 				}
-			}
+			},
 		};
 	}
 
-	async mapCode(request: ICodeMapperRequest, response: ICodeMapperResponse, token: CancellationToken) {
+	async mapCode(
+		request: ICodeMapperRequest,
+		response: ICodeMapperResponse,
+		token: CancellationToken,
+	) {
 		for (const provider of this.providers) {
 			const result = await provider.mapCode(request, response, token);
 			if (result) {
@@ -88,7 +114,11 @@ export class CodeMapperService implements ICodeMapperService {
 		return undefined;
 	}
 
-	async mapCodeFromResponse(responseModel: IChatResponseModel, response: ICodeMapperResponse, token: CancellationToken) {
+	async mapCodeFromResponse(
+		responseModel: IChatResponseModel,
+		response: ICodeMapperResponse,
+		token: CancellationToken,
+	) {
 		const fenceLanguageRegex = /^`{3,}/;
 		const codeBlocks: ICodeMapperCodeBlock[] = [];
 
@@ -100,15 +130,24 @@ export class CodeMapperService implements ICodeMapperService {
 
 		for (const lineOrUri of iterateLinesOrUris(responseModel)) {
 			if (isString(lineOrUri)) {
-				const fenceLanguageIdMatch = lineOrUri.match(fenceLanguageRegex);
+				const fenceLanguageIdMatch =
+					lineOrUri.match(fenceLanguageRegex);
 				if (fenceLanguageIdMatch) {
 					// we found a line that starts with a fence
-					if (fence !== undefined && fenceLanguageIdMatch[0] === fence) {
+					if (
+						fence !== undefined &&
+						fenceLanguageIdMatch[0] === fence
+					) {
 						// we are in a code block and the fence matches the opening fence: Close the code block
 						fence = undefined;
 						if (currentBlockUri) {
 							// report the code block if we have a URI
-							codeBlocks.push({ code: currentBlock.join(''), resource: currentBlockUri, markdownBeforeBlock: markdownBeforeBlock.join('') });
+							codeBlocks.push({
+								code: currentBlock.join(""),
+								resource: currentBlockUri,
+								markdownBeforeBlock:
+									markdownBeforeBlock.join(""),
+							});
 							currentBlock.length = 0;
 							markdownBeforeBlock.length = 0;
 							currentBlockUri = undefined;
@@ -135,54 +174,70 @@ export class CodeMapperService implements ICodeMapperService {
 				break;
 			}
 			conversation.push({
-				type: 'request',
-				message: request.message.text
+				type: "request",
+				message: request.message.text,
 			});
 			conversation.push({
-				type: 'response',
+				type: "response",
 				message: response.response.getMarkdown(),
 				result: response.result,
-				references: getReferencesAsDocumentContext(response.contentReferences)
+				references: getReferencesAsDocumentContext(
+					response.contentReferences,
+				),
 			});
 		}
 		return this.mapCode({ codeBlocks, conversation }, response, token);
 	}
 }
 
-function iterateLinesOrUris(responseModel: IChatResponseModel): Iterable<string | URI> {
+function iterateLinesOrUris(
+	responseModel: IChatResponseModel,
+): Iterable<string | URI> {
 	return {
 		*[Symbol.iterator](): Iterator<string | URI> {
 			let lastIncompleteLine = undefined;
 			for (const part of responseModel.response.value) {
-				if (part.kind === 'markdownContent' || part.kind === 'markdownVuln') {
-					const lines = splitLinesIncludeSeparators(part.content.value);
+				if (
+					part.kind === "markdownContent" ||
+					part.kind === "markdownVuln"
+				) {
+					const lines = splitLinesIncludeSeparators(
+						part.content.value,
+					);
 					if (lines.length > 0) {
 						if (lastIncompleteLine !== undefined) {
 							lines[0] = lastIncompleteLine + lines[0]; // merge the last incomplete line with the first markdown line
 						}
-						lastIncompleteLine = isLineIncomplete(lines[lines.length - 1]) ? lines.pop() : undefined;
+						lastIncompleteLine = isLineIncomplete(
+							lines[lines.length - 1],
+						)
+							? lines.pop()
+							: undefined;
 						for (const line of lines) {
 							yield line;
 						}
 					}
-				} else if (part.kind === 'codeblockUri') {
+				} else if (part.kind === "codeblockUri") {
 					yield part.uri;
 				}
 			}
 			if (lastIncompleteLine !== undefined) {
 				yield lastIncompleteLine;
 			}
-		}
+		},
 	};
 }
 
 function isLineIncomplete(line: string) {
 	const lastChar = line.charCodeAt(line.length - 1);
-	return lastChar !== CharCode.LineFeed && lastChar !== CharCode.CarriageReturn;
+	return (
+		lastChar !== CharCode.LineFeed && lastChar !== CharCode.CarriageReturn
+	);
 }
 
-
-export function getReferencesAsDocumentContext(res: readonly IChatContentReference[]): DocumentContextItem[] {
+export function getReferencesAsDocumentContext(
+	res: readonly IChatContentReference[],
+): DocumentContextItem[] {
 	const map = new ResourceMap<DocumentContextItem>();
 	for (const r of res) {
 		let uri;
@@ -200,7 +255,11 @@ export function getReferencesAsDocumentContext(res: readonly IChatContentReferen
 					item.ranges.push(range);
 				}
 			} else {
-				map.set(uri, { uri, version: -1, ranges: range ? [range] : [] });
+				map.set(uri, {
+					uri,
+					version: -1,
+					ranges: range ? [range] : [],
+				});
 			}
 		}
 	}

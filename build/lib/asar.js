@@ -7,10 +7,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAsar = createAsar;
 const path = require("path");
 const es = require("event-stream");
-const pickle = require('chromium-pickle-js');
-const Filesystem = require('asar/lib/filesystem');
-const VinylFile = require("vinyl");
 const minimatch = require("minimatch");
+const VinylFile = require("vinyl");
+const pickle = require("chromium-pickle-js");
+const Filesystem = require("asar/lib/filesystem");
 function createAsar(folderPath, unpackGlobs, skipGlobs, duplicateGlobs, destFilename) {
     const shouldUnpackFile = (file) => {
         for (let i = 0; i < unpackGlobs.length; i++) {
@@ -42,16 +42,18 @@ function createAsar(folderPath, unpackGlobs, skipGlobs, duplicateGlobs, destFile
     const out = [];
     // Keep track of pending inserts
     let pendingInserts = 0;
-    let onFileInserted = () => { pendingInserts--; };
+    let onFileInserted = () => {
+        pendingInserts--;
+    };
     // Do not insert twice the same directory
     const seenDir = {};
     const insertDirectoryRecursive = (dir) => {
         if (seenDir[dir]) {
             return;
         }
-        let lastSlash = dir.lastIndexOf('/');
+        let lastSlash = dir.lastIndexOf("/");
         if (lastSlash === -1) {
-            lastSlash = dir.lastIndexOf('\\');
+            lastSlash = dir.lastIndexOf("\\");
         }
         if (lastSlash !== -1) {
             insertDirectoryRecursive(dir.substring(0, lastSlash));
@@ -60,9 +62,9 @@ function createAsar(folderPath, unpackGlobs, skipGlobs, duplicateGlobs, destFile
         filesystem.insertDirectory(dir);
     };
     const insertDirectoryForFile = (file) => {
-        let lastSlash = file.lastIndexOf('/');
+        let lastSlash = file.lastIndexOf("/");
         if (lastSlash === -1) {
-            lastSlash = file.lastIndexOf('\\');
+            lastSlash = file.lastIndexOf("\\");
         }
         if (lastSlash !== -1) {
             insertDirectoryRecursive(file.substring(0, lastSlash));
@@ -73,7 +75,9 @@ function createAsar(folderPath, unpackGlobs, skipGlobs, duplicateGlobs, destFile
         pendingInserts++;
         // Do not pass `onFileInserted` directly because it gets overwritten below.
         // Create a closure capturing `onFileInserted`.
-        filesystem.insertFile(relativePath, shouldUnpack, { stat: stat }, {}).then(() => onFileInserted(), () => onFileInserted());
+        filesystem
+            .insertFile(relativePath, shouldUnpack, { stat: stat }, {})
+            .then(() => onFileInserted(), () => onFileInserted());
     };
     return es.through(function (file) {
         if (file.stat.isDirectory()) {
@@ -84,19 +88,19 @@ function createAsar(folderPath, unpackGlobs, skipGlobs, duplicateGlobs, destFile
         }
         if (shouldSkipFile(file)) {
             this.queue(new VinylFile({
-                base: '.',
+                base: ".",
                 path: file.path,
                 stat: file.stat,
-                contents: file.contents
+                contents: file.contents,
             }));
             return;
         }
         if (shouldDuplicateFile(file)) {
             this.queue(new VinylFile({
-                base: '.',
+                base: ".",
                 path: file.path,
                 stat: file.stat,
-                contents: file.contents
+                contents: file.contents,
             }));
         }
         const shouldUnpack = shouldUnpackFile(file);
@@ -105,10 +109,10 @@ function createAsar(folderPath, unpackGlobs, skipGlobs, duplicateGlobs, destFile
             // The file goes outside of xx.asar, in a folder xx.asar.unpacked
             const relative = path.relative(folderPath, file.path);
             this.queue(new VinylFile({
-                base: '.',
-                path: path.join(destFilename + '.unpacked', relative),
+                base: ".",
+                path: path.join(destFilename + ".unpacked", relative),
                 stat: file.stat,
-                contents: file.contents
+                contents: file.contents,
             }));
         }
         else {
@@ -130,9 +134,9 @@ function createAsar(folderPath, unpackGlobs, skipGlobs, duplicateGlobs, destFile
             const contents = Buffer.concat(out);
             out.length = 0;
             this.queue(new VinylFile({
-                base: '.',
+                base: ".",
                 path: destFilename,
-                contents: contents
+                contents: contents,
             }));
             this.queue(null);
         };

@@ -22,7 +22,7 @@ class LanguageServiceHost {
     // for ts.LanguageServiceHost
     getCompilationSettings = () => ts.getDefaultCompilerOptions();
     getScriptFileNames = () => Object.keys(this.files);
-    getScriptVersion = (_fileName) => '0';
+    getScriptVersion = (_fileName) => "0";
     getScriptSnapshot = (fileName) => this.files[fileName];
     getCurrentDirectory = () => process.cwd();
     getDefaultLibFileName = (options) => ts.getDefaultLibFilePath(options);
@@ -32,7 +32,7 @@ const defaults = {
     indentSize: 4,
     tabSize: 4,
     indentStyle: ts.IndentStyle.Smart,
-    newLineCharacter: '\r\n',
+    newLineCharacter: "\r\n",
     convertTabsToSpaces: false,
     insertSpaceAfterCommaDelimiter: true,
     insertSpaceAfterSemicolonInForStatements: true,
@@ -54,7 +54,7 @@ const defaults = {
 const getOverrides = (() => {
     let value;
     return () => {
-        value ??= JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'tsfmt.json'), 'utf8'));
+        value ??= JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "tsfmt.json"), "utf8"));
         return value;
     };
 })();
@@ -62,11 +62,14 @@ function format(fileName, text) {
     const host = new LanguageServiceHost();
     host.addFile(fileName, text);
     const languageService = ts.createLanguageService(host);
-    const edits = languageService.getFormattingEditsForDocument(fileName, { ...defaults, ...getOverrides() });
+    const edits = languageService.getFormattingEditsForDocument(fileName, {
+        ...defaults,
+        ...getOverrides(),
+    });
     edits
         .sort((a, b) => a.span.start - b.span.start)
         .reverse()
-        .forEach(edit => {
+        .forEach((edit) => {
         const head = text.slice(0, edit.span.start);
         const tail = text.slice(edit.span.start + edit.span.length);
         text = `${head}${edit.newText}${tail}`;

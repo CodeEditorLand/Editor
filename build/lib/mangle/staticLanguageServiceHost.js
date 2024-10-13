@@ -5,8 +5,8 @@
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StaticLanguageServiceHost = void 0;
-const ts = require("typescript");
 const path = require("path");
+const ts = require("typescript");
 class StaticLanguageServiceHost {
     projectPath;
     _cmdLine;
@@ -30,10 +30,10 @@ class StaticLanguageServiceHost {
         return this._cmdLine.fileNames;
     }
     getScriptVersion(_fileName) {
-        return '1';
+        return "1";
     }
     getProjectVersion() {
-        return '1';
+        return "1";
     }
     getScriptSnapshot(fileName) {
         let result = this._scriptSnapshots.get(fileName);

@@ -3,15 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDisposable } from '../../../base/common/lifecycle.js';
-import { URI } from '../../../base/common/uri.js';
-import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { IDisposable } from "../../../base/common/lifecycle.js";
+import { URI } from "../../../base/common/uri.js";
+import { createDecorator } from "../../instantiation/common/instantiation.js";
 
-export const IUndoRedoService = createDecorator<IUndoRedoService>('undoRedoService');
+export const IUndoRedoService =
+	createDecorator<IUndoRedoService>("undoRedoService");
 
 export const enum UndoRedoElementType {
 	Resource,
-	Workspace
+	Workspace,
 }
 
 export interface IResourceUndoRedoElement {
@@ -70,7 +71,9 @@ export interface IWorkspaceUndoRedoElement {
 	prepareUndoRedo?(): Promise<IDisposable> | IDisposable | void;
 }
 
-export type IUndoRedoElement = IResourceUndoRedoElement | IWorkspaceUndoRedoElement;
+export type IUndoRedoElement =
+	| IResourceUndoRedoElement
+	| IWorkspaceUndoRedoElement;
 
 export interface IPastFutureElements {
 	past: IUndoRedoElement[];
@@ -84,8 +87,8 @@ export interface UriComparisonKeyComputer {
 export class ResourceEditStackSnapshot {
 	constructor(
 		public readonly resource: URI,
-		public readonly elements: number[]
-	) { }
+		public readonly elements: number[],
+	) {}
 }
 
 export class UndoRedoGroup {
@@ -137,7 +140,10 @@ export interface IUndoRedoService {
 	 * Register an URI -> string hasher.
 	 * This is useful for making multiple URIs share the same undo-redo stack.
 	 */
-	registerUriComparisonKeyComputer(scheme: string, uriComparisonKeyComputer: UriComparisonKeyComputer): IDisposable;
+	registerUriComparisonKeyComputer(
+		scheme: string,
+		uriComparisonKeyComputer: UriComparisonKeyComputer,
+	): IDisposable;
 
 	/**
 	 * Get the hash used internally for a certain URI.
@@ -149,7 +155,11 @@ export interface IUndoRedoService {
 	 * Add a new element to the `undo` stack.
 	 * This will destroy the `redo` stack.
 	 */
-	pushElement(element: IUndoRedoElement, group?: UndoRedoGroup, source?: UndoRedoSource): void;
+	pushElement(
+		element: IUndoRedoElement,
+		group?: UndoRedoGroup,
+		source?: UndoRedoSource,
+	): void;
 
 	/**
 	 * Get the last pushed element for a resource.
@@ -166,7 +176,11 @@ export interface IUndoRedoService {
 	/**
 	 * Validate or invalidate stack elements associated with a resource.
 	 */
-	setElementsValidFlag(resource: URI, isValid: boolean, filter: (element: IUndoRedoElement) => boolean): void;
+	setElementsValidFlag(
+		resource: URI,
+		isValid: boolean,
+		filter: (element: IUndoRedoElement) => boolean,
+	): void;
 
 	/**
 	 * Remove elements that target `resource`.

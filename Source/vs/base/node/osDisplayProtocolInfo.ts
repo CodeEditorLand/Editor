@@ -3,29 +3,35 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { constants as FSConstants, promises as FSPromises } from 'fs';
-import { join } from '../common/path.js';
-import { env } from '../common/process.js';
+import { constants as FSConstants, promises as FSPromises } from "fs";
 
-const XDG_SESSION_TYPE = 'XDG_SESSION_TYPE';
-const WAYLAND_DISPLAY = 'WAYLAND_DISPLAY';
-const XDG_RUNTIME_DIR = 'XDG_RUNTIME_DIR';
+import { join } from "../common/path.js";
+import { env } from "../common/process.js";
+
+const XDG_SESSION_TYPE = "XDG_SESSION_TYPE";
+const WAYLAND_DISPLAY = "WAYLAND_DISPLAY";
+const XDG_RUNTIME_DIR = "XDG_RUNTIME_DIR";
 
 const enum DisplayProtocolType {
-	Wayland = 'wayland',
-	XWayland = 'xwayland',
-	X11 = 'x11',
-	Unknown = 'unknown'
+	Wayland = "wayland",
+	XWayland = "xwayland",
+	X11 = "x11",
+	Unknown = "unknown",
 }
 
-export async function getDisplayProtocol(errorLogger: (error: any) => void): Promise<DisplayProtocolType> {
+export async function getDisplayProtocol(
+	errorLogger: (error: any) => void,
+): Promise<DisplayProtocolType> {
 	const xdgSessionType = env[XDG_SESSION_TYPE];
 
 	if (xdgSessionType) {
 		// If XDG_SESSION_TYPE is set, return its value if it's either 'wayland' or 'x11'.
 		// We assume that any value other than 'wayland' or 'x11' is an error or unexpected,
 		// hence 'unknown' is returned.
-		return xdgSessionType === DisplayProtocolType.Wayland || xdgSessionType === DisplayProtocolType.X11 ? xdgSessionType : DisplayProtocolType.Unknown;
+		return xdgSessionType === DisplayProtocolType.Wayland ||
+			xdgSessionType === DisplayProtocolType.X11
+			? xdgSessionType
+			: DisplayProtocolType.Unknown;
 	} else {
 		const waylandDisplay = env[WAYLAND_DISPLAY];
 
@@ -40,10 +46,13 @@ export async function getDisplayProtocol(errorLogger: (error: any) => void): Pro
 				return DisplayProtocolType.Unknown;
 			} else {
 				// Check for the presence of the file $XDG_RUNTIME_DIR/wayland-0.
-				const waylandServerPipe = join(xdgRuntimeDir, 'wayland-0');
+				const waylandServerPipe = join(xdgRuntimeDir, "wayland-0");
 
 				try {
-					await FSPromises.access(waylandServerPipe, FSConstants.R_OK);
+					await FSPromises.access(
+						waylandServerPipe,
+						FSConstants.R_OK,
+					);
 
 					// If the file exists, then the session is wayland.
 					return DisplayProtocolType.Wayland;
@@ -58,17 +67,23 @@ export async function getDisplayProtocol(errorLogger: (error: any) => void): Pro
 	}
 }
 
-
-export function getCodeDisplayProtocol(displayProtocol: DisplayProtocolType, ozonePlatform: string | undefined): DisplayProtocolType {
+export function getCodeDisplayProtocol(
+	displayProtocol: DisplayProtocolType,
+	ozonePlatform: string | undefined,
+): DisplayProtocolType {
 	if (!ozonePlatform) {
-		return displayProtocol === DisplayProtocolType.Wayland ? DisplayProtocolType.XWayland : DisplayProtocolType.X11;
+		return displayProtocol === DisplayProtocolType.Wayland
+			? DisplayProtocolType.XWayland
+			: DisplayProtocolType.X11;
 	} else {
 		switch (ozonePlatform) {
-			case 'auto':
+			case "auto":
 				return displayProtocol;
-			case 'x11':
-				return displayProtocol === DisplayProtocolType.Wayland ? DisplayProtocolType.XWayland : DisplayProtocolType.X11;
-			case 'wayland':
+			case "x11":
+				return displayProtocol === DisplayProtocolType.Wayland
+					? DisplayProtocolType.XWayland
+					: DisplayProtocolType.X11;
+			case "wayland":
 				return DisplayProtocolType.Wayland;
 			default:
 				return DisplayProtocolType.Unknown;

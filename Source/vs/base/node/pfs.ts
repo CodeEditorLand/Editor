@@ -3,21 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as fs from 'fs';
-import { tmpdir } from 'os';
-import { promisify } from 'util';
-import { ResourceQueue, timeout } from '../common/async.js';
-import { isEqualOrParent, isRootOrDriveLetter, randomPath } from '../common/extpath.js';
-import { normalizeNFC } from '../common/normalization.js';
-import { join } from '../common/path.js';
-import { isLinux, isMacintosh, isWindows } from '../common/platform.js';
-import { extUriBiasedIgnorePathCase } from '../common/resources.js';
-import { URI } from '../common/uri.js';
+import * as fs from "fs";
+import { tmpdir } from "os";
+import { promisify } from "util";
+
+import { ResourceQueue, timeout } from "../common/async.js";
+import {
+	isEqualOrParent,
+	isRootOrDriveLetter,
+	randomPath,
+} from "../common/extpath.js";
+import { normalizeNFC } from "../common/normalization.js";
+import { join } from "../common/path.js";
+import { isLinux, isMacintosh, isWindows } from "../common/platform.js";
+import { extUriBiasedIgnorePathCase } from "../common/resources.js";
+import { URI } from "../common/uri.js";
 
 //#region rimraf
 
 export enum RimRafMode {
-
 	/**
 	 * Slow version that unlinks each file and folder.
 	 */
@@ -28,7 +32,7 @@ export enum RimRafMode {
 	 * into a temp directory and then deletes that
 	 * without waiting for it.
 	 */
-	MOVE
+	MOVE,
 }
 
 /**
@@ -41,11 +45,23 @@ export enum RimRafMode {
  *           path to before deleting it.
  */
 async function rimraf(path: string, mode: RimRafMode.UNLINK): Promise<void>;
-async function rimraf(path: string, mode: RimRafMode.MOVE, moveToPath?: string): Promise<void>;
-async function rimraf(path: string, mode?: RimRafMode, moveToPath?: string): Promise<void>;
-async function rimraf(path: string, mode = RimRafMode.UNLINK, moveToPath?: string): Promise<void> {
+async function rimraf(
+	path: string,
+	mode: RimRafMode.MOVE,
+	moveToPath?: string,
+): Promise<void>;
+async function rimraf(
+	path: string,
+	mode?: RimRafMode,
+	moveToPath?: string,
+): Promise<void>;
+async function rimraf(
+	path: string,
+	mode = RimRafMode.UNLINK,
+	moveToPath?: string,
+): Promise<void> {
 	if (isRootOrDriveLetter(path)) {
-		throw new Error('rimraf - will refuse to recursively delete root');
+		throw new Error("rimraf - will refuse to recursively delete root");
 	}
 
 	// delete: via rm
@@ -57,12 +73,15 @@ async function rimraf(path: string, mode = RimRafMode.UNLINK, moveToPath?: strin
 	return rimrafMove(path, moveToPath);
 }
 
-async function rimrafMove(path: string, moveToPath = randomPath(tmpdir())): Promise<void> {
+async function rimrafMove(
+	path: string,
+	moveToPath = randomPath(tmpdir()),
+): Promise<void> {
 	try {
 		try {
 			await fs.promises.rename(path, moveToPath);
 		} catch (error) {
-			if (error.code === 'ENOENT') {
+			if (error.code === "ENOENT") {
 				return; // ignore - path to delete did not exist
 			}
 
@@ -70,21 +89,27 @@ async function rimrafMove(path: string, moveToPath = randomPath(tmpdir())): Prom
 		}
 
 		// Delete but do not return as promise
-		rimrafUnlink(moveToPath).catch(error => {/* ignore */ });
+		rimrafUnlink(moveToPath).catch((error) => {
+			/* ignore */
+		});
 	} catch (error) {
-		if (error.code !== 'ENOENT') {
+		if (error.code !== "ENOENT") {
 			throw error;
 		}
 	}
 }
 
 async function rimrafUnlink(path: string): Promise<void> {
-	return fs.promises.rm(path, { recursive: true, force: true, maxRetries: 3 });
+	return fs.promises.rm(path, {
+		recursive: true,
+		force: true,
+		maxRetries: 3,
+	});
 }
 
 export function rimrafSync(path: string): void {
 	if (isRootOrDriveLetter(path)) {
-		throw new Error('rimraf - will refuse to recursively delete root');
+		throw new Error("rimraf - will refuse to recursively delete root");
 	}
 
 	fs.rmSync(path, { recursive: true, force: true, maxRetries: 3 });
@@ -108,16 +133,29 @@ export interface IDirent {
  * (https://github.com/nodejs/node/issues/2165)
  */
 async function readdir(path: string): Promise<string[]>;
-async function readdir(path: string, options: { withFileTypes: true }): Promise<IDirent[]>;
-async function readdir(path: string, options?: { withFileTypes: true }): Promise<(string | IDirent)[]> {
-	return handleDirectoryChildren(await (options ? safeReaddirWithFileTypes(path) : fs.promises.readdir(path)));
+async function readdir(
+	path: string,
+	options: { withFileTypes: true },
+): Promise<IDirent[]>;
+async function readdir(
+	path: string,
+	options?: { withFileTypes: true },
+): Promise<(string | IDirent)[]> {
+	return handleDirectoryChildren(
+		await (options
+			? safeReaddirWithFileTypes(path)
+			: fs.promises.readdir(path)),
+	);
 }
 
 async function safeReaddirWithFileTypes(path: string): Promise<IDirent[]> {
 	try {
 		return await fs.promises.readdir(path, { withFileTypes: true });
 	} catch (error) {
-		console.warn('[node.js fs] readdir with filetypes failed with error: ', error);
+		console.warn(
+			"[node.js fs] readdir with filetypes failed with error: ",
+			error,
+		);
 	}
 
 	// Fallback to manually reading and resolving each
@@ -140,14 +178,17 @@ async function safeReaddirWithFileTypes(path: string): Promise<IDirent[]> {
 			isDirectory = lstat.isDirectory();
 			isSymbolicLink = lstat.isSymbolicLink();
 		} catch (error) {
-			console.warn('[node.js fs] unexpected error from lstat after readdir: ', error);
+			console.warn(
+				"[node.js fs] unexpected error from lstat after readdir: ",
+				error,
+			);
 		}
 
 		result.push({
 			name: child,
 			isFile: () => isFile,
 			isDirectory: () => isDirectory,
-			isSymbolicLink: () => isSymbolicLink
+			isSymbolicLink: () => isSymbolicLink,
 		});
 	}
 
@@ -165,14 +206,17 @@ export function readdirSync(path: string): string[] {
 
 function handleDirectoryChildren(children: string[]): string[];
 function handleDirectoryChildren(children: IDirent[]): IDirent[];
-function handleDirectoryChildren(children: (string | IDirent)[]): (string | IDirent)[];
-function handleDirectoryChildren(children: (string | IDirent)[]): (string | IDirent)[] {
-	return children.map(child => {
-
+function handleDirectoryChildren(
+	children: (string | IDirent)[],
+): (string | IDirent)[];
+function handleDirectoryChildren(
+	children: (string | IDirent)[],
+): (string | IDirent)[] {
+	return children.map((child) => {
 		// Mac: uses NFD unicode form on disk, but we want NFC
 		// See also https://github.com/nodejs/node/issues/2165
 
-		if (typeof child === 'string') {
+		if (typeof child === "string") {
 			return isMacintosh ? normalizeNFC(child) : child;
 		}
 
@@ -208,12 +252,12 @@ async function readDirsInDir(dirPath: string): Promise<string[]> {
  * is deleted from disk.
  */
 export function whenDeleted(path: string, intervalMs = 1000): Promise<void> {
-	return new Promise<void>(resolve => {
+	return new Promise<void>((resolve) => {
 		let running = false;
 		const interval = setInterval(() => {
 			if (!running) {
 				running = true;
-				fs.access(path, err => {
+				fs.access(path, (err) => {
 					running = false;
 
 					if (err) {
@@ -231,9 +275,7 @@ export function whenDeleted(path: string, intervalMs = 1000): Promise<void> {
 //#region Methods with symbolic links support
 
 export namespace SymlinkSupport {
-
 	export interface IStats {
-
 		// The stats of the file. If the file is a symbolic
 		// link, the stats will be of that target file and
 		// not the link itself.
@@ -255,7 +297,6 @@ export namespace SymlinkSupport {
 	 * as `symbolicLink` value.
 	 */
 	export async function stat(path: string): Promise<IStats> {
-
 		// First stat the link
 		let lstats: fs.Stats | undefined;
 		try {
@@ -274,28 +315,36 @@ export namespace SymlinkSupport {
 		try {
 			const stats = await fs.promises.stat(path);
 
-			return { stat: stats, symbolicLink: lstats?.isSymbolicLink() ? { dangling: false } : undefined };
+			return {
+				stat: stats,
+				symbolicLink: lstats?.isSymbolicLink()
+					? { dangling: false }
+					: undefined,
+			};
 		} catch (error) {
-
 			// If the link points to a nonexistent file we still want
 			// to return it as result while setting dangling: true flag
-			if (error.code === 'ENOENT' && lstats) {
+			if (error.code === "ENOENT" && lstats) {
 				return { stat: lstats, symbolicLink: { dangling: true } };
 			}
 
 			// Windows: workaround a node.js bug where reparse points
 			// are not supported (https://github.com/nodejs/node/issues/36790)
-			if (isWindows && error.code === 'EACCES') {
+			if (isWindows && error.code === "EACCES") {
 				try {
-					const stats = await fs.promises.stat(await fs.promises.readlink(path));
+					const stats = await fs.promises.stat(
+						await fs.promises.readlink(path),
+					);
 
 					return { stat: stats, symbolicLink: { dangling: false } };
 				} catch (error) {
-
 					// If the link points to a nonexistent file we still want
 					// to return it as result while setting dangling: true flag
-					if (error.code === 'ENOENT' && lstats) {
-						return { stat: lstats, symbolicLink: { dangling: true } };
+					if (error.code === "ENOENT" && lstats) {
+						return {
+							stat: lstats,
+							symbolicLink: { dangling: true },
+						};
 					}
 
 					throw error;
@@ -367,16 +416,44 @@ const writeQueues = new ResourceQueue();
  *
  * In addition, multiple writes to the same path are queued.
  */
-function writeFile(path: string, data: string, options?: IWriteFileOptions): Promise<void>;
-function writeFile(path: string, data: Buffer, options?: IWriteFileOptions): Promise<void>;
-function writeFile(path: string, data: Uint8Array, options?: IWriteFileOptions): Promise<void>;
-function writeFile(path: string, data: string | Buffer | Uint8Array, options?: IWriteFileOptions): Promise<void>;
-function writeFile(path: string, data: string | Buffer | Uint8Array, options?: IWriteFileOptions): Promise<void> {
-	return writeQueues.queueFor(URI.file(path), () => {
-		const ensuredOptions = ensureWriteOptions(options);
+function writeFile(
+	path: string,
+	data: string,
+	options?: IWriteFileOptions,
+): Promise<void>;
+function writeFile(
+	path: string,
+	data: Buffer,
+	options?: IWriteFileOptions,
+): Promise<void>;
+function writeFile(
+	path: string,
+	data: Uint8Array,
+	options?: IWriteFileOptions,
+): Promise<void>;
+function writeFile(
+	path: string,
+	data: string | Buffer | Uint8Array,
+	options?: IWriteFileOptions,
+): Promise<void>;
+function writeFile(
+	path: string,
+	data: string | Buffer | Uint8Array,
+	options?: IWriteFileOptions,
+): Promise<void> {
+	return writeQueues.queueFor(
+		URI.file(path),
+		() => {
+			const ensuredOptions = ensureWriteOptions(options);
 
-		return new Promise((resolve, reject) => doWriteFileAndFlush(path, data, ensuredOptions, error => error ? reject(error) : resolve()));
-	}, extUriBiasedIgnorePathCase);
+			return new Promise((resolve, reject) =>
+				doWriteFileAndFlush(path, data, ensuredOptions, (error) =>
+					error ? reject(error) : resolve(),
+				),
+			);
+		},
+		extUriBiasedIgnorePathCase,
+	);
 }
 
 interface IWriteFileOptions {
@@ -399,9 +476,19 @@ export function configureFlushOnWrite(enabled: boolean): void {
 // not in some cache.
 //
 // See https://github.com/nodejs/node/blob/v5.10.0/lib/fs.js#L1194
-function doWriteFileAndFlush(path: string, data: string | Buffer | Uint8Array, options: IEnsuredWriteFileOptions, callback: (error: Error | null) => void): void {
+function doWriteFileAndFlush(
+	path: string,
+	data: string | Buffer | Uint8Array,
+	options: IEnsuredWriteFileOptions,
+	callback: (error: Error | null) => void,
+): void {
 	if (!canFlush) {
-		return fs.writeFile(path, data, { mode: options.mode, flag: options.flag }, callback);
+		return fs.writeFile(
+			path,
+			data,
+			{ mode: options.mode, flag: options.flag },
+			callback,
+		);
 	}
 
 	// Open the file with same flags and mode as fs.writeFile()
@@ -411,7 +498,7 @@ function doWriteFileAndFlush(path: string, data: string | Buffer | Uint8Array, o
 		}
 
 		// It is valid to pass a fd handle to fs.writeFile() and this will keep the handle open!
-		fs.writeFile(fd, data, writeError => {
+		fs.writeFile(fd, data, (writeError) => {
 			if (writeError) {
 				return fs.close(fd, () => callback(writeError)); // still need to close the handle on error!
 			}
@@ -419,15 +506,17 @@ function doWriteFileAndFlush(path: string, data: string | Buffer | Uint8Array, o
 			// Flush contents (not metadata) of the file to disk
 			// https://github.com/microsoft/vscode/issues/9589
 			fs.fdatasync(fd, (syncError: Error | null) => {
-
 				// In some exotic setups it is well possible that node fails to sync
 				// In that case we disable flushing and warn to the console
 				if (syncError) {
-					console.warn('[node.js fs] fdatasync is now disabled for this session because it failed: ', syncError);
+					console.warn(
+						"[node.js fs] fdatasync is now disabled for this session because it failed: ",
+						syncError,
+					);
 					configureFlushOnWrite(false);
 				}
 
-				return fs.close(fd, closeError => callback(closeError));
+				return fs.close(fd, (closeError) => callback(closeError));
 			});
 		});
 	});
@@ -438,18 +527,24 @@ function doWriteFileAndFlush(path: string, data: string | Buffer | Uint8Array, o
  * `fs.fdatasyncSync` after writing to ensure changes are
  * flushed to disk.
  */
-export function writeFileSync(path: string, data: string | Buffer, options?: IWriteFileOptions): void {
+export function writeFileSync(
+	path: string,
+	data: string | Buffer,
+	options?: IWriteFileOptions,
+): void {
 	const ensuredOptions = ensureWriteOptions(options);
 
 	if (!canFlush) {
-		return fs.writeFileSync(path, data, { mode: ensuredOptions.mode, flag: ensuredOptions.flag });
+		return fs.writeFileSync(path, data, {
+			mode: ensuredOptions.mode,
+			flag: ensuredOptions.flag,
+		});
 	}
 
 	// Open the file with same flags and mode as fs.writeFile()
 	const fd = fs.openSync(path, ensuredOptions.flag, ensuredOptions.mode);
 
 	try {
-
 		// It is valid to pass a fd handle to fs.writeFile() and this will keep the handle open!
 		fs.writeFileSync(fd, data);
 
@@ -457,7 +552,10 @@ export function writeFileSync(path: string, data: string | Buffer, options?: IWr
 		try {
 			fs.fdatasyncSync(fd); // https://github.com/microsoft/vscode/issues/9589
 		} catch (syncError) {
-			console.warn('[node.js fs] fdatasyncSync is now disabled for this session because it failed: ', syncError);
+			console.warn(
+				"[node.js fs] fdatasyncSync is now disabled for this session because it failed: ",
+				syncError,
+			);
 			configureFlushOnWrite(false);
 		}
 	} finally {
@@ -465,14 +563,19 @@ export function writeFileSync(path: string, data: string | Buffer, options?: IWr
 	}
 }
 
-function ensureWriteOptions(options?: IWriteFileOptions): IEnsuredWriteFileOptions {
+function ensureWriteOptions(
+	options?: IWriteFileOptions,
+): IEnsuredWriteFileOptions {
 	if (!options) {
-		return { mode: 0o666 /* default node.js mode for files */, flag: 'w' };
+		return { mode: 0o666 /* default node.js mode for files */, flag: "w" };
 	}
 
 	return {
-		mode: typeof options.mode === 'number' ? options.mode : 0o666 /* default node.js mode for files */,
-		flag: typeof options.flag === 'string' ? options.flag : 'w'
+		mode:
+			typeof options.mode === "number"
+				? options.mode
+				: 0o666 /* default node.js mode for files */,
+		flag: typeof options.flag === "string" ? options.flag : "w",
 	};
 }
 
@@ -485,16 +588,25 @@ function ensureWriteOptions(options?: IWriteFileOptions): IEnsuredWriteFileOptio
  * - allows to move across multiple disks
  * - attempts to retry the operation for certain error codes on Windows
  */
-async function rename(source: string, target: string, windowsRetryTimeout: number | false = 60000): Promise<void> {
+async function rename(
+	source: string,
+	target: string,
+	windowsRetryTimeout: number | false = 60000,
+): Promise<void> {
 	if (source === target) {
-		return;  // simulate node.js behaviour here and do a no-op if paths match
+		return; // simulate node.js behaviour here and do a no-op if paths match
 	}
 
 	try {
-		if (isWindows && typeof windowsRetryTimeout === 'number') {
+		if (isWindows && typeof windowsRetryTimeout === "number") {
 			// On Windows, a rename can fail when either source or target
 			// is locked by AV software.
-			await renameWithRetry(source, target, Date.now(), windowsRetryTimeout);
+			await renameWithRetry(
+				source,
+				target,
+				Date.now(),
+				windowsRetryTimeout,
+			);
 		} else {
 			await fs.promises.rename(source, target);
 		}
@@ -507,8 +619,14 @@ async function rename(source: string, target: string, windowsRetryTimeout: numbe
 		//
 		// 2.) The user tries to rename a file/folder that ends with a dot. This is not
 		// really possible to move then, at least on UNC devices.
-		if (source.toLowerCase() !== target.toLowerCase() && error.code === 'EXDEV' || source.endsWith('.')) {
-			await copy(source, target, { preserveSymlinks: false /* copying to another device */ });
+		if (
+			(source.toLowerCase() !== target.toLowerCase() &&
+				error.code === "EXDEV") ||
+			source.endsWith(".")
+		) {
+			await copy(source, target, {
+				preserveSymlinks: false /* copying to another device */,
+			});
 			await rimraf(source, RimRafMode.MOVE);
 		} else {
 			throw error;
@@ -516,16 +634,28 @@ async function rename(source: string, target: string, windowsRetryTimeout: numbe
 	}
 }
 
-async function renameWithRetry(source: string, target: string, startTime: number, retryTimeout: number, attempt = 0): Promise<void> {
+async function renameWithRetry(
+	source: string,
+	target: string,
+	startTime: number,
+	retryTimeout: number,
+	attempt = 0,
+): Promise<void> {
 	try {
 		return await fs.promises.rename(source, target);
 	} catch (error) {
-		if (error.code !== 'EACCES' && error.code !== 'EPERM' && error.code !== 'EBUSY') {
+		if (
+			error.code !== "EACCES" &&
+			error.code !== "EPERM" &&
+			error.code !== "EBUSY"
+		) {
 			throw error; // only for errors we think are temporary
 		}
 
 		if (Date.now() - startTime >= retryTimeout) {
-			console.error(`[node.js fs] rename failed after ${attempt} retries with error: ${error}`);
+			console.error(
+				`[node.js fs] rename failed after ${attempt} retries with error: ${error}`,
+			);
 
 			throw error; // give up after configurable timeout
 		}
@@ -550,7 +680,13 @@ async function renameWithRetry(source: string, target: string, startTime: number
 		await timeout(Math.min(100, attempt * 10));
 
 		// Attempt again
-		return renameWithRetry(source, target, startTime, retryTimeout, attempt + 1);
+		return renameWithRetry(
+			source,
+			target,
+			startTime,
+			retryTimeout,
+			attempt + 1,
+		);
 	}
 }
 
@@ -567,8 +703,16 @@ interface ICopyPayload {
  * links should be handled when encountered. Set to
  * `false` to not preserve them and `true` otherwise.
  */
-async function copy(source: string, target: string, options: { preserveSymlinks: boolean }): Promise<void> {
-	return doCopy(source, target, { root: { source, target }, options, handledSourcePaths: new Set<string>() });
+async function copy(
+	source: string,
+	target: string,
+	options: { preserveSymlinks: boolean },
+): Promise<void> {
+	return doCopy(source, target, {
+		root: { source, target },
+		options,
+		handledSourcePaths: new Set<string>(),
+	});
 }
 
 // When copying a file or folder, we want to preserve the mode
@@ -577,8 +721,11 @@ async function copy(source: string, target: string, options: { preserveSymlinks:
 // (https://github.com/nodejs/node-v0.x-archive/issues/3045#issuecomment-4862588)
 const COPY_MODE_MASK = 0o777;
 
-async function doCopy(source: string, target: string, payload: ICopyPayload): Promise<void> {
-
+async function doCopy(
+	source: string,
+	target: string,
+	payload: ICopyPayload,
+): Promise<void> {
 	// Keep track of paths already copied to prevent
 	// cycles from symbolic links to cause issues
 	if (payload.handledSourcePaths.has(source)) {
@@ -591,7 +738,6 @@ async function doCopy(source: string, target: string, payload: ICopyPayload): Pr
 
 	// Symlink
 	if (symbolicLink) {
-
 		// Try to re-create the symlink unless `preserveSymlinks: false`
 		if (payload.options.preserveSymlinks) {
 			try {
@@ -608,7 +754,12 @@ async function doCopy(source: string, target: string, payload: ICopyPayload): Pr
 
 	// Folder
 	if (stat.isDirectory()) {
-		return doCopyDirectory(source, target, stat.mode & COPY_MODE_MASK, payload);
+		return doCopyDirectory(
+			source,
+			target,
+			stat.mode & COPY_MODE_MASK,
+			payload,
+		);
 	}
 
 	// File or file-like
@@ -617,8 +768,12 @@ async function doCopy(source: string, target: string, payload: ICopyPayload): Pr
 	}
 }
 
-async function doCopyDirectory(source: string, target: string, mode: number, payload: ICopyPayload): Promise<void> {
-
+async function doCopyDirectory(
+	source: string,
+	target: string,
+	mode: number,
+	payload: ICopyPayload,
+): Promise<void> {
 	// Create folder
 	await fs.promises.mkdir(target, { recursive: true, mode });
 
@@ -629,8 +784,11 @@ async function doCopyDirectory(source: string, target: string, mode: number, pay
 	}
 }
 
-async function doCopyFile(source: string, target: string, mode: number): Promise<void> {
-
+async function doCopyFile(
+	source: string,
+	target: string,
+	mode: number,
+): Promise<void> {
 	// Copy file
 	await fs.promises.copyFile(source, target);
 
@@ -638,8 +796,11 @@ async function doCopyFile(source: string, target: string, mode: number): Promise
 	await fs.promises.chmod(target, mode);
 }
 
-async function doCopySymlink(source: string, target: string, payload: ICopyPayload): Promise<void> {
-
+async function doCopySymlink(
+	source: string,
+	target: string,
+	payload: ICopyPayload,
+): Promise<void> {
 	// Figure out link target
 	let linkTarget = await fs.promises.readlink(source);
 
@@ -648,7 +809,10 @@ async function doCopySymlink(source: string, target: string, payload: ICopyPaylo
 	// case we want the symlink to point to the target and
 	// not the source
 	if (isEqualOrParent(linkTarget, payload.root.source, !isLinux)) {
-		linkTarget = join(payload.root.target, linkTarget.substr(payload.root.source.length + 1));
+		linkTarget = join(
+			payload.root.target,
+			linkTarget.substr(payload.root.source.length + 1),
+		);
 	}
 
 	// Create symlink
@@ -669,54 +833,89 @@ async function doCopySymlink(source: string, target: string, payload: ICopyPaylo
  * promise based implementation actually calls `fs.realpath.native`.
  * (https://github.com/microsoft/vscode/issues/118562)
  */
-export const Promises = new class {
-
+export const Promises = new (class {
 	//#region Implemented by node.js
 
 	get read() {
-
 		// Not using `promisify` here for a reason: the return
 		// type is not an object as indicated by TypeScript but
 		// just the bytes read, so we create our own wrapper.
 
-		return (fd: number, buffer: Uint8Array, offset: number, length: number, position: number | null) => {
-			return new Promise<{ bytesRead: number; buffer: Uint8Array }>((resolve, reject) => {
-				fs.read(fd, buffer, offset, length, position, (err, bytesRead, buffer) => {
-					if (err) {
-						return reject(err);
-					}
+		return (
+			fd: number,
+			buffer: Uint8Array,
+			offset: number,
+			length: number,
+			position: number | null,
+		) => {
+			return new Promise<{ bytesRead: number; buffer: Uint8Array }>(
+				(resolve, reject) => {
+					fs.read(
+						fd,
+						buffer,
+						offset,
+						length,
+						position,
+						(err, bytesRead, buffer) => {
+							if (err) {
+								return reject(err);
+							}
 
-					return resolve({ bytesRead, buffer });
-				});
-			});
+							return resolve({ bytesRead, buffer });
+						},
+					);
+				},
+			);
 		};
 	}
 
 	get write() {
-
 		// Not using `promisify` here for a reason: the return
 		// type is not an object as indicated by TypeScript but
 		// just the bytes written, so we create our own wrapper.
 
-		return (fd: number, buffer: Uint8Array, offset: number | undefined | null, length: number | undefined | null, position: number | undefined | null) => {
-			return new Promise<{ bytesWritten: number; buffer: Uint8Array }>((resolve, reject) => {
-				fs.write(fd, buffer, offset, length, position, (err, bytesWritten, buffer) => {
-					if (err) {
-						return reject(err);
-					}
+		return (
+			fd: number,
+			buffer: Uint8Array,
+			offset: number | undefined | null,
+			length: number | undefined | null,
+			position: number | undefined | null,
+		) => {
+			return new Promise<{ bytesWritten: number; buffer: Uint8Array }>(
+				(resolve, reject) => {
+					fs.write(
+						fd,
+						buffer,
+						offset,
+						length,
+						position,
+						(err, bytesWritten, buffer) => {
+							if (err) {
+								return reject(err);
+							}
 
-					return resolve({ bytesWritten, buffer });
-				});
-			});
+							return resolve({ bytesWritten, buffer });
+						},
+					);
+				},
+			);
 		};
 	}
 
-	get fdatasync() { return promisify(fs.fdatasync); } // not exposed as API in 20.x yet
+	get fdatasync() {
+		return promisify(fs.fdatasync);
+	} // not exposed as API in 20.x yet
 
-	get open() { return promisify(fs.open); } 			// changed to return `FileHandle` in promise API
-	get close() { return promisify(fs.close); } 		// not exposed as API due to the `FileHandle` return type of `open`
+	get open() {
+		return promisify(fs.open);
+	} // changed to return `FileHandle` in promise API
+	get close() {
+		return promisify(fs.close);
+	} // not exposed as API due to the `FileHandle` return type of `open`
 
-	get realpath() { return promisify(fs.realpath); }	// `fs.promises.realpath` will use `fs.realpath.native` which we do not want
+	get realpath() {
+		return promisify(fs.realpath);
+	} // `fs.promises.realpath` will use `fs.realpath.native` which we do not want
 
 	//#endregion
 
@@ -732,17 +931,29 @@ export const Promises = new class {
 		}
 	}
 
-	get readdir() { return readdir; }
-	get readDirsInDir() { return readDirsInDir; }
+	get readdir() {
+		return readdir;
+	}
+	get readDirsInDir() {
+		return readDirsInDir;
+	}
 
-	get writeFile() { return writeFile; }
+	get writeFile() {
+		return writeFile;
+	}
 
-	get rm() { return rimraf; }
+	get rm() {
+		return rimraf;
+	}
 
-	get rename() { return rename; }
-	get copy() { return copy; }
+	get rename() {
+		return rename;
+	}
+	get copy() {
+		return copy;
+	}
 
 	//#endregion
-};
+})();
 
 //#endregion

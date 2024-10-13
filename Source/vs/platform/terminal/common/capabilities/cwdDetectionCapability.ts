@@ -3,14 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter } from '../../../../base/common/event.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
-import { ICwdDetectionCapability, TerminalCapability } from './capabilities.js';
+import { Emitter } from "../../../../base/common/event.js";
+import { Disposable } from "../../../../base/common/lifecycle.js";
+import { ICwdDetectionCapability, TerminalCapability } from "./capabilities.js";
 
-export class CwdDetectionCapability extends Disposable implements ICwdDetectionCapability {
+export class CwdDetectionCapability
+	extends Disposable
+	implements ICwdDetectionCapability
+{
 	readonly type = TerminalCapability.CwdDetection;
-	private _cwd = '';
-	private _cwds = new Map</*cwd*/string, /*frequency*/number>();
+	private _cwd = "";
+	private _cwds = new Map</*cwd*/ string, /*frequency*/ number>();
 
 	/**
 	 * Gets the list of cwds seen in this session in order of last accessed.

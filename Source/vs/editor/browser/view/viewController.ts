@@ -3,17 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IKeyboardEvent } from '../../../base/browser/keyboardEvent.js';
-import { CoreNavigationCommands, NavigationCommandRevealType } from '../coreCommands.js';
-import { IEditorMouseEvent, IPartialEditorMouseEvent } from '../editorBrowser.js';
-import { ViewUserInputEvents } from './viewUserInputEvents.js';
-import { Position } from '../../common/core/position.js';
-import { Selection } from '../../common/core/selection.js';
-import { IEditorConfiguration } from '../../common/config/editorConfiguration.js';
-import { IViewModel } from '../../common/viewModel.js';
-import { IMouseWheelEvent } from '../../../base/browser/mouseEvent.js';
-import { EditorOption } from '../../common/config/editorOptions.js';
-import * as platform from '../../../base/common/platform.js';
+import { IKeyboardEvent } from "../../../base/browser/keyboardEvent.js";
+import { IMouseWheelEvent } from "../../../base/browser/mouseEvent.js";
+import * as platform from "../../../base/common/platform.js";
+import { IEditorConfiguration } from "../../common/config/editorConfiguration.js";
+import { EditorOption } from "../../common/config/editorOptions.js";
+import { Position } from "../../common/core/position.js";
+import { Selection } from "../../common/core/selection.js";
+import { IViewModel } from "../../common/viewModel.js";
+import {
+	CoreNavigationCommands,
+	NavigationCommandRevealType,
+} from "../coreCommands.js";
+import {
+	IEditorMouseEvent,
+	IPartialEditorMouseEvent,
+} from "../editorBrowser.js";
+import { ViewUserInputEvents } from "./viewUserInputEvents.js";
 
 export interface IMouseDispatchData {
 	position: Position;
@@ -37,16 +43,25 @@ export interface IMouseDispatchData {
 }
 
 export interface ICommandDelegate {
-	paste(text: string, pasteOnNewLine: boolean, multicursorText: string[] | null, mode: string | null): void;
+	paste(
+		text: string,
+		pasteOnNewLine: boolean,
+		multicursorText: string[] | null,
+		mode: string | null,
+	): void;
 	type(text: string): void;
-	compositionType(text: string, replacePrevCharCnt: number, replaceNextCharCnt: number, positionDelta: number): void;
+	compositionType(
+		text: string,
+		replacePrevCharCnt: number,
+		replaceNextCharCnt: number,
+		positionDelta: number,
+	): void;
 	startComposition(): void;
 	endComposition(): void;
 	cut(): void;
 }
 
 export class ViewController {
-
 	private readonly configuration: IEditorConfiguration;
 	private readonly viewModel: IViewModel;
 	private readonly userInputEvents: ViewUserInputEvents;
@@ -56,7 +71,7 @@ export class ViewController {
 		configuration: IEditorConfiguration,
 		viewModel: IViewModel,
 		userInputEvents: ViewUserInputEvents,
-		commandDelegate: ICommandDelegate
+		commandDelegate: ICommandDelegate,
 	) {
 		this.configuration = configuration;
 		this.viewModel = viewModel;
@@ -64,7 +79,12 @@ export class ViewController {
 		this.commandDelegate = commandDelegate;
 	}
 
-	public paste(text: string, pasteOnNewLine: boolean, multicursorText: string[] | null, mode: string | null): void {
+	public paste(
+		text: string,
+		pasteOnNewLine: boolean,
+		multicursorText: string[] | null,
+		mode: string | null,
+	): void {
 		this.commandDelegate.paste(text, pasteOnNewLine, multicursorText, mode);
 	}
 
@@ -72,8 +92,18 @@ export class ViewController {
 		this.commandDelegate.type(text);
 	}
 
-	public compositionType(text: string, replacePrevCharCnt: number, replaceNextCharCnt: number, positionDelta: number): void {
-		this.commandDelegate.compositionType(text, replacePrevCharCnt, replaceNextCharCnt, positionDelta);
+	public compositionType(
+		text: string,
+		replacePrevCharCnt: number,
+		replaceNextCharCnt: number,
+		positionDelta: number,
+	): void {
+		this.commandDelegate.compositionType(
+			text,
+			replacePrevCharCnt,
+			replaceNextCharCnt,
+			positionDelta,
+		);
 	}
 
 	public compositionStart(): void {
@@ -89,14 +119,19 @@ export class ViewController {
 	}
 
 	public setSelection(modelSelection: Selection): void {
-		CoreNavigationCommands.SetSelection.runCoreEditorCommand(this.viewModel, {
-			source: 'keyboard',
-			selection: modelSelection
-		});
+		CoreNavigationCommands.SetSelection.runCoreEditorCommand(
+			this.viewModel,
+			{
+				source: "keyboard",
+				selection: modelSelection,
+			},
+		);
 	}
 
 	private _validateViewColumn(viewPosition: Position): Position {
-		const minColumn = this.viewModel.getLineMinColumn(viewPosition.lineNumber);
+		const minColumn = this.viewModel.getLineMinColumn(
+			viewPosition.lineNumber,
+		);
 		if (viewPosition.column < minColumn) {
 			return new Position(viewPosition.lineNumber, minColumn);
 		}
@@ -104,12 +139,14 @@ export class ViewController {
 	}
 
 	private _hasMulticursorModifier(data: IMouseDispatchData): boolean {
-		switch (this.configuration.options.get(EditorOption.multiCursorModifier)) {
-			case 'altKey':
+		switch (
+			this.configuration.options.get(EditorOption.multiCursorModifier)
+		) {
+			case "altKey":
 				return data.altKey;
-			case 'ctrlKey':
+			case "ctrlKey":
 				return data.ctrlKey;
-			case 'metaKey':
+			case "metaKey":
 				return data.metaKey;
 			default:
 				return false;
@@ -117,12 +154,14 @@ export class ViewController {
 	}
 
 	private _hasNonMulticursorModifier(data: IMouseDispatchData): boolean {
-		switch (this.configuration.options.get(EditorOption.multiCursorModifier)) {
-			case 'altKey':
+		switch (
+			this.configuration.options.get(EditorOption.multiCursorModifier)
+		) {
+			case "altKey":
 				return data.ctrlKey || data.metaKey;
-			case 'ctrlKey':
+			case "ctrlKey":
 				return data.altKey || data.metaKey;
-			case 'metaKey':
+			case "metaKey":
 				return data.ctrlKey || data.altKey;
 			default:
 				return false;
@@ -131,10 +170,15 @@ export class ViewController {
 
 	public dispatchMouse(data: IMouseDispatchData): void {
 		const options = this.configuration.options;
-		const selectionClipboardIsOn = (platform.isLinux && options.get(EditorOption.selectionClipboard));
+		const selectionClipboardIsOn =
+			platform.isLinux && options.get(EditorOption.selectionClipboard);
 		const columnSelection = options.get(EditorOption.columnSelection);
 		if (data.middleButton && !selectionClipboardIsOn) {
-			this._columnSelect(data.position, data.mouseColumn, data.inSelectionMode);
+			this._columnSelect(
+				data.position,
+				data.mouseColumn,
+				data.inSelectionMode,
+			);
 		} else if (data.startedOnLineNumbers) {
 			// If the dragging started on the gutter, then have operations work on the entire line
 			if (this._hasMulticursorModifier(data)) {
@@ -155,7 +199,10 @@ export class ViewController {
 		} else if (data.mouseDownCount === 3) {
 			if (this._hasMulticursorModifier(data)) {
 				if (data.inSelectionMode) {
-					this._lastCursorLineSelectDrag(data.position, data.revealType);
+					this._lastCursorLineSelectDrag(
+						data.position,
+						data.revealType,
+					);
 				} else {
 					this._lastCursorLineSelect(data.position, data.revealType);
 				}
@@ -182,11 +229,18 @@ export class ViewController {
 			if (this._hasMulticursorModifier(data)) {
 				if (!this._hasNonMulticursorModifier(data)) {
 					if (data.shiftKey) {
-						this._columnSelect(data.position, data.mouseColumn, true);
+						this._columnSelect(
+							data.position,
+							data.mouseColumn,
+							true,
+						);
 					} else {
 						// Do multi-cursor operations only when purely alt is pressed
 						if (data.inSelectionMode) {
-							this._lastCursorMoveToSelect(data.position, data.revealType);
+							this._lastCursorMoveToSelect(
+								data.position,
+								data.revealType,
+							);
 						} else {
 							this._createCursor(data.position, false);
 						}
@@ -195,10 +249,18 @@ export class ViewController {
 			} else {
 				if (data.inSelectionMode) {
 					if (data.altKey) {
-						this._columnSelect(data.position, data.mouseColumn, true);
+						this._columnSelect(
+							data.position,
+							data.mouseColumn,
+							true,
+						);
 					} else {
 						if (columnSelection) {
-							this._columnSelect(data.position, data.mouseColumn, true);
+							this._columnSelect(
+								data.position,
+								data.mouseColumn,
+								true,
+							);
 						} else {
 							this._moveToSelect(data.position, data.revealType);
 						}
@@ -210,85 +272,162 @@ export class ViewController {
 		}
 	}
 
-	private _usualArgs(viewPosition: Position, revealType: NavigationCommandRevealType): CoreNavigationCommands.MoveCommandOptions {
+	private _usualArgs(
+		viewPosition: Position,
+		revealType: NavigationCommandRevealType,
+	): CoreNavigationCommands.MoveCommandOptions {
 		viewPosition = this._validateViewColumn(viewPosition);
 		return {
-			source: 'mouse',
+			source: "mouse",
 			position: this._convertViewToModelPosition(viewPosition),
 			viewPosition,
-			revealType
+			revealType,
 		};
 	}
 
-	public moveTo(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.MoveTo.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
+	public moveTo(
+		viewPosition: Position,
+		revealType: NavigationCommandRevealType,
+	): void {
+		CoreNavigationCommands.MoveTo.runCoreEditorCommand(
+			this.viewModel,
+			this._usualArgs(viewPosition, revealType),
+		);
 	}
 
-	private _moveToSelect(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.MoveToSelect.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
+	private _moveToSelect(
+		viewPosition: Position,
+		revealType: NavigationCommandRevealType,
+	): void {
+		CoreNavigationCommands.MoveToSelect.runCoreEditorCommand(
+			this.viewModel,
+			this._usualArgs(viewPosition, revealType),
+		);
 	}
 
-	private _columnSelect(viewPosition: Position, mouseColumn: number, doColumnSelect: boolean): void {
+	private _columnSelect(
+		viewPosition: Position,
+		mouseColumn: number,
+		doColumnSelect: boolean,
+	): void {
 		viewPosition = this._validateViewColumn(viewPosition);
-		CoreNavigationCommands.ColumnSelect.runCoreEditorCommand(this.viewModel, {
-			source: 'mouse',
-			position: this._convertViewToModelPosition(viewPosition),
-			viewPosition: viewPosition,
-			mouseColumn: mouseColumn,
-			doColumnSelect: doColumnSelect
-		});
+		CoreNavigationCommands.ColumnSelect.runCoreEditorCommand(
+			this.viewModel,
+			{
+				source: "mouse",
+				position: this._convertViewToModelPosition(viewPosition),
+				viewPosition: viewPosition,
+				mouseColumn: mouseColumn,
+				doColumnSelect: doColumnSelect,
+			},
+		);
 	}
 
 	private _createCursor(viewPosition: Position, wholeLine: boolean): void {
 		viewPosition = this._validateViewColumn(viewPosition);
-		CoreNavigationCommands.CreateCursor.runCoreEditorCommand(this.viewModel, {
-			source: 'mouse',
-			position: this._convertViewToModelPosition(viewPosition),
-			viewPosition: viewPosition,
-			wholeLine: wholeLine
-		});
+		CoreNavigationCommands.CreateCursor.runCoreEditorCommand(
+			this.viewModel,
+			{
+				source: "mouse",
+				position: this._convertViewToModelPosition(viewPosition),
+				viewPosition: viewPosition,
+				wholeLine: wholeLine,
+			},
+		);
 	}
 
-	private _lastCursorMoveToSelect(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.LastCursorMoveToSelect.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
+	private _lastCursorMoveToSelect(
+		viewPosition: Position,
+		revealType: NavigationCommandRevealType,
+	): void {
+		CoreNavigationCommands.LastCursorMoveToSelect.runCoreEditorCommand(
+			this.viewModel,
+			this._usualArgs(viewPosition, revealType),
+		);
 	}
 
-	private _wordSelect(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.WordSelect.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
+	private _wordSelect(
+		viewPosition: Position,
+		revealType: NavigationCommandRevealType,
+	): void {
+		CoreNavigationCommands.WordSelect.runCoreEditorCommand(
+			this.viewModel,
+			this._usualArgs(viewPosition, revealType),
+		);
 	}
 
-	private _wordSelectDrag(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.WordSelectDrag.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
+	private _wordSelectDrag(
+		viewPosition: Position,
+		revealType: NavigationCommandRevealType,
+	): void {
+		CoreNavigationCommands.WordSelectDrag.runCoreEditorCommand(
+			this.viewModel,
+			this._usualArgs(viewPosition, revealType),
+		);
 	}
 
-	private _lastCursorWordSelect(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.LastCursorWordSelect.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
+	private _lastCursorWordSelect(
+		viewPosition: Position,
+		revealType: NavigationCommandRevealType,
+	): void {
+		CoreNavigationCommands.LastCursorWordSelect.runCoreEditorCommand(
+			this.viewModel,
+			this._usualArgs(viewPosition, revealType),
+		);
 	}
 
-	private _lineSelect(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.LineSelect.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
+	private _lineSelect(
+		viewPosition: Position,
+		revealType: NavigationCommandRevealType,
+	): void {
+		CoreNavigationCommands.LineSelect.runCoreEditorCommand(
+			this.viewModel,
+			this._usualArgs(viewPosition, revealType),
+		);
 	}
 
-	private _lineSelectDrag(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.LineSelectDrag.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
+	private _lineSelectDrag(
+		viewPosition: Position,
+		revealType: NavigationCommandRevealType,
+	): void {
+		CoreNavigationCommands.LineSelectDrag.runCoreEditorCommand(
+			this.viewModel,
+			this._usualArgs(viewPosition, revealType),
+		);
 	}
 
-	private _lastCursorLineSelect(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.LastCursorLineSelect.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
+	private _lastCursorLineSelect(
+		viewPosition: Position,
+		revealType: NavigationCommandRevealType,
+	): void {
+		CoreNavigationCommands.LastCursorLineSelect.runCoreEditorCommand(
+			this.viewModel,
+			this._usualArgs(viewPosition, revealType),
+		);
 	}
 
-	private _lastCursorLineSelectDrag(viewPosition: Position, revealType: NavigationCommandRevealType): void {
-		CoreNavigationCommands.LastCursorLineSelectDrag.runCoreEditorCommand(this.viewModel, this._usualArgs(viewPosition, revealType));
+	private _lastCursorLineSelectDrag(
+		viewPosition: Position,
+		revealType: NavigationCommandRevealType,
+	): void {
+		CoreNavigationCommands.LastCursorLineSelectDrag.runCoreEditorCommand(
+			this.viewModel,
+			this._usualArgs(viewPosition, revealType),
+		);
 	}
 
 	private _selectAll(): void {
-		CoreNavigationCommands.SelectAll.runCoreEditorCommand(this.viewModel, { source: 'mouse' });
+		CoreNavigationCommands.SelectAll.runCoreEditorCommand(this.viewModel, {
+			source: "mouse",
+		});
 	}
 
 	// ----------------------
 
 	private _convertViewToModelPosition(viewPosition: Position): Position {
-		return this.viewModel.coordinatesConverter.convertViewPositionToModelPosition(viewPosition);
+		return this.viewModel.coordinatesConverter.convertViewPositionToModelPosition(
+			viewPosition,
+		);
 	}
 
 	public emitKeyDown(e: IKeyboardEvent): void {

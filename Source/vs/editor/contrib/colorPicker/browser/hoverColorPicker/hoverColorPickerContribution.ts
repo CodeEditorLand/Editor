@@ -3,23 +3,31 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable } from '../../../../../base/common/lifecycle.js';
-import { ICodeEditor, IEditorMouseEvent, MouseTargetType } from '../../../../browser/editorBrowser.js';
-import { EditorOption } from '../../../../common/config/editorOptions.js';
-import { Range } from '../../../../common/core/range.js';
-import { IEditorContribution } from '../../../../common/editorCommon.js';
-import { ColorDecorationInjectedTextMarker } from '../colorDetector.js';
-import { ContentHoverController } from '../../../hover/browser/contentHoverController.js';
-import { HoverStartMode, HoverStartSource } from '../../../hover/browser/hoverOperation.js';
+import { Disposable } from "../../../../../base/common/lifecycle.js";
+import {
+	ICodeEditor,
+	IEditorMouseEvent,
+	MouseTargetType,
+} from "../../../../browser/editorBrowser.js";
+import { EditorOption } from "../../../../common/config/editorOptions.js";
+import { Range } from "../../../../common/core/range.js";
+import { IEditorContribution } from "../../../../common/editorCommon.js";
+import { ContentHoverController } from "../../../hover/browser/contentHoverController.js";
+import {
+	HoverStartMode,
+	HoverStartSource,
+} from "../../../hover/browser/hoverOperation.js";
+import { ColorDecorationInjectedTextMarker } from "../colorDetector.js";
 
-export class HoverColorPickerContribution extends Disposable implements IEditorContribution {
-
-	public static readonly ID: string = 'editor.contrib.colorContribution';
+export class HoverColorPickerContribution
+	extends Disposable
+	implements IEditorContribution
+{
+	public static readonly ID: string = "editor.contrib.colorContribution";
 
 	static readonly RECOMPUTE_TIME = 1000; // ms
 
-	constructor(private readonly _editor: ICodeEditor,
-	) {
+	constructor(private readonly _editor: ICodeEditor) {
 		super();
 		this._register(_editor.onMouseDown((e) => this.onMouseDown(e)));
 	}
@@ -29,9 +37,13 @@ export class HoverColorPickerContribution extends Disposable implements IEditorC
 	}
 
 	private onMouseDown(mouseEvent: IEditorMouseEvent) {
-
-		const colorDecoratorsActivatedOn = this._editor.getOption(EditorOption.colorDecoratorsActivatedOn);
-		if (colorDecoratorsActivatedOn !== 'click' && colorDecoratorsActivatedOn !== 'clickAndHover') {
+		const colorDecoratorsActivatedOn = this._editor.getOption(
+			EditorOption.colorDecoratorsActivatedOn,
+		);
+		if (
+			colorDecoratorsActivatedOn !== "click" &&
+			colorDecoratorsActivatedOn !== "clickAndHover"
+		) {
 			return;
 		}
 
@@ -45,7 +57,10 @@ export class HoverColorPickerContribution extends Disposable implements IEditorC
 			return;
 		}
 
-		if (target.detail.injectedText.options.attachedData !== ColorDecorationInjectedTextMarker) {
+		if (
+			target.detail.injectedText.options.attachedData !==
+			ColorDecorationInjectedTextMarker
+		) {
 			return;
 		}
 
@@ -53,13 +68,27 @@ export class HoverColorPickerContribution extends Disposable implements IEditorC
 			return;
 		}
 
-		const hoverController = this._editor.getContribution<ContentHoverController>(ContentHoverController.ID);
+		const hoverController =
+			this._editor.getContribution<ContentHoverController>(
+				ContentHoverController.ID,
+			);
 		if (!hoverController) {
 			return;
 		}
 		if (!hoverController.isColorPickerVisible) {
-			const range = new Range(target.range.startLineNumber, target.range.startColumn + 1, target.range.endLineNumber, target.range.endColumn + 1);
-			hoverController.showContentHover(range, HoverStartMode.Immediate, HoverStartSource.Mouse, false, true);
+			const range = new Range(
+				target.range.startLineNumber,
+				target.range.startColumn + 1,
+				target.range.endLineNumber,
+				target.range.endColumn + 1,
+			);
+			hoverController.showContentHover(
+				range,
+				HoverStartMode.Immediate,
+				HoverStartSource.Mouse,
+				false,
+				true,
+			);
 		}
 	}
 }

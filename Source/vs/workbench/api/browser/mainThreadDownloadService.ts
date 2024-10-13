@@ -3,18 +3,26 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable } from '../../../base/common/lifecycle.js';
-import { MainContext, MainThreadDownloadServiceShape } from '../common/extHost.protocol.js';
-import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
-import { IDownloadService } from '../../../platform/download/common/download.js';
-import { UriComponents, URI } from '../../../base/common/uri.js';
+import { Disposable } from "../../../base/common/lifecycle.js";
+import { URI, UriComponents } from "../../../base/common/uri.js";
+import { IDownloadService } from "../../../platform/download/common/download.js";
+import {
+	extHostNamedCustomer,
+	IExtHostContext,
+} from "../../services/extensions/common/extHostCustomers.js";
+import {
+	MainContext,
+	MainThreadDownloadServiceShape,
+} from "../common/extHost.protocol.js";
 
 @extHostNamedCustomer(MainContext.MainThreadDownloadService)
-export class MainThreadDownloadService extends Disposable implements MainThreadDownloadServiceShape {
-
+export class MainThreadDownloadService
+	extends Disposable
+	implements MainThreadDownloadServiceShape
+{
 	constructor(
 		extHostContext: IExtHostContext,
-		@IDownloadService private readonly downloadService: IDownloadService
+		@IDownloadService private readonly downloadService: IDownloadService,
 	) {
 		super();
 	}
@@ -22,5 +30,4 @@ export class MainThreadDownloadService extends Disposable implements MainThreadD
 	$download(uri: UriComponents, to: UriComponents): Promise<void> {
 		return this.downloadService.download(URI.revive(uri), URI.revive(to));
 	}
-
 }

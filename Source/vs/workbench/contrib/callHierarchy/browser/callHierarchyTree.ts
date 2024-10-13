@@ -3,26 +3,42 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IAsyncDataSource, ITreeRenderer, ITreeNode, ITreeSorter } from '../../../../base/browser/ui/tree/tree.js';
-import { CallHierarchyItem, CallHierarchyDirection, CallHierarchyModel, } from '../common/callHierarchy.js';
-import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { IIdentityProvider, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
-import { FuzzyScore, createMatches } from '../../../../base/common/filters.js';
-import { IconLabel } from '../../../../base/browser/ui/iconLabel/iconLabel.js';
-import { SymbolKinds, Location, SymbolTag } from '../../../../editor/common/languages.js';
-import { compare } from '../../../../base/common/strings.js';
-import { Range } from '../../../../editor/common/core/range.js';
-import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { localize } from '../../../../nls.js';
-import { ThemeIcon } from '../../../../base/common/themables.js';
+import { IconLabel } from "../../../../base/browser/ui/iconLabel/iconLabel.js";
+import {
+	IIdentityProvider,
+	IListVirtualDelegate,
+} from "../../../../base/browser/ui/list/list.js";
+import { IListAccessibilityProvider } from "../../../../base/browser/ui/list/listWidget.js";
+import {
+	IAsyncDataSource,
+	ITreeNode,
+	ITreeRenderer,
+	ITreeSorter,
+} from "../../../../base/browser/ui/tree/tree.js";
+import { CancellationToken } from "../../../../base/common/cancellation.js";
+import { createMatches, FuzzyScore } from "../../../../base/common/filters.js";
+import { compare } from "../../../../base/common/strings.js";
+import { ThemeIcon } from "../../../../base/common/themables.js";
+import { Range } from "../../../../editor/common/core/range.js";
+import {
+	Location,
+	SymbolKinds,
+	SymbolTag,
+} from "../../../../editor/common/languages.js";
+import { localize } from "../../../../nls.js";
+import {
+	CallHierarchyDirection,
+	CallHierarchyItem,
+	CallHierarchyModel,
+} from "../common/callHierarchy.js";
 
 export class Call {
 	constructor(
 		readonly item: CallHierarchyItem,
 		readonly locations: Location[] | undefined,
 		readonly model: CallHierarchyModel,
-		readonly parent: Call | undefined
-	) { }
+		readonly parent: Call | undefined,
+	) {}
 
 	static compare(a: Call, b: Call): number {
 		let res = compare(a.item.uri.toString(), b.item.uri.toString());
@@ -34,10 +50,7 @@ export class Call {
 }
 
 export class DataSource implements IAsyncDataSource<CallHierarchyModel, Call> {
-
-	constructor(
-		public getDirection: () => CallHierarchyDirection,
-	) { }
+	constructor(public getDirection: () => CallHierarchyDirection) {}
 
 	hasChildren(): boolean {
 		return true;
@@ -45,28 +58,36 @@ export class DataSource implements IAsyncDataSource<CallHierarchyModel, Call> {
 
 	async getChildren(element: CallHierarchyModel | Call): Promise<Call[]> {
 		if (element instanceof CallHierarchyModel) {
-			return element.roots.map(root => new Call(root, undefined, element, undefined));
+			return element.roots.map(
+				(root) => new Call(root, undefined, element, undefined),
+			);
 		}
 
 		const { model, item } = element;
 
 		if (this.getDirection() === CallHierarchyDirection.CallsFrom) {
-			return (await model.resolveOutgoingCalls(item, CancellationToken.None)).map(call => {
+			return (
+				await model.resolveOutgoingCalls(item, CancellationToken.None)
+			).map((call) => {
 				return new Call(
 					call.to,
-					call.fromRanges.map(range => ({ range, uri: item.uri })),
+					call.fromRanges.map((range) => ({ range, uri: item.uri })),
 					model,
-					element
+					element,
 				);
 			});
-
 		} else {
-			return (await model.resolveIncomingCalls(item, CancellationToken.None)).map(call => {
+			return (
+				await model.resolveIncomingCalls(item, CancellationToken.None)
+			).map((call) => {
 				return new Call(
 					call.from,
-					call.fromRanges.map(range => ({ range, uri: call.from.uri })),
+					call.fromRanges.map((range) => ({
+						range,
+						uri: call.from.uri,
+					})),
 					model,
-					element
+					element,
 				);
 			});
 		}
@@ -74,20 +95,19 @@ export class DataSource implements IAsyncDataSource<CallHierarchyModel, Call> {
 }
 
 export class Sorter implements ITreeSorter<Call> {
-
 	compare(element: Call, otherElement: Call): number {
 		return Call.compare(element, otherElement);
 	}
 }
 
 export class IdentityProvider implements IIdentityProvider<Call> {
-
-	constructor(
-		public getDirection: () => CallHierarchyDirection
-	) { }
+	constructor(public getDirection: () => CallHierarchyDirection) {}
 
 	getId(element: Call): { toString(): string } {
-		let res = this.getDirection() + JSON.stringify(element.item.uri) + JSON.stringify(element.item.range);
+		let res =
+			this.getDirection() +
+			JSON.stringify(element.item.uri) +
+			JSON.stringify(element.item.range);
 		if (element.parent) {
 			res += this.getId(element.parent);
 		}
@@ -98,34 +118,44 @@ export class IdentityProvider implements IIdentityProvider<Call> {
 class CallRenderingTemplate {
 	constructor(
 		readonly icon: HTMLDivElement,
-		readonly label: IconLabel
-	) { }
+		readonly label: IconLabel,
+	) {}
 }
 
-export class CallRenderer implements ITreeRenderer<Call, FuzzyScore, CallRenderingTemplate> {
-
-	static readonly id = 'CallRenderer';
+export class CallRenderer
+	implements ITreeRenderer<Call, FuzzyScore, CallRenderingTemplate>
+{
+	static readonly id = "CallRenderer";
 
 	templateId: string = CallRenderer.id;
 
 	renderTemplate(container: HTMLElement): CallRenderingTemplate {
-		container.classList.add('callhierarchy-element');
-		const icon = document.createElement('div');
+		container.classList.add("callhierarchy-element");
+		const icon = document.createElement("div");
 		container.appendChild(icon);
 		const label = new IconLabel(container, { supportHighlights: true });
 		return new CallRenderingTemplate(icon, label);
 	}
 
-	renderElement(node: ITreeNode<Call, FuzzyScore>, _index: number, template: CallRenderingTemplate): void {
+	renderElement(
+		node: ITreeNode<Call, FuzzyScore>,
+		_index: number,
+		template: CallRenderingTemplate,
+	): void {
 		const { element, filterData } = node;
 		const deprecated = element.item.tags?.includes(SymbolTag.Deprecated);
-		template.icon.className = '';
-		template.icon.classList.add('inline', ...ThemeIcon.asClassNameArray(SymbolKinds.toIcon(element.item.kind)));
-		template.label.setLabel(
-			element.item.name,
-			element.item.detail,
-			{ labelEscapeNewLines: true, matches: createMatches(filterData), strikethrough: deprecated }
+		template.icon.className = "";
+		template.icon.classList.add(
+			"inline",
+			...ThemeIcon.asClassNameArray(
+				SymbolKinds.toIcon(element.item.kind),
+			),
 		);
+		template.label.setLabel(element.item.name, element.item.detail, {
+			labelEscapeNewLines: true,
+			matches: createMatches(filterData),
+			strikethrough: deprecated,
+		});
 	}
 	disposeTemplate(template: CallRenderingTemplate): void {
 		template.label.dispose();
@@ -133,7 +163,6 @@ export class CallRenderer implements ITreeRenderer<Call, FuzzyScore, CallRenderi
 }
 
 export class VirtualDelegate implements IListVirtualDelegate<Call> {
-
 	getHeight(_element: Call): number {
 		return 22;
 	}
@@ -144,20 +173,17 @@ export class VirtualDelegate implements IListVirtualDelegate<Call> {
 }
 
 export class AccessibilityProvider implements IListAccessibilityProvider<Call> {
-
-	constructor(
-		public getDirection: () => CallHierarchyDirection
-	) { }
+	constructor(public getDirection: () => CallHierarchyDirection) {}
 
 	getWidgetAriaLabel(): string {
-		return localize('tree.aria', "Call Hierarchy");
+		return localize("tree.aria", "Call Hierarchy");
 	}
 
 	getAriaLabel(element: Call): string | null {
 		if (this.getDirection() === CallHierarchyDirection.CallsFrom) {
-			return localize('from', "calls from {0}", element.item.name);
+			return localize("from", "calls from {0}", element.item.name);
 		} else {
-			return localize('to', "callers of {0}", element.item.name);
+			return localize("to", "callers of {0}", element.item.name);
 		}
 	}
 }

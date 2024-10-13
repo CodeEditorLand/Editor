@@ -3,42 +3,80 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { toErrorMessage } from '../../../../base/common/errorMessage.js';
-import { Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
-import { SimpleIconLabel } from '../../../../base/browser/ui/iconLabel/simpleIconLabel.js';
-import { ICommandService } from '../../../../platform/commands/common/commands.js';
-import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
-import { IStatusbarEntry, ShowTooltipCommand, StatusbarEntryKinds } from '../../../services/statusbar/browser/statusbar.js';
-import { WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification } from '../../../../base/common/actions.js';
-import { IThemeService } from '../../../../platform/theme/common/themeService.js';
-import { ThemeColor } from '../../../../base/common/themables.js';
-import { isThemeColor } from '../../../../editor/common/editorCommon.js';
-import { addDisposableListener, EventType, hide, show, append, EventHelper } from '../../../../base/browser/dom.js';
-import { INotificationService } from '../../../../platform/notification/common/notification.js';
-import { assertIsDefined } from '../../../../base/common/types.js';
-import { Command } from '../../../../editor/common/languages.js';
-import { StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
-import { KeyCode } from '../../../../base/common/keyCodes.js';
-import { renderIcon, renderLabelWithIcons } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
-import { spinningLoading, syncing } from '../../../../platform/theme/common/iconRegistry.js';
-import { isMarkdownString, markdownStringEqual } from '../../../../base/common/htmlContent.js';
-import { IHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegate.js';
-import { Gesture, EventType as TouchEventType } from '../../../../base/browser/touch.js';
-import type { IManagedHover } from '../../../../base/browser/ui/hover/hover.js';
-import { IHoverService } from '../../../../platform/hover/browser/hover.js';
+import {
+	addDisposableListener,
+	append,
+	EventHelper,
+	EventType,
+	hide,
+	show,
+} from "../../../../base/browser/dom.js";
+import { StandardKeyboardEvent } from "../../../../base/browser/keyboardEvent.js";
+import {
+	Gesture,
+	EventType as TouchEventType,
+} from "../../../../base/browser/touch.js";
+import type { IManagedHover } from "../../../../base/browser/ui/hover/hover.js";
+import { IHoverDelegate } from "../../../../base/browser/ui/hover/hoverDelegate.js";
+import {
+	renderIcon,
+	renderLabelWithIcons,
+} from "../../../../base/browser/ui/iconLabel/iconLabels.js";
+import { SimpleIconLabel } from "../../../../base/browser/ui/iconLabel/simpleIconLabel.js";
+import {
+	WorkbenchActionExecutedClassification,
+	WorkbenchActionExecutedEvent,
+} from "../../../../base/common/actions.js";
+import { toErrorMessage } from "../../../../base/common/errorMessage.js";
+import {
+	isMarkdownString,
+	markdownStringEqual,
+} from "../../../../base/common/htmlContent.js";
+import { KeyCode } from "../../../../base/common/keyCodes.js";
+import {
+	Disposable,
+	MutableDisposable,
+} from "../../../../base/common/lifecycle.js";
+import { ThemeColor } from "../../../../base/common/themables.js";
+import { assertIsDefined } from "../../../../base/common/types.js";
+import { isThemeColor } from "../../../../editor/common/editorCommon.js";
+import { Command } from "../../../../editor/common/languages.js";
+import { ICommandService } from "../../../../platform/commands/common/commands.js";
+import { IHoverService } from "../../../../platform/hover/browser/hover.js";
+import { INotificationService } from "../../../../platform/notification/common/notification.js";
+import { ITelemetryService } from "../../../../platform/telemetry/common/telemetry.js";
+import {
+	spinningLoading,
+	syncing,
+} from "../../../../platform/theme/common/iconRegistry.js";
+import { IThemeService } from "../../../../platform/theme/common/themeService.js";
+import {
+	IStatusbarEntry,
+	ShowTooltipCommand,
+	StatusbarEntryKinds,
+} from "../../../services/statusbar/browser/statusbar.js";
 
 export class StatusbarEntryItem extends Disposable {
-
 	private readonly label: StatusBarCodiconLabel;
 
 	private entry: IStatusbarEntry | undefined = undefined;
 
-	private readonly foregroundListener = this._register(new MutableDisposable());
-	private readonly backgroundListener = this._register(new MutableDisposable());
+	private readonly foregroundListener = this._register(
+		new MutableDisposable(),
+	);
+	private readonly backgroundListener = this._register(
+		new MutableDisposable(),
+	);
 
-	private readonly commandMouseListener = this._register(new MutableDisposable());
-	private readonly commandTouchListener = this._register(new MutableDisposable());
-	private readonly commandKeyboardListener = this._register(new MutableDisposable());
+	private readonly commandMouseListener = this._register(
+		new MutableDisposable(),
+	);
+	private readonly commandTouchListener = this._register(
+		new MutableDisposable(),
+	);
+	private readonly commandKeyboardListener = this._register(
+		new MutableDisposable(),
+	);
 
 	private hover: IManagedHover | undefined = undefined;
 
@@ -50,7 +88,7 @@ export class StatusbarEntryItem extends Disposable {
 	}
 
 	get hasCommand(): boolean {
-		return typeof this.entry?.command !== 'undefined';
+		return typeof this.entry?.command !== "undefined";
 	}
 
 	constructor(
@@ -59,33 +97,35 @@ export class StatusbarEntryItem extends Disposable {
 		private readonly hoverDelegate: IHoverDelegate,
 		@ICommandService private readonly commandService: ICommandService,
 		@IHoverService private readonly hoverService: IHoverService,
-		@INotificationService private readonly notificationService: INotificationService,
+		@INotificationService
+		private readonly notificationService: INotificationService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
-		@IThemeService private readonly themeService: IThemeService
+		@IThemeService private readonly themeService: IThemeService,
 	) {
 		super();
 
 		// Label Container
-		this.labelContainer = document.createElement('a');
+		this.labelContainer = document.createElement("a");
 		this.labelContainer.tabIndex = -1; // allows screen readers to read title, but still prevents tab focus.
-		this.labelContainer.setAttribute('role', 'button');
-		this.labelContainer.className = 'statusbar-item-label';
+		this.labelContainer.setAttribute("role", "button");
+		this.labelContainer.className = "statusbar-item-label";
 		this._register(Gesture.addTarget(this.labelContainer)); // enable touch
 
 		// Label (with support for progress)
-		this.label = this._register(new StatusBarCodiconLabel(this.labelContainer));
+		this.label = this._register(
+			new StatusBarCodiconLabel(this.labelContainer),
+		);
 		this.container.appendChild(this.labelContainer);
 
 		// Beak Container
-		this.beakContainer = document.createElement('div');
-		this.beakContainer.className = 'status-bar-item-beak-container';
+		this.beakContainer = document.createElement("div");
+		this.beakContainer.className = "status-bar-item-beak-container";
 		this.container.appendChild(this.beakContainer);
 
 		this.update(entry);
 	}
 
 	update(entry: IStatusbarEntry): void {
-
 		// Update: Progress
 		this.label.showProgress = entry.showProgress ?? false;
 
@@ -106,21 +146,32 @@ export class StatusbarEntryItem extends Disposable {
 		// the correct thing without duplication #96210
 
 		if (!this.entry || entry.ariaLabel !== this.entry.ariaLabel) {
-			this.container.setAttribute('aria-label', entry.ariaLabel);
-			this.labelContainer.setAttribute('aria-label', entry.ariaLabel);
+			this.container.setAttribute("aria-label", entry.ariaLabel);
+			this.labelContainer.setAttribute("aria-label", entry.ariaLabel);
 		}
 
 		if (!this.entry || entry.role !== this.entry.role) {
-			this.labelContainer.setAttribute('role', entry.role || 'button');
+			this.labelContainer.setAttribute("role", entry.role || "button");
 		}
 
 		// Update: Hover
 		if (!this.entry || !this.isEqualTooltip(this.entry, entry)) {
-			const hoverContents = isMarkdownString(entry.tooltip) ? { markdown: entry.tooltip, markdownNotSupportedFallback: undefined } : entry.tooltip;
+			const hoverContents = isMarkdownString(entry.tooltip)
+				? {
+						markdown: entry.tooltip,
+						markdownNotSupportedFallback: undefined,
+					}
+				: entry.tooltip;
 			if (this.hover) {
 				this.hover.update(hoverContents);
 			} else {
-				this.hover = this._register(this.hoverService.setupManagedHover(this.hoverDelegate, this.container, hoverContents));
+				this.hover = this._register(
+					this.hoverService.setupManagedHover(
+						this.hoverDelegate,
+						this.container,
+						hoverContents,
+					),
+				);
 			}
 		}
 
@@ -131,38 +182,64 @@ export class StatusbarEntryItem extends Disposable {
 			this.commandKeyboardListener.clear();
 
 			const command = entry.command;
-			if (command && (command !== ShowTooltipCommand || this.hover) /* "Show Hover" is only valid when we have a hover */) {
-				this.commandMouseListener.value = addDisposableListener(this.labelContainer, EventType.CLICK, () => this.executeCommand(command));
-				this.commandTouchListener.value = addDisposableListener(this.labelContainer, TouchEventType.Tap, () => this.executeCommand(command));
-				this.commandKeyboardListener.value = addDisposableListener(this.labelContainer, EventType.KEY_DOWN, e => {
-					const event = new StandardKeyboardEvent(e);
-					if (event.equals(KeyCode.Space) || event.equals(KeyCode.Enter)) {
-						EventHelper.stop(e);
+			if (
+				command &&
+				(command !== ShowTooltipCommand ||
+					this
+						.hover) /* "Show Hover" is only valid when we have a hover */
+			) {
+				this.commandMouseListener.value = addDisposableListener(
+					this.labelContainer,
+					EventType.CLICK,
+					() => this.executeCommand(command),
+				);
+				this.commandTouchListener.value = addDisposableListener(
+					this.labelContainer,
+					TouchEventType.Tap,
+					() => this.executeCommand(command),
+				);
+				this.commandKeyboardListener.value = addDisposableListener(
+					this.labelContainer,
+					EventType.KEY_DOWN,
+					(e) => {
+						const event = new StandardKeyboardEvent(e);
+						if (
+							event.equals(KeyCode.Space) ||
+							event.equals(KeyCode.Enter)
+						) {
+							EventHelper.stop(e);
 
-						this.executeCommand(command);
-					} else if (event.equals(KeyCode.Escape) || event.equals(KeyCode.LeftArrow) || event.equals(KeyCode.RightArrow)) {
-						EventHelper.stop(e);
+							this.executeCommand(command);
+						} else if (
+							event.equals(KeyCode.Escape) ||
+							event.equals(KeyCode.LeftArrow) ||
+							event.equals(KeyCode.RightArrow)
+						) {
+							EventHelper.stop(e);
 
-						this.hover?.hide();
-					}
-				});
+							this.hover?.hide();
+						}
+					},
+				);
 
-				this.labelContainer.classList.remove('disabled');
+				this.labelContainer.classList.remove("disabled");
 			} else {
-				this.labelContainer.classList.add('disabled');
+				this.labelContainer.classList.add("disabled");
 			}
 		}
 
 		// Update: Beak
 		if (!this.entry || entry.showBeak !== this.entry.showBeak) {
 			if (entry.showBeak) {
-				this.container.classList.add('has-beak');
+				this.container.classList.add("has-beak");
 			} else {
-				this.container.classList.remove('has-beak');
+				this.container.classList.remove("has-beak");
 			}
 		}
 
-		const hasBackgroundColor = !!entry.backgroundColor || (entry.kind && entry.kind !== 'standard');
+		const hasBackgroundColor =
+			!!entry.backgroundColor ||
+			(entry.kind && entry.kind !== "standard");
 
 		// Update: Kind
 		if (!this.entry || entry.kind !== this.entry.kind) {
@@ -170,11 +247,14 @@ export class StatusbarEntryItem extends Disposable {
 				this.container.classList.remove(`${kind}-kind`);
 			}
 
-			if (entry.kind && entry.kind !== 'standard') {
+			if (entry.kind && entry.kind !== "standard") {
 				this.container.classList.add(`${entry.kind}-kind`);
 			}
 
-			this.container.classList.toggle('has-background-color', hasBackgroundColor);
+			this.container.classList.toggle(
+				"has-background-color",
+				hasBackgroundColor,
+			);
 		}
 
 		// Update: Foreground
@@ -183,8 +263,14 @@ export class StatusbarEntryItem extends Disposable {
 		}
 
 		// Update: Background
-		if (!this.entry || entry.backgroundColor !== this.entry.backgroundColor) {
-			this.container.classList.toggle('has-background-color', hasBackgroundColor);
+		if (
+			!this.entry ||
+			entry.backgroundColor !== this.entry.backgroundColor
+		) {
+			this.container.classList.toggle(
+				"has-background-color",
+				hasBackgroundColor,
+			);
 			this.applyColor(this.container, entry.backgroundColor, true);
 		}
 
@@ -192,20 +278,25 @@ export class StatusbarEntryItem extends Disposable {
 		this.entry = entry;
 	}
 
-	private isEqualTooltip({ tooltip }: IStatusbarEntry, { tooltip: otherTooltip }: IStatusbarEntry) {
+	private isEqualTooltip(
+		{ tooltip }: IStatusbarEntry,
+		{ tooltip: otherTooltip }: IStatusbarEntry,
+	) {
 		if (tooltip === undefined) {
 			return otherTooltip === undefined;
 		}
 
 		if (isMarkdownString(tooltip)) {
-			return isMarkdownString(otherTooltip) && markdownStringEqual(tooltip, otherTooltip);
+			return (
+				isMarkdownString(otherTooltip) &&
+				markdownStringEqual(tooltip, otherTooltip)
+			);
 		}
 
 		return tooltip === otherTooltip;
 	}
 
 	private async executeCommand(command: string | Command): Promise<void> {
-
 		// Custom command from us: Show tooltip
 		if (command === ShowTooltipCommand) {
 			this.hover?.show(true /* focus */);
@@ -213,10 +304,14 @@ export class StatusbarEntryItem extends Disposable {
 
 		// Any other command is going through command service
 		else {
-			const id = typeof command === 'string' ? command : command.id;
-			const args = typeof command === 'string' ? [] : command.arguments ?? [];
+			const id = typeof command === "string" ? command : command.id;
+			const args =
+				typeof command === "string" ? [] : (command.arguments ?? []);
 
-			this.telemetryService.publicLog2<WorkbenchActionExecutedEvent, WorkbenchActionExecutedClassification>('workbenchActionExecuted', { id, from: 'status bar' });
+			this.telemetryService.publicLog2<
+				WorkbenchActionExecutedEvent,
+				WorkbenchActionExecutedClassification
+			>("workbenchActionExecuted", { id, from: "status bar" });
 			try {
 				await this.commandService.executeCommand(id, ...args);
 			} catch (error) {
@@ -225,7 +320,11 @@ export class StatusbarEntryItem extends Disposable {
 		}
 	}
 
-	private applyColor(container: HTMLElement, color: string | ThemeColor | undefined, isBackground?: boolean): void {
+	private applyColor(
+		container: HTMLElement,
+		color: string | ThemeColor | undefined,
+		isBackground?: boolean,
+	): void {
 		let colorResult: string | undefined = undefined;
 
 		if (isBackground) {
@@ -236,17 +335,22 @@ export class StatusbarEntryItem extends Disposable {
 
 		if (color) {
 			if (isThemeColor(color)) {
-				colorResult = this.themeService.getColorTheme().getColor(color.id)?.toString();
+				colorResult = this.themeService
+					.getColorTheme()
+					.getColor(color.id)
+					?.toString();
 
-				const listener = this.themeService.onDidColorThemeChange(theme => {
-					const colorValue = theme.getColor(color.id)?.toString();
+				const listener = this.themeService.onDidColorThemeChange(
+					(theme) => {
+						const colorValue = theme.getColor(color.id)?.toString();
 
-					if (isBackground) {
-						container.style.backgroundColor = colorValue ?? '';
-					} else {
-						container.style.color = colorValue ?? '';
-					}
-				});
+						if (isBackground) {
+							container.style.backgroundColor = colorValue ?? "";
+						} else {
+							container.style.color = colorValue ?? "";
+						}
+					},
+				);
 
 				if (isBackground) {
 					this.backgroundListener.value = listener;
@@ -259,40 +363,37 @@ export class StatusbarEntryItem extends Disposable {
 		}
 
 		if (isBackground) {
-			container.style.backgroundColor = colorResult ?? '';
+			container.style.backgroundColor = colorResult ?? "";
 		} else {
-			container.style.color = colorResult ?? '';
+			container.style.color = colorResult ?? "";
 		}
 	}
 }
 
 class StatusBarCodiconLabel extends SimpleIconLabel {
-
 	private progressCodicon = renderIcon(syncing);
 
-	private currentText = '';
-	private currentShowProgress: boolean | 'loading' | 'syncing' = false;
+	private currentText = "";
+	private currentShowProgress: boolean | "loading" | "syncing" = false;
 
-	constructor(
-		private readonly container: HTMLElement
-	) {
+	constructor(private readonly container: HTMLElement) {
 		super(container);
 	}
 
-	set showProgress(showProgress: boolean | 'loading' | 'syncing') {
+	set showProgress(showProgress: boolean | "loading" | "syncing") {
 		if (this.currentShowProgress !== showProgress) {
 			this.currentShowProgress = showProgress;
-			this.progressCodicon = renderIcon(showProgress === 'syncing' ? syncing : spinningLoading);
+			this.progressCodicon = renderIcon(
+				showProgress === "syncing" ? syncing : spinningLoading,
+			);
 			this.text = this.currentText;
 		}
 	}
 
 	override set text(text: string) {
-
 		// Progress: insert progress codicon as first element as needed
 		// but keep it stable so that the animation does not reset
 		if (this.currentShowProgress) {
-
 			// Append as needed
 			if (this.container.firstChild !== this.progressCodicon) {
 				this.container.appendChild(this.progressCodicon);
@@ -306,7 +407,7 @@ class StatusBarCodiconLabel extends SimpleIconLabel {
 			}
 
 			// If we have text to show, add a space to separate from progress
-			let textContent = text ?? '';
+			let textContent = text ?? "";
 			if (textContent) {
 				textContent = ` ${textContent}`;
 			}

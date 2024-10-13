@@ -3,23 +3,33 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
-import { IDialogHandler, IDialogResult, IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
-import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
-import { ILayoutService } from '../../../../platform/layout/browser/layoutService.js';
-import { ILogService } from '../../../../platform/log/common/log.js';
-import { IProductService } from '../../../../platform/product/common/productService.js';
-import { IWorkbenchContribution, WorkbenchPhase, registerWorkbenchContribution2 } from '../../../common/contributions.js';
-import { IDialogsModel, IDialogViewItem } from '../../../common/dialogs.js';
-import { BrowserDialogHandler } from './dialogHandler.js';
-import { DialogService } from '../../../services/dialogs/common/dialogService.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
-import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { Lazy } from '../../../../base/common/lazy.js';
+import { Lazy } from "../../../../base/common/lazy.js";
+import { Disposable } from "../../../../base/common/lifecycle.js";
+import { IClipboardService } from "../../../../platform/clipboard/common/clipboardService.js";
+import {
+	IDialogHandler,
+	IDialogResult,
+	IDialogService,
+} from "../../../../platform/dialogs/common/dialogs.js";
+import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
+import { IKeybindingService } from "../../../../platform/keybinding/common/keybinding.js";
+import { ILayoutService } from "../../../../platform/layout/browser/layoutService.js";
+import { ILogService } from "../../../../platform/log/common/log.js";
+import { IProductService } from "../../../../platform/product/common/productService.js";
+import {
+	IWorkbenchContribution,
+	registerWorkbenchContribution2,
+	WorkbenchPhase,
+} from "../../../common/contributions.js";
+import { IDialogsModel, IDialogViewItem } from "../../../common/dialogs.js";
+import { DialogService } from "../../../services/dialogs/common/dialogService.js";
+import { BrowserDialogHandler } from "./dialogHandler.js";
 
-export class DialogHandlerContribution extends Disposable implements IWorkbenchContribution {
-
-	static readonly ID = 'workbench.contrib.dialogHandler';
+export class DialogHandlerContribution
+	extends Disposable
+	implements IWorkbenchContribution
+{
+	static readonly ID = "workbench.contrib.dialogHandler";
 
 	private readonly model: IDialogsModel;
 	private readonly impl: Lazy<IDialogHandler>;
@@ -33,19 +43,31 @@ export class DialogHandlerContribution extends Disposable implements IWorkbenchC
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IProductService productService: IProductService,
-		@IClipboardService clipboardService: IClipboardService
+		@IClipboardService clipboardService: IClipboardService,
 	) {
 		super();
 
-		this.impl = new Lazy(() => new BrowserDialogHandler(logService, layoutService, keybindingService, instantiationService, productService, clipboardService));
+		this.impl = new Lazy(
+			() =>
+				new BrowserDialogHandler(
+					logService,
+					layoutService,
+					keybindingService,
+					instantiationService,
+					productService,
+					clipboardService,
+				),
+		);
 
 		this.model = (this.dialogService as DialogService).model;
 
-		this._register(this.model.onWillShowDialog(() => {
-			if (!this.currentDialog) {
-				this.processDialogs();
-			}
-		}));
+		this._register(
+			this.model.onWillShowDialog(() => {
+				if (!this.currentDialog) {
+					this.processDialogs();
+				}
+			}),
+		);
 
 		this.processDialogs();
 	}
@@ -81,5 +103,5 @@ export class DialogHandlerContribution extends Disposable implements IWorkbenchC
 registerWorkbenchContribution2(
 	DialogHandlerContribution.ID,
 	DialogHandlerContribution,
-	WorkbenchPhase.BlockStartup // Block to allow for dialogs to show before restore finished
+	WorkbenchPhase.BlockStartup, // Block to allow for dialogs to show before restore finished
 );

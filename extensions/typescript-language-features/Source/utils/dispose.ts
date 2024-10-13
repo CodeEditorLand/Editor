@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
 export function disposeAll(disposables: vscode.Disposable[]) {
 	for (const disposable of disposables) {
@@ -44,7 +44,6 @@ export abstract class Disposable {
 }
 
 export class DisposableStore extends Disposable {
-
 	public add<T extends IDisposable>(disposable: T): T {
 		this._register(disposable);
 

@@ -3,14 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
-import { IAuxiliaryTitlebarPart, ITitlebarPart } from '../../../browser/parts/titlebar/titlebarPart.js';
-import { IEditorGroupsContainer } from '../../editor/common/editorGroupsService.js';
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import {
+	IAuxiliaryTitlebarPart,
+	ITitlebarPart,
+} from "../../../browser/parts/titlebar/titlebarPart.js";
+import { IEditorGroupsContainer } from "../../editor/common/editorGroupsService.js";
 
-export const ITitleService = createDecorator<ITitleService>('titleService');
+export const ITitleService = createDecorator<ITitleService>("titleService");
 
 export interface ITitleService extends ITitlebarPart {
-
 	readonly _serviceBrand: undefined;
 
 	/**
@@ -21,5 +23,8 @@ export interface ITitleService extends ITitlebarPart {
 	/**
 	 * Creates a new auxililary title bar part in the provided container.
 	 */
-	createAuxiliaryTitlebarPart(container: HTMLElement, editorGroupsContainer: IEditorGroupsContainer): IAuxiliaryTitlebarPart;
+	createAuxiliaryTitlebarPart(
+		container: HTMLElement,
+		editorGroupsContainer: IEditorGroupsContainer,
+	): IAuxiliaryTitlebarPart;
 }

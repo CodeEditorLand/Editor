@@ -3,13 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Position } from '../../common/core/position.js';
-import { Range } from '../../common/core/range.js';
-import { ViewportData } from '../../common/viewLayout/viewLinesViewportData.js';
-import { IViewLayout, ViewModelDecoration } from '../../common/viewModel.js';
+import { Position } from "../../common/core/position.js";
+import { Range } from "../../common/core/range.js";
+import { ViewportData } from "../../common/viewLayout/viewLinesViewportData.js";
+import { IViewLayout, ViewModelDecoration } from "../../common/viewModel.js";
 
 export interface IViewLines {
-	linesVisibleRangesForRange(range: Range, includeNewLines: boolean): LineVisibleRanges[] | null;
+	linesVisibleRangesForRange(
+		range: Range,
+		includeNewLines: boolean,
+	): LineVisibleRanges[] | null;
 	visibleRangeForPosition(position: Position): HorizontalPosition | null;
 }
 
@@ -53,18 +56,29 @@ export abstract class RestrictedRenderingContext {
 		return absoluteTop - this.scrollTop;
 	}
 
-	public getVerticalOffsetForLineNumber(lineNumber: number, includeViewZones?: boolean): number {
-		return this._viewLayout.getVerticalOffsetForLineNumber(lineNumber, includeViewZones);
+	public getVerticalOffsetForLineNumber(
+		lineNumber: number,
+		includeViewZones?: boolean,
+	): number {
+		return this._viewLayout.getVerticalOffsetForLineNumber(
+			lineNumber,
+			includeViewZones,
+		);
 	}
 
-	public getVerticalOffsetAfterLineNumber(lineNumber: number, includeViewZones?: boolean): number {
-		return this._viewLayout.getVerticalOffsetAfterLineNumber(lineNumber, includeViewZones);
+	public getVerticalOffsetAfterLineNumber(
+		lineNumber: number,
+		includeViewZones?: boolean,
+	): number {
+		return this._viewLayout.getVerticalOffsetAfterLineNumber(
+			lineNumber,
+			includeViewZones,
+		);
 	}
 
 	public getDecorationsInViewport(): ViewModelDecoration[] {
 		return this.viewportData.getDecorationsInViewport();
 	}
-
 }
 
 export class RenderingContext extends RestrictedRenderingContext {
@@ -73,18 +87,42 @@ export class RenderingContext extends RestrictedRenderingContext {
 	private readonly _viewLines: IViewLines;
 	private readonly _viewLinesGpu?: IViewLines;
 
-	constructor(viewLayout: IViewLayout, viewportData: ViewportData, viewLines: IViewLines, viewLinesGpu?: IViewLines) {
+	constructor(
+		viewLayout: IViewLayout,
+		viewportData: ViewportData,
+		viewLines: IViewLines,
+		viewLinesGpu?: IViewLines,
+	) {
 		super(viewLayout, viewportData);
 		this._viewLines = viewLines;
 		this._viewLinesGpu = viewLinesGpu;
 	}
 
-	public linesVisibleRangesForRange(range: Range, includeNewLines: boolean): LineVisibleRanges[] | null {
-		return this._viewLines.linesVisibleRangesForRange(range, includeNewLines) ?? this._viewLinesGpu?.linesVisibleRangesForRange(range, includeNewLines) ?? null;
+	public linesVisibleRangesForRange(
+		range: Range,
+		includeNewLines: boolean,
+	): LineVisibleRanges[] | null {
+		return (
+			this._viewLines.linesVisibleRangesForRange(
+				range,
+				includeNewLines,
+			) ??
+			this._viewLinesGpu?.linesVisibleRangesForRange(
+				range,
+				includeNewLines,
+			) ??
+			null
+		);
 	}
 
-	public visibleRangeForPosition(position: Position): HorizontalPosition | null {
-		return this._viewLines.visibleRangeForPosition(position) ?? this._viewLinesGpu?.visibleRangeForPosition(position) ?? null;
+	public visibleRangeForPosition(
+		position: Position,
+	): HorizontalPosition | null {
+		return (
+			this._viewLines.visibleRangeForPosition(position) ??
+			this._viewLinesGpu?.visibleRangeForPosition(position) ??
+			null
+		);
 	}
 }
 
@@ -92,7 +130,9 @@ export class LineVisibleRanges {
 	/**
 	 * Returns the element with the smallest `lineNumber`.
 	 */
-	public static firstLine(ranges: LineVisibleRanges[] | null): LineVisibleRanges | null {
+	public static firstLine(
+		ranges: LineVisibleRanges[] | null,
+	): LineVisibleRanges | null {
 		if (!ranges) {
 			return null;
 		}
@@ -108,7 +148,9 @@ export class LineVisibleRanges {
 	/**
 	 * Returns the element with the largest `lineNumber`.
 	 */
-	public static lastLine(ranges: LineVisibleRanges[] | null): LineVisibleRanges | null {
+	public static lastLine(
+		ranges: LineVisibleRanges[] | null,
+	): LineVisibleRanges | null {
 		if (!ranges) {
 			return null;
 		}
@@ -129,7 +171,7 @@ export class LineVisibleRanges {
 		 * Indicates if the requested range does not end in this line, but continues on the next line.
 		 */
 		public readonly continuesOnNextLine: boolean,
-	) { }
+	) {}
 }
 
 export class HorizontalRange {
@@ -172,7 +214,10 @@ export class FloatHorizontalRange {
 		return `[${this.left},${this.width}]`;
 	}
 
-	public static compare(a: FloatHorizontalRange, b: FloatHorizontalRange): number {
+	public static compare(
+		a: FloatHorizontalRange,
+		b: FloatHorizontalRange,
+	): number {
 		return a.left - b.left;
 	}
 }
@@ -195,7 +240,6 @@ export class HorizontalPosition {
 export class VisibleRanges {
 	constructor(
 		public readonly outsideRenderedLine: boolean,
-		public readonly ranges: FloatHorizontalRange[]
-	) {
-	}
+		public readonly ranges: FloatHorizontalRange[],
+	) {}
 }

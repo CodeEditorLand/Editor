@@ -3,26 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IpcMainEvent, MessagePortMain } from 'electron';
-import { validatedIpcMain } from '../../../base/parts/ipc/electron-main/ipcMain.js';
-import { Barrier, DeferredPromise } from '../../../base/common/async.js';
-import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
-import { IEnvironmentMainService } from '../../environment/electron-main/environmentMainService.js';
-import { ILifecycleMainService } from '../../lifecycle/electron-main/lifecycleMainService.js';
-import { ILogService } from '../../log/common/log.js';
-import { ISharedProcessConfiguration } from '../node/sharedProcess.js';
-import { IUserDataProfilesService } from '../../userDataProfile/common/userDataProfile.js';
-import { IPolicyService } from '../../policy/common/policy.js';
-import { ILoggerMainService } from '../../log/electron-main/loggerService.js';
-import { UtilityProcess } from '../../utilityProcess/electron-main/utilityProcess.js';
-import { NullTelemetryService } from '../../telemetry/common/telemetryUtils.js';
-import { parseSharedProcessDebugPort } from '../../environment/node/environmentService.js';
-import { assertIsDefined } from '../../../base/common/types.js';
-import { SharedProcessChannelConnection, SharedProcessRawConnection, SharedProcessLifecycle } from '../common/sharedProcess.js';
-import { Emitter } from '../../../base/common/event.js';
+import { IpcMainEvent, MessagePortMain } from "electron";
+
+import { Barrier, DeferredPromise } from "../../../base/common/async.js";
+import { Emitter } from "../../../base/common/event.js";
+import { Disposable, IDisposable } from "../../../base/common/lifecycle.js";
+import { assertIsDefined } from "../../../base/common/types.js";
+import { validatedIpcMain } from "../../../base/parts/ipc/electron-main/ipcMain.js";
+import { IEnvironmentMainService } from "../../environment/electron-main/environmentMainService.js";
+import { parseSharedProcessDebugPort } from "../../environment/node/environmentService.js";
+import { ILifecycleMainService } from "../../lifecycle/electron-main/lifecycleMainService.js";
+import { ILogService } from "../../log/common/log.js";
+import { ILoggerMainService } from "../../log/electron-main/loggerService.js";
+import { IPolicyService } from "../../policy/common/policy.js";
+import { NullTelemetryService } from "../../telemetry/common/telemetryUtils.js";
+import { IUserDataProfilesService } from "../../userDataProfile/common/userDataProfile.js";
+import { UtilityProcess } from "../../utilityProcess/electron-main/utilityProcess.js";
+import {
+	SharedProcessChannelConnection,
+	SharedProcessLifecycle,
+	SharedProcessRawConnection,
+} from "../common/sharedProcess.js";
+import { ISharedProcessConfiguration } from "../node/sharedProcess.js";
 
 export class SharedProcess extends Disposable {
-
 	private readonly firstWindowConnectionBarrier = new Barrier();
 
 	private utilityProcess: UtilityProcess | undefined = undefined;
@@ -35,12 +39,16 @@ export class SharedProcess extends Disposable {
 		private readonly machineId: string,
 		private readonly sqmId: string,
 		private readonly devDeviceId: string,
-		@IEnvironmentMainService private readonly environmentMainService: IEnvironmentMainService,
-		@IUserDataProfilesService private readonly userDataProfilesService: IUserDataProfilesService,
-		@ILifecycleMainService private readonly lifecycleMainService: ILifecycleMainService,
+		@IEnvironmentMainService
+		private readonly environmentMainService: IEnvironmentMainService,
+		@IUserDataProfilesService
+		private readonly userDataProfilesService: IUserDataProfilesService,
+		@ILifecycleMainService
+		private readonly lifecycleMainService: ILifecycleMainService,
 		@ILogService private readonly logService: ILogService,
-		@ILoggerMainService private readonly loggerMainService: ILoggerMainService,
-		@IPolicyService private readonly policyService: IPolicyService
+		@ILoggerMainService
+		private readonly loggerMainService: ILoggerMainService,
+		@IPolicyService private readonly policyService: IPolicyService,
 	) {
 		super();
 
@@ -48,19 +56,44 @@ export class SharedProcess extends Disposable {
 	}
 
 	private registerListeners(): void {
-
 		// Shared process channel connections from workbench windows
-		validatedIpcMain.on(SharedProcessChannelConnection.request, (e, nonce: string) => this.onWindowConnection(e, nonce, SharedProcessChannelConnection.response));
+		validatedIpcMain.on(
+			SharedProcessChannelConnection.request,
+			(e, nonce: string) =>
+				this.onWindowConnection(
+					e,
+					nonce,
+					SharedProcessChannelConnection.response,
+				),
+		);
 
 		// Shared process raw connections from workbench windows
-		validatedIpcMain.on(SharedProcessRawConnection.request, (e, nonce: string) => this.onWindowConnection(e, nonce, SharedProcessRawConnection.response));
+		validatedIpcMain.on(
+			SharedProcessRawConnection.request,
+			(e, nonce: string) =>
+				this.onWindowConnection(
+					e,
+					nonce,
+					SharedProcessRawConnection.response,
+				),
+		);
 
 		// Lifecycle
-		this._register(this.lifecycleMainService.onWillShutdown(() => this.onWillShutdown()));
+		this._register(
+			this.lifecycleMainService.onWillShutdown(() =>
+				this.onWillShutdown(),
+			),
+		);
 	}
 
-	private async onWindowConnection(e: IpcMainEvent, nonce: string, responseChannel: string): Promise<void> {
-		this.logService.trace(`[SharedProcess] onWindowConnection for: ${responseChannel}`);
+	private async onWindowConnection(
+		e: IpcMainEvent,
+		nonce: string,
+		responseChannel: string,
+	): Promise<void> {
+		this.logService.trace(
+			`[SharedProcess] onWindowConnection for: ${responseChannel}`,
+		);
 
 		// release barrier if this is the first window connection
 		if (!this.firstWindowConnectionBarrier.isOpen()) {
@@ -92,7 +125,7 @@ export class SharedProcess extends Disposable {
 	}
 
 	private onWillShutdown(): void {
-		this.logService.trace('[SharedProcess] onWillShutdown');
+		this.logService.trace("[SharedProcess] onWillShutdown");
 
 		this.utilityProcess?.postMessage(SharedProcessLifecycle.exit);
 		this.utilityProcess = undefined;
@@ -102,7 +135,6 @@ export class SharedProcess extends Disposable {
 	whenReady(): Promise<void> {
 		if (!this._whenReady) {
 			this._whenReady = (async () => {
-
 				// Wait for shared process being ready to accept connection
 				await this.whenIpcReady;
 
@@ -110,11 +142,13 @@ export class SharedProcess extends Disposable {
 				// all services within have been created.
 
 				const whenReady = new DeferredPromise<void>();
-				this.utilityProcess?.once(SharedProcessLifecycle.initDone, () => whenReady.complete());
+				this.utilityProcess?.once(SharedProcessLifecycle.initDone, () =>
+					whenReady.complete(),
+				);
 
 				await whenReady.p;
 				this.utilityProcessLogListener?.dispose();
-				this.logService.trace('[SharedProcess] Overall ready');
+				this.logService.trace("[SharedProcess] Overall ready");
 			})();
 		}
 
@@ -125,7 +159,6 @@ export class SharedProcess extends Disposable {
 	private get whenIpcReady() {
 		if (!this._whenIpcReady) {
 			this._whenIpcReady = (async () => {
-
 				// Always wait for first window asking for connection
 				await this.firstWindowConnectionBarrier.wait();
 
@@ -134,10 +167,12 @@ export class SharedProcess extends Disposable {
 
 				// Wait for shared process indicating that IPC connections are accepted
 				const sharedProcessIpcReady = new DeferredPromise<void>();
-				this.utilityProcess?.once(SharedProcessLifecycle.ipcReady, () => sharedProcessIpcReady.complete());
+				this.utilityProcess?.once(SharedProcessLifecycle.ipcReady, () =>
+					sharedProcessIpcReady.complete(),
+				);
 
 				await sharedProcessIpcReady.p;
-				this.logService.trace('[SharedProcess] IPC ready');
+				this.logService.trace("[SharedProcess] IPC ready");
 			})();
 		}
 
@@ -145,21 +180,32 @@ export class SharedProcess extends Disposable {
 	}
 
 	private createUtilityProcess(): void {
-		this.utilityProcess = this._register(new UtilityProcess(this.logService, NullTelemetryService, this.lifecycleMainService));
+		this.utilityProcess = this._register(
+			new UtilityProcess(
+				this.logService,
+				NullTelemetryService,
+				this.lifecycleMainService,
+			),
+		);
 
 		// Install a log listener for very early shared process warnings and errors
-		this.utilityProcessLogListener = this.utilityProcess.onMessage((e: any) => {
-			if (typeof e.warning === 'string') {
-				this.logService.warn(e.warning);
-			} else if (typeof e.error === 'string') {
-				this.logService.error(e.error);
-			}
-		});
+		this.utilityProcessLogListener = this.utilityProcess.onMessage(
+			(e: any) => {
+				if (typeof e.warning === "string") {
+					this.logService.warn(e.warning);
+				} else if (typeof e.error === "string") {
+					this.logService.error(e.error);
+				}
+			},
+		);
 
-		const inspectParams = parseSharedProcessDebugPort(this.environmentMainService.args, this.environmentMainService.isBuilt);
+		const inspectParams = parseSharedProcessDebugPort(
+			this.environmentMainService.args,
+			this.environmentMainService.isBuilt,
+		);
 		let execArgv: string[] | undefined = undefined;
 		if (inspectParams.port) {
-			execArgv = ['--nolazy'];
+			execArgv = ["--nolazy"];
 			if (inspectParams.break) {
 				execArgv.push(`--inspect-brk=${inspectParams.port}`);
 			} else {
@@ -168,14 +214,17 @@ export class SharedProcess extends Disposable {
 		}
 
 		this.utilityProcess.start({
-			type: 'shared-process',
-			entryPoint: 'vs/code/electron-utility/sharedProcess/sharedProcessMain',
+			type: "shared-process",
+			entryPoint:
+				"vs/code/electron-utility/sharedProcess/sharedProcessMain",
 			payload: this.createSharedProcessConfiguration(),
 			respondToAuthRequestsFromMainProcess: true,
-			execArgv
+			execArgv,
 		});
 
-		this._register(this.utilityProcess.onCrash(() => this._onDidCrash.fire()));
+		this._register(
+			this.utilityProcess.onCrash(() => this._onDidCrash.fire()),
+		);
 	}
 
 	private createSharedProcessConfiguration(): ISharedProcessConfiguration {
@@ -191,12 +240,11 @@ export class SharedProcess extends Disposable {
 			args: this.environmentMainService.args,
 			logLevel: this.loggerMainService.getLogLevel(),
 			loggers: this.loggerMainService.getRegisteredLoggers(),
-			policiesData: this.policyService.serialize()
+			policiesData: this.policyService.serialize(),
 		};
 	}
 
 	async connect(payload?: unknown): Promise<MessagePortMain> {
-
 		// Wait for shared process being ready to accept connection
 		await this.whenIpcReady;
 

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { URI } from './uri.js';
+import { URI } from "./uri.js";
 
 export function getOrSet<K, V>(map: Map<K, V>, key: K, value: V): V {
 	let result = map.get(key);
@@ -21,16 +21,16 @@ export function mapToString<K, V>(map: Map<K, V>): string {
 		entries.push(`${key} => ${value}`);
 	});
 
-	return `Map(${map.size}) {${entries.join(', ')}}`;
+	return `Map(${map.size}) {${entries.join(", ")}}`;
 }
 
 export function setToString<K>(set: Set<K>): string {
 	const entries: K[] = [];
-	set.forEach(value => {
+	set.forEach((value) => {
 		entries.push(value);
 	});
 
-	return `Set(${set.size}) {${entries.join(', ')}}`;
+	return `Set(${set.size}) {${entries.join(", ")}}`;
 }
 
 interface ResourceMapKeyFn {
@@ -38,18 +38,27 @@ interface ResourceMapKeyFn {
 }
 
 class ResourceMapEntry<T> {
-	constructor(readonly uri: URI, readonly value: T) { }
+	constructor(
+		readonly uri: URI,
+		readonly value: T,
+	) {}
 }
 
-function isEntries<T>(arg: ResourceMap<T> | ResourceMapKeyFn | readonly (readonly [URI, T])[] | undefined): arg is readonly (readonly [URI, T])[] {
+function isEntries<T>(
+	arg:
+		| ResourceMap<T>
+		| ResourceMapKeyFn
+		| readonly (readonly [URI, T])[]
+		| undefined,
+): arg is readonly (readonly [URI, T])[] {
 	return Array.isArray(arg);
 }
 
 export class ResourceMap<T> implements Map<URI, T> {
+	private static readonly defaultToKey = (resource: URI) =>
+		resource.toString();
 
-	private static readonly defaultToKey = (resource: URI) => resource.toString();
-
-	readonly [Symbol.toStringTag] = 'ResourceMap';
+	readonly [Symbol.toStringTag] = "ResourceMap";
 
 	private readonly map: Map<string, ResourceMapEntry<T>>;
 	private readonly toKey: ResourceMapKeyFn;
@@ -72,9 +81,18 @@ export class ResourceMap<T> implements Map<URI, T> {
 	 * @param other Another resource which this maps is created from
 	 * @param toKey Custom uri identity function, e.g use an existing `IExtUri#getComparison`-util
 	 */
-	constructor(entries?: readonly (readonly [URI, T])[], toKey?: ResourceMapKeyFn);
+	constructor(
+		entries?: readonly (readonly [URI, T])[],
+		toKey?: ResourceMapKeyFn,
+	);
 
-	constructor(arg?: ResourceMap<T> | ResourceMapKeyFn | readonly (readonly [URI, T])[], toKey?: ResourceMapKeyFn) {
+	constructor(
+		arg?:
+			| ResourceMap<T>
+			| ResourceMapKeyFn
+			| readonly (readonly [URI, T])[],
+		toKey?: ResourceMapKeyFn,
+	) {
 		if (arg instanceof ResourceMap) {
 			this.map = new Map(arg.map);
 			this.toKey = toKey ?? ResourceMap.defaultToKey;
@@ -92,7 +110,10 @@ export class ResourceMap<T> implements Map<URI, T> {
 	}
 
 	set(resource: URI, value: T): this {
-		this.map.set(this.toKey(resource), new ResourceMapEntry(resource, value));
+		this.map.set(
+			this.toKey(resource),
+			new ResourceMapEntry(resource, value),
+		);
 		return this;
 	}
 
@@ -116,8 +137,11 @@ export class ResourceMap<T> implements Map<URI, T> {
 		return this.map.delete(this.toKey(resource));
 	}
 
-	forEach(clb: (value: T, key: URI, map: Map<URI, T>) => void, thisArg?: any): void {
-		if (typeof thisArg !== 'undefined') {
+	forEach(
+		clb: (value: T, key: URI, map: Map<URI, T>) => void,
+		thisArg?: any,
+	): void {
+		if (typeof thisArg !== "undefined") {
 			clb = clb.bind(thisArg);
 		}
 		for (const [_, entry] of this.map) {
@@ -151,22 +175,23 @@ export class ResourceMap<T> implements Map<URI, T> {
 }
 
 export class ResourceSet implements Set<URI> {
-
-	readonly [Symbol.toStringTag]: string = 'ResourceSet';
+	readonly [Symbol.toStringTag]: string = "ResourceSet";
 
 	private readonly _map: ResourceMap<URI>;
 
 	constructor(toKey?: ResourceMapKeyFn);
 	constructor(entries: readonly URI[], toKey?: ResourceMapKeyFn);
-	constructor(entriesOrKey?: readonly URI[] | ResourceMapKeyFn, toKey?: ResourceMapKeyFn) {
-		if (!entriesOrKey || typeof entriesOrKey === 'function') {
+	constructor(
+		entriesOrKey?: readonly URI[] | ResourceMapKeyFn,
+		toKey?: ResourceMapKeyFn,
+	) {
+		if (!entriesOrKey || typeof entriesOrKey === "function") {
 			this._map = new ResourceMap(entriesOrKey);
 		} else {
 			this._map = new ResourceMap(toKey);
 			entriesOrKey.forEach(this.add, this);
 		}
 	}
-
 
 	get size(): number {
 		return this._map.size;
@@ -185,8 +210,13 @@ export class ResourceSet implements Set<URI> {
 		return this._map.delete(value);
 	}
 
-	forEach(callbackfn: (value: URI, value2: URI, set: Set<URI>) => void, thisArg?: any): void {
-		this._map.forEach((_value, key) => callbackfn.call(thisArg, key, key, this));
+	forEach(
+		callbackfn: (value: URI, value2: URI, set: Set<URI>) => void,
+		thisArg?: any,
+	): void {
+		this._map.forEach((_value, key) =>
+			callbackfn.call(thisArg, key, key, this),
+		);
 	}
 
 	has(value: URI): boolean {
@@ -210,7 +240,6 @@ export class ResourceSet implements Set<URI> {
 	}
 }
 
-
 interface Item<K, V> {
 	previous: Item<K, V> | undefined;
 	next: Item<K, V> | undefined;
@@ -221,12 +250,11 @@ interface Item<K, V> {
 export const enum Touch {
 	None = 0,
 	AsOld = 1,
-	AsNew = 2
+	AsNew = 2,
 }
 
 export class LinkedMap<K, V> implements Map<K, V> {
-
-	readonly [Symbol.toStringTag] = 'LinkedMap';
+	readonly [Symbol.toStringTag] = "LinkedMap";
 
 	private _map: Map<K, Item<K, V>>;
 	private _head: Item<K, V> | undefined;
@@ -331,7 +359,7 @@ export class LinkedMap<K, V> implements Map<K, V> {
 			return undefined;
 		}
 		if (!this._head || !this._tail) {
-			throw new Error('Invalid list');
+			throw new Error("Invalid list");
 		}
 		const item = this._head;
 		this._map.delete(item.key);
@@ -340,7 +368,10 @@ export class LinkedMap<K, V> implements Map<K, V> {
 		return item.value;
 	}
 
-	forEach(callbackfn: (value: V, key: K, map: LinkedMap<K, V>) => void, thisArg?: any): void {
+	forEach(
+		callbackfn: (value: V, key: K, map: LinkedMap<K, V>) => void,
+		thisArg?: any,
+	): void {
 		const state = this._state;
 		let current = this._head;
 		while (current) {
@@ -375,7 +406,7 @@ export class LinkedMap<K, V> implements Map<K, V> {
 				} else {
 					return { value: undefined, done: true };
 				}
-			}
+			},
 		};
 		return iterator;
 	}
@@ -399,7 +430,7 @@ export class LinkedMap<K, V> implements Map<K, V> {
 				} else {
 					return { value: undefined, done: true };
 				}
-			}
+			},
 		};
 		return iterator;
 	}
@@ -417,13 +448,16 @@ export class LinkedMap<K, V> implements Map<K, V> {
 					throw new Error(`LinkedMap got modified during iteration.`);
 				}
 				if (current) {
-					const result: IteratorResult<[K, V]> = { value: [current.key, current.value], done: false };
+					const result: IteratorResult<[K, V]> = {
+						value: [current.key, current.value],
+						done: false,
+					};
 					current = current.next;
 					return result;
 				} else {
 					return { value: undefined, done: true };
 				}
-			}
+			},
 		};
 		return iterator;
 	}
@@ -483,7 +517,7 @@ export class LinkedMap<K, V> implements Map<K, V> {
 		if (!this._head && !this._tail) {
 			this._tail = item;
 		} else if (!this._head) {
-			throw new Error('Invalid list');
+			throw new Error("Invalid list");
 		} else {
 			item.next = this._head;
 			this._head.previous = item;
@@ -497,7 +531,7 @@ export class LinkedMap<K, V> implements Map<K, V> {
 		if (!this._head && !this._tail) {
 			this._head = item;
 		} else if (!this._tail) {
-			throw new Error('Invalid list');
+			throw new Error("Invalid list");
 		} else {
 			item.previous = this._tail;
 			this._tail.next = item;
@@ -510,30 +544,27 @@ export class LinkedMap<K, V> implements Map<K, V> {
 		if (item === this._head && item === this._tail) {
 			this._head = undefined;
 			this._tail = undefined;
-		}
-		else if (item === this._head) {
+		} else if (item === this._head) {
 			// This can only happen if size === 1 which is handled
 			// by the case above.
 			if (!item.next) {
-				throw new Error('Invalid list');
+				throw new Error("Invalid list");
 			}
 			item.next.previous = undefined;
 			this._head = item.next;
-		}
-		else if (item === this._tail) {
+		} else if (item === this._tail) {
 			// This can only happen if size === 1 which is handled
 			// by the case above.
 			if (!item.previous) {
-				throw new Error('Invalid list');
+				throw new Error("Invalid list");
 			}
 			item.previous.next = undefined;
 			this._tail = item.previous;
-		}
-		else {
+		} else {
 			const next = item.next;
 			const previous = item.previous;
 			if (!next || !previous) {
-				throw new Error('Invalid list');
+				throw new Error("Invalid list");
 			}
 			next.previous = previous;
 			previous.next = next;
@@ -545,9 +576,9 @@ export class LinkedMap<K, V> implements Map<K, V> {
 
 	private touch(item: Item<K, V>, touch: Touch): void {
 		if (!this._head || !this._tail) {
-			throw new Error('Invalid list');
+			throw new Error("Invalid list");
 		}
-		if ((touch !== Touch.AsOld && touch !== Touch.AsNew)) {
+		if (touch !== Touch.AsOld && touch !== Touch.AsNew) {
 			return;
 		}
 
@@ -565,8 +596,7 @@ export class LinkedMap<K, V> implements Map<K, V> {
 				// So there are more than on item in the map
 				previous!.next = undefined;
 				this._tail = previous;
-			}
-			else {
+			} else {
 				// Both next and previous are not undefined since item was neither head nor tail.
 				next!.previous = previous;
 				previous!.next = next;
@@ -625,7 +655,6 @@ export class LinkedMap<K, V> implements Map<K, V> {
 }
 
 abstract class Cache<K, V> extends LinkedMap<K, V> {
-
 	protected _limit: number;
 	protected _ratio: number;
 
@@ -676,7 +705,6 @@ abstract class Cache<K, V> extends LinkedMap<K, V> {
 }
 
 export class LRUCache<K, V> extends Cache<K, V> {
-
 	constructor(limit: number, ratio: number = 1) {
 		super(limit, ratio);
 	}
@@ -693,7 +721,6 @@ export class LRUCache<K, V> extends Cache<K, V> {
 }
 
 export class MRUCache<K, V> extends Cache<K, V> {
-
 	constructor(limit: number, ratio: number = 1) {
 		super(limit, ratio);
 	}
@@ -713,7 +740,6 @@ export class MRUCache<K, V> extends Cache<K, V> {
 }
 
 export class CounterSet<T> {
-
 	private map = new Map<T, number>();
 
 	add(value: T): CounterSet<T> {
@@ -749,7 +775,6 @@ export class CounterSet<T> {
  * **NOTE**: values need to be unique.
  */
 export class BidirectionalMap<K, V> {
-
 	private readonly _m1 = new Map<K, V>();
 	private readonly _m2 = new Map<V, K>();
 
@@ -789,7 +814,10 @@ export class BidirectionalMap<K, V> {
 		return true;
 	}
 
-	forEach(callbackfn: (value: V, key: K, map: BidirectionalMap<K, V>) => void, thisArg?: any): void {
+	forEach(
+		callbackfn: (value: V, key: K, map: BidirectionalMap<K, V>) => void,
+		thisArg?: any,
+	): void {
 		this._m1.forEach((value, key) => {
 			callbackfn.call(thisArg, value, key, this);
 		});
@@ -805,7 +833,6 @@ export class BidirectionalMap<K, V> {
 }
 
 export class SetMap<K, V> {
-
 	private map = new Map<K, Set<V>>();
 
 	add(key: K, value: V): void {
@@ -852,7 +879,10 @@ export class SetMap<K, V> {
 	}
 }
 
-export function mapsStrictEqualIgnoreOrder(a: Map<unknown, unknown>, b: Map<unknown, unknown>): boolean {
+export function mapsStrictEqualIgnoreOrder(
+	a: Map<unknown, unknown>,
+	b: Map<unknown, unknown>,
+): boolean {
 	if (a === b) {
 		return true;
 	}
@@ -880,8 +910,16 @@ export function mapsStrictEqualIgnoreOrder(a: Map<unknown, unknown>, b: Map<unkn
  * A map that is addressable with 2 separate keys. This is useful in high performance scenarios
  * where creating a composite key whenever the data is accessed is too expensive.
  */
-export class TwoKeyMap<TFirst extends string | number, TSecond extends string | number, TValue> {
-	private _data: { [key: string | number]: { [key: string | number]: TValue | undefined } | undefined } = {};
+export class TwoKeyMap<
+	TFirst extends string | number,
+	TSecond extends string | number,
+	TValue,
+> {
+	private _data: {
+		[key: string | number]:
+			| { [key: string | number]: TValue | undefined }
+			| undefined;
+	} = {};
 
 	public set(first: TFirst, second: TSecond, value: TValue): void {
 		if (!this._data[first]) {
@@ -914,17 +952,33 @@ export class TwoKeyMap<TFirst extends string | number, TSecond extends string | 
  * A map that is addressable with 3 separate keys. This is useful in high performance scenarios
  * where creating a composite key whenever the data is accessed is too expensive.
  */
-export class ThreeKeyMap<TFirst extends string | number, TSecond extends string | number, TThird extends string | number, TValue> {
-	private _data: { [key: string | number]: TwoKeyMap<TSecond, TThird, TValue> | undefined } = {};
+export class ThreeKeyMap<
+	TFirst extends string | number,
+	TSecond extends string | number,
+	TThird extends string | number,
+	TValue,
+> {
+	private _data: {
+		[key: string | number]: TwoKeyMap<TSecond, TThird, TValue> | undefined;
+	} = {};
 
-	public set(first: TFirst, second: TSecond, third: TThird, value: TValue): void {
+	public set(
+		first: TFirst,
+		second: TSecond,
+		third: TThird,
+		value: TValue,
+	): void {
 		if (!this._data[first]) {
 			this._data[first] = new TwoKeyMap();
 		}
 		this._data[first as string | number]!.set(second, third, value);
 	}
 
-	public get(first: TFirst, second: TSecond, third: TThird): TValue | undefined {
+	public get(
+		first: TFirst,
+		second: TSecond,
+		third: TThird,
+	): TValue | undefined {
 		return this._data[first as string | number]?.get(second, third);
 	}
 
@@ -947,17 +1001,38 @@ export class ThreeKeyMap<TFirst extends string | number, TSecond extends string 
  * A map that is addressable with 4 separate keys. This is useful in high performance scenarios
  * where creating a composite key whenever the data is accessed is too expensive.
  */
-export class FourKeyMap<TFirst extends string | number, TSecond extends string | number, TThird extends string | number, TFourth extends string | number, TValue> {
-	private _data: TwoKeyMap<TFirst, TSecond, TwoKeyMap<TThird, TFourth, TValue>> = new TwoKeyMap();
+export class FourKeyMap<
+	TFirst extends string | number,
+	TSecond extends string | number,
+	TThird extends string | number,
+	TFourth extends string | number,
+	TValue,
+> {
+	private _data: TwoKeyMap<
+		TFirst,
+		TSecond,
+		TwoKeyMap<TThird, TFourth, TValue>
+	> = new TwoKeyMap();
 
-	public set(first: TFirst, second: TSecond, third: TThird, fourth: TFourth, value: TValue): void {
+	public set(
+		first: TFirst,
+		second: TSecond,
+		third: TThird,
+		fourth: TFourth,
+		value: TValue,
+	): void {
 		if (!this._data.get(first, second)) {
 			this._data.set(first, second, new TwoKeyMap());
 		}
 		this._data.get(first, second)!.set(third, fourth, value);
 	}
 
-	public get(first: TFirst, second: TSecond, third: TThird, fourth: TFourth): TValue | undefined {
+	public get(
+		first: TFirst,
+		second: TSecond,
+		third: TThird,
+		fourth: TFourth,
+	): TValue | undefined {
 		return this._data.get(first, second)?.get(third, fourth);
 	}
 

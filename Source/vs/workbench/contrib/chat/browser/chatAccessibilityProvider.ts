@@ -3,32 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AriaRole } from '../../../../base/browser/ui/aria/aria.js';
-import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { marked } from '../../../../base/common/marked/marked.js';
-import { localize } from '../../../../nls.js';
-import { AccessibilityVerbositySettingId } from '../../accessibility/browser/accessibilityConfiguration.js';
-import { IAccessibleViewService } from '../../../../platform/accessibility/browser/accessibleView.js';
-import { ChatTreeItem } from './chat.js';
-import { isRequestVM, isResponseVM, IChatResponseViewModel } from '../common/chatViewModel.js';
+import { AriaRole } from "../../../../base/browser/ui/aria/aria.js";
+import { IListAccessibilityProvider } from "../../../../base/browser/ui/list/listWidget.js";
+import { marked } from "../../../../base/common/marked/marked.js";
+import { localize } from "../../../../nls.js";
+import { IAccessibleViewService } from "../../../../platform/accessibility/browser/accessibleView.js";
+import { AccessibilityVerbositySettingId } from "../../accessibility/browser/accessibilityConfiguration.js";
+import {
+	IChatResponseViewModel,
+	isRequestVM,
+	isResponseVM,
+} from "../common/chatViewModel.js";
+import { ChatTreeItem } from "./chat.js";
 
-export class ChatAccessibilityProvider implements IListAccessibilityProvider<ChatTreeItem> {
-
+export class ChatAccessibilityProvider
+	implements IListAccessibilityProvider<ChatTreeItem>
+{
 	constructor(
-		@IAccessibleViewService private readonly _accessibleViewService: IAccessibleViewService
-	) {
-
-	}
+		@IAccessibleViewService
+		private readonly _accessibleViewService: IAccessibleViewService,
+	) {}
 	getWidgetRole(): AriaRole {
-		return 'list';
+		return "list";
 	}
 
 	getRole(element: ChatTreeItem): AriaRole | undefined {
-		return 'listitem';
+		return "listitem";
 	}
 
 	getWidgetAriaLabel(): string {
-		return localize('chat', "Chat");
+		return localize("chat", "Chat");
 	}
 
 	getAriaLabel(element: ChatTreeItem): string {
@@ -40,34 +44,90 @@ export class ChatAccessibilityProvider implements IListAccessibilityProvider<Cha
 			return this._getLabelWithCodeBlockCount(element);
 		}
 
-		return '';
+		return "";
 	}
 
-	private _getLabelWithCodeBlockCount(element: IChatResponseViewModel): string {
-		const accessibleViewHint = this._accessibleViewService.getOpenAriaHint(AccessibilityVerbositySettingId.Chat);
-		let label: string = '';
-		const fileTreeCount = element.response.value.filter((v) => !('value' in v))?.length ?? 0;
-		let fileTreeCountHint = '';
+	private _getLabelWithCodeBlockCount(
+		element: IChatResponseViewModel,
+	): string {
+		const accessibleViewHint = this._accessibleViewService.getOpenAriaHint(
+			AccessibilityVerbositySettingId.Chat,
+		);
+		let label: string = "";
+		const fileTreeCount =
+			element.response.value.filter((v) => !("value" in v))?.length ?? 0;
+		let fileTreeCountHint = "";
 		switch (fileTreeCount) {
 			case 0:
 				break;
 			case 1:
-				fileTreeCountHint = localize('singleFileTreeHint', "1 file tree");
+				fileTreeCountHint = localize(
+					"singleFileTreeHint",
+					"1 file tree",
+				);
 				break;
 			default:
-				fileTreeCountHint = localize('multiFileTreeHint', "{0} file trees", fileTreeCount);
+				fileTreeCountHint = localize(
+					"multiFileTreeHint",
+					"{0} file trees",
+					fileTreeCount,
+				);
 				break;
 		}
-		const codeBlockCount = marked.lexer(element.response.toString()).filter(token => token.type === 'code')?.length ?? 0;
+		const codeBlockCount =
+			marked
+				.lexer(element.response.toString())
+				.filter((token) => token.type === "code")?.length ?? 0;
 		switch (codeBlockCount) {
 			case 0:
-				label = accessibleViewHint ? localize('noCodeBlocksHint', "{0} {1} {2}", fileTreeCountHint, element.response.toString(), accessibleViewHint) : localize('noCodeBlocks', "{0} {1}", fileTreeCountHint, element.response.toString());
+				label = accessibleViewHint
+					? localize(
+							"noCodeBlocksHint",
+							"{0} {1} {2}",
+							fileTreeCountHint,
+							element.response.toString(),
+							accessibleViewHint,
+						)
+					: localize(
+							"noCodeBlocks",
+							"{0} {1}",
+							fileTreeCountHint,
+							element.response.toString(),
+						);
 				break;
 			case 1:
-				label = accessibleViewHint ? localize('singleCodeBlockHint', "{0} 1 code block: {1} {2}", fileTreeCountHint, element.response.toString(), accessibleViewHint) : localize('singleCodeBlock', "{0} 1 code block: {1}", fileTreeCountHint, element.response.toString());
+				label = accessibleViewHint
+					? localize(
+							"singleCodeBlockHint",
+							"{0} 1 code block: {1} {2}",
+							fileTreeCountHint,
+							element.response.toString(),
+							accessibleViewHint,
+						)
+					: localize(
+							"singleCodeBlock",
+							"{0} 1 code block: {1}",
+							fileTreeCountHint,
+							element.response.toString(),
+						);
 				break;
 			default:
-				label = accessibleViewHint ? localize('multiCodeBlockHint', "{0} {1} code blocks: {2}", fileTreeCountHint, codeBlockCount, element.response.toString(), accessibleViewHint) : localize('multiCodeBlock', "{0} {1} code blocks", fileTreeCountHint, codeBlockCount, element.response.toString());
+				label = accessibleViewHint
+					? localize(
+							"multiCodeBlockHint",
+							"{0} {1} code blocks: {2}",
+							fileTreeCountHint,
+							codeBlockCount,
+							element.response.toString(),
+							accessibleViewHint,
+						)
+					: localize(
+							"multiCodeBlock",
+							"{0} {1} code blocks",
+							fileTreeCountHint,
+							codeBlockCount,
+							element.response.toString(),
+						);
 				break;
 		}
 		return label;

@@ -3,77 +3,129 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as DOM from '../../../../base/browser/dom.js';
-import { IActionViewItem } from '../../../../base/browser/ui/actionbar/actionbar.js';
-import { IAction, toAction } from '../../../../base/common/actions.js';
-import { timeout } from '../../../../base/common/async.js';
-import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { Emitter, Event } from '../../../../base/common/event.js';
-import { DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
-import { extname, isEqual } from '../../../../base/common/resources.js';
-import { URI } from '../../../../base/common/uri.js';
-import { generateUuid } from '../../../../base/common/uuid.js';
-import { ITextResourceConfigurationService } from '../../../../editor/common/services/textResourceConfiguration.js';
-import { localize } from '../../../../nls.js';
-import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
-import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
-import { ByteSize, FileOperationError, FileOperationResult, IFileService, TooLargeFileOperationError } from '../../../../platform/files/common/files.js';
-import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { IStorageService } from '../../../../platform/storage/common/storage.js';
-import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
-import { IThemeService } from '../../../../platform/theme/common/themeService.js';
-import { Selection } from '../../../../editor/common/core/selection.js';
-import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
-import { DEFAULT_EDITOR_ASSOCIATION, EditorPaneSelectionChangeReason, EditorPaneSelectionCompareResult, EditorResourceAccessor, IEditorMemento, IEditorOpenContext, IEditorPaneScrollPosition, IEditorPaneSelection, IEditorPaneSelectionChangeEvent, IEditorPaneWithScrolling, createEditorOpenError, createTooLargeFileError, isEditorOpenError } from '../../../common/editor.js';
-import { EditorInput } from '../../../common/editor/editorInput.js';
-import { SELECT_KERNEL_ID } from './controller/coreActions.js';
-import { INotebookEditorOptions, INotebookEditorPane, INotebookEditorViewState } from './notebookBrowser.js';
-import { IBorrowValue, INotebookEditorService } from './services/notebookEditorService.js';
-import { NotebookEditorWidget } from './notebookEditorWidget.js';
-import { NotebooKernelActionViewItem } from './viewParts/notebookKernelView.js';
-import { NotebookTextModel } from '../common/model/notebookTextModel.js';
-import { CellKind, NOTEBOOK_EDITOR_ID, NotebookWorkingCopyTypeIdentifier } from '../common/notebookCommon.js';
-import { NotebookEditorInput } from '../common/notebookEditorInput.js';
-import { NotebookPerfMarks } from '../common/notebookPerformance.js';
-import { GroupsOrder, IEditorGroup, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
-import { IEditorService } from '../../../services/editor/common/editorService.js';
-import { IEditorProgressService } from '../../../../platform/progress/common/progress.js';
-import { InstallRecommendedExtensionAction } from '../../extensions/browser/extensionsActions.js';
-import { INotebookService } from '../common/notebookService.js';
-import { IExtensionsWorkbenchService } from '../../extensions/common/extensions.js';
-import { EnablementState } from '../../../services/extensionManagement/common/extensionManagement.js';
-import { IWorkingCopyBackupService } from '../../../services/workingCopy/common/workingCopyBackup.js';
-import { streamToBuffer } from '../../../../base/common/buffer.js';
-import { ILogService } from '../../../../platform/log/common/log.js';
-import { INotebookEditorWorkerService } from '../common/services/notebookWorkerService.js';
-import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
-import { IActionViewItemOptions } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
-import { StopWatch } from '../../../../base/common/stopwatch.js';
+import * as DOM from "../../../../base/browser/dom.js";
+import { IActionViewItem } from "../../../../base/browser/ui/actionbar/actionbar.js";
+import { IActionViewItemOptions } from "../../../../base/browser/ui/actionbar/actionViewItems.js";
+import { IAction, toAction } from "../../../../base/common/actions.js";
+import { timeout } from "../../../../base/common/async.js";
+import { streamToBuffer } from "../../../../base/common/buffer.js";
+import { CancellationToken } from "../../../../base/common/cancellation.js";
+import { Emitter, Event } from "../../../../base/common/event.js";
+import {
+	DisposableStore,
+	MutableDisposable,
+} from "../../../../base/common/lifecycle.js";
+import { extname, isEqual } from "../../../../base/common/resources.js";
+import { StopWatch } from "../../../../base/common/stopwatch.js";
+import { URI } from "../../../../base/common/uri.js";
+import { generateUuid } from "../../../../base/common/uuid.js";
+import { Selection } from "../../../../editor/common/core/selection.js";
+import { ITextResourceConfigurationService } from "../../../../editor/common/services/textResourceConfiguration.js";
+import { localize } from "../../../../nls.js";
+import { IContextKeyService } from "../../../../platform/contextkey/common/contextkey.js";
+import { IEditorOptions } from "../../../../platform/editor/common/editor.js";
+import {
+	ByteSize,
+	FileOperationError,
+	FileOperationResult,
+	IFileService,
+	TooLargeFileOperationError,
+} from "../../../../platform/files/common/files.js";
+import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
+import { ILogService } from "../../../../platform/log/common/log.js";
+import { IEditorProgressService } from "../../../../platform/progress/common/progress.js";
+import { IStorageService } from "../../../../platform/storage/common/storage.js";
+import { ITelemetryService } from "../../../../platform/telemetry/common/telemetry.js";
+import { IThemeService } from "../../../../platform/theme/common/themeService.js";
+import { EditorPane } from "../../../browser/parts/editor/editorPane.js";
+import {
+	createEditorOpenError,
+	createTooLargeFileError,
+	DEFAULT_EDITOR_ASSOCIATION,
+	EditorPaneSelectionChangeReason,
+	EditorPaneSelectionCompareResult,
+	EditorResourceAccessor,
+	IEditorMemento,
+	IEditorOpenContext,
+	IEditorPaneScrollPosition,
+	IEditorPaneSelection,
+	IEditorPaneSelectionChangeEvent,
+	IEditorPaneWithScrolling,
+	isEditorOpenError,
+} from "../../../common/editor.js";
+import { EditorInput } from "../../../common/editor/editorInput.js";
+import {
+	GroupsOrder,
+	IEditorGroup,
+	IEditorGroupsService,
+} from "../../../services/editor/common/editorGroupsService.js";
+import { IEditorService } from "../../../services/editor/common/editorService.js";
+import { EnablementState } from "../../../services/extensionManagement/common/extensionManagement.js";
+import { IPreferencesService } from "../../../services/preferences/common/preferences.js";
+import { IWorkingCopyBackupService } from "../../../services/workingCopy/common/workingCopyBackup.js";
+import { InstallRecommendedExtensionAction } from "../../extensions/browser/extensionsActions.js";
+import { IExtensionsWorkbenchService } from "../../extensions/common/extensions.js";
+import { NotebookTextModel } from "../common/model/notebookTextModel.js";
+import {
+	CellKind,
+	NOTEBOOK_EDITOR_ID,
+	NotebookWorkingCopyTypeIdentifier,
+} from "../common/notebookCommon.js";
+import { NotebookEditorInput } from "../common/notebookEditorInput.js";
+import { NotebookPerfMarks } from "../common/notebookPerformance.js";
+import { INotebookService } from "../common/notebookService.js";
+import { INotebookEditorWorkerService } from "../common/services/notebookWorkerService.js";
+import { SELECT_KERNEL_ID } from "./controller/coreActions.js";
+import {
+	INotebookEditorOptions,
+	INotebookEditorPane,
+	INotebookEditorViewState,
+} from "./notebookBrowser.js";
+import { NotebookEditorWidget } from "./notebookEditorWidget.js";
+import {
+	IBorrowValue,
+	INotebookEditorService,
+} from "./services/notebookEditorService.js";
+import { NotebooKernelActionViewItem } from "./viewParts/notebookKernelView.js";
 
-const NOTEBOOK_EDITOR_VIEW_STATE_PREFERENCE_KEY = 'NotebookEditorViewState';
+const NOTEBOOK_EDITOR_VIEW_STATE_PREFERENCE_KEY = "NotebookEditorViewState";
 
-export class NotebookEditor extends EditorPane implements INotebookEditorPane, IEditorPaneWithScrolling {
+export class NotebookEditor
+	extends EditorPane
+	implements INotebookEditorPane, IEditorPaneWithScrolling
+{
 	static readonly ID: string = NOTEBOOK_EDITOR_ID;
 
 	private readonly _editorMemento: IEditorMemento<INotebookEditorViewState>;
 	private readonly _groupListener = this._register(new DisposableStore());
-	private readonly _widgetDisposableStore: DisposableStore = this._register(new DisposableStore());
+	private readonly _widgetDisposableStore: DisposableStore = this._register(
+		new DisposableStore(),
+	);
 	private _widget: IBorrowValue<NotebookEditorWidget> = { value: undefined };
 	private _rootElement!: HTMLElement;
-	private _pagePosition?: { readonly dimension: DOM.Dimension; readonly position: DOM.IDomPosition };
+	private _pagePosition?: {
+		readonly dimension: DOM.Dimension;
+		readonly position: DOM.IDomPosition;
+	};
 
 	private readonly _inputListener = this._register(new MutableDisposable());
 
 	// override onDidFocus and onDidBlur to be based on the NotebookEditorWidget element
 	private readonly _onDidFocusWidget = this._register(new Emitter<void>());
-	override get onDidFocus(): Event<void> { return this._onDidFocusWidget.event; }
+	override get onDidFocus(): Event<void> {
+		return this._onDidFocusWidget.event;
+	}
 	private readonly _onDidBlurWidget = this._register(new Emitter<void>());
-	override get onDidBlur(): Event<void> { return this._onDidBlurWidget.event; }
+	override get onDidBlur(): Event<void> {
+		return this._onDidBlurWidget.event;
+	}
 
 	private readonly _onDidChangeModel = this._register(new Emitter<void>());
 	readonly onDidChangeModel: Event<void> = this._onDidChangeModel.event;
 
-	private readonly _onDidChangeSelection = this._register(new Emitter<IEditorPaneSelectionChangeEvent>());
+	private readonly _onDidChangeSelection = this._register(
+		new Emitter<IEditorPaneSelectionChangeEvent>(),
+	);
 	readonly onDidChangeSelection = this._onDidChangeSelection.event;
 
 	protected readonly _onDidChangeScroll = this._register(new Emitter<void>());
@@ -83,31 +135,62 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 		group: IEditorGroup,
 		@ITelemetryService telemetryService: ITelemetryService,
 		@IThemeService themeService: IThemeService,
-		@IInstantiationService private readonly _instantiationService: IInstantiationService,
+		@IInstantiationService
+		private readonly _instantiationService: IInstantiationService,
 		@IStorageService storageService: IStorageService,
 		@IEditorService private readonly _editorService: IEditorService,
-		@IEditorGroupsService private readonly _editorGroupService: IEditorGroupsService,
-		@INotebookEditorService private readonly _notebookWidgetService: INotebookEditorService,
-		@IContextKeyService private readonly _contextKeyService: IContextKeyService,
+		@IEditorGroupsService
+		private readonly _editorGroupService: IEditorGroupsService,
+		@INotebookEditorService
+		private readonly _notebookWidgetService: INotebookEditorService,
+		@IContextKeyService
+		private readonly _contextKeyService: IContextKeyService,
 		@IFileService private readonly _fileService: IFileService,
-		@ITextResourceConfigurationService configurationService: ITextResourceConfigurationService,
-		@IEditorProgressService private readonly _editorProgressService: IEditorProgressService,
+		@ITextResourceConfigurationService
+		configurationService: ITextResourceConfigurationService,
+		@IEditorProgressService
+		private readonly _editorProgressService: IEditorProgressService,
 		@INotebookService private readonly _notebookService: INotebookService,
-		@IExtensionsWorkbenchService private readonly _extensionsWorkbenchService: IExtensionsWorkbenchService,
-		@IWorkingCopyBackupService private readonly _workingCopyBackupService: IWorkingCopyBackupService,
+		@IExtensionsWorkbenchService
+		private readonly _extensionsWorkbenchService: IExtensionsWorkbenchService,
+		@IWorkingCopyBackupService
+		private readonly _workingCopyBackupService: IWorkingCopyBackupService,
 		@ILogService private readonly logService: ILogService,
-		@INotebookEditorWorkerService private readonly _notebookEditorWorkerService: INotebookEditorWorkerService,
-		@IPreferencesService private readonly _preferencesService: IPreferencesService
+		@INotebookEditorWorkerService
+		private readonly _notebookEditorWorkerService: INotebookEditorWorkerService,
+		@IPreferencesService
+		private readonly _preferencesService: IPreferencesService,
 	) {
-		super(NotebookEditor.ID, group, telemetryService, themeService, storageService);
-		this._editorMemento = this.getEditorMemento<INotebookEditorViewState>(_editorGroupService, configurationService, NOTEBOOK_EDITOR_VIEW_STATE_PREFERENCE_KEY);
+		super(
+			NotebookEditor.ID,
+			group,
+			telemetryService,
+			themeService,
+			storageService,
+		);
+		this._editorMemento = this.getEditorMemento<INotebookEditorViewState>(
+			_editorGroupService,
+			configurationService,
+			NOTEBOOK_EDITOR_VIEW_STATE_PREFERENCE_KEY,
+		);
 
-		this._register(this._fileService.onDidChangeFileSystemProviderCapabilities(e => this._onDidChangeFileSystemProvider(e.scheme)));
-		this._register(this._fileService.onDidChangeFileSystemProviderRegistrations(e => this._onDidChangeFileSystemProvider(e.scheme)));
+		this._register(
+			this._fileService.onDidChangeFileSystemProviderCapabilities((e) =>
+				this._onDidChangeFileSystemProvider(e.scheme),
+			),
+		);
+		this._register(
+			this._fileService.onDidChangeFileSystemProviderRegistrations((e) =>
+				this._onDidChangeFileSystemProvider(e.scheme),
+			),
+		);
 	}
 
 	private _onDidChangeFileSystemProvider(scheme: string): void {
-		if (this.input instanceof NotebookEditorInput && this.input.resource?.scheme === scheme) {
+		if (
+			this.input instanceof NotebookEditorInput &&
+			this.input.resource?.scheme === scheme
+		) {
 			this._updateReadonly(this.input);
 		}
 	}
@@ -126,12 +209,20 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 		return this._widget.value?.textModel;
 	}
 
-	override get minimumWidth(): number { return 220; }
-	override get maximumWidth(): number { return Number.POSITIVE_INFINITY; }
+	override get minimumWidth(): number {
+		return 220;
+	}
+	override get maximumWidth(): number {
+		return Number.POSITIVE_INFINITY;
+	}
 
 	// these setters need to exist because this extends from EditorPane
-	override set minimumWidth(value: number) { /*noop*/ }
-	override set maximumWidth(value: number) { /*noop*/ }
+	override set minimumWidth(value: number) {
+		/*noop*/
+	}
+	override set maximumWidth(value: number) {
+		/*noop*/
+	}
 
 	//#region Editor Core
 	override get scopedContextKeyService(): IContextKeyService | undefined {
@@ -139,14 +230,22 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 	}
 
 	protected createEditor(parent: HTMLElement): void {
-		this._rootElement = DOM.append(parent, DOM.$('.notebook-editor'));
+		this._rootElement = DOM.append(parent, DOM.$(".notebook-editor"));
 		this._rootElement.id = `notebook-editor-element-${generateUuid()}`;
 	}
 
-	override getActionViewItem(action: IAction, options: IActionViewItemOptions): IActionViewItem | undefined {
+	override getActionViewItem(
+		action: IAction,
+		options: IActionViewItemOptions,
+	): IActionViewItem | undefined {
 		if (action.id === SELECT_KERNEL_ID) {
 			// this is being disposed by the consumer
-			return this._instantiationService.createInstance(NotebooKernelActionViewItem, action, this, options);
+			return this._instantiationService.createInstance(
+				NotebooKernelActionViewItem,
+				action,
+				this,
+				options,
+			);
 		}
 		return undefined;
 	}
@@ -165,12 +264,18 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 	protected override setEditorVisible(visible: boolean): void {
 		super.setEditorVisible(visible);
 		this._groupListener.clear();
-		this._groupListener.add(this.group.onWillCloseEditor(e => this._saveEditorViewState(e.editor)));
-		this._groupListener.add(this.group.onDidModelChange(() => {
-			if (this._editorGroupService.activeGroup !== this.group) {
-				this._widget?.value?.updateEditorFocus();
-			}
-		}));
+		this._groupListener.add(
+			this.group.onWillCloseEditor((e) =>
+				this._saveEditorViewState(e.editor),
+			),
+		);
+		this._groupListener.add(
+			this.group.onDidModelChange(() => {
+				if (this._editorGroupService.activeGroup !== this.group) {
+					this._widget?.value?.updateEditorFocus();
+				}
+			}),
+		);
 
 		if (!visible) {
 			this._saveEditorViewState(this.input);
@@ -192,10 +297,24 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			return false;
 		}
 
-		return !!value && (DOM.isAncestorOfActiveElement(value.getDomNode() || DOM.isAncestorOfActiveElement(value.getOverflowContainerDomNode())));
+		return (
+			!!value &&
+			DOM.isAncestorOfActiveElement(
+				value.getDomNode() ||
+					DOM.isAncestorOfActiveElement(
+						value.getOverflowContainerDomNode(),
+					),
+			)
+		);
 	}
 
-	override async setInput(input: NotebookEditorInput, options: INotebookEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken, noRetry?: boolean): Promise<void> {
+	override async setInput(
+		input: NotebookEditorInput,
+		options: INotebookEditorOptions | undefined,
+		context: IEditorOpenContext,
+		token: CancellationToken,
+		noRetry?: boolean,
+	): Promise<void> {
 		try {
 			let perfMarksCaptured = false;
 			const fileOpenMonitor = timeout(10000);
@@ -205,9 +324,11 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			});
 
 			const perf = new NotebookPerfMarks();
-			perf.mark('startTime');
+			perf.mark("startTime");
 
-			this._inputListener.value = input.onDidChangeCapabilities(() => this._onDidChangeInputCapabilities(input));
+			this._inputListener.value = input.onDidChangeCapabilities(() =>
+				this._onDidChangeInputCapabilities(input),
+			);
 
 			this._widgetDisposableStore.clear();
 
@@ -215,25 +336,54 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			// we need to hide it before getting a new widget
 			this._widget.value?.onWillHide();
 
-			this._widget = <IBorrowValue<NotebookEditorWidget>>this._instantiationService.invokeFunction(this._notebookWidgetService.retrieveWidget, this.group.id, input, undefined, this._pagePosition?.dimension, this.window);
+			this._widget = <IBorrowValue<NotebookEditorWidget>>(
+				this._instantiationService.invokeFunction(
+					this._notebookWidgetService.retrieveWidget,
+					this.group.id,
+					input,
+					undefined,
+					this._pagePosition?.dimension,
+					this.window,
+				)
+			);
 
 			if (this._rootElement && this._widget.value!.getDomNode()) {
-				this._rootElement.setAttribute('aria-flowto', this._widget.value!.getDomNode().id || '');
-				DOM.setParentFlowTo(this._widget.value!.getDomNode(), this._rootElement);
+				this._rootElement.setAttribute(
+					"aria-flowto",
+					this._widget.value!.getDomNode().id || "",
+				);
+				DOM.setParentFlowTo(
+					this._widget.value!.getDomNode(),
+					this._rootElement,
+				);
 			}
 
-			this._widgetDisposableStore.add(this._widget.value!.onDidChangeModel(() => this._onDidChangeModel.fire()));
-			this._widgetDisposableStore.add(this._widget.value!.onDidChangeActiveCell(() => this._onDidChangeSelection.fire({ reason: EditorPaneSelectionChangeReason.USER })));
+			this._widgetDisposableStore.add(
+				this._widget.value!.onDidChangeModel(() =>
+					this._onDidChangeModel.fire(),
+				),
+			);
+			this._widgetDisposableStore.add(
+				this._widget.value!.onDidChangeActiveCell(() =>
+					this._onDidChangeSelection.fire({
+						reason: EditorPaneSelectionChangeReason.USER,
+					}),
+				),
+			);
 
 			if (this._pagePosition) {
-				this._widget.value!.layout(this._pagePosition.dimension, this._rootElement, this._pagePosition.position);
+				this._widget.value!.layout(
+					this._pagePosition.dimension,
+					this._rootElement,
+					this._pagePosition.position,
+				);
 			}
 
 			// only now `setInput` and yield/await. this is AFTER the actual widget is ready. This is very important
 			// so that others synchronously receive a notebook editor with the correct widget being set
 			await super.setInput(input, options, context, token);
 			const model = await input.resolve(options, perf);
-			perf.mark('inputLoaded');
+			perf.mark("inputLoaded");
 
 			// Check for cancellation
 			if (token.isCancellationRequested) {
@@ -251,82 +401,185 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			}
 
 			if (model === null) {
-				const knownProvider = this._notebookService.getViewTypeProvider(input.viewType);
+				const knownProvider = this._notebookService.getViewTypeProvider(
+					input.viewType,
+				);
 
 				if (!knownProvider) {
-					throw new Error(localize('fail.noEditor', "Cannot open resource with notebook editor type '{0}', please check if you have the right extension installed and enabled.", input.viewType));
+					throw new Error(
+						localize(
+							"fail.noEditor",
+							"Cannot open resource with notebook editor type '{0}', please check if you have the right extension installed and enabled.",
+							input.viewType,
+						),
+					);
 				}
 
 				await this._extensionsWorkbenchService.whenInitialized;
-				const extensionInfo = this._extensionsWorkbenchService.local.find(e => e.identifier.id === knownProvider);
+				const extensionInfo =
+					this._extensionsWorkbenchService.local.find(
+						(e) => e.identifier.id === knownProvider,
+					);
 
-				throw createEditorOpenError(new Error(localize('fail.noEditor.extensionMissing', "Cannot open resource with notebook editor type '{0}', please check if you have the right extension installed and enabled.", input.viewType)), [
-					toAction({
-						id: 'workbench.notebook.action.installOrEnableMissing', label:
-							extensionInfo
-								? localize('notebookOpenEnableMissingViewType', "Enable extension for '{0}'", input.viewType)
-								: localize('notebookOpenInstallMissingViewType', "Install extension for '{0}'", input.viewType)
-						, run: async () => {
-							const d = this._notebookService.onAddViewType(viewType => {
-								if (viewType === input.viewType) {
-									// serializer is registered, try to open again
-									this._editorService.openEditor({ resource: input.resource });
+				throw createEditorOpenError(
+					new Error(
+						localize(
+							"fail.noEditor.extensionMissing",
+							"Cannot open resource with notebook editor type '{0}', please check if you have the right extension installed and enabled.",
+							input.viewType,
+						),
+					),
+					[
+						toAction({
+							id: "workbench.notebook.action.installOrEnableMissing",
+							label: extensionInfo
+								? localize(
+										"notebookOpenEnableMissingViewType",
+										"Enable extension for '{0}'",
+										input.viewType,
+									)
+								: localize(
+										"notebookOpenInstallMissingViewType",
+										"Install extension for '{0}'",
+										input.viewType,
+									),
+							run: async () => {
+								const d = this._notebookService.onAddViewType(
+									(viewType) => {
+										if (viewType === input.viewType) {
+											// serializer is registered, try to open again
+											this._editorService.openEditor({
+												resource: input.resource,
+											});
+											d.dispose();
+										}
+									},
+								);
+								const extensionInfo =
+									this._extensionsWorkbenchService.local.find(
+										(e) =>
+											e.identifier.id === knownProvider,
+									);
+
+								try {
+									if (extensionInfo) {
+										await this._extensionsWorkbenchService.setEnablement(
+											extensionInfo,
+											extensionInfo.enablementState ===
+												EnablementState.DisabledWorkspace
+												? EnablementState.EnabledWorkspace
+												: EnablementState.EnabledGlobally,
+										);
+									} else {
+										await this._instantiationService
+											.createInstance(
+												InstallRecommendedExtensionAction,
+												knownProvider,
+											)
+											.run();
+									}
+								} catch (ex) {
+									this.logService.error(
+										`Failed to install or enable extension ${knownProvider}`,
+										ex,
+									);
 									d.dispose();
 								}
-							});
-							const extensionInfo = this._extensionsWorkbenchService.local.find(e => e.identifier.id === knownProvider);
-
-							try {
-								if (extensionInfo) {
-									await this._extensionsWorkbenchService.setEnablement(extensionInfo, extensionInfo.enablementState === EnablementState.DisabledWorkspace ? EnablementState.EnabledWorkspace : EnablementState.EnabledGlobally);
+							},
+						}),
+						toAction({
+							id: "workbench.notebook.action.openAsText",
+							label: localize(
+								"notebookOpenAsText",
+								"Open As Text",
+							),
+							run: async () => {
+								const backup =
+									await this._workingCopyBackupService.resolve(
+										{
+											resource: input.resource,
+											typeId: NotebookWorkingCopyTypeIdentifier.create(
+												input.viewType,
+											),
+										},
+									);
+								if (backup) {
+									// with a backup present, we must resort to opening the backup contents
+									// as untitled text file to not show the wrong data to the user
+									const contents = await streamToBuffer(
+										backup.value,
+									);
+									this._editorService.openEditor({
+										resource: undefined,
+										contents: contents.toString(),
+									});
 								} else {
-									await this._instantiationService.createInstance(InstallRecommendedExtensionAction, knownProvider).run();
+									// without a backup present, we can open the original resource
+									this._editorService.openEditor({
+										resource: input.resource,
+										options: {
+											override:
+												DEFAULT_EDITOR_ASSOCIATION.id,
+											pinned: true,
+										},
+									});
 								}
-							} catch (ex) {
-								this.logService.error(`Failed to install or enable extension ${knownProvider}`, ex);
-								d.dispose();
-							}
-						}
-					}),
-					toAction({
-						id: 'workbench.notebook.action.openAsText', label: localize('notebookOpenAsText', "Open As Text"), run: async () => {
-							const backup = await this._workingCopyBackupService.resolve({ resource: input.resource, typeId: NotebookWorkingCopyTypeIdentifier.create(input.viewType) });
-							if (backup) {
-								// with a backup present, we must resort to opening the backup contents
-								// as untitled text file to not show the wrong data to the user
-								const contents = await streamToBuffer(backup.value);
-								this._editorService.openEditor({ resource: undefined, contents: contents.toString() });
-							} else {
-								// without a backup present, we can open the original resource
-								this._editorService.openEditor({ resource: input.resource, options: { override: DEFAULT_EDITOR_ASSOCIATION.id, pinned: true } });
-							}
-						}
-					})
-				], { allowDialog: true });
-
+							},
+						}),
+					],
+					{ allowDialog: true },
+				);
 			}
 
-			this._widgetDisposableStore.add(model.notebook.onDidChangeContent(() => this._onDidChangeSelection.fire({ reason: EditorPaneSelectionChangeReason.EDIT })));
+			this._widgetDisposableStore.add(
+				model.notebook.onDidChangeContent(() =>
+					this._onDidChangeSelection.fire({
+						reason: EditorPaneSelectionChangeReason.EDIT,
+					}),
+				),
+			);
 
-			const viewState = options?.viewState ?? this._loadNotebookEditorViewState(input);
+			const viewState =
+				options?.viewState ?? this._loadNotebookEditorViewState(input);
 
 			// We might be moving the notebook widget between groups, and these services are tied to the group
-			this._widget.value.setParentContextKeyService(this._contextKeyService);
-			this._widget.value.setEditorProgressService(this._editorProgressService);
+			this._widget.value.setParentContextKeyService(
+				this._contextKeyService,
+			);
+			this._widget.value.setEditorProgressService(
+				this._editorProgressService,
+			);
 
 			await this._widget.value.setModel(model.notebook, viewState, perf);
 			const isReadOnly = !!input.isReadonly();
 			await this._widget.value.setOptions({ ...options, isReadOnly });
-			this._widgetDisposableStore.add(this._widget.value.onDidFocusWidget(() => this._onDidFocusWidget.fire()));
-			this._widgetDisposableStore.add(this._widget.value.onDidBlurWidget(() => this._onDidBlurWidget.fire()));
+			this._widgetDisposableStore.add(
+				this._widget.value.onDidFocusWidget(() =>
+					this._onDidFocusWidget.fire(),
+				),
+			);
+			this._widgetDisposableStore.add(
+				this._widget.value.onDidBlurWidget(() =>
+					this._onDidBlurWidget.fire(),
+				),
+			);
 
-			this._widgetDisposableStore.add(this._editorGroupService.createEditorDropTarget(this._widget.value.getDomNode(), {
-				containsGroup: (group) => this.group.id === group.id
-			}));
+			this._widgetDisposableStore.add(
+				this._editorGroupService.createEditorDropTarget(
+					this._widget.value.getDomNode(),
+					{
+						containsGroup: (group) => this.group.id === group.id,
+					},
+				),
+			);
 
-			this._widgetDisposableStore.add(this._widget.value.onDidScroll(() => { this._onDidChangeScroll.fire(); }));
+			this._widgetDisposableStore.add(
+				this._widget.value.onDidScroll(() => {
+					this._onDidChangeScroll.fire();
+				}),
+			);
 
-			perf.mark('editorLoaded');
+			perf.mark("editorLoaded");
 
 			fileOpenMonitor.cancel();
 			if (perfMarksCaptured) {
@@ -336,77 +589,173 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			this._handlePerfMark(perf, input, model.notebook);
 			this._handlePromptRecommendations(model.notebook);
 		} catch (e) {
-			this.logService.warn('NotebookEditorWidget#setInput failed', e);
+			this.logService.warn("NotebookEditorWidget#setInput failed", e);
 			if (isEditorOpenError(e)) {
 				throw e;
 			}
 
 			// Handle case where a file is too large to open without confirmation
-			if ((<FileOperationError>e).fileOperationResult === FileOperationResult.FILE_TOO_LARGE) {
+			if (
+				(<FileOperationError>e).fileOperationResult ===
+				FileOperationResult.FILE_TOO_LARGE
+			) {
 				let message: string;
 				if (e instanceof TooLargeFileOperationError) {
-					message = localize('notebookTooLargeForHeapErrorWithSize', "The notebook is not displayed in the notebook editor because it is very large ({0}).", ByteSize.formatSize(e.size));
+					message = localize(
+						"notebookTooLargeForHeapErrorWithSize",
+						"The notebook is not displayed in the notebook editor because it is very large ({0}).",
+						ByteSize.formatSize(e.size),
+					);
 				} else {
-					message = localize('notebookTooLargeForHeapErrorWithoutSize', "The notebook is not displayed in the notebook editor because it is very large.");
+					message = localize(
+						"notebookTooLargeForHeapErrorWithoutSize",
+						"The notebook is not displayed in the notebook editor because it is very large.",
+					);
 				}
 
-				throw createTooLargeFileError(this.group, input, options, message, this._preferencesService);
+				throw createTooLargeFileError(
+					this.group,
+					input,
+					options,
+					message,
+					this._preferencesService,
+				);
 			}
 
-			const error = createEditorOpenError(e instanceof Error ? e : new Error((e ? e.message : '')), [
-				toAction({
-					id: 'workbench.notebook.action.openInTextEditor', label: localize('notebookOpenInTextEditor', "Open in Text Editor"), run: async () => {
-						const activeEditorPane = this._editorService.activeEditorPane;
-						if (!activeEditorPane) {
+			const error = createEditorOpenError(
+				e instanceof Error ? e : new Error(e ? e.message : ""),
+				[
+					toAction({
+						id: "workbench.notebook.action.openInTextEditor",
+						label: localize(
+							"notebookOpenInTextEditor",
+							"Open in Text Editor",
+						),
+						run: async () => {
+							const activeEditorPane =
+								this._editorService.activeEditorPane;
+							if (!activeEditorPane) {
+								return;
+							}
+
+							const activeEditorResource =
+								EditorResourceAccessor.getCanonicalUri(
+									activeEditorPane.input,
+								);
+							if (!activeEditorResource) {
+								return;
+							}
+
+							if (
+								activeEditorResource.toString() ===
+								input.resource?.toString()
+							) {
+								// Replace the current editor with the text editor
+								return this._editorService.openEditor({
+									resource: activeEditorResource,
+									options: {
+										override: DEFAULT_EDITOR_ASSOCIATION.id,
+										pinned: true, // new file gets pinned by default
+									},
+								});
+							}
+
 							return;
-						}
-
-						const activeEditorResource = EditorResourceAccessor.getCanonicalUri(activeEditorPane.input);
-						if (!activeEditorResource) {
-							return;
-						}
-
-						if (activeEditorResource.toString() === input.resource?.toString()) {
-							// Replace the current editor with the text editor
-							return this._editorService.openEditor({
-								resource: activeEditorResource,
-								options: {
-									override: DEFAULT_EDITOR_ASSOCIATION.id,
-									pinned: true // new file gets pinned by default
-								}
-							});
-						}
-
-						return;
-					}
-				})
-			], { allowDialog: true });
+						},
+					}),
+				],
+				{ allowDialog: true },
+			);
 
 			throw error;
 		}
 	}
 
-	private _handlePerfMark(perf: NotebookPerfMarks, input: NotebookEditorInput, notebook?: NotebookTextModel) {
+	private _handlePerfMark(
+		perf: NotebookPerfMarks,
+		input: NotebookEditorInput,
+		notebook?: NotebookTextModel,
+	) {
 		const perfMarks = perf.value;
 
 		type WorkbenchNotebookOpenClassification = {
-			owner: 'rebornix';
-			comment: 'The notebook file open metrics. Used to get a better understanding of the performance of notebook file opening';
-			scheme: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'File system provider scheme for the notebook resource' };
-			ext: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'File extension for the notebook resource' };
-			viewType: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The view type of the notebook editor' };
-			extensionActivated: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Extension activation time for the resource opening' };
-			inputLoaded: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Editor Input loading time for the resource opening' };
-			webviewCommLoaded: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Webview initialization time for the resource opening' };
-			customMarkdownLoaded: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Custom markdown loading time for the resource opening' };
-			editorLoaded: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Overall editor loading time for the resource opening' };
-			codeCellCount: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Total number of code cell' };
-			mdCellCount: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Total number of markdown cell' };
-			outputCount: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Total number of cell outputs' };
-			outputBytes: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Total number of bytes for all outputs' };
-			codeLength: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Length of text in all code cells' };
-			markdownLength: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Length of text in all markdown cells' };
-			notebookStatsLoaded: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Time for generating the notebook level information for telemetry' };
+			owner: "rebornix";
+			comment: "The notebook file open metrics. Used to get a better understanding of the performance of notebook file opening";
+			scheme: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "File system provider scheme for the notebook resource";
+			};
+			ext: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "File extension for the notebook resource";
+			};
+			viewType: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "The view type of the notebook editor";
+			};
+			extensionActivated: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "Extension activation time for the resource opening";
+			};
+			inputLoaded: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "Editor Input loading time for the resource opening";
+			};
+			webviewCommLoaded: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "Webview initialization time for the resource opening";
+			};
+			customMarkdownLoaded: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "Custom markdown loading time for the resource opening";
+			};
+			editorLoaded: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "Overall editor loading time for the resource opening";
+			};
+			codeCellCount: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "Total number of code cell";
+			};
+			mdCellCount: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "Total number of markdown cell";
+			};
+			outputCount: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "Total number of cell outputs";
+			};
+			outputBytes: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "Total number of bytes for all outputs";
+			};
+			codeLength: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "Length of text in all code cells";
+			};
+			markdownLength: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "Length of text in all markdown cells";
+			};
+			notebookStatsLoaded: {
+				classification: "SystemMetaData";
+				purpose: "FeatureInsight";
+				comment: "Time for generating the notebook level information for telemetry";
+			};
 		};
 
 		type WorkbenchNotebookOpenEvent = {
@@ -427,12 +776,12 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			notebookStatsLoaded: number | undefined;
 		};
 
-		const startTime = perfMarks['startTime'];
-		const extensionActivated = perfMarks['extensionActivated'];
-		const inputLoaded = perfMarks['inputLoaded'];
-		const webviewCommLoaded = perfMarks['webviewCommLoaded'];
-		const customMarkdownLoaded = perfMarks['customMarkdownLoaded'];
-		const editorLoaded = perfMarks['editorLoaded'];
+		const startTime = perfMarks["startTime"];
+		const extensionActivated = perfMarks["extensionActivated"];
+		const inputLoaded = perfMarks["inputLoaded"];
+		const webviewCommLoaded = perfMarks["webviewCommLoaded"];
+		const customMarkdownLoaded = perfMarks["customMarkdownLoaded"];
+		const editorLoaded = perfMarks["editorLoaded"];
 
 		let extensionActivationTimespan = -1;
 		let inputLoadingTimespan = -1;
@@ -448,12 +797,13 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			}
 
 			if (webviewCommLoaded !== undefined) {
-				webviewCommLoadingTimespan = webviewCommLoaded - extensionActivated;
-
+				webviewCommLoadingTimespan =
+					webviewCommLoaded - extensionActivated;
 			}
 
 			if (customMarkdownLoaded !== undefined) {
-				customMarkdownLoadingTimespan = customMarkdownLoaded - startTime;
+				customMarkdownLoadingTimespan =
+					customMarkdownLoaded - startTime;
 			}
 
 			if (editorLoaded !== undefined) {
@@ -476,7 +826,17 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 					codeCellCount = (codeCellCount || 0) + 1;
 					codeLength = (codeLength || 0) + cell.getTextLength();
 					outputCount = (outputCount || 0) + cell.outputs.length;
-					outputBytes = (outputBytes || 0) + cell.outputs.reduce((prev, cur) => prev + cur.outputs.reduce((size, item) => size + item.data.byteLength, 0), 0);
+					outputBytes =
+						(outputBytes || 0) +
+						cell.outputs.reduce(
+							(prev, cur) =>
+								prev +
+								cur.outputs.reduce(
+									(size, item) => size + item.data.byteLength,
+									0,
+								),
+							0,
+						);
 				} else {
 					mdCellCount = (mdCellCount || 0) + 1;
 					markdownLength = (codeLength || 0) + cell.getTextLength();
@@ -485,9 +845,14 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			notebookStatsLoaded = stopWatch.elapsed();
 		}
 
-		this.logService.trace(`[NotebookEditor] open notebook perf ${notebook?.uri.toString() ?? ''} - extensionActivation: ${extensionActivationTimespan}, inputLoad: ${inputLoadingTimespan}, webviewComm: ${webviewCommLoadingTimespan}, customMarkdown: ${customMarkdownLoadingTimespan}, editorLoad: ${editorLoadingTimespan}`);
+		this.logService.trace(
+			`[NotebookEditor] open notebook perf ${notebook?.uri.toString() ?? ""} - extensionActivation: ${extensionActivationTimespan}, inputLoad: ${inputLoadingTimespan}, webviewComm: ${webviewCommLoadingTimespan}, customMarkdown: ${customMarkdownLoadingTimespan}, editorLoad: ${editorLoadingTimespan}`,
+		);
 
-		this.telemetryService.publicLog2<WorkbenchNotebookOpenEvent, WorkbenchNotebookOpenClassification>('notebook/editorOpenPerf', {
+		this.telemetryService.publicLog2<
+			WorkbenchNotebookOpenEvent,
+			WorkbenchNotebookOpenClassification
+		>("notebook/editorOpenPerf", {
 			scheme: input.resource.scheme,
 			ext: extname(input.resource),
 			viewType: input.viewType,
@@ -502,26 +867,36 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			outputBytes,
 			codeLength,
 			markdownLength,
-			notebookStatsLoaded
+			notebookStatsLoaded,
 		});
 	}
 
 	private _handlePromptRecommendations(model: NotebookTextModel) {
-		this._notebookEditorWorkerService.canPromptRecommendation(model.uri).then(shouldPrompt => {
-			type WorkbenchNotebookShouldPromptRecommendationClassification = {
-				owner: 'rebornix';
-				comment: 'The notebook file metrics. Used to get a better understanding of if we should prompt for notebook extension recommendations';
-				shouldPrompt: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Should we prompt for notebook extension recommendations' };
-			};
+		this._notebookEditorWorkerService
+			.canPromptRecommendation(model.uri)
+			.then((shouldPrompt) => {
+				type WorkbenchNotebookShouldPromptRecommendationClassification =
+					{
+						owner: "rebornix";
+						comment: "The notebook file metrics. Used to get a better understanding of if we should prompt for notebook extension recommendations";
+						shouldPrompt: {
+							classification: "SystemMetaData";
+							purpose: "FeatureInsight";
+							comment: "Should we prompt for notebook extension recommendations";
+						};
+					};
 
-			type WorkbenchNotebookShouldPromptRecommendationEvent = {
-				shouldPrompt: boolean;
-			};
+				type WorkbenchNotebookShouldPromptRecommendationEvent = {
+					shouldPrompt: boolean;
+				};
 
-			this.telemetryService.publicLog2<WorkbenchNotebookShouldPromptRecommendationEvent, WorkbenchNotebookShouldPromptRecommendationClassification>('notebook/shouldPromptRecommendation', {
-				shouldPrompt: shouldPrompt
+				this.telemetryService.publicLog2<
+					WorkbenchNotebookShouldPromptRecommendationEvent,
+					WorkbenchNotebookShouldPromptRecommendationClassification
+				>("notebook/shouldPromptRecommendation", {
+					shouldPrompt: shouldPrompt,
+				});
 			});
-		});
 	}
 
 	override clearInput(): void {
@@ -559,7 +934,10 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			const activeCell = this._widget.value.getActiveCell();
 			if (activeCell) {
 				const cellUri = activeCell.uri;
-				return new NotebookEditorSelection(cellUri, activeCell.getSelections());
+				return new NotebookEditorSelection(
+					cellUri,
+					activeCell.getSelections(),
+				);
 			}
 		}
 
@@ -569,7 +947,7 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 	getScrollPosition(): IEditorPaneScrollPosition {
 		const widget = this.getControl();
 		if (!widget) {
-			throw new Error('Notebook widget has not yet been initialized');
+			throw new Error("Notebook widget has not yet been initialized");
 		}
 
 		return {
@@ -581,7 +959,7 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 	setScrollPosition(scrollPosition: IEditorPaneScrollPosition): void {
 		const editor = this.getControl();
 		if (!editor) {
-			throw new Error('Control has not yet been initialized');
+			throw new Error("Control has not yet been initialized");
 		}
 
 		editor.setScrollTop(scrollPosition.scrollTop);
@@ -594,19 +972,34 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 			}
 
 			const state = this._widget.value.getEditorViewState();
-			this._editorMemento.saveEditorState(this.group, input.resource, state);
+			this._editorMemento.saveEditorState(
+				this.group,
+				input.resource,
+				state,
+			);
 		}
 	}
 
-	private _loadNotebookEditorViewState(input: NotebookEditorInput): INotebookEditorViewState | undefined {
-		const result = this._editorMemento.loadEditorState(this.group, input.resource);
+	private _loadNotebookEditorViewState(
+		input: NotebookEditorInput,
+	): INotebookEditorViewState | undefined {
+		const result = this._editorMemento.loadEditorState(
+			this.group,
+			input.resource,
+		);
 		if (result) {
 			return result;
 		}
 		// when we don't have a view state for the group/input-tuple then we try to use an existing
 		// editor for the same resource.
-		for (const group of this._editorGroupService.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE)) {
-			if (group.activeEditorPane !== this && group.activeEditorPane instanceof NotebookEditor && group.activeEditor?.matches(input)) {
+		for (const group of this._editorGroupService.getGroups(
+			GroupsOrder.MOST_RECENTLY_ACTIVE,
+		)) {
+			if (
+				group.activeEditorPane !== this &&
+				group.activeEditorPane instanceof NotebookEditor &&
+				group.activeEditor?.matches(input)
+			) {
 				return group.activeEditorPane._widget.value?.getEditorViewState();
 			}
 		}
@@ -614,15 +1007,27 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 	}
 
 	layout(dimension: DOM.Dimension, position: DOM.IDomPosition): void {
-		this._rootElement.classList.toggle('mid-width', dimension.width < 1000 && dimension.width >= 600);
-		this._rootElement.classList.toggle('narrow-width', dimension.width < 600);
+		this._rootElement.classList.toggle(
+			"mid-width",
+			dimension.width < 1000 && dimension.width >= 600,
+		);
+		this._rootElement.classList.toggle(
+			"narrow-width",
+			dimension.width < 600,
+		);
 		this._pagePosition = { dimension, position };
 
-		if (!this._widget.value || !(this.input instanceof NotebookEditorInput)) {
+		if (
+			!this._widget.value ||
+			!(this.input instanceof NotebookEditorInput)
+		) {
 			return;
 		}
 
-		if (this.input.resource.toString() !== this.textModel?.uri.toString() && this._widget.value?.hasModel()) {
+		if (
+			this.input.resource.toString() !== this.textModel?.uri.toString() &&
+			this._widget.value?.hasModel()
+		) {
 			// input and widget mismatch
 			// this happens when
 			// 1. open document A, pin the document
@@ -641,11 +1046,10 @@ export class NotebookEditor extends EditorPane implements INotebookEditorPane, I
 }
 
 class NotebookEditorSelection implements IEditorPaneSelection {
-
 	constructor(
 		private readonly cellUri: URI,
-		private readonly selections: Selection[]
-	) { }
+		private readonly selections: Selection[],
+	) {}
 
 	compare(other: IEditorPaneSelection): EditorPaneSelectionCompareResult {
 		if (!(other instanceof NotebookEditorSelection)) {
@@ -664,9 +1068,9 @@ class NotebookEditorSelection implements IEditorPaneSelection {
 			cellOptions: {
 				resource: this.cellUri,
 				options: {
-					selection: this.selections[0]
-				}
-			}
+					selection: this.selections[0],
+				},
+			},
 		};
 
 		Object.assign(notebookOptions, options);

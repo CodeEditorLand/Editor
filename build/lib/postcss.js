@@ -5,8 +5,8 @@ exports.gulpPostcss = gulpPostcss;
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-const postcss = require("postcss");
 const es = require("event-stream");
+const postcss = require("postcss");
 function gulpPostcss(plugins, handleError) {
     const instance = postcss(plugins);
     return es.map((file, callback) => {
@@ -14,7 +14,7 @@ function gulpPostcss(plugins, handleError) {
             return callback(null, file);
         }
         if (file.isStream()) {
-            return callback(new Error('Streaming not supported'));
+            return callback(new Error("Streaming not supported"));
         }
         instance
             .process(file.contents.toString(), { from: file.path })

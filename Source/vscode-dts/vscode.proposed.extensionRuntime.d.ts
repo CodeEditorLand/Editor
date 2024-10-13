@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
-
+declare module "vscode" {
 	// https://github.com/microsoft/vscode/issues/104436
 
 	export enum ExtensionRuntime {
@@ -15,7 +14,7 @@ declare module 'vscode' {
 		/**
 		 * The extension is running in a Webworker extension host. Runtime access is limited to Webworker APIs.
 		 */
-		Webworker = 2
+		Webworker = 2,
 	}
 
 	export interface ExtensionContext {

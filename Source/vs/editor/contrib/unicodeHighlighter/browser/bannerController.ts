@@ -2,18 +2,22 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import './bannerController.css';
-import { $, append, clearNode } from '../../../../base/browser/dom.js';
-import { ActionBar } from '../../../../base/browser/ui/actionbar/actionbar.js';
-import { Action } from '../../../../base/common/actions.js';
-import { MarkdownString } from '../../../../base/common/htmlContent.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
-import { MarkdownRenderer } from '../../../browser/widget/markdownRenderer/browser/markdownRenderer.js';
-import { ICodeEditor } from '../../../browser/editorBrowser.js';
-import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
-import { ILinkDescriptor, Link } from '../../../../platform/opener/browser/link.js';
-import { widgetClose } from '../../../../platform/theme/common/iconRegistry.js';
-import { ThemeIcon } from '../../../../base/common/themables.js';
+import "./bannerController.css";
+
+import { $, append, clearNode } from "../../../../base/browser/dom.js";
+import { ActionBar } from "../../../../base/browser/ui/actionbar/actionbar.js";
+import { Action } from "../../../../base/common/actions.js";
+import { MarkdownString } from "../../../../base/common/htmlContent.js";
+import { Disposable } from "../../../../base/common/lifecycle.js";
+import { ThemeIcon } from "../../../../base/common/themables.js";
+import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
+import {
+	ILinkDescriptor,
+	Link,
+} from "../../../../platform/opener/browser/link.js";
+import { widgetClose } from "../../../../platform/theme/common/iconRegistry.js";
+import { ICodeEditor } from "../../../browser/editorBrowser.js";
+import { MarkdownRenderer } from "../../../browser/widget/markdownRenderer/browser/markdownRenderer.js";
 
 const BANNER_ELEMENT_HEIGHT = 26;
 
@@ -22,11 +26,14 @@ export class BannerController extends Disposable {
 
 	constructor(
 		private readonly _editor: ICodeEditor,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IInstantiationService
+		private readonly instantiationService: IInstantiationService,
 	) {
 		super();
 
-		this.banner = this._register(this.instantiationService.createInstance(Banner));
+		this.banner = this._register(
+			this.instantiationService.createInstance(Banner),
+		);
 	}
 
 	public hide() {
@@ -40,7 +47,7 @@ export class BannerController extends Disposable {
 			onClose: () => {
 				this.hide();
 				item.onClose?.();
-			}
+			},
 		});
 		this._editor.setBanner(this.banner.element, BANNER_ELEMENT_HEIGHT);
 	}
@@ -57,13 +64,17 @@ class Banner extends Disposable {
 	private actionBar: ActionBar | undefined;
 
 	constructor(
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IInstantiationService
+		private readonly instantiationService: IInstantiationService,
 	) {
 		super();
 
-		this.markdownRenderer = this.instantiationService.createInstance(MarkdownRenderer, {});
+		this.markdownRenderer = this.instantiationService.createInstance(
+			MarkdownRenderer,
+			{},
+		);
 
-		this.element = $('div.editor-banner');
+		this.element = $("div.editor-banner");
 		this.element.tabIndex = 0;
 	}
 
@@ -71,7 +82,7 @@ class Banner extends Disposable {
 		if (item.ariaLabel) {
 			return item.ariaLabel;
 		}
-		if (typeof item.message === 'string') {
+		if (typeof item.message === "string") {
 			return item.message;
 		}
 
@@ -79,8 +90,8 @@ class Banner extends Disposable {
 	}
 
 	private getBannerMessage(message: MarkdownString | string): HTMLElement {
-		if (typeof message === 'string') {
-			const element = $('span');
+		if (typeof message === "string") {
+			const element = $("span");
 			element.innerText = message;
 			return element;
 		}
@@ -99,46 +110,67 @@ class Banner extends Disposable {
 		// Banner aria label
 		const ariaLabel = this.getAriaLabel(item);
 		if (ariaLabel) {
-			this.element.setAttribute('aria-label', ariaLabel);
+			this.element.setAttribute("aria-label", ariaLabel);
 		}
 
 		// Icon
-		const iconContainer = append(this.element, $('div.icon-container'));
-		iconContainer.setAttribute('aria-hidden', 'true');
+		const iconContainer = append(this.element, $("div.icon-container"));
+		iconContainer.setAttribute("aria-hidden", "true");
 
 		if (item.icon) {
-			iconContainer.appendChild($(`div${ThemeIcon.asCSSSelector(item.icon)}`));
+			iconContainer.appendChild(
+				$(`div${ThemeIcon.asCSSSelector(item.icon)}`),
+			);
 		}
 
 		// Message
-		const messageContainer = append(this.element, $('div.message-container'));
-		messageContainer.setAttribute('aria-hidden', 'true');
+		const messageContainer = append(
+			this.element,
+			$("div.message-container"),
+		);
+		messageContainer.setAttribute("aria-hidden", "true");
 		messageContainer.appendChild(this.getBannerMessage(item.message));
 
 		// Message Actions
-		this.messageActionsContainer = append(this.element, $('div.message-actions-container'));
+		this.messageActionsContainer = append(
+			this.element,
+			$("div.message-actions-container"),
+		);
 		if (item.actions) {
 			for (const action of item.actions) {
-				this._register(this.instantiationService.createInstance(Link, this.messageActionsContainer, { ...action, tabIndex: -1 }, {}));
+				this._register(
+					this.instantiationService.createInstance(
+						Link,
+						this.messageActionsContainer,
+						{ ...action, tabIndex: -1 },
+						{},
+					),
+				);
 			}
 		}
 
 		// Action
-		const actionBarContainer = append(this.element, $('div.action-container'));
+		const actionBarContainer = append(
+			this.element,
+			$("div.action-container"),
+		);
 		this.actionBar = this._register(new ActionBar(actionBarContainer));
-		this.actionBar.push(this._register(
-			new Action(
-				'banner.close',
-				'Close Banner',
-				ThemeIcon.asClassName(widgetClose),
-				true,
-				() => {
-					if (typeof item.onClose === 'function') {
-						item.onClose();
-					}
-				}
-			)
-		), { icon: true, label: false });
+		this.actionBar.push(
+			this._register(
+				new Action(
+					"banner.close",
+					"Close Banner",
+					ThemeIcon.asClassName(widgetClose),
+					true,
+					() => {
+						if (typeof item.onClose === "function") {
+							item.onClose();
+						}
+					},
+				),
+			),
+			{ icon: true, label: false },
+		);
 		this.actionBar.setFocusable(false);
 	}
 }

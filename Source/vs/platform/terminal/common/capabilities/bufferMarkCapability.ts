@@ -3,28 +3,35 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter } from '../../../../base/common/event.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
-import { IBufferMarkCapability, TerminalCapability, IMarkProperties } from './capabilities.js';
-import type { IMarker, Terminal } from '@xterm/headless';
+import type { IMarker, Terminal } from "@xterm/headless";
+
+import { Emitter } from "../../../../base/common/event.js";
+import { Disposable } from "../../../../base/common/lifecycle.js";
+import {
+	IBufferMarkCapability,
+	IMarkProperties,
+	TerminalCapability,
+} from "./capabilities.js";
 
 /**
  * Manages "marks" in the buffer which are lines that are tracked when lines are added to or removed
  * from the buffer.
  */
-export class BufferMarkCapability extends Disposable implements IBufferMarkCapability {
-
+export class BufferMarkCapability
+	extends Disposable
+	implements IBufferMarkCapability
+{
 	readonly type = TerminalCapability.BufferMarkDetection;
 
 	private _idToMarkerMap: Map<string, IMarker> = new Map();
 	private _anonymousMarkers: Map<number, IMarker> = new Map();
 
-	private readonly _onMarkAdded = this._register(new Emitter<IMarkProperties>());
+	private readonly _onMarkAdded = this._register(
+		new Emitter<IMarkProperties>(),
+	);
 	readonly onMarkAdded = this._onMarkAdded.event;
 
-	constructor(
-		private readonly _terminal: Terminal
-	) {
+	constructor(private readonly _terminal: Terminal) {
 		super();
 	}
 
@@ -50,7 +57,12 @@ export class BufferMarkCapability extends Disposable implements IBufferMarkCapab
 			this._anonymousMarkers.set(marker.id, marker);
 			marker.onDispose(() => this._anonymousMarkers.delete(marker.id));
 		}
-		this._onMarkAdded.fire({ marker, id, hidden: properties?.hidden, hoverMessage: properties?.hoverMessage });
+		this._onMarkAdded.fire({
+			marker,
+			id,
+			hidden: properties?.hidden,
+			hoverMessage: properties?.hoverMessage,
+		});
 	}
 
 	getMark(id: string): IMarker | undefined {

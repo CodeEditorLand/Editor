@@ -3,21 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { h } from '../../../../../base/browser/dom.js';
-import { Disposable } from '../../../../../base/common/lifecycle.js';
-import { ICodeEditor, IOverlayWidget, IViewZoneChangeAccessor } from '../../../../../editor/browser/editorBrowser.js';
-import { Event } from '../../../../../base/common/event.js';
+import { h } from "../../../../../base/browser/dom.js";
+import { Event } from "../../../../../base/common/event.js";
+import { Disposable } from "../../../../../base/common/lifecycle.js";
+import {
+	ICodeEditor,
+	IOverlayWidget,
+	IViewZoneChangeAccessor,
+} from "../../../../../editor/browser/editorBrowser.js";
 
 export abstract class FixedZoneWidget extends Disposable {
 	private static counter = 0;
 	private readonly overlayWidgetId = `fixedZoneWidget-${FixedZoneWidget.counter++}`;
 	private readonly viewZoneId: string;
 
-	protected readonly widgetDomNode = h('div.fixed-zone-widget').root;
+	protected readonly widgetDomNode = h("div.fixed-zone-widget").root;
 	private readonly overlayWidget: IOverlayWidget = {
 		getId: () => this.overlayWidgetId,
 		getDomNode: () => this.widgetDomNode,
-		getPosition: () => null
+		getPosition: () => null,
 	};
 
 	constructor(
@@ -30,7 +34,7 @@ export abstract class FixedZoneWidget extends Disposable {
 		super();
 
 		this.viewZoneId = viewZoneAccessor.addZone({
-			domNode: document.createElement('div'),
+			domNode: document.createElement("div"),
 			afterLineNumber: afterLineNumber,
 			heightInPx: height,
 			ordinal: 50000 + 1,
@@ -39,13 +43,16 @@ export abstract class FixedZoneWidget extends Disposable {
 			},
 			onDomNodeTop: (top) => {
 				this.widgetDomNode.style.top = `${top}px`;
-			}
+			},
 		});
 		viewZoneIdsToCleanUp.push(this.viewZoneId);
 
-		this._register(Event.runAndSubscribe(this.editor.onDidLayoutChange, () => {
-			this.widgetDomNode.style.left = this.editor.getLayoutInfo().contentLeft + 'px';
-		}));
+		this._register(
+			Event.runAndSubscribe(this.editor.onDidLayoutChange, () => {
+				this.widgetDomNode.style.left =
+					this.editor.getLayoutInfo().contentLeft + "px";
+			}),
+		);
 
 		this.editor.addOverlayWidget(this.overlayWidget);
 

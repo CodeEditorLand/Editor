@@ -3,20 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { JSONPath } from '../../../base/common/json.js';
-import { setProperty } from '../../../base/common/jsonEdit.js';
-import { FormattingOptions } from '../../../base/common/jsonFormatter.js';
+import { JSONPath } from "../../../base/common/json.js";
+import { setProperty } from "../../../base/common/jsonEdit.js";
+import { FormattingOptions } from "../../../base/common/jsonFormatter.js";
 
-
-export function edit(content: string, originalPath: JSONPath, value: any, formattingOptions: FormattingOptions): string {
-	const edit = setProperty(content, originalPath, value, formattingOptions)[0];
+export function edit(
+	content: string,
+	originalPath: JSONPath,
+	value: any,
+	formattingOptions: FormattingOptions,
+): string {
+	const edit = setProperty(
+		content,
+		originalPath,
+		value,
+		formattingOptions,
+	)[0];
 	if (edit) {
-		content = content.substring(0, edit.offset) + edit.content + content.substring(edit.offset + edit.length);
+		content =
+			content.substring(0, edit.offset) +
+			edit.content +
+			content.substring(edit.offset + edit.length);
 	}
 	return content;
 }
 
-export function getLineStartOffset(content: string, eol: string, atOffset: number): number {
+export function getLineStartOffset(
+	content: string,
+	eol: string,
+	atOffset: number,
+): number {
 	let lineStartingOffset = atOffset;
 	while (lineStartingOffset >= 0) {
 		if (content.charAt(lineStartingOffset) === eol.charAt(eol.length - 1)) {
@@ -26,7 +42,10 @@ export function getLineStartOffset(content: string, eol: string, atOffset: numbe
 		}
 		lineStartingOffset--;
 		if (eol.length === 2) {
-			if (lineStartingOffset >= 0 && content.charAt(lineStartingOffset) === eol.charAt(0)) {
+			if (
+				lineStartingOffset >= 0 &&
+				content.charAt(lineStartingOffset) === eol.charAt(0)
+			) {
 				return lineStartingOffset + 2;
 			}
 		}
@@ -34,7 +53,11 @@ export function getLineStartOffset(content: string, eol: string, atOffset: numbe
 	return 0;
 }
 
-export function getLineEndOffset(content: string, eol: string, atOffset: number): number {
+export function getLineEndOffset(
+	content: string,
+	eol: string,
+	atOffset: number,
+): number {
 	let lineEndOffset = atOffset;
 	while (lineEndOffset >= 0) {
 		if (content.charAt(lineEndOffset) === eol.charAt(eol.length - 1)) {
@@ -44,7 +67,10 @@ export function getLineEndOffset(content: string, eol: string, atOffset: number)
 		}
 		lineEndOffset++;
 		if (eol.length === 2) {
-			if (lineEndOffset >= 0 && content.charAt(lineEndOffset) === eol.charAt(1)) {
+			if (
+				lineEndOffset >= 0 &&
+				content.charAt(lineEndOffset) === eol.charAt(1)
+			) {
 				return lineEndOffset;
 			}
 		}

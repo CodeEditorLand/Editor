@@ -3,28 +3,61 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IKeyboardEvent } from '../../base/browser/keyboardEvent.js';
-import { IMouseEvent, IMouseWheelEvent } from '../../base/browser/mouseEvent.js';
-import { IBoundarySashes } from '../../base/browser/ui/sash/sash.js';
-import { Event } from '../../base/common/event.js';
-import { IEditorConstructionOptions } from './config/editorConfiguration.js';
-import { ConfigurationChangedEvent, EditorLayoutInfo, EditorOption, FindComputedEditorOptionValueById, IComputedEditorOptions, IDiffEditorOptions, IEditorOptions, OverviewRulerPosition } from '../common/config/editorOptions.js';
-import { IDimension } from '../common/core/dimension.js';
-import { IPosition, Position } from '../common/core/position.js';
-import { IRange, Range } from '../common/core/range.js';
-import { Selection } from '../common/core/selection.js';
-import { IWordAtPosition } from '../common/core/wordHelper.js';
-import { ICursorPositionChangedEvent, ICursorSelectionChangedEvent } from '../common/cursorEvents.js';
-import { IDiffComputationResult, ILineChange } from '../common/diff/legacyLinesDiffComputer.js';
-import * as editorCommon from '../common/editorCommon.js';
-import { GlyphMarginLane, ICursorStateComputer, IIdentifiedSingleEditOperation, IModelDecoration, IModelDeltaDecoration, ITextModel, PositionAffinity } from '../common/model.js';
-import { InjectedText } from '../common/modelLineProjectionData.js';
-import { IModelContentChangedEvent, IModelDecorationsChangedEvent, IModelLanguageChangedEvent, IModelLanguageConfigurationChangedEvent, IModelOptionsChangedEvent, IModelTokensChangedEvent } from '../common/textModelEvents.js';
-import { IEditorWhitespace, IViewModel } from '../common/viewModel.js';
-import { OverviewRulerZone } from '../common/viewModel/overviewZoneManager.js';
-import { MenuId } from '../../platform/actions/common/actions.js';
-import { IContextKeyService } from '../../platform/contextkey/common/contextkey.js';
-import { ServicesAccessor } from '../../platform/instantiation/common/instantiation.js';
+import { IKeyboardEvent } from "../../base/browser/keyboardEvent.js";
+import {
+	IMouseEvent,
+	IMouseWheelEvent,
+} from "../../base/browser/mouseEvent.js";
+import { IBoundarySashes } from "../../base/browser/ui/sash/sash.js";
+import { Event } from "../../base/common/event.js";
+import { MenuId } from "../../platform/actions/common/actions.js";
+import { IContextKeyService } from "../../platform/contextkey/common/contextkey.js";
+import { ServicesAccessor } from "../../platform/instantiation/common/instantiation.js";
+import {
+	ConfigurationChangedEvent,
+	EditorLayoutInfo,
+	EditorOption,
+	FindComputedEditorOptionValueById,
+	IComputedEditorOptions,
+	IDiffEditorOptions,
+	IEditorOptions,
+	OverviewRulerPosition,
+} from "../common/config/editorOptions.js";
+import { IDimension } from "../common/core/dimension.js";
+import { IPosition, Position } from "../common/core/position.js";
+import { IRange, Range } from "../common/core/range.js";
+import { Selection } from "../common/core/selection.js";
+import { IWordAtPosition } from "../common/core/wordHelper.js";
+import {
+	ICursorPositionChangedEvent,
+	ICursorSelectionChangedEvent,
+} from "../common/cursorEvents.js";
+import {
+	IDiffComputationResult,
+	ILineChange,
+} from "../common/diff/legacyLinesDiffComputer.js";
+import * as editorCommon from "../common/editorCommon.js";
+import {
+	GlyphMarginLane,
+	ICursorStateComputer,
+	IIdentifiedSingleEditOperation,
+	IModelDecoration,
+	IModelDeltaDecoration,
+	ITextModel,
+	PositionAffinity,
+} from "../common/model.js";
+import { InjectedText } from "../common/modelLineProjectionData.js";
+import {
+	IModelContentChangedEvent,
+	IModelDecorationsChangedEvent,
+	IModelLanguageChangedEvent,
+	IModelLanguageConfigurationChangedEvent,
+	IModelOptionsChangedEvent,
+	IModelTokensChangedEvent,
+} from "../common/textModelEvents.js";
+import { IEditorWhitespace, IViewModel } from "../common/viewModel.js";
+import { OverviewRulerZone } from "../common/viewModel/overviewZoneManager.js";
+import { IEditorConstructionOptions } from "./config/editorConfiguration.js";
 
 /**
  * A view zone is a full horizontal rectangle that 'pushes' text down.
@@ -44,7 +77,7 @@ export interface IViewZone {
 	afterColumn?: number;
 	/**
 	 * If the `afterColumn` has multiple view columns, the affinity specifies which one to use. Defaults to `none`.
-	*/
+	 */
 	afterColumnAffinity?: PositionAffinity;
 	/**
 	 * Render the zone even when its line is hidden.
@@ -132,7 +165,7 @@ export const enum ContentWidgetPositionPreference {
 	/**
 	 * Place the content widget below a position
 	 */
-	BELOW
+	BELOW,
 }
 /**
  * A position for rendering content widgets.
@@ -165,7 +198,7 @@ export interface IContentWidgetPosition {
 	/**
 	 * Placement preference when multiple view positions refer to the same (model) position.
 	 * This plays a role when injected text is involved.
-	*/
+	 */
 	positionAffinity?: PositionAffinity;
 }
 /**
@@ -224,9 +257,8 @@ export const enum OverlayWidgetPositionPreference {
 	/**
 	 * Position the overlay widget in the top center
 	 */
-	TOP_CENTER
+	TOP_CENTER,
 }
-
 
 /**
  * Represents editor-relative coordinates of an overlay widget.
@@ -249,7 +281,10 @@ export interface IOverlayWidgetPosition {
 	/**
 	 * The position preference for the overlay widget.
 	 */
-	preference: OverlayWidgetPositionPreference | IOverlayWidgetPositionCoordinates | null;
+	preference:
+		| OverlayWidgetPositionPreference
+		| IOverlayWidgetPositionCoordinates
+		| null;
 
 	/**
 	 * When set, stacks with other overlay widgets with the same preference,
@@ -421,7 +456,10 @@ export interface IMouseTargetMarginData {
 	readonly offsetX: number;
 }
 export interface IMouseTargetMargin extends IBaseMouseTarget {
-	readonly type: MouseTargetType.GUTTER_GLYPH_MARGIN | MouseTargetType.GUTTER_LINE_NUMBERS | MouseTargetType.GUTTER_LINE_DECORATIONS;
+	readonly type:
+		| MouseTargetType.GUTTER_GLYPH_MARGIN
+		| MouseTargetType.GUTTER_LINE_NUMBERS
+		| MouseTargetType.GUTTER_LINE_DECORATIONS;
 	readonly position: Position;
 	readonly range: Range;
 	readonly detail: IMouseTargetMarginData;
@@ -434,7 +472,9 @@ export interface IMouseTargetViewZoneData {
 	readonly afterLineNumber: number;
 }
 export interface IMouseTargetViewZone extends IBaseMouseTarget {
-	readonly type: MouseTargetType.GUTTER_VIEW_ZONE | MouseTargetType.CONTENT_VIEW_ZONE;
+	readonly type:
+		| MouseTargetType.GUTTER_VIEW_ZONE
+		| MouseTargetType.CONTENT_VIEW_ZONE;
 	readonly position: Position;
 	readonly range: Range;
 	readonly detail: IMouseTargetViewZoneData;
@@ -484,14 +524,14 @@ export interface IMouseTargetOverviewRuler extends IBaseMouseTarget {
 }
 export interface IMouseTargetOutsideEditor extends IBaseMouseTarget {
 	readonly type: MouseTargetType.OUTSIDE_EDITOR;
-	readonly outsidePosition: 'above' | 'below' | 'left' | 'right';
+	readonly outsidePosition: "above" | "below" | "left" | "right";
 	readonly outsideDistance: number;
 }
 /**
  * Target hit with the mouse in the editor.
  */
-export type IMouseTarget = (
-	IMouseTargetUnknown
+export type IMouseTarget =
+	| IMouseTargetUnknown
 	| IMouseTargetTextarea
 	| IMouseTargetMargin
 	| IMouseTargetViewZone
@@ -501,8 +541,7 @@ export type IMouseTarget = (
 	| IMouseTargetOverlayWidget
 	| IMouseTargetScrollbar
 	| IMouseTargetOverviewRuler
-	| IMouseTargetOutsideEditor
-);
+	| IMouseTargetOutsideEditor;
 /**
  * A mouse event originating from the editor.
  */
@@ -555,7 +594,9 @@ export interface IEditorAriaOptions {
 	role?: string;
 }
 
-export interface IDiffEditorConstructionOptions extends IDiffEditorOptions, IEditorConstructionOptions {
+export interface IDiffEditorConstructionOptions
+	extends IDiffEditorOptions,
+		IEditorConstructionOptions {
 	/**
 	 * Place overflow widgets inside an external DOM node.
 	 * Defaults to an internal DOM node.
@@ -730,7 +771,10 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	 * @internal
 	 * @event
 	 */
-	readonly onDropIntoEditor: Event<{ readonly position: IPosition; readonly event: DragEvent }>;
+	readonly onDropIntoEditor: Event<{
+		readonly position: IPosition;
+		readonly event: DragEvent;
+	}>;
 	/**
 	 * An event emitted on a "contextmenu".
 	 * @event
@@ -796,12 +840,12 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	 * the editor fires a begin update before the operation and an end update after the operation.
 	 * Whenever the editor fires `onBeginUpdate`, it will also fire `onEndUpdate` once the operation finishes.
 	 * Note that not all operations are bracketed by `onBeginUpdate` and `onEndUpdate`.
-	*/
+	 */
 	readonly onBeginUpdate: Event<void>;
 
 	/**
 	 * Fires after the editor completes the operation it fired `onBeginUpdate` for.
-	*/
+	 */
 	readonly onEndUpdate: Event<void>;
 
 	/**
@@ -824,7 +868,9 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	 * @id Unique identifier of the contribution.
 	 * @return The contribution or null if contribution not found.
 	 */
-	getContribution<T extends editorCommon.IEditorContribution>(id: string): T | null;
+	getContribution<T extends editorCommon.IEditorContribution>(
+		id: string,
+	): T | null;
 
 	/**
 	 * Execute `fn` with the editor's services.
@@ -855,7 +901,9 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	/**
 	 * Gets a specific editor option.
 	 */
-	getOption<T extends EditorOption>(id: T): FindComputedEditorOptionValueById<T>;
+	getOption<T extends EditorOption>(
+		id: T,
+	): FindComputedEditorOptionValueById<T>;
 
 	/**
 	 * Returns the editor's configuration (without any validation or defaults).
@@ -915,15 +963,24 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	/**
 	 * Change the scrollLeft of the editor's viewport.
 	 */
-	setScrollLeft(newScrollLeft: number, scrollType?: editorCommon.ScrollType): void;
+	setScrollLeft(
+		newScrollLeft: number,
+		scrollType?: editorCommon.ScrollType,
+	): void;
 	/**
 	 * Change the scrollTop of the editor's viewport.
 	 */
-	setScrollTop(newScrollTop: number, scrollType?: editorCommon.ScrollType): void;
+	setScrollTop(
+		newScrollTop: number,
+		scrollType?: editorCommon.ScrollType,
+	): void;
 	/**
 	 * Change the scroll position of the editor's viewport.
 	 */
-	setScrollPosition(position: editorCommon.INewScrollPosition, scrollType?: editorCommon.ScrollType): void;
+	setScrollPosition(
+		position: editorCommon.INewScrollPosition,
+		scrollType?: editorCommon.ScrollType,
+	): void;
 	/**
 	 * Check if the editor is currently scrolling towards a different scroll position.
 	 */
@@ -942,7 +999,10 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	 * @param source The source of the call.
 	 * @param command The command to execute
 	 */
-	executeCommand(source: string | null | undefined, command: editorCommon.ICommand): void;
+	executeCommand(
+		source: string | null | undefined,
+		command: editorCommon.ICommand,
+	): void;
 
 	/**
 	 * Create an "undo stop" in the undo-redo stack.
@@ -961,14 +1021,21 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	 * @param edits The edits to execute.
 	 * @param endCursorState Cursor state after the edits were applied.
 	 */
-	executeEdits(source: string | null | undefined, edits: IIdentifiedSingleEditOperation[], endCursorState?: ICursorStateComputer | Selection[]): boolean;
+	executeEdits(
+		source: string | null | undefined,
+		edits: IIdentifiedSingleEditOperation[],
+		endCursorState?: ICursorStateComputer | Selection[],
+	): boolean;
 
 	/**
 	 * Execute multiple (concomitant) commands on the editor.
 	 * @param source The source of the call.
 	 * @param command The commands to execute
 	 */
-	executeCommands(source: string | null | undefined, commands: (editorCommon.ICommand | null)[]): void;
+	executeCommands(
+		source: string | null | undefined,
+		commands: (editorCommon.ICommand | null)[],
+	): void;
 
 	/**
 	 * @internal
@@ -990,7 +1057,10 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	 * @deprecated Use `createDecorationsCollection`
 	 * @see createDecorationsCollection
 	 */
-	deltaDecorations(oldDecorations: string[], newDecorations: IModelDeltaDecoration[]): string[];
+	deltaDecorations(
+		oldDecorations: string[],
+		newDecorations: IModelDeltaDecoration[],
+	): string[];
 
 	/**
 	 * Remove previously added decorations.
@@ -1000,7 +1070,11 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	/**
 	 * @internal
 	 */
-	setDecorationsByType(description: string, decorationTypeKey: string, ranges: editorCommon.IDecorationOptions[]): void;
+	setDecorationsByType(
+		description: string,
+		decorationTypeKey: string,
+		ranges: editorCommon.IDecorationOptions[],
+	): void;
 
 	/**
 	 * @internal
@@ -1127,7 +1201,9 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	/**
 	 * Change the view zones. View zones are lost when a new model is attached to the editor.
 	 */
-	changeViewZones(callback: (accessor: IViewZoneChangeAccessor) => void): void;
+	changeViewZones(
+		callback: (accessor: IViewZoneChangeAccessor) => void,
+	): void;
 
 	/**
 	 * Get the horizontal position (left offset) for the column w.r.t to the beginning of the line.
@@ -1147,7 +1223,10 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	 *
 	 * @returns Hit test target or null if the coordinates fall outside the editor or the editor has no model.
 	 */
-	getTargetAtClientPoint(clientX: number, clientY: number): IMouseTarget | null;
+	getTargetAtClientPoint(
+		clientX: number,
+		clientY: number,
+	): IMouseTarget | null;
 
 	/**
 	 * Get the visible position for `position`.
@@ -1156,7 +1235,9 @@ export interface ICodeEditor extends editorCommon.IEditor {
 	 * Explanation 2: the results of this method will not change if the container of the editor gets repositioned.
 	 * Warning: the results of this method are inaccurate for positions that are outside the current editor viewport.
 	 */
-	getScrolledVisiblePosition(position: IPosition): { top: number; left: number; height: number } | null;
+	getScrolledVisiblePosition(
+		position: IPosition,
+	): { top: number; left: number; height: number } | null;
 
 	/**
 	 * Apply the same font settings as the editor to `target`.
@@ -1229,7 +1310,11 @@ export interface IActiveCodeEditor extends ICodeEditor {
 	 * Explanation 2: the results of this method will not change if the container of the editor gets repositioned.
 	 * Warning: the results of this method are inaccurate for positions that are outside the current editor viewport.
 	 */
-	getScrolledVisiblePosition(position: IPosition): { top: number; left: number; height: number };
+	getScrolledVisiblePosition(position: IPosition): {
+		top: number;
+		left: number;
+		height: number;
+	};
 }
 
 /**
@@ -1238,14 +1323,13 @@ export interface IActiveCodeEditor extends ICodeEditor {
 export const enum DiffEditorState {
 	Idle,
 	ComputingDiff,
-	DiffComputed
+	DiffComputed,
 }
 
 /**
  * A rich diff editor.
  */
 export interface IDiffEditor extends editorCommon.IEditor {
-
 	/**
 	 * Returns whether the diff editor is ignoring trim whitespace or not.
 	 * @internal
@@ -1294,7 +1378,9 @@ export interface IDiffEditor extends editorCommon.IEditor {
 	 */
 	getModel(): editorCommon.IDiffEditorModel | null;
 
-	createViewModel(model: editorCommon.IDiffEditorModel): editorCommon.IDiffEditorViewModel;
+	createViewModel(
+		model: editorCommon.IDiffEditorModel,
+	): editorCommon.IDiffEditorViewModel;
 
 	/**
 	 * Sets the current model attached to this editor.
@@ -1304,7 +1390,12 @@ export interface IDiffEditor extends editorCommon.IEditor {
 	 * will not be destroyed.
 	 * It is safe to call setModel(null) to simply detach the current model from the editor.
 	 */
-	setModel(model: editorCommon.IDiffEditorModel | editorCommon.IDiffEditorViewModel | null): void;
+	setModel(
+		model:
+			| editorCommon.IDiffEditorModel
+			| editorCommon.IDiffEditorViewModel
+			| null,
+	): void;
 
 	/**
 	 * Get the `original` editor.
@@ -1340,7 +1431,7 @@ export interface IDiffEditor extends editorCommon.IEditor {
 	/**
 	 * Jumps to the next or previous diff.
 	 */
-	goToDiff(target: 'next' | 'previous'): void;
+	goToDiff(target: "next" | "previous"): void;
 
 	/**
 	 * Scrolls to the first diff.
@@ -1359,8 +1450,11 @@ export interface IDiffEditor extends editorCommon.IEditor {
  *@internal
  */
 export function isCodeEditor(thing: unknown): thing is ICodeEditor {
-	if (thing && typeof (<ICodeEditor>thing).getEditorType === 'function') {
-		return (<ICodeEditor>thing).getEditorType() === editorCommon.EditorType.ICodeEditor;
+	if (thing && typeof (<ICodeEditor>thing).getEditorType === "function") {
+		return (
+			(<ICodeEditor>thing).getEditorType() ===
+			editorCommon.EditorType.ICodeEditor
+		);
 	} else {
 		return false;
 	}
@@ -1370,8 +1464,11 @@ export function isCodeEditor(thing: unknown): thing is ICodeEditor {
  *@internal
  */
 export function isDiffEditor(thing: unknown): thing is IDiffEditor {
-	if (thing && typeof (<IDiffEditor>thing).getEditorType === 'function') {
-		return (<IDiffEditor>thing).getEditorType() === editorCommon.EditorType.IDiffEditor;
+	if (thing && typeof (<IDiffEditor>thing).getEditorType === "function") {
+		return (
+			(<IDiffEditor>thing).getEditorType() ===
+			editorCommon.EditorType.IDiffEditor
+		);
 	} else {
 		return false;
 	}
@@ -1380,11 +1477,15 @@ export function isDiffEditor(thing: unknown): thing is IDiffEditor {
 /**
  *@internal
  */
-export function isCompositeEditor(thing: unknown): thing is editorCommon.ICompositeCodeEditor {
-	return !!thing
-		&& typeof thing === 'object'
-		&& typeof (<editorCommon.ICompositeCodeEditor>thing).onDidChangeActiveEditor === 'function';
-
+export function isCompositeEditor(
+	thing: unknown,
+): thing is editorCommon.ICompositeCodeEditor {
+	return (
+		!!thing &&
+		typeof thing === "object" &&
+		typeof (<editorCommon.ICompositeCodeEditor>thing)
+			.onDidChangeActiveEditor === "function"
+	);
 }
 
 /**

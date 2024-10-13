@@ -3,16 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable, toDisposable } from '../../../../../base/common/lifecycle.js';
-import { IMarkdownString } from '../../../../../base/common/htmlContent.js';
-import { Widget } from '../../../../../base/browser/ui/widget.js';
-import { ITerminalWidget } from './widgets.js';
-import * as dom from '../../../../../base/browser/dom.js';
-import type { IViewportRange } from '@xterm/xterm';
-import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
-import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { TerminalSettingId } from '../../../../../platform/terminal/common/terminal.js';
-import type { IHoverAction, IHoverTarget } from '../../../../../base/browser/ui/hover/hover.js';
+import type { IViewportRange } from "@xterm/xterm";
+
+import * as dom from "../../../../../base/browser/dom.js";
+import type {
+	IHoverAction,
+	IHoverTarget,
+} from "../../../../../base/browser/ui/hover/hover.js";
+import { Widget } from "../../../../../base/browser/ui/widget.js";
+import { IMarkdownString } from "../../../../../base/common/htmlContent.js";
+import {
+	Disposable,
+	toDisposable,
+} from "../../../../../base/common/lifecycle.js";
+import { IConfigurationService } from "../../../../../platform/configuration/common/configuration.js";
+import { IHoverService } from "../../../../../platform/hover/browser/hover.js";
+import { TerminalSettingId } from "../../../../../platform/terminal/common/terminal.js";
+import { ITerminalWidget } from "./widgets.js";
 
 const $ = dom.$;
 
@@ -25,7 +32,7 @@ export interface ILinkHoverTargetOptions {
 }
 
 export class TerminalHover extends Disposable implements ITerminalWidget {
-	readonly id = 'hover';
+	readonly id = "hover";
 
 	constructor(
 		private readonly _targetOptions: ILinkHoverTargetOptions,
@@ -33,13 +40,16 @@ export class TerminalHover extends Disposable implements ITerminalWidget {
 		private readonly _actions: IHoverAction[] | undefined,
 		private readonly _linkHandler: (url: string) => unknown,
 		@IHoverService private readonly _hoverService: IHoverService,
-		@IConfigurationService private readonly _configurationService: IConfigurationService
+		@IConfigurationService
+		private readonly _configurationService: IConfigurationService,
 	) {
 		super();
 	}
 
 	attach(container: HTMLElement): void {
-		const showLinkHover = this._configurationService.getValue(TerminalSettingId.ShowLinkHover);
+		const showLinkHover = this._configurationService.getValue(
+			TerminalSettingId.ShowLinkHover,
+		);
 		if (!showLinkHover) {
 			return;
 		}
@@ -50,7 +60,7 @@ export class TerminalHover extends Disposable implements ITerminalWidget {
 			actions: this._actions,
 			linkHandler: this._linkHandler,
 			// .xterm-hover lets xterm know that the hover is part of a link
-			additionalClasses: ['xterm-hover']
+			additionalClasses: ["xterm-hover"],
 		});
 		if (hover) {
 			this._register(hover);
@@ -62,20 +72,32 @@ class CellHoverTarget extends Widget implements IHoverTarget {
 	private _domNode: HTMLElement;
 	private readonly _targetElements: HTMLElement[] = [];
 
-	get targetElements(): readonly HTMLElement[] { return this._targetElements; }
+	get targetElements(): readonly HTMLElement[] {
+		return this._targetElements;
+	}
 
 	constructor(
 		container: HTMLElement,
-		private readonly _options: ILinkHoverTargetOptions
+		private readonly _options: ILinkHoverTargetOptions,
 	) {
 		super();
 
-		this._domNode = $('div.terminal-hover-targets.xterm-hover');
-		const rowCount = this._options.viewportRange.end.y - this._options.viewportRange.start.y + 1;
+		this._domNode = $("div.terminal-hover-targets.xterm-hover");
+		const rowCount =
+			this._options.viewportRange.end.y -
+			this._options.viewportRange.start.y +
+			1;
 
 		// Add top target row
-		const width = (this._options.viewportRange.end.y > this._options.viewportRange.start.y ? this._options.terminalDimensions.width - this._options.viewportRange.start.x : this._options.viewportRange.end.x - this._options.viewportRange.start.x + 1) * this._options.cellDimensions.width;
-		const topTarget = $('div.terminal-hover-target.hoverHighlight');
+		const width =
+			(this._options.viewportRange.end.y >
+			this._options.viewportRange.start.y
+				? this._options.terminalDimensions.width -
+					this._options.viewportRange.start.x
+				: this._options.viewportRange.end.x -
+					this._options.viewportRange.start.x +
+					1) * this._options.cellDimensions.width;
+		const topTarget = $("div.terminal-hover-target.hoverHighlight");
 		topTarget.style.left = `${this._options.viewportRange.start.x * this._options.cellDimensions.width}px`;
 		topTarget.style.bottom = `${(this._options.terminalDimensions.height - this._options.viewportRange.start.y - 1) * this._options.cellDimensions.height}px`;
 		topTarget.style.width = `${width}px`;
@@ -84,7 +106,7 @@ class CellHoverTarget extends Widget implements IHoverTarget {
 
 		// Add middle target rows
 		if (rowCount > 2) {
-			const middleTarget = $('div.terminal-hover-target.hoverHighlight');
+			const middleTarget = $("div.terminal-hover-target.hoverHighlight");
 			middleTarget.style.left = `0px`;
 			middleTarget.style.bottom = `${(this._options.terminalDimensions.height - this._options.viewportRange.start.y - 1 - (rowCount - 2)) * this._options.cellDimensions.height}px`;
 			middleTarget.style.width = `${this._options.terminalDimensions.width * this._options.cellDimensions.width}px`;
@@ -94,7 +116,7 @@ class CellHoverTarget extends Widget implements IHoverTarget {
 
 		// Add bottom target row
 		if (rowCount > 1) {
-			const bottomTarget = $('div.terminal-hover-target.hoverHighlight');
+			const bottomTarget = $("div.terminal-hover-target.hoverHighlight");
 			bottomTarget.style.left = `0px`;
 			bottomTarget.style.bottom = `${(this._options.terminalDimensions.height - this._options.viewportRange.end.y - 1) * this._options.cellDimensions.height}px`;
 			bottomTarget.style.width = `${(this._options.viewportRange.end.x + 1) * this._options.cellDimensions.width}px`;
@@ -102,20 +124,35 @@ class CellHoverTarget extends Widget implements IHoverTarget {
 			this._targetElements.push(this._domNode.appendChild(bottomTarget));
 		}
 
-		if (this._options.modifierDownCallback && this._options.modifierUpCallback) {
+		if (
+			this._options.modifierDownCallback &&
+			this._options.modifierUpCallback
+		) {
 			let down = false;
-			this._register(dom.addDisposableListener(container.ownerDocument, 'keydown', e => {
-				if (e.ctrlKey && !down) {
-					down = true;
-					this._options.modifierDownCallback!();
-				}
-			}));
-			this._register(dom.addDisposableListener(container.ownerDocument, 'keyup', e => {
-				if (!e.ctrlKey) {
-					down = false;
-					this._options.modifierUpCallback!();
-				}
-			}));
+			this._register(
+				dom.addDisposableListener(
+					container.ownerDocument,
+					"keydown",
+					(e) => {
+						if (e.ctrlKey && !down) {
+							down = true;
+							this._options.modifierDownCallback!();
+						}
+					},
+				),
+			);
+			this._register(
+				dom.addDisposableListener(
+					container.ownerDocument,
+					"keyup",
+					(e) => {
+						if (!e.ctrlKey) {
+							down = false;
+							this._options.modifierUpCallback!();
+						}
+					},
+				),
+			);
 		}
 
 		container.appendChild(this._domNode);

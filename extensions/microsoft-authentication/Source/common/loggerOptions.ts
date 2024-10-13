@@ -3,19 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { LogLevel as MsalLogLevel } from '@azure/msal-node';
-import { env, LogLevel, LogOutputChannel } from 'vscode';
+import { LogLevel as MsalLogLevel } from "@azure/msal-node";
+import { env, LogLevel, LogOutputChannel } from "vscode";
 
 export class MsalLoggerOptions {
 	piiLoggingEnabled = false;
 
-	constructor(private readonly _output: LogOutputChannel) { }
+	constructor(private readonly _output: LogOutputChannel) {}
 
 	get logLevel(): MsalLogLevel {
 		return this._toMsalLogLevel(env.logLevel);
 	}
 
-	loggerCallback(level: MsalLogLevel, message: string, containsPii: boolean): void {
+	loggerCallback(
+		level: MsalLogLevel,
+		message: string,
+		containsPii: boolean,
+	): void {
 		if (containsPii) {
 			return;
 		}

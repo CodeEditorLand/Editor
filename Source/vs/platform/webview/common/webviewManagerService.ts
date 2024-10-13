@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from '../../../base/common/event.js';
-import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { Event } from "../../../base/common/event.js";
+import { createDecorator } from "../../instantiation/common/instantiation.js";
 
-export const IWebviewManagerService = createDecorator<IWebviewManagerService>('webviewManagerService');
+export const IWebviewManagerService = createDecorator<IWebviewManagerService>(
+	"webviewManagerService",
+);
 
 export interface WebviewWebContentsId {
 	readonly webContentsId: number;
@@ -35,9 +37,21 @@ export interface IWebviewManagerService {
 
 	onFoundInFrame: Event<FoundInFrameResult>;
 
-	setIgnoreMenuShortcuts(id: WebviewWebContentsId | WebviewWindowId, enabled: boolean): Promise<void>;
+	setIgnoreMenuShortcuts(
+		id: WebviewWebContentsId | WebviewWindowId,
+		enabled: boolean,
+	): Promise<void>;
 
-	findInFrame(windowId: WebviewWindowId, frameName: string, text: string, options: FindInFrameOptions): Promise<void>;
+	findInFrame(
+		windowId: WebviewWindowId,
+		frameName: string,
+		text: string,
+		options: FindInFrameOptions,
+	): Promise<void>;
 
-	stopFindInFrame(windowId: WebviewWindowId, frameName: string, options: { keepSelection?: boolean }): Promise<void>;
+	stopFindInFrame(
+		windowId: WebviewWindowId,
+		frameName: string,
+		options: { keepSelection?: boolean },
+	): Promise<void>;
 }

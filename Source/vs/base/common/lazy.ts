@@ -4,19 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 export class Lazy<T> {
-
 	private _didRun: boolean = false;
 	private _value?: T;
 	private _error: Error | undefined;
 
-	constructor(
-		private readonly executor: () => T,
-	) { }
+	constructor(private readonly executor: () => T) {}
 
 	/**
 	 * True if the lazy value has been resolved.
 	 */
-	get hasValue() { return this._didRun; }
+	get hasValue() {
+		return this._didRun;
+	}
 
 	/**
 	 * Get the wrapped value.
@@ -43,5 +42,7 @@ export class Lazy<T> {
 	/**
 	 * Get the wrapped value without forcing evaluation.
 	 */
-	get rawValue(): T | undefined { return this._value; }
+	get rawValue(): T | undefined {
+		return this._value;
+	}
 }

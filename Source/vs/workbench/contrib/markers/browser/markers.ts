@@ -3,13 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { MarkersFilters } from './markersViewActions.js';
-import { IView } from '../../../common/views.js';
-import { MarkerElement, ResourceMarkers } from './markersModel.js';
-import { MarkersViewMode } from '../common/markers.js';
+import { IView } from "../../../common/views.js";
+import { MarkersViewMode } from "../common/markers.js";
+import { MarkerElement, ResourceMarkers } from "./markersModel.js";
+import { MarkersFilters } from "./markersViewActions.js";
 
 export interface IMarkersView extends IView {
-
 	readonly filters: MarkersFilters;
 	focusFilter(): void;
 	clearFilterText(): void;

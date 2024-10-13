@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as strings from '../../../base/common/strings.js';
-import * as platform from '../../../base/common/platform.js';
-import * as buffer from '../../../base/common/buffer.js';
+import * as buffer from "../../../base/common/buffer.js";
+import * as platform from "../../../base/common/platform.js";
+import * as strings from "../../../base/common/strings.js";
 
 let _utf16LE_TextDecoder: TextDecoder | null;
 function getUTF16LE_TextDecoder(): TextDecoder {
 	if (!_utf16LE_TextDecoder) {
-		_utf16LE_TextDecoder = new TextDecoder('UTF-16LE');
+		_utf16LE_TextDecoder = new TextDecoder("UTF-16LE");
 	}
 	return _utf16LE_TextDecoder;
 }
@@ -18,7 +18,7 @@ function getUTF16LE_TextDecoder(): TextDecoder {
 let _utf16BE_TextDecoder: TextDecoder | null;
 function getUTF16BE_TextDecoder(): TextDecoder {
 	if (!_utf16BE_TextDecoder) {
-		_utf16BE_TextDecoder = new TextDecoder('UTF-16BE');
+		_utf16BE_TextDecoder = new TextDecoder("UTF-16BE");
 	}
 	return _utf16BE_TextDecoder;
 }
@@ -26,14 +26,20 @@ function getUTF16BE_TextDecoder(): TextDecoder {
 let _platformTextDecoder: TextDecoder | null;
 export function getPlatformTextDecoder(): TextDecoder {
 	if (!_platformTextDecoder) {
-		_platformTextDecoder = platform.isLittleEndian() ? getUTF16LE_TextDecoder() : getUTF16BE_TextDecoder();
+		_platformTextDecoder = platform.isLittleEndian()
+			? getUTF16LE_TextDecoder()
+			: getUTF16BE_TextDecoder();
 	}
 	return _platformTextDecoder;
 }
 
-export function decodeUTF16LE(source: Uint8Array, offset: number, len: number): string {
+export function decodeUTF16LE(
+	source: Uint8Array,
+	offset: number,
+	len: number,
+): string {
 	const view = new Uint16Array(source.buffer, offset, len);
-	if (len > 0 && (view[0] === 0xFEFF || view[0] === 0xFFFE)) {
+	if (len > 0 && (view[0] === 0xfeff || view[0] === 0xfffe)) {
 		// UTF16 sometimes starts with a BOM https://de.wikipedia.org/wiki/Byte_Order_Mark
 		// It looks like TextDecoder.decode will eat up a leading BOM (0xFEFF or 0xFFFE)
 		// We don't want that behavior because we know the string is UTF16LE and the BOM should be maintained
@@ -43,18 +49,22 @@ export function decodeUTF16LE(source: Uint8Array, offset: number, len: number): 
 	return getUTF16LE_TextDecoder().decode(view);
 }
 
-function compatDecodeUTF16LE(source: Uint8Array, offset: number, len: number): string {
+function compatDecodeUTF16LE(
+	source: Uint8Array,
+	offset: number,
+	len: number,
+): string {
 	const result: string[] = [];
 	let resultLen = 0;
 	for (let i = 0; i < len; i++) {
-		const charCode = buffer.readUInt16LE(source, offset); offset += 2;
+		const charCode = buffer.readUInt16LE(source, offset);
+		offset += 2;
 		result[resultLen++] = String.fromCharCode(charCode);
 	}
-	return result.join('');
+	return result.join("");
 }
 
 export class StringBuilder {
-
 	private readonly _capacity: number;
 	private readonly _buffer: Uint16Array;
 
@@ -77,17 +87,21 @@ export class StringBuilder {
 	public build(): string {
 		if (this._completedStrings !== null) {
 			this._flushBuffer();
-			return this._completedStrings.join('');
+			return this._completedStrings.join("");
 		}
 		return this._buildBuffer();
 	}
 
 	private _buildBuffer(): string {
 		if (this._bufferLength === 0) {
-			return '';
+			return "";
 		}
 
-		const view = new Uint16Array(this._buffer.buffer, 0, this._bufferLength);
+		const view = new Uint16Array(
+			this._buffer.buffer,
+			0,
+			this._bufferLength,
+		);
 		return getPlatformTextDecoder().decode(view);
 	}
 
@@ -98,7 +112,8 @@ export class StringBuilder {
 		if (this._completedStrings === null) {
 			this._completedStrings = [bufferString];
 		} else {
-			this._completedStrings[this._completedStrings.length] = bufferString;
+			this._completedStrings[this._completedStrings.length] =
+				bufferString;
 		}
 	}
 

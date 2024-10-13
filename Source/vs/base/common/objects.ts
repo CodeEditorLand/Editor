@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { isTypedArray, isObject, isUndefinedOrNull } from './types.js';
+import { isObject, isTypedArray, isUndefinedOrNull } from "./types.js";
 
 export function deepClone<T>(obj: T): T {
-	if (!obj || typeof obj !== 'object') {
+	if (!obj || typeof obj !== "object") {
 		return obj;
 	}
 	if (obj instanceof RegExp) {
@@ -14,13 +14,14 @@ export function deepClone<T>(obj: T): T {
 	}
 	const result: any = Array.isArray(obj) ? [] : {};
 	Object.entries(obj).forEach(([key, value]) => {
-		result[key] = value && typeof value === 'object' ? deepClone(value) : value;
+		result[key] =
+			value && typeof value === "object" ? deepClone(value) : value;
 	});
 	return result;
 }
 
 export function deepFreeze<T>(obj: T): T {
-	if (!obj || typeof obj !== 'object') {
+	if (!obj || typeof obj !== "object") {
 		return obj;
 	}
 	const stack: any[] = [obj];
@@ -30,7 +31,11 @@ export function deepFreeze<T>(obj: T): T {
 		for (const key in obj) {
 			if (_hasOwnProperty.call(obj, key)) {
 				const prop = obj[key];
-				if (typeof prop === 'object' && !Object.isFrozen(prop) && !isTypedArray(prop)) {
+				if (
+					typeof prop === "object" &&
+					!Object.isFrozen(prop) &&
+					!isTypedArray(prop)
+				) {
 					stack.push(prop);
 				}
 			}
@@ -41,18 +46,21 @@ export function deepFreeze<T>(obj: T): T {
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty;
 
-
 export function cloneAndChange(obj: any, changer: (orig: any) => any): any {
 	return _cloneAndChange(obj, changer, new Set());
 }
 
-function _cloneAndChange(obj: any, changer: (orig: any) => any, seen: Set<any>): any {
+function _cloneAndChange(
+	obj: any,
+	changer: (orig: any) => any,
+	seen: Set<any>,
+): any {
 	if (isUndefinedOrNull(obj)) {
 		return obj;
 	}
 
 	const changed = changer(obj);
-	if (typeof changed !== 'undefined') {
+	if (typeof changed !== "undefined") {
 		return changed;
 	}
 
@@ -66,7 +74,7 @@ function _cloneAndChange(obj: any, changer: (orig: any) => any, seen: Set<any>):
 
 	if (isObject(obj)) {
 		if (seen.has(obj)) {
-			throw new Error('Cannot clone recursive data-structure');
+			throw new Error("Cannot clone recursive data-structure");
 		}
 		seen.add(obj);
 		const r2 = {};
@@ -86,13 +94,17 @@ function _cloneAndChange(obj: any, changer: (orig: any) => any, seen: Set<any>):
  * Copies all properties of source into destination. The optional parameter "overwrite" allows to control
  * if existing properties on the destination should be overwritten or not. Defaults to true (overwrite).
  */
-export function mixin(destination: any, source: any, overwrite: boolean = true): any {
+export function mixin(
+	destination: any,
+	source: any,
+	overwrite: boolean = true,
+): any {
 	if (!isObject(destination)) {
 		return source;
 	}
 
 	if (isObject(source)) {
-		Object.keys(source).forEach(key => {
+		Object.keys(source).forEach((key) => {
 			if (key in destination) {
 				if (overwrite) {
 					if (isObject(destination[key]) && isObject(source[key])) {
@@ -113,16 +125,21 @@ export function equals(one: any, other: any): boolean {
 	if (one === other) {
 		return true;
 	}
-	if (one === null || one === undefined || other === null || other === undefined) {
+	if (
+		one === null ||
+		one === undefined ||
+		other === null ||
+		other === undefined
+	) {
 		return false;
 	}
 	if (typeof one !== typeof other) {
 		return false;
 	}
-	if (typeof one !== 'object') {
+	if (typeof one !== "object") {
 		return false;
 	}
-	if ((Array.isArray(one)) !== (Array.isArray(other))) {
+	if (Array.isArray(one) !== Array.isArray(other)) {
 		return false;
 	}
 
@@ -172,12 +189,12 @@ export function safeStringify(obj: any): string {
 	return JSON.stringify(obj, (key, value) => {
 		if (isObject(value) || Array.isArray(value)) {
 			if (seen.has(value)) {
-				return '[Circular]';
+				return "[Circular]";
 			} else {
 				seen.add(value);
 			}
 		}
-		if (typeof value === 'bigint') {
+		if (typeof value === "bigint") {
 			return `[BigInt ${value.toString()}]`;
 		}
 		return value;
@@ -203,7 +220,7 @@ export function distinct(base: obj, target: obj): obj {
 	}
 
 	const targetKeys = Object.keys(target);
-	targetKeys.forEach(k => {
+	targetKeys.forEach((k) => {
 		const baseValue = base[k];
 		const targetValue = target[k];
 
@@ -217,11 +234,16 @@ export function distinct(base: obj, target: obj): obj {
 
 export function getCaseInsensitive(target: obj, key: string): unknown {
 	const lowercaseKey = key.toLowerCase();
-	const equivalentKey = Object.keys(target).find(k => k.toLowerCase() === lowercaseKey);
+	const equivalentKey = Object.keys(target).find(
+		(k) => k.toLowerCase() === lowercaseKey,
+	);
 	return equivalentKey ? target[equivalentKey] : target[key];
 }
 
-export function filter(obj: obj, predicate: (key: string, value: any) => boolean): obj {
+export function filter(
+	obj: obj,
+	predicate: (key: string, value: any) => boolean,
+): obj {
 	const result = Object.create(null);
 	for (const [key, value] of Object.entries(obj)) {
 		if (predicate(key, value)) {
@@ -243,15 +265,18 @@ export function getAllPropertyNames(obj: object): string[] {
 export function getAllMethodNames(obj: object): string[] {
 	const methods: string[] = [];
 	for (const prop of getAllPropertyNames(obj)) {
-		if (typeof (obj as any)[prop] === 'function') {
+		if (typeof (obj as any)[prop] === "function") {
 			methods.push(prop);
 		}
 	}
 	return methods;
 }
 
-export function createProxyObject<T extends object>(methodNames: string[], invoke: (method: string, args: unknown[]) => unknown): T {
-	const createProxyMethod = (method: string): () => unknown => {
+export function createProxyObject<T extends object>(
+	methodNames: string[],
+	invoke: (method: string, args: unknown[]) => unknown,
+): T {
+	const createProxyMethod = (method: string): (() => unknown) => {
 		return function () {
 			const args = Array.prototype.slice.call(arguments, 0);
 			return invoke(method, args);
@@ -266,7 +291,10 @@ export function createProxyObject<T extends object>(methodNames: string[], invok
 	return result;
 }
 
-export function mapValues<T extends {}, R>(obj: T, fn: (value: T[keyof T], key: string) => R): { [K in keyof T]: R } {
+export function mapValues<T extends {}, R>(
+	obj: T,
+	fn: (value: T[keyof T], key: string) => R,
+): { [K in keyof T]: R } {
 	const result: { [key: string]: R } = {};
 	for (const [key, value] of Object.entries(obj)) {
 		result[key] = fn(<T[keyof T]>value, key);

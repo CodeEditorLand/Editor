@@ -36,7 +36,11 @@ export interface IWindowDriver {
 	setValue(selector: string, text: string): Promise<void>;
 	isActiveElement(selector: string): Promise<boolean>;
 	getElements(selector: string, recursive: boolean): Promise<IElement[]>;
-	getElementXY(selector: string, xoffset?: number, yoffset?: number): Promise<{ x: number; y: number }>;
+	getElementXY(
+		selector: string,
+		xoffset?: number,
+		yoffset?: number,
+	): Promise<{ x: number; y: number }>;
 	typeInEditor(selector: string, text: string): Promise<void>;
 	getTerminalBuffer(selector: string): Promise<string[]>;
 	writeInTerminal(selector: string, text: string): Promise<void>;

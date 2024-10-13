@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from '../../base/common/event.js';
+import { Event } from "../../base/common/event.js";
 
 export interface IComposite {
-
 	/**
 	 * An event when the composite gained focus.
 	 */
@@ -46,4 +45,4 @@ export interface IComposite {
 /**
  * Marker interface for the composite control
  */
-export interface ICompositeControl { }
+export interface ICompositeControl {}

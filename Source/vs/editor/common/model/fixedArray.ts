@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { arrayInsert } from '../../../base/common/arrays.js';
+import { arrayInsert } from "../../../base/common/arrays.js";
 
 /**
  * An array that avoids being sparse by always
@@ -12,9 +12,7 @@ import { arrayInsert } from '../../../base/common/arrays.js';
 export class FixedArray<T> {
 	private _store: T[] = [];
 
-	constructor(
-		private readonly _default: T
-	) { }
+	constructor(private readonly _default: T) {}
 
 	public get(index: number): T {
 		if (index < this._store.length) {

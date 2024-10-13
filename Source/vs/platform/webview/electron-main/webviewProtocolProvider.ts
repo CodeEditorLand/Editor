@@ -3,18 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { protocol } from 'electron';
-import { Disposable } from '../../../base/common/lifecycle.js';
-import { AppResourcePath, COI, FileAccess, Schemas } from '../../../base/common/network.js';
-import { URI } from '../../../base/common/uri.js';
+import { protocol } from "electron";
 
+import { Disposable } from "../../../base/common/lifecycle.js";
+import {
+	AppResourcePath,
+	COI,
+	FileAccess,
+	Schemas,
+} from "../../../base/common/network.js";
+import { URI } from "../../../base/common/uri.js";
 
 export class WebviewProtocolProvider extends Disposable {
-
 	private static validWebviewFilePaths = new Map([
-		['/index.html', 'index.html'],
-		['/fake.html', 'fake.html'],
-		['/service-worker.js', 'service-worker.js'],
+		["/index.html", "index.html"],
+		["/fake.html", "fake.html"],
+		["/service-worker.js", "service-worker.js"],
 	]);
 
 	constructor() {
@@ -27,27 +31,27 @@ export class WebviewProtocolProvider extends Disposable {
 
 	private handleWebviewRequest(
 		request: Electron.ProtocolRequest,
-		callback: (response: string | Electron.ProtocolResponse) => void
+		callback: (response: string | Electron.ProtocolResponse) => void,
 	) {
 		try {
 			const uri = URI.parse(request.url);
-			const entry = WebviewProtocolProvider.validWebviewFilePaths.get(uri.path);
-			if (typeof entry === 'string') {
+			const entry = WebviewProtocolProvider.validWebviewFilePaths.get(
+				uri.path,
+			);
+			if (typeof entry === "string") {
 				const relativeResourcePath: AppResourcePath = `vs/workbench/contrib/webview/browser/pre/${entry}`;
 				const url = FileAccess.asFileUri(relativeResourcePath);
 				return callback({
 					path: url.fsPath,
 					headers: {
 						...COI.getHeadersFromQuery(request.url),
-						'Cross-Origin-Resource-Policy': 'cross-origin'
-					}
+						"Cross-Origin-Resource-Policy": "cross-origin",
+					},
 				});
 			} else {
-
 			}
 		} catch {
 			// noop
 		}
-
 	}
 }

@@ -3,8 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IUpdateService } from '../../../../platform/update/common/update.js';
-import { registerMainProcessRemoteService } from '../../../../platform/ipc/electron-sandbox/services.js';
-import { UpdateChannelClient } from '../../../../platform/update/common/updateIpc.js';
+import { registerMainProcessRemoteService } from "../../../../platform/ipc/electron-sandbox/services.js";
+import { IUpdateService } from "../../../../platform/update/common/update.js";
+import { UpdateChannelClient } from "../../../../platform/update/common/updateIpc.js";
 
-registerMainProcessRemoteService(IUpdateService, 'update', { channelClientCtor: UpdateChannelClient });
+registerMainProcessRemoteService(IUpdateService, "update", {
+	channelClientCtor: UpdateChannelClient,
+});

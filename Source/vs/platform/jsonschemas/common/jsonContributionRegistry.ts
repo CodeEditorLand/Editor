@@ -3,12 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from '../../../base/common/event.js';
-import { getCompressedContent, IJSONSchema } from '../../../base/common/jsonSchema.js';
-import * as platform from '../../registry/common/platform.js';
+import { Emitter, Event } from "../../../base/common/event.js";
+import {
+	getCompressedContent,
+	IJSONSchema,
+} from "../../../base/common/jsonSchema.js";
+import * as platform from "../../registry/common/platform.js";
 
 export const Extensions = {
-	JSONContribution: 'base.contributions.json'
+	JSONContribution: "base.contributions.json",
 };
 
 export interface ISchemaContributions {
@@ -16,14 +19,12 @@ export interface ISchemaContributions {
 }
 
 export interface IJSONContributionRegistry {
-
 	readonly onDidChangeSchema: Event<string>;
 
 	/**
 	 * Register a schema to the registry.
 	 */
 	registerSchema(uri: string, unresolvedSchemaContent: IJSONSchema): void;
-
 
 	/**
 	 * Notifies all listeners that the content of the given schema has changed.
@@ -49,19 +50,14 @@ export interface IJSONContributionRegistry {
 	hasSchemaContent(uri: string): boolean;
 }
 
-
-
 function normalizeId(id: string) {
-	if (id.length > 0 && id.charAt(id.length - 1) === '#') {
+	if (id.length > 0 && id.charAt(id.length - 1) === "#") {
 		return id.substring(0, id.length - 1);
 	}
 	return id;
 }
 
-
-
 class JSONContributionRegistry implements IJSONContributionRegistry {
-
 	private schemasById: { [id: string]: IJSONSchema };
 
 	private readonly _onDidChangeSchema = new Emitter<string>();
@@ -71,7 +67,10 @@ class JSONContributionRegistry implements IJSONContributionRegistry {
 		this.schemasById = {};
 	}
 
-	public registerSchema(uri: string, unresolvedSchemaContent: IJSONSchema): void {
+	public registerSchema(
+		uri: string,
+		unresolvedSchemaContent: IJSONSchema,
+	): void {
 		this.schemasById[normalizeId(uri)] = unresolvedSchemaContent;
 		this._onDidChangeSchema.fire(uri);
 	}
@@ -94,7 +93,6 @@ class JSONContributionRegistry implements IJSONContributionRegistry {
 	public hasSchemaContent(uri: string): boolean {
 		return !!this.schemasById[uri];
 	}
-
 }
 
 const jsonContributionRegistry = new JSONContributionRegistry();

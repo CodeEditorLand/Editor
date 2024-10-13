@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as browser from './browser.js';
-import { mainWindow } from './window.js';
-import * as platform from '../common/platform.js';
+import * as platform from "../common/platform.js";
+import * as browser from "./browser.js";
+import { mainWindow } from "./window.js";
 
 export const enum KeyboardSupport {
 	Always,
 	FullScreen,
-	None
+	None,
 }
 
 /**
@@ -18,15 +18,22 @@ export const enum KeyboardSupport {
  */
 export const BrowserFeatures = {
 	clipboard: {
-		writeText: (
-			platform.isNative
-			|| (document.queryCommandSupported && document.queryCommandSupported('copy'))
-			|| !!(navigator && navigator.clipboard && navigator.clipboard.writeText)
-		),
-		readText: (
-			platform.isNative
-			|| !!(navigator && navigator.clipboard && navigator.clipboard.readText)
-		)
+		writeText:
+			platform.isNative ||
+			(document.queryCommandSupported &&
+				document.queryCommandSupported("copy")) ||
+			!!(
+				navigator &&
+				navigator.clipboard &&
+				navigator.clipboard.writeText
+			),
+		readText:
+			platform.isNative ||
+			!!(
+				navigator &&
+				navigator.clipboard &&
+				navigator.clipboard.readText
+			),
 	},
 	keyboard: (() => {
 		if (platform.isNative || browser.isStandalone()) {
@@ -42,6 +49,8 @@ export const BrowserFeatures = {
 
 	// 'ontouchstart' in window always evaluates to true with typescript's modern typings. This causes `window` to be
 	// `never` later in `window.navigator`. That's why we need the explicit `window as Window` cast
-	touch: 'ontouchstart' in mainWindow || navigator.maxTouchPoints > 0,
-	pointerEvents: mainWindow.PointerEvent && ('ontouchstart' in mainWindow || navigator.maxTouchPoints > 0)
+	touch: "ontouchstart" in mainWindow || navigator.maxTouchPoints > 0,
+	pointerEvents:
+		mainWindow.PointerEvent &&
+		("ontouchstart" in mainWindow || navigator.maxTouchPoints > 0),
 };

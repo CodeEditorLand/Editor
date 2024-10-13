@@ -3,15 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { Event } from '../../../../base/common/event.js';
-import { IMarkdownString } from '../../../../base/common/htmlContent.js';
-import { IJSONSchema } from '../../../../base/common/jsonSchema.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
-import { ThemeIcon } from '../../../../base/common/themables.js';
-import { URI } from '../../../../base/common/uri.js';
-import { ContextKeyExpression } from '../../../../platform/contextkey/common/contextkey.js';
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { CancellationToken } from "../../../../base/common/cancellation.js";
+import { Event } from "../../../../base/common/event.js";
+import { IMarkdownString } from "../../../../base/common/htmlContent.js";
+import { IJSONSchema } from "../../../../base/common/jsonSchema.js";
+import { IDisposable } from "../../../../base/common/lifecycle.js";
+import { ThemeIcon } from "../../../../base/common/themables.js";
+import { URI } from "../../../../base/common/uri.js";
+import { ContextKeyExpression } from "../../../../platform/contextkey/common/contextkey.js";
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
 
 export interface IToolData {
 	id: string;
@@ -56,13 +56,25 @@ export interface IPreparedToolInvocation {
 }
 
 export interface IToolImpl {
-	invoke(invocation: IToolInvocation, countTokens: CountTokensCallback, token: CancellationToken): Promise<IToolResult>;
-	prepareToolInvocation?(participantName: string, parameters: any, token: CancellationToken): Promise<IPreparedToolInvocation | undefined>;
+	invoke(
+		invocation: IToolInvocation,
+		countTokens: CountTokensCallback,
+		token: CancellationToken,
+	): Promise<IToolResult>;
+	prepareToolInvocation?(
+		participantName: string,
+		parameters: any,
+		token: CancellationToken,
+	): Promise<IPreparedToolInvocation | undefined>;
 }
 
-export const ILanguageModelToolsService = createDecorator<ILanguageModelToolsService>('ILanguageModelToolsService');
+export const ILanguageModelToolsService =
+	createDecorator<ILanguageModelToolsService>("ILanguageModelToolsService");
 
-export type CountTokensCallback = (input: string, token: CancellationToken) => Promise<number>;
+export type CountTokensCallback = (
+	input: string,
+	token: CancellationToken,
+) => Promise<number>;
 
 export interface ILanguageModelToolsService {
 	_serviceBrand: undefined;
@@ -72,5 +84,9 @@ export interface ILanguageModelToolsService {
 	getTools(): Iterable<Readonly<IToolData>>;
 	getTool(id: string): IToolData | undefined;
 	getToolByName(name: string): IToolData | undefined;
-	invokeTool(invocation: IToolInvocation, countTokens: CountTokensCallback, token: CancellationToken): Promise<IToolResult>;
+	invokeTool(
+		invocation: IToolInvocation,
+		countTokens: CountTokensCallback,
+		token: CancellationToken,
+	): Promise<IToolResult>;
 }

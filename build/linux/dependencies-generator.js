@@ -2,18 +2,18 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-'use strict';
+"use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDependencies = getDependencies;
 const child_process_1 = require("child_process");
-const path = require("path");
-const install_sysroot_1 = require("./debian/install-sysroot");
 const calculate_deps_1 = require("./debian/calculate-deps");
-const calculate_deps_2 = require("./rpm/calculate-deps");
 const dep_lists_1 = require("./debian/dep-lists");
-const dep_lists_2 = require("./rpm/dep-lists");
+const install_sysroot_1 = require("./debian/install-sysroot");
 const types_1 = require("./debian/types");
+const calculate_deps_2 = require("./rpm/calculate-deps");
+const dep_lists_2 = require("./rpm/dep-lists");
 const types_2 = require("./rpm/types");
+const path = require("path");
 const product = require("../../product.json");
 // A flag that can easily be toggled.
 // Make sure to compile the build directory after toggling the value.
@@ -23,47 +23,50 @@ const product = require("../../product.json");
 // The reference dependencies, which one has to update when the new dependencies
 // are valid, are in dep-lists.ts
 const FAIL_BUILD_FOR_NEW_DEPENDENCIES = true;
-
 // and the Linux Archive build
 // Shared library dependencies that we already bundle.
 const bundledDeps = [
-    'libEGL.so',
-    'libGLESv2.so',
-    'libvulkan.so.1',
-    'libvk_swiftshader.so',
-    'libffmpeg.so'
+    "libEGL.so",
+    "libGLESv2.so",
+    "libvulkan.so.1",
+    "libvk_swiftshader.so",
+    "libffmpeg.so",
 ];
 async function getDependencies(packageType, buildDir, applicationName, arch) {
-    if (packageType === 'deb') {
+    if (packageType === "deb") {
         if (!(0, types_1.isDebianArchString)(arch)) {
-            throw new Error('Invalid Debian arch string ' + arch);
+            throw new Error("Invalid Debian arch string " + arch);
         }
     }
-    if (packageType === 'rpm' && !(0, types_2.isRpmArchString)(arch)) {
-        throw new Error('Invalid RPM arch string ' + arch);
+    if (packageType === "rpm" && !(0, types_2.isRpmArchString)(arch)) {
+        throw new Error("Invalid RPM arch string " + arch);
     }
     // Get the files for which we want to find dependencies.
     const canAsar = false; // TODO@esm ASAR disabled in ESM
-    const nativeModulesPath = path.join(buildDir, 'resources', 'app', canAsar ? 'node_modules.asar.unpacked' : 'node_modules');
-    const findResult = (0, child_process_1.spawnSync)('find', [nativeModulesPath, '-name', '*.node']);
+    const nativeModulesPath = path.join(buildDir, "resources", "app", canAsar ? "node_modules.asar.unpacked" : "node_modules");
+    const findResult = (0, child_process_1.spawnSync)("find", [
+        nativeModulesPath,
+        "-name",
+        "*.node",
+    ]);
     if (findResult.status) {
-        console.error('Error finding files:');
+        console.error("Error finding files:");
         console.error(findResult.stderr.toString());
         return [];
     }
     const appPath = path.join(buildDir, applicationName);
     // Add the native modules
-    const files = findResult.stdout.toString().trimEnd().split('\n');
+    const files = findResult.stdout.toString().trimEnd().split("\n");
     // Add the tunnel binary.
-    files.push(path.join(buildDir, 'bin', product.tunnelApplicationName));
+    files.push(path.join(buildDir, "bin", product.tunnelApplicationName));
     // Add the main executable.
     files.push(appPath);
     // Add chrome sandbox and crashpad handler.
-    files.push(path.join(buildDir, 'chrome-sandbox'));
-    files.push(path.join(buildDir, 'chrome_crashpad_handler'));
+    files.push(path.join(buildDir, "chrome-sandbox"));
+    files.push(path.join(buildDir, "chrome_crashpad_handler"));
     // Generate the dependencies.
     let dependencies;
-    if (packageType === 'deb') {
+    if (packageType === "deb") {
         const chromiumSysroot = await (0, install_sysroot_1.getChromiumSysroot)(arch);
         const vscodeSysroot = await (0, install_sysroot_1.getVSCodeSysroot)(arch);
         dependencies = (0, calculate_deps_1.generatePackageDeps)(files, arch, chromiumSysroot, vscodeSysroot);
@@ -74,16 +77,21 @@ async function getDependencies(packageType, buildDir, applicationName, arch) {
     // Merge all the dependencies.
     const mergedDependencies = mergePackageDeps(dependencies);
     // Exclude bundled dependencies and sort
-    const sortedDependencies = Array.from(mergedDependencies).filter(dependency => {
-        return !bundledDeps.some(bundledDep => dependency.startsWith(bundledDep));
-    }).sort();
-    const referenceGeneratedDeps = packageType === 'deb' ?
-        dep_lists_1.referenceGeneratedDepsByArch[arch] :
-        dep_lists_2.referenceGeneratedDepsByArch[arch];
-    if (JSON.stringify(sortedDependencies) !== JSON.stringify(referenceGeneratedDeps)) {
-        const failMessage = 'The dependencies list has changed.'
-            + '\nOld:\n' + referenceGeneratedDeps.join('\n')
-            + '\nNew:\n' + sortedDependencies.join('\n');
+    const sortedDependencies = Array.from(mergedDependencies)
+        .filter((dependency) => {
+        return !bundledDeps.some((bundledDep) => dependency.startsWith(bundledDep));
+    })
+        .sort();
+    const referenceGeneratedDeps = packageType === "deb"
+        ? dep_lists_1.referenceGeneratedDepsByArch[arch]
+        : dep_lists_2.referenceGeneratedDepsByArch[arch];
+    if (JSON.stringify(sortedDependencies) !==
+        JSON.stringify(referenceGeneratedDeps)) {
+        const failMessage = "The dependencies list has changed." +
+            "\nOld:\n" +
+            referenceGeneratedDeps.join("\n") +
+            "\nNew:\n" +
+            sortedDependencies.join("\n");
         if (FAIL_BUILD_FOR_NEW_DEPENDENCIES) {
             throw new Error(failMessage);
         }
@@ -93,13 +101,13 @@ async function getDependencies(packageType, buildDir, applicationName, arch) {
     }
     return sortedDependencies;
 }
-
 function mergePackageDeps(inputDeps) {
     const requires = new Set();
     for (const depSet of inputDeps) {
         for (const dep of depSet) {
             const trimmedDependency = dep.trim();
-            if (trimmedDependency.length && !trimmedDependency.startsWith('#')) {
+            if (trimmedDependency.length &&
+                !trimmedDependency.startsWith("#")) {
                 requires.add(trimmedDependency);
             }
         }

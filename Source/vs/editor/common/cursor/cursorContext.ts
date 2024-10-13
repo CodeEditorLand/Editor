@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ITextModel } from '../model.js';
-import { ICoordinatesConverter } from '../viewModel.js';
-import { CursorConfiguration, ICursorSimpleModel } from '../cursorCommon.js';
+import { CursorConfiguration, ICursorSimpleModel } from "../cursorCommon.js";
+import { ITextModel } from "../model.js";
+import { ICoordinatesConverter } from "../viewModel.js";
 
 export class CursorContext {
 	_cursorContextBrand: void = undefined;
@@ -15,7 +15,12 @@ export class CursorContext {
 	public readonly coordinatesConverter: ICoordinatesConverter;
 	public readonly cursorConfig: CursorConfiguration;
 
-	constructor(model: ITextModel, viewModel: ICursorSimpleModel, coordinatesConverter: ICoordinatesConverter, cursorConfig: CursorConfiguration) {
+	constructor(
+		model: ITextModel,
+		viewModel: ICursorSimpleModel,
+		coordinatesConverter: ICoordinatesConverter,
+		cursorConfig: CursorConfiguration,
+	) {
 		this.model = model;
 		this.viewModel = viewModel;
 		this.coordinatesConverter = coordinatesConverter;

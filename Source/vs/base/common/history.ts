@@ -3,11 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SetWithKey } from './collections.js';
-import { ArrayNavigator, INavigator } from './navigator.js';
+import { SetWithKey } from "./collections.js";
+import { ArrayNavigator, INavigator } from "./navigator.js";
 
 export class HistoryNavigator<T> implements INavigator<T> {
-
 	private _history!: Set<T>;
 	private _limit: number;
 	private _navigator!: ArrayNavigator<T>;
@@ -76,7 +75,12 @@ export class HistoryNavigator<T> implements INavigator<T> {
 	private _onChange() {
 		this._reduceToLimit();
 		const elements = this._elements;
-		this._navigator = new ArrayNavigator(elements, 0, elements.length, elements.length);
+		this._navigator = new ArrayNavigator(
+			elements,
+			0,
+			elements.length,
+			elements.length,
+		);
 	}
 
 	private _reduceToLimit() {
@@ -104,7 +108,7 @@ export class HistoryNavigator<T> implements INavigator<T> {
 
 	private get _elements(): T[] {
 		const elements: T[] = [];
-		this._history.forEach(e => elements.push(e));
+		this._history.forEach((e) => elements.push(e));
 		return elements;
 	}
 }
@@ -120,25 +124,33 @@ interface HistoryNode<T> {
  * the user can navigate away from the last item through the list, and back to it. When updating the last item, call replaceLast.
  */
 export class HistoryNavigator2<T> {
-
 	private valueSet: Set<T>;
 	private head: HistoryNode<T>;
 	private tail: HistoryNode<T>;
 	private cursor: HistoryNode<T>;
 	private _size: number;
-	get size(): number { return this._size; }
+	get size(): number {
+		return this._size;
+	}
 
-	constructor(history: readonly T[], private capacity: number = 10, private identityFn: (t: T) => unknown = t => t) {
+	constructor(
+		history: readonly T[],
+		private capacity: number = 10,
+		private identityFn: (t: T) => unknown = (t) => t,
+	) {
 		if (history.length < 1) {
-			throw new Error('not supported');
+			throw new Error("not supported");
 		}
 
 		this._size = 1;
-		this.head = this.tail = this.cursor = {
-			value: history[0],
-			previous: undefined,
-			next: undefined
-		};
+		this.head =
+			this.tail =
+			this.cursor =
+				{
+					value: history[0],
+					previous: undefined,
+					next: undefined,
+				};
 
 		this.valueSet = new SetWithKey<T>([history[0]], identityFn);
 		for (let i = 1; i < history.length; i++) {
@@ -150,7 +162,7 @@ export class HistoryNavigator2<T> {
 		const node: HistoryNode<T> = {
 			value,
 			previous: this.tail,
-			next: undefined
+			next: undefined,
 		};
 
 		this.tail.next = node;
@@ -202,7 +214,7 @@ export class HistoryNavigator2<T> {
 		const node: HistoryNode<T> = {
 			value,
 			previous: undefined,
-			next: this.head
+			next: this.head,
 		};
 
 		this.head.previous = node;

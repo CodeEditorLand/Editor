@@ -3,20 +3,37 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from '../../../base/common/event.js';
-import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
-import { compareIgnoreCase, regExpLeadsToEndlessLoop } from '../../../base/common/strings.js';
-import { clearPlatformLanguageAssociations, getLanguageIds, registerPlatformLanguageAssociation } from './languagesAssociations.js';
-import { URI } from '../../../base/common/uri.js';
-import { ILanguageIdCodec } from '../languages.js';
-import { LanguageId } from '../encodedTokenAttributes.js';
-import { ModesRegistry, PLAINTEXT_LANGUAGE_ID } from '../languages/modesRegistry.js';
-import { ILanguageExtensionPoint, ILanguageNameIdPair, ILanguageIcon } from '../languages/language.js';
-import { Extensions, IConfigurationRegistry } from '../../../platform/configuration/common/configurationRegistry.js';
-import { Registry } from '../../../platform/registry/common/platform.js';
+import { Emitter, Event } from "../../../base/common/event.js";
+import { Disposable, IDisposable } from "../../../base/common/lifecycle.js";
+import {
+	compareIgnoreCase,
+	regExpLeadsToEndlessLoop,
+} from "../../../base/common/strings.js";
+import { URI } from "../../../base/common/uri.js";
+import {
+	Extensions,
+	IConfigurationRegistry,
+} from "../../../platform/configuration/common/configurationRegistry.js";
+import { Registry } from "../../../platform/registry/common/platform.js";
+import { LanguageId } from "../encodedTokenAttributes.js";
+import { ILanguageIdCodec } from "../languages.js";
+import {
+	ILanguageExtensionPoint,
+	ILanguageIcon,
+	ILanguageNameIdPair,
+} from "../languages/language.js";
+import {
+	ModesRegistry,
+	PLAINTEXT_LANGUAGE_ID,
+} from "../languages/modesRegistry.js";
+import {
+	clearPlatformLanguageAssociations,
+	getLanguageIds,
+	registerPlatformLanguageAssociation,
+} from "./languagesAssociations.js";
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
-const NULL_LANGUAGE_ID = 'vs.editor.nullLanguage';
+const NULL_LANGUAGE_ID = "vs.editor.nullLanguage";
 
 interface IResolvedLanguage {
 	identifier: string;
@@ -30,7 +47,6 @@ interface IResolvedLanguage {
 }
 
 export class LanguageIdCodec implements ILanguageIdCodec {
-
 	private _nextLanguageId: number;
 	private readonly _languageIdToLanguage: string[] = [];
 	private readonly _languageToLanguageId = new Map<string, number>();
@@ -64,10 +80,11 @@ export class LanguageIdCodec implements ILanguageIdCodec {
 }
 
 export class LanguagesRegistry extends Disposable {
-
 	static instanceCount = 0;
 
-	private readonly _onDidChange: Emitter<void> = this._register(new Emitter<void>());
+	private readonly _onDidChange: Emitter<void> = this._register(
+		new Emitter<void>(),
+	);
 	public readonly onDidChange: Event<void> = this._onDidChange.event;
 
 	private readonly _warnOnOverwrite: boolean;
@@ -92,9 +109,11 @@ export class LanguagesRegistry extends Disposable {
 
 		if (useModesRegistry) {
 			this._initializeFromRegistry();
-			this._register(ModesRegistry.onDidChangeLanguages((m) => {
-				this._initializeFromRegistry();
-			}));
+			this._register(
+				ModesRegistry.onDidChangeLanguages((m) => {
+					this._initializeFromRegistry();
+				}),
+			);
 		}
 	}
 
@@ -115,7 +134,9 @@ export class LanguagesRegistry extends Disposable {
 		this._lowercaseNameMap = {};
 
 		clearPlatformLanguageAssociations();
-		const desc = (<ILanguageExtensionPoint[]>[]).concat(ModesRegistry.getLanguages()).concat(this._dynamicLanguages);
+		const desc = (<ILanguageExtensionPoint[]>[])
+			.concat(ModesRegistry.getLanguages())
+			.concat(this._dynamicLanguages);
 		this._registerLanguages(desc);
 	}
 
@@ -124,7 +145,6 @@ export class LanguagesRegistry extends Disposable {
 	}
 
 	_registerLanguages(desc: ILanguageExtensionPoint[]): void {
-
 		for (const d of desc) {
 			this._registerLanguage(d);
 		}
@@ -139,14 +159,17 @@ export class LanguagesRegistry extends Disposable {
 				this._nameMap[language.name] = language.identifier;
 			}
 			language.aliases.forEach((alias) => {
-				this._lowercaseNameMap[alias.toLowerCase()] = language.identifier;
+				this._lowercaseNameMap[alias.toLowerCase()] =
+					language.identifier;
 			});
 			language.mimetypes.forEach((mimetype) => {
 				this._mimeTypesMap[mimetype] = language.identifier;
 			});
 		});
 
-		Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerOverrideIdentifiers(this.getRegisteredLanguageIds());
+		Registry.as<IConfigurationRegistry>(
+			Extensions.Configuration,
+		).registerOverrideIdentifiers(this.getRegisteredLanguageIds());
 
 		this._onDidChange.fire();
 	}
@@ -167,7 +190,7 @@ export class LanguagesRegistry extends Disposable {
 				extensions: [],
 				filenames: [],
 				configurationFiles: [],
-				icons: []
+				icons: [],
 			};
 			this._languages[langId] = resolvedLanguage;
 		}
@@ -175,7 +198,10 @@ export class LanguagesRegistry extends Disposable {
 		this._mergeLanguage(resolvedLanguage, lang);
 	}
 
-	private _mergeLanguage(resolvedLanguage: IResolvedLanguage, lang: ILanguageExtensionPoint): void {
+	private _mergeLanguage(
+		resolvedLanguage: IResolvedLanguage,
+		lang: ILanguageExtensionPoint,
+	): void {
 		const langId = lang.id;
 
 		let primaryMime: string | null = null;
@@ -193,48 +219,77 @@ export class LanguagesRegistry extends Disposable {
 		if (Array.isArray(lang.extensions)) {
 			if (lang.configuration) {
 				// insert first as this appears to be the 'primary' language definition
-				resolvedLanguage.extensions = lang.extensions.concat(resolvedLanguage.extensions);
+				resolvedLanguage.extensions = lang.extensions.concat(
+					resolvedLanguage.extensions,
+				);
 			} else {
-				resolvedLanguage.extensions = resolvedLanguage.extensions.concat(lang.extensions);
+				resolvedLanguage.extensions =
+					resolvedLanguage.extensions.concat(lang.extensions);
 			}
 			for (const extension of lang.extensions) {
-				registerPlatformLanguageAssociation({ id: langId, mime: primaryMime, extension: extension }, this._warnOnOverwrite);
+				registerPlatformLanguageAssociation(
+					{ id: langId, mime: primaryMime, extension: extension },
+					this._warnOnOverwrite,
+				);
 			}
 		}
 
 		if (Array.isArray(lang.filenames)) {
 			for (const filename of lang.filenames) {
-				registerPlatformLanguageAssociation({ id: langId, mime: primaryMime, filename: filename }, this._warnOnOverwrite);
+				registerPlatformLanguageAssociation(
+					{ id: langId, mime: primaryMime, filename: filename },
+					this._warnOnOverwrite,
+				);
 				resolvedLanguage.filenames.push(filename);
 			}
 		}
 
 		if (Array.isArray(lang.filenamePatterns)) {
 			for (const filenamePattern of lang.filenamePatterns) {
-				registerPlatformLanguageAssociation({ id: langId, mime: primaryMime, filepattern: filenamePattern }, this._warnOnOverwrite);
+				registerPlatformLanguageAssociation(
+					{
+						id: langId,
+						mime: primaryMime,
+						filepattern: filenamePattern,
+					},
+					this._warnOnOverwrite,
+				);
 			}
 		}
 
-		if (typeof lang.firstLine === 'string' && lang.firstLine.length > 0) {
+		if (typeof lang.firstLine === "string" && lang.firstLine.length > 0) {
 			let firstLineRegexStr = lang.firstLine;
-			if (firstLineRegexStr.charAt(0) !== '^') {
-				firstLineRegexStr = '^' + firstLineRegexStr;
+			if (firstLineRegexStr.charAt(0) !== "^") {
+				firstLineRegexStr = "^" + firstLineRegexStr;
 			}
 			try {
 				const firstLineRegex = new RegExp(firstLineRegexStr);
 				if (!regExpLeadsToEndlessLoop(firstLineRegex)) {
-					registerPlatformLanguageAssociation({ id: langId, mime: primaryMime, firstline: firstLineRegex }, this._warnOnOverwrite);
+					registerPlatformLanguageAssociation(
+						{
+							id: langId,
+							mime: primaryMime,
+							firstline: firstLineRegex,
+						},
+						this._warnOnOverwrite,
+					);
 				}
 			} catch (err) {
 				// Most likely, the regex was bad
-				console.warn(`[${lang.id}]: Invalid regular expression \`${firstLineRegexStr}\`: `, err);
+				console.warn(
+					`[${lang.id}]: Invalid regular expression \`${firstLineRegexStr}\`: `,
+					err,
+				);
 			}
 		}
 
 		resolvedLanguage.aliases.push(langId);
 
 		let langAliases: Array<string | null> | null = null;
-		if (typeof lang.aliases !== 'undefined' && Array.isArray(lang.aliases)) {
+		if (
+			typeof lang.aliases !== "undefined" &&
+			Array.isArray(lang.aliases)
+		) {
 			if (lang.aliases.length === 0) {
 				// signal that this language should not get a name
 				langAliases = [null];
@@ -252,11 +307,12 @@ export class LanguagesRegistry extends Disposable {
 			}
 		}
 
-		const containsAliases = (langAliases !== null && langAliases.length > 0);
+		const containsAliases = langAliases !== null && langAliases.length > 0;
 		if (containsAliases && langAliases![0] === null) {
 			// signal that this language should not get a name
 		} else {
-			const bestName = (containsAliases ? langAliases![0] : null) || langId;
+			const bestName =
+				(containsAliases ? langAliases![0] : null) || langId;
 			if (containsAliases || !resolvedLanguage.name) {
 				resolvedLanguage.name = bestName;
 			}
@@ -271,7 +327,9 @@ export class LanguagesRegistry extends Disposable {
 		}
 	}
 
-	public isRegisteredLanguageId(languageId: string | null | undefined): boolean {
+	public isRegisteredLanguageId(
+		languageId: string | null | undefined,
+	): boolean {
 		if (!languageId) {
 			return false;
 		}
@@ -288,11 +346,13 @@ export class LanguagesRegistry extends Disposable {
 			if (hasOwnProperty.call(this._nameMap, languageName)) {
 				result.push({
 					languageName: languageName,
-					languageId: this._nameMap[languageName]
+					languageId: this._nameMap[languageName],
 				});
 			}
 		}
-		result.sort((a, b) => compareIgnoreCase(a.languageName, b.languageName));
+		result.sort((a, b) =>
+			compareIgnoreCase(a.languageName, b.languageName),
+		);
 		return result;
 	}
 
@@ -308,7 +368,7 @@ export class LanguagesRegistry extends Disposable {
 			return null;
 		}
 		const language = this._languages[languageId];
-		return (language.mimetypes[0] || null);
+		return language.mimetypes[0] || null;
 	}
 
 	public getExtensions(languageId: string): ReadonlyArray<string> {
@@ -330,7 +390,7 @@ export class LanguagesRegistry extends Disposable {
 			return null;
 		}
 		const language = this._languages[languageId];
-		return (language.icons[0] || null);
+		return language.icons[0] || null;
 	}
 
 	public getConfigurationFiles(languageId: string): ReadonlyArray<URI> {
@@ -348,7 +408,9 @@ export class LanguagesRegistry extends Disposable {
 		return this._lowercaseNameMap[languageNameLower];
 	}
 
-	public getLanguageIdByMimeType(mimeType: string | null | undefined): string | null {
+	public getLanguageIdByMimeType(
+		mimeType: string | null | undefined,
+	): string | null {
 		if (!mimeType) {
 			return null;
 		}
@@ -358,7 +420,10 @@ export class LanguagesRegistry extends Disposable {
 		return null;
 	}
 
-	public guessLanguageIdByFilepathOrFirstLine(resource: URI | null, firstLine?: string): string[] {
+	public guessLanguageIdByFilepathOrFirstLine(
+		resource: URI | null,
+		firstLine?: string,
+	): string[] {
 		if (!resource && !firstLine) {
 			return [];
 		}

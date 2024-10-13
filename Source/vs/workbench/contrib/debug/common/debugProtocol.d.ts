@@ -7,7 +7,6 @@
 	Auto-generated from json schema. Do not edit manually.
 */
 declare module DebugProtocol {
-
 	/** Base class of requests, responses, and events. */
 	interface ProtocolMessage {
 		/** Sequence number of the message (also known as message ID). The `seq` for the first message sent by a client or debug adapter is 1, and for each subsequent message is 1 greater than the previous message sent by that actor. `seq` can be used to order requests, responses, and events, and to associate requests with their corresponding responses. For protocol messages of type `request` the sequence number can be used to cancel the request. */
@@ -15,7 +14,7 @@ declare module DebugProtocol {
 		/** Message type.
 			Values: 'request', 'response', 'event', etc.
 		*/
-		type: 'request' | 'response' | 'event' | string;
+		type: "request" | "response" | "event" | string;
 	}
 
 	/** A client or debug adapter initiated request. */
@@ -56,7 +55,7 @@ declare module DebugProtocol {
 			'notStopped': the request may be retried once the adapter is in a 'stopped' state.
 			etc.
 		*/
-		message?: 'cancelled' | 'notStopped' | string;
+		message?: "cancelled" | "notStopped" | string;
 		/** Contains request result if success is true and error details if success is false. */
 		body?: any;
 	}
@@ -99,8 +98,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `cancel` request. This is just an acknowledgement, so no body field is required. */
-	interface CancelResponse extends Response {
-	}
+	interface CancelResponse extends Response {}
 
 	/** Event message for 'initialized' event type.
 		This event indicates that the debug adapter is ready to accept configuration requests (e.g. `setBreakpoints`, `setExceptionBreakpoints`).
@@ -128,7 +126,17 @@ declare module DebugProtocol {
 				For backward compatibility this string is shown in the UI if the `description` attribute is missing (but it must not be translated).
 				Values: 'step', 'breakpoint', 'exception', 'pause', 'entry', 'goto', 'function breakpoint', 'data breakpoint', 'instruction breakpoint', etc.
 			*/
-			reason: 'step' | 'breakpoint' | 'exception' | 'pause' | 'entry' | 'goto' | 'function breakpoint' | 'data breakpoint' | 'instruction breakpoint' | string;
+			reason:
+				| "step"
+				| "breakpoint"
+				| "exception"
+				| "pause"
+				| "entry"
+				| "goto"
+				| "function breakpoint"
+				| "data breakpoint"
+				| "instruction breakpoint"
+				| string;
 			/** The full reason for the event, e.g. 'Paused on exception'. This string is shown in the UI as is and can be translated. */
 			description?: string;
 			/** The thread which was stopped. */
@@ -199,7 +207,7 @@ declare module DebugProtocol {
 			/** The reason for the event.
 				Values: 'started', 'exited', etc.
 			*/
-			reason: 'started' | 'exited' | string;
+			reason: "started" | "exited" | string;
 			/** The identifier of the thread. */
 			threadId: number;
 		};
@@ -220,7 +228,13 @@ declare module DebugProtocol {
 				'telemetry': Send the output to telemetry instead of showing it to the user.
 				etc.
 			*/
-			category?: 'console' | 'important' | 'stdout' | 'stderr' | 'telemetry' | string;
+			category?:
+				| "console"
+				| "important"
+				| "stdout"
+				| "stderr"
+				| "telemetry"
+				| string;
 			/** The output to report.
 
 				ANSI escape sequences may be used to inflience text color and styling if `supportsANSIStyling` is present in both the adapter's `Capabilities` and the client's `InitializeRequestArguments`. A client may strip any unrecognized ANSI sequences.
@@ -236,7 +250,7 @@ declare module DebugProtocol {
 				'end': End the current group and decrease the indentation of subsequent output events.
 				A non-empty `output` attribute is shown as the unindented end of the group.
 			*/
-			group?: 'start' | 'startCollapsed' | 'end';
+			group?: "start" | "startCollapsed" | "end";
 			/** If an attribute `variablesReference` exists and its value is > 0, the output contains objects which can be retrieved by passing `variablesReference` to the `variables` request as long as execution remains suspended. See 'Lifetime of Object References' in the Overview section for details. */
 			variablesReference?: number;
 			/** The source location where the output was produced. */
@@ -264,7 +278,7 @@ declare module DebugProtocol {
 			/** The reason for the event.
 				Values: 'changed', 'new', 'removed', etc.
 			*/
-			reason: 'changed' | 'new' | 'removed' | string;
+			reason: "changed" | "new" | "removed" | string;
 			/** The `id` attribute is used to find the target breakpoint, the other attributes are used as the new values. */
 			breakpoint: Breakpoint;
 		};
@@ -277,7 +291,7 @@ declare module DebugProtocol {
 		// event: 'module';
 		body: {
 			/** The reason for the event. */
-			reason: 'new' | 'changed' | 'removed';
+			reason: "new" | "changed" | "removed";
 			/** The new, changed, or removed module. In case of `removed` only the module id is used. */
 			module: Module;
 		};
@@ -290,7 +304,7 @@ declare module DebugProtocol {
 		// event: 'loadedSource';
 		body: {
 			/** The reason for the event. */
-			reason: 'new' | 'changed' | 'removed';
+			reason: "new" | "changed" | "removed";
 			/** The new, changed, or removed source. */
 			source: Source;
 		};
@@ -313,7 +327,7 @@ declare module DebugProtocol {
 				'attach': Debugger attached to an existing process.
 				'attachForSuspendedLaunch': A project launcher component has launched a new process in a suspended state and then asked the debugger to attach.
 			*/
-			startMethod?: 'launch' | 'attach' | 'attachForSuspendedLaunch';
+			startMethod?: "launch" | "attach" | "attachForSuspendedLaunch";
 			/** The size of a pointer or address for this process, in bits. This value may be used by clients when formatting addresses for display. */
 			pointerSize?: number;
 		};
@@ -443,7 +457,7 @@ declare module DebugProtocol {
 	/** Arguments for `runInTerminal` request. */
 	interface RunInTerminalRequestArguments {
 		/** What kind of terminal to launch. Defaults to `integrated` if not specified. */
-		kind?: 'integrated' | 'external';
+		kind?: "integrated" | "external";
 		/** Title of the terminal. */
 		title?: string;
 		/** Working directory for the command. For non-empty, valid paths this typically results in execution of a change directory command. */
@@ -451,7 +465,7 @@ declare module DebugProtocol {
 		/** List of arguments. The first argument is the command to run. */
 		args: string[];
 		/** Environment key-value pairs that are added to or removed from the default environment. */
-		env?: { [key: string]: string | null; };
+		env?: { [key: string]: string | null };
 		/** This property should only be set if the corresponding capability `supportsArgsCanBeInterpretedByShell` is true. If the client uses an intermediary shell to launch the application, then the client must not attempt to escape characters with special meanings for the shell. The user is fully responsible for escaping as needed and that arguments using special characters may not be portable across shells. */
 		argsCanBeInterpretedByShell?: boolean;
 	}
@@ -479,14 +493,13 @@ declare module DebugProtocol {
 	/** Arguments for `startDebugging` request. */
 	interface StartDebuggingRequestArguments {
 		/** Arguments passed to the new debug session. The arguments must only contain properties understood by the `launch` or `attach` requests of the debug adapter and they must not contain any client-specific properties (e.g. `type`) or client-specific features (e.g. substitutable 'variables'). */
-		configuration: { [key: string]: any; };
+		configuration: { [key: string]: any };
 		/** Indicates whether the new debug session should be started with a `launch` or `attach` request. */
-		request: 'launch' | 'attach';
+		request: "launch" | "attach";
 	}
 
 	/** Response to `startDebugging` request. This is just an acknowledgement, so no body field is required. */
-	interface StartDebuggingResponse extends Response {
-	}
+	interface StartDebuggingResponse extends Response {}
 
 	/** Initialize request; value of command field is 'initialize'.
 		The `initialize` request is sent as the first request from the client to the debug adapter in order to configure it with client capabilities and to retrieve capabilities from the debug adapter.
@@ -516,7 +529,7 @@ declare module DebugProtocol {
 		/** Determines in what format paths are specified. The default is `path`, which is the native format.
 			Values: 'path', 'uri', etc.
 		*/
-		pathFormat?: 'path' | 'uri' | string;
+		pathFormat?: "path" | "uri" | string;
 		/** Client supports the `type` attribute for variables. */
 		supportsVariableType?: boolean;
 		/** Client supports the paging of variables. */
@@ -556,12 +569,10 @@ declare module DebugProtocol {
 	}
 
 	/** Arguments for `configurationDone` request. */
-	interface ConfigurationDoneArguments {
-	}
+	interface ConfigurationDoneArguments {}
 
 	/** Response to `configurationDone` request. This is just an acknowledgement, so no body field is required. */
-	interface ConfigurationDoneResponse extends Response {
-	}
+	interface ConfigurationDoneResponse extends Response {}
 
 	/** Launch request; value of command field is 'launch'.
 		This launch request is sent from the client to the debug adapter to start the debuggee with or without debugging (if `noDebug` is true).
@@ -584,8 +595,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `launch` request. This is just an acknowledgement, so no body field is required. */
-	interface LaunchResponse extends Response {
-	}
+	interface LaunchResponse extends Response {}
 
 	/** Attach request; value of command field is 'attach'.
 		The `attach` request is sent from the client to the debug adapter to attach to a debuggee that is already running.
@@ -606,8 +616,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `attach` request. This is just an acknowledgement, so no body field is required. */
-	interface AttachResponse extends Response {
-	}
+	interface AttachResponse extends Response {}
 
 	/** Restart request; value of command field is 'restart'.
 		Restarts a debug session. Clients should only call this request if the corresponding capability `supportsRestartRequest` is true.
@@ -625,8 +634,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `restart` request. This is just an acknowledgement, so no body field is required. */
-	interface RestartResponse extends Response {
-	}
+	interface RestartResponse extends Response {}
 
 	/** Disconnect request; value of command field is 'disconnect'.
 		The `disconnect` request asks the debug adapter to disconnect from the debuggee (thus ending the debug session) and then to shut down itself (the debug adapter).
@@ -655,8 +663,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `disconnect` request. This is just an acknowledgement, so no body field is required. */
-	interface DisconnectResponse extends Response {
-	}
+	interface DisconnectResponse extends Response {}
 
 	/** Terminate request; value of command field is 'terminate'.
 		The `terminate` request is sent from the client to the debug adapter in order to shut down the debuggee gracefully. Clients should only call this request if the capability `supportsTerminateRequest` is true.
@@ -676,8 +683,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `terminate` request. This is just an acknowledgement, so no body field is required. */
-	interface TerminateResponse extends Response {
-	}
+	interface TerminateResponse extends Response {}
 
 	/** BreakpointLocations request; value of command field is 'breakpointLocations'.
 		The `breakpointLocations` request returns all possible locations for source breakpoints in a given range.
@@ -956,8 +962,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `next` request. This is just an acknowledgement, so no body field is required. */
-	interface NextResponse extends Response {
-	}
+	interface NextResponse extends Response {}
 
 	/** StepIn request; value of command field is 'stepIn'.
 		The request resumes the given thread to step into a function/method and allows all other threads to run freely by resuming them.
@@ -986,8 +991,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `stepIn` request. This is just an acknowledgement, so no body field is required. */
-	interface StepInResponse extends Response {
-	}
+	interface StepInResponse extends Response {}
 
 	/** StepOut request; value of command field is 'stepOut'.
 		The request resumes the given thread to step out (return) from a function/method and allows all other threads to run freely by resuming them.
@@ -1010,8 +1014,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `stepOut` request. This is just an acknowledgement, so no body field is required. */
-	interface StepOutResponse extends Response {
-	}
+	interface StepOutResponse extends Response {}
 
 	/** StepBack request; value of command field is 'stepBack'.
 		The request executes one backward step (in the given granularity) for the specified thread and allows all other threads to run backward freely by resuming them.
@@ -1035,8 +1038,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `stepBack` request. This is just an acknowledgement, so no body field is required. */
-	interface StepBackResponse extends Response {
-	}
+	interface StepBackResponse extends Response {}
 
 	/** ReverseContinue request; value of command field is 'reverseContinue'.
 		The request resumes backward execution of all threads. If the debug adapter supports single thread execution (see capability `supportsSingleThreadExecutionRequests`), setting the `singleThread` argument to true resumes only the specified thread. If not all threads were resumed, the `allThreadsContinued` attribute of the response should be set to false.
@@ -1056,8 +1058,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `reverseContinue` request. This is just an acknowledgement, so no body field is required. */
-	interface ReverseContinueResponse extends Response {
-	}
+	interface ReverseContinueResponse extends Response {}
 
 	/** RestartFrame request; value of command field is 'restartFrame'.
 		The request restarts execution of the specified stack frame.
@@ -1076,8 +1077,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `restartFrame` request. This is just an acknowledgement, so no body field is required. */
-	interface RestartFrameResponse extends Response {
-	}
+	interface RestartFrameResponse extends Response {}
 
 	/** Goto request; value of command field is 'goto'.
 		The request sets the location where the debuggee will continue to run.
@@ -1100,8 +1100,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `goto` request. This is just an acknowledgement, so no body field is required. */
-	interface GotoResponse extends Response {
-	}
+	interface GotoResponse extends Response {}
 
 	/** Pause request; value of command field is 'pause'.
 		The request suspends the debuggee.
@@ -1119,8 +1118,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `pause` request. This is just an acknowledgement, so no body field is required. */
-	interface PauseResponse extends Response {
-	}
+	interface PauseResponse extends Response {}
 
 	/** StackTrace request; value of command field is 'stackTrace'.
 		The request returns a stacktrace from the current execution state of a given thread.
@@ -1193,7 +1191,7 @@ declare module DebugProtocol {
 		/** The variable for which to retrieve its children. The `variablesReference` must have been obtained in the current suspended state. See 'Lifetime of Object References' in the Overview section for details. */
 		variablesReference: number;
 		/** Filter to limit the child variables to either named or indexed. If omitted, both types are fetched. */
-		filter?: 'indexed' | 'named';
+		filter?: "indexed" | "named";
 		/** The index of the first variable to return; if omitted children start at 0.
 			The attribute is only honored by a debug adapter if the corresponding capability `supportsVariablePaging` is true.
 		*/
@@ -1331,8 +1329,7 @@ declare module DebugProtocol {
 	}
 
 	/** Response to `terminateThreads` request. This is just an acknowledgement, no body field is required. */
-	interface TerminateThreadsResponse extends Response {
-	}
+	interface TerminateThreadsResponse extends Response {}
 
 	/** Modules request; value of command field is 'modules'.
 		Modules can be retrieved from the debug adapter with this request which can either return all modules or a range of modules to support paging.
@@ -1371,8 +1368,7 @@ declare module DebugProtocol {
 	}
 
 	/** Arguments for `loadedSources` request. */
-	interface LoadedSourcesArguments {
-	}
+	interface LoadedSourcesArguments {}
 
 	/** Response to `loadedSources` request. */
 	interface LoadedSourcesResponse extends Response {
@@ -1417,7 +1413,13 @@ declare module DebugProtocol {
 			'variables': evaluate is called from a variables view context.
 			etc.
 		*/
-		context?: 'watch' | 'repl' | 'hover' | 'clipboard' | 'variables' | string;
+		context?:
+			| "watch"
+			| "repl"
+			| "hover"
+			| "clipboard"
+			| "variables"
+			| string;
 		/** Specifies details on how to format the result.
 			The attribute is only honored by a debug adapter if the corresponding capability `supportsValueFormattingOptions` is true.
 		*/
@@ -1876,7 +1878,7 @@ declare module DebugProtocol {
 		*/
 		format: string;
 		/** An object used as a dictionary for looking up the variables in the format string. */
-		variables?: { [key: string]: string; };
+		variables?: { [key: string]: string };
 		/** If true send to telemetry. */
 		sendTelemetry?: boolean;
 		/** If true show user. */
@@ -1930,7 +1932,7 @@ declare module DebugProtocol {
 		/** Format to use for the rendered values in this column. TBD how the format strings looks like. */
 		format?: string;
 		/** Datatype of values in this column. Defaults to `string` if not specified. */
-		type?: 'string' | 'number' | 'boolean' | 'unixTimestampUTC';
+		type?: "string" | "number" | "boolean" | "unixTimestampUTC";
 		/** Width of this column in characters (hint only). */
 		width?: number;
 	}
@@ -1963,7 +1965,7 @@ declare module DebugProtocol {
 		/** A hint for how to present the source in the UI.
 			A value of `deemphasize` can be used to indicate that the source is not available or that it is skipped on stepping.
 		*/
-		presentationHint?: 'normal' | 'emphasize' | 'deemphasize';
+		presentationHint?: "normal" | "emphasize" | "deemphasize";
 		/** The origin of this source. For example, 'internal module', 'inlined content from source map', etc. */
 		origin?: string;
 		/** A list of sources that are related to this source. These may be the source that generated this source. */
@@ -2003,7 +2005,7 @@ declare module DebugProtocol {
 		/** A hint for how to present this frame in the UI.
 			A value of `label` can be used to indicate that the frame is an artificial frame that is used as a visual label or separator. A value of `subtle` can be used to change the appearance of a frame in a 'subtle' way.
 		*/
-		presentationHint?: 'normal' | 'label' | 'subtle';
+		presentationHint?: "normal" | "label" | "subtle";
 	}
 
 	/** A `Scope` is a named container for variables. Optionally a scope can map to a source or a range within a source. */
@@ -2018,7 +2020,12 @@ declare module DebugProtocol {
 			'returnValue': Scope contains one or more return values.
 			etc.
 		*/
-		presentationHint?: 'arguments' | 'locals' | 'registers' | 'returnValue' | string;
+		presentationHint?:
+			| "arguments"
+			| "locals"
+			| "registers"
+			| "returnValue"
+			| string;
 		/** The variables of this scope can be retrieved by passing the value of `variablesReference` to the `variables` request as long as execution remains suspended. See 'Lifetime of Object References' in the Overview section for details. */
 		variablesReference: number;
 		/** The number of named variables in this scope.
@@ -2112,7 +2119,19 @@ declare module DebugProtocol {
 			'dataBreakpoint': Deprecated: Indicates that a data breakpoint is registered for the object. The `hasDataBreakpoint` attribute should generally be used instead.
 			etc.
 		*/
-		kind?: 'property' | 'method' | 'class' | 'data' | 'event' | 'baseClass' | 'innerClass' | 'interface' | 'mostDerivedClass' | 'virtual' | 'dataBreakpoint' | string;
+		kind?:
+			| "property"
+			| "method"
+			| "class"
+			| "data"
+			| "event"
+			| "baseClass"
+			| "innerClass"
+			| "interface"
+			| "mostDerivedClass"
+			| "virtual"
+			| "dataBreakpoint"
+			| string;
 		/** Set of attributes represented as an array of strings. Before introducing additional values, try to use the listed values.
 			Values:
 			'static': Indicates that the object is static.
@@ -2125,11 +2144,27 @@ declare module DebugProtocol {
 			'hasDataBreakpoint': Indicates that the object has its value tracked by a data breakpoint.
 			etc.
 		*/
-		attributes?: ('static' | 'constant' | 'readOnly' | 'rawString' | 'hasObjectId' | 'canHaveObjectId' | 'hasSideEffects' | 'hasDataBreakpoint' | string)[];
+		attributes?: (
+			| "static"
+			| "constant"
+			| "readOnly"
+			| "rawString"
+			| "hasObjectId"
+			| "canHaveObjectId"
+			| "hasSideEffects"
+			| "hasDataBreakpoint"
+			| string
+		)[];
 		/** Visibility of variable. Before introducing additional values, try to use the listed values.
 			Values: 'public', 'private', 'protected', 'internal', 'final', etc.
 		*/
-		visibility?: 'public' | 'private' | 'protected' | 'internal' | 'final' | string;
+		visibility?:
+			| "public"
+			| "private"
+			| "protected"
+			| "internal"
+			| "final"
+			| string;
 		/** If true, clients can present the variable with a UI that supports a specific gesture to trigger its evaluation.
 			This mechanism can be used for properties that require executing code when retrieving their value and where the code execution can be expensive and/or produce side-effects. A typical example are properties based on a getter function.
 			Please note that in addition to the `lazy` flag, the variable's `variablesReference` is expected to refer to a variable that will provide the value through another `variable` request.
@@ -2191,7 +2226,7 @@ declare module DebugProtocol {
 	}
 
 	/** This enumeration defines all possible access types for data breakpoints. */
-	type DataBreakpointAccessType = 'read' | 'write' | 'readWrite';
+	type DataBreakpointAccessType = "read" | "write" | "readWrite";
 
 	/** Properties of a data breakpoint passed to the `setDataBreakpoints` request. */
 	interface DataBreakpoint {
@@ -2263,7 +2298,7 @@ declare module DebugProtocol {
 			- `pending`: Indicates a breakpoint might be verified in the future, but the adapter cannot verify it in the current state.
 			 - `failed`: Indicates a breakpoint was not able to be verified, and the adapter does not believe it can be verified without intervention.
 		*/
-		reason?: 'pending' | 'failed';
+		reason?: "pending" | "failed";
 	}
 
 	/** The granularity of one 'step' in the stepping requests `next`, `stepIn`, `stepOut`, and `stepBack`.
@@ -2273,7 +2308,7 @@ declare module DebugProtocol {
 		'line': The step should allow the program to run until the current source line has executed.
 		'instruction': The step should allow one instruction to execute (e.g. one x86 instruction).
 	*/
-	type SteppingGranularity = 'statement' | 'line' | 'instruction';
+	type SteppingGranularity = "statement" | "line" | "instruction";
 
 	/** A `StepInTarget` can be used in the `stepIn` request and determines into which single target the `stepIn` request should step. */
 	interface StepInTarget {
@@ -2334,10 +2369,29 @@ declare module DebugProtocol {
 	}
 
 	/** Some predefined types for the CompletionItem. Please note that not all clients have specific icons for all of them. */
-	type CompletionItemType = 'method' | 'function' | 'constructor' | 'field' | 'variable' | 'class' | 'interface' | 'module' | 'property' | 'unit' | 'value' | 'enum' | 'keyword' | 'snippet' | 'text' | 'color' | 'file' | 'reference' | 'customcolor';
+	type CompletionItemType =
+		| "method"
+		| "function"
+		| "constructor"
+		| "field"
+		| "variable"
+		| "class"
+		| "interface"
+		| "module"
+		| "property"
+		| "unit"
+		| "value"
+		| "enum"
+		| "keyword"
+		| "snippet"
+		| "text"
+		| "color"
+		| "file"
+		| "reference"
+		| "customcolor";
 
 	/** Names of checksum algorithms that may be supported by a debug adapter. */
-	type ChecksumAlgorithm = 'MD5' | 'SHA1' | 'SHA256' | 'timestamp';
+	type ChecksumAlgorithm = "MD5" | "SHA1" | "SHA256" | "timestamp";
 
 	/** The checksum of an item calculated by the specified algorithm. */
 	interface Checksum {
@@ -2399,7 +2453,11 @@ declare module DebugProtocol {
 		unhandled: breaks when exception unhandled,
 		userUnhandled: breaks if the exception is not handled by user code.
 	*/
-	type ExceptionBreakMode = 'never' | 'always' | 'unhandled' | 'userUnhandled';
+	type ExceptionBreakMode =
+		| "never"
+		| "always"
+		| "unhandled"
+		| "userUnhandled";
 
 	/** An `ExceptionPathSegment` represents a segment in a path that is used to match leafs or nodes in a tree of exceptions.
 		If a segment consists of more than one name, it matches the names provided if `negate` is false or missing, or it matches anything except the names provided if `negate` is true.
@@ -2454,7 +2512,7 @@ declare module DebugProtocol {
 
 			A value of `invalid` may be used to indicate this instruction is 'filler' and cannot be reached by the program. For example, unreadable memory addresses may be presented is 'invalid.'
 		*/
-		presentationHint?: 'normal' | 'invalid';
+		presentationHint?: "normal" | "invalid";
 	}
 
 	/** Logical areas that can be invalidated by the `invalidated` event.
@@ -2465,7 +2523,7 @@ declare module DebugProtocol {
 		'variables': Previously fetched variable data has become invalid and needs to be refetched.
 		etc.
 	*/
-	type InvalidatedAreas = 'all' | 'stacks' | 'threads' | 'variables' | string;
+	type InvalidatedAreas = "all" | "stacks" | "threads" | "variables" | string;
 
 	/** A `BreakpointMode` is provided as a option when setting breakpoints on sources or instructions. */
 	interface BreakpointMode {
@@ -2487,6 +2545,10 @@ declare module DebugProtocol {
 		'instruction': In `InstructionBreakpoint`s
 		etc.
 	*/
-	type BreakpointModeApplicability = 'source' | 'exception' | 'data' | 'instruction' | string;
+	type BreakpointModeApplicability =
+		| "source"
+		| "exception"
+		| "data"
+		| "instruction"
+		| string;
 }
-

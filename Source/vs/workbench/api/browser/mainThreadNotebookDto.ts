@@ -3,29 +3,37 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as extHostProtocol from '../common/extHost.protocol.js';
-import * as notebookCommon from '../../contrib/notebook/common/notebookCommon.js';
-import { CellExecutionUpdateType } from '../../contrib/notebook/common/notebookExecutionService.js';
-import { ICellExecuteUpdate, ICellExecutionComplete } from '../../contrib/notebook/common/notebookExecutionStateService.js';
+import * as notebookCommon from "../../contrib/notebook/common/notebookCommon.js";
+import { CellExecutionUpdateType } from "../../contrib/notebook/common/notebookExecutionService.js";
+import {
+	ICellExecuteUpdate,
+	ICellExecutionComplete,
+} from "../../contrib/notebook/common/notebookExecutionStateService.js";
+import * as extHostProtocol from "../common/extHost.protocol.js";
 
 export namespace NotebookDto {
-
-	export function toNotebookOutputItemDto(item: notebookCommon.IOutputItemDto): extHostProtocol.NotebookOutputItemDto {
+	export function toNotebookOutputItemDto(
+		item: notebookCommon.IOutputItemDto,
+	): extHostProtocol.NotebookOutputItemDto {
 		return {
 			mime: item.mime,
-			valueBytes: item.data
+			valueBytes: item.data,
 		};
 	}
 
-	export function toNotebookOutputDto(output: notebookCommon.IOutputDto): extHostProtocol.NotebookOutputDto {
+	export function toNotebookOutputDto(
+		output: notebookCommon.IOutputDto,
+	): extHostProtocol.NotebookOutputDto {
 		return {
 			outputId: output.outputId,
 			metadata: output.metadata,
-			items: output.outputs.map(toNotebookOutputItemDto)
+			items: output.outputs.map(toNotebookOutputItemDto),
 		};
 	}
 
-	export function toNotebookCellDataDto(cell: notebookCommon.ICellDto2): extHostProtocol.NotebookCellDataDto {
+	export function toNotebookCellDataDto(
+		cell: notebookCommon.ICellDto2,
+	): extHostProtocol.NotebookCellDataDto {
 		return {
 			cellKind: cell.cellKind,
 			language: cell.language,
@@ -33,33 +41,41 @@ export namespace NotebookDto {
 			source: cell.source,
 			internalMetadata: cell.internalMetadata,
 			metadata: cell.metadata,
-			outputs: cell.outputs.map(toNotebookOutputDto)
+			outputs: cell.outputs.map(toNotebookOutputDto),
 		};
 	}
 
-	export function toNotebookDataDto(data: notebookCommon.NotebookData): extHostProtocol.NotebookDataDto {
+	export function toNotebookDataDto(
+		data: notebookCommon.NotebookData,
+	): extHostProtocol.NotebookDataDto {
 		return {
 			metadata: data.metadata,
-			cells: data.cells.map(toNotebookCellDataDto)
+			cells: data.cells.map(toNotebookCellDataDto),
 		};
 	}
 
-	export function fromNotebookOutputItemDto(item: extHostProtocol.NotebookOutputItemDto): notebookCommon.IOutputItemDto {
+	export function fromNotebookOutputItemDto(
+		item: extHostProtocol.NotebookOutputItemDto,
+	): notebookCommon.IOutputItemDto {
 		return {
 			mime: item.mime,
-			data: item.valueBytes
+			data: item.valueBytes,
 		};
 	}
 
-	export function fromNotebookOutputDto(output: extHostProtocol.NotebookOutputDto): notebookCommon.IOutputDto {
+	export function fromNotebookOutputDto(
+		output: extHostProtocol.NotebookOutputDto,
+	): notebookCommon.IOutputDto {
 		return {
 			outputId: output.outputId,
 			metadata: output.metadata,
-			outputs: output.items.map(fromNotebookOutputItemDto)
+			outputs: output.items.map(fromNotebookOutputItemDto),
 		};
 	}
 
-	export function fromNotebookCellDataDto(cell: extHostProtocol.NotebookCellDataDto): notebookCommon.ICellDto2 {
+	export function fromNotebookCellDataDto(
+		cell: extHostProtocol.NotebookCellDataDto,
+	): notebookCommon.ICellDto2 {
 		return {
 			cellKind: cell.cellKind,
 			language: cell.language,
@@ -67,18 +83,22 @@ export namespace NotebookDto {
 			source: cell.source,
 			outputs: cell.outputs.map(fromNotebookOutputDto),
 			metadata: cell.metadata,
-			internalMetadata: cell.internalMetadata
+			internalMetadata: cell.internalMetadata,
 		};
 	}
 
-	export function fromNotebookDataDto(data: extHostProtocol.NotebookDataDto): notebookCommon.NotebookData {
+	export function fromNotebookDataDto(
+		data: extHostProtocol.NotebookDataDto,
+	): notebookCommon.NotebookData {
 		return {
 			metadata: data.metadata,
-			cells: data.cells.map(fromNotebookCellDataDto)
+			cells: data.cells.map(fromNotebookCellDataDto),
 		};
 	}
 
-	export function toNotebookCellDto(cell: notebookCommon.ICell): extHostProtocol.NotebookCellDto {
+	export function toNotebookCellDto(
+		cell: notebookCommon.ICell,
+	): extHostProtocol.NotebookCellDto {
 		return {
 			handle: cell.handle,
 			uri: cell.uri,
@@ -92,37 +112,43 @@ export namespace NotebookDto {
 		};
 	}
 
-	export function fromCellExecuteUpdateDto(data: extHostProtocol.ICellExecuteUpdateDto): ICellExecuteUpdate {
+	export function fromCellExecuteUpdateDto(
+		data: extHostProtocol.ICellExecuteUpdateDto,
+	): ICellExecuteUpdate {
 		if (data.editType === CellExecutionUpdateType.Output) {
 			return {
 				editType: data.editType,
 				cellHandle: data.cellHandle,
 				append: data.append,
-				outputs: data.outputs.map(fromNotebookOutputDto)
+				outputs: data.outputs.map(fromNotebookOutputDto),
 			};
 		} else if (data.editType === CellExecutionUpdateType.OutputItems) {
 			return {
 				editType: data.editType,
 				append: data.append,
 				outputId: data.outputId,
-				items: data.items.map(fromNotebookOutputItemDto)
+				items: data.items.map(fromNotebookOutputItemDto),
 			};
 		} else {
 			return data;
 		}
 	}
 
-	export function fromCellExecuteCompleteDto(data: extHostProtocol.ICellExecutionCompleteDto): ICellExecutionComplete {
+	export function fromCellExecuteCompleteDto(
+		data: extHostProtocol.ICellExecutionCompleteDto,
+	): ICellExecutionComplete {
 		return data;
 	}
 
-	export function fromCellEditOperationDto(edit: extHostProtocol.ICellEditOperationDto): notebookCommon.ICellEditOperation {
+	export function fromCellEditOperationDto(
+		edit: extHostProtocol.ICellEditOperationDto,
+	): notebookCommon.ICellEditOperation {
 		if (edit.editType === notebookCommon.CellEditType.Replace) {
 			return {
 				editType: edit.editType,
 				index: edit.index,
 				count: edit.count,
-				cells: edit.cells.map(fromNotebookCellDataDto)
+				cells: edit.cells.map(fromNotebookCellDataDto),
 			};
 		} else {
 			return edit;

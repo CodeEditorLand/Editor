@@ -3,49 +3,77 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter } from '../../../../base/common/event.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
-import { mark } from '../../../../base/common/performance.js';
-import { URI } from '../../../../base/common/uri.js';
-import type { IPtyHostProcessReplayEvent, ISerializedCommandDetectionCapability } from '../../../../platform/terminal/common/capabilities/capabilities.js';
-import { ProcessPropertyType, type IProcessDataEvent, type IProcessProperty, type IProcessPropertyMap, type IProcessReadyEvent, type ITerminalChildProcess } from '../../../../platform/terminal/common/terminal.js';
+import { Emitter } from "../../../../base/common/event.js";
+import { Disposable } from "../../../../base/common/lifecycle.js";
+import { mark } from "../../../../base/common/performance.js";
+import { URI } from "../../../../base/common/uri.js";
+import type {
+	IPtyHostProcessReplayEvent,
+	ISerializedCommandDetectionCapability,
+} from "../../../../platform/terminal/common/capabilities/capabilities.js";
+import {
+	ProcessPropertyType,
+	type IProcessDataEvent,
+	type IProcessProperty,
+	type IProcessPropertyMap,
+	type IProcessReadyEvent,
+	type ITerminalChildProcess,
+} from "../../../../platform/terminal/common/terminal.js";
 
 /**
  * Responsible for establishing and maintaining a connection with an existing terminal process
  * created on the local pty host.
  */
-export abstract class BasePty extends Disposable implements Partial<ITerminalChildProcess> {
+export abstract class BasePty
+	extends Disposable
+	implements Partial<ITerminalChildProcess>
+{
 	protected readonly _properties: IProcessPropertyMap = {
-		cwd: '',
-		initialCwd: '',
+		cwd: "",
+		initialCwd: "",
 		fixedDimensions: { cols: undefined, rows: undefined },
-		title: '',
+		title: "",
 		shellType: undefined,
 		hasChildProcesses: true,
 		resolvedShellLaunchConfig: {},
 		overrideDimensions: undefined,
 		failedShellIntegrationActivation: false,
-		usedShellIntegrationInjection: undefined
+		usedShellIntegrationInjection: undefined,
 	};
-	protected readonly _lastDimensions: { cols: number; rows: number } = { cols: -1, rows: -1 };
+	protected readonly _lastDimensions: { cols: number; rows: number } = {
+		cols: -1,
+		rows: -1,
+	};
 	protected _inReplay = false;
 
-	protected readonly _onProcessData = this._register(new Emitter<IProcessDataEvent | string>());
+	protected readonly _onProcessData = this._register(
+		new Emitter<IProcessDataEvent | string>(),
+	);
 	readonly onProcessData = this._onProcessData.event;
-	protected readonly _onProcessReplayComplete = this._register(new Emitter<void>());
+	protected readonly _onProcessReplayComplete = this._register(
+		new Emitter<void>(),
+	);
 	readonly onProcessReplayComplete = this._onProcessReplayComplete.event;
-	protected readonly _onProcessReady = this._register(new Emitter<IProcessReadyEvent>());
+	protected readonly _onProcessReady = this._register(
+		new Emitter<IProcessReadyEvent>(),
+	);
 	readonly onProcessReady = this._onProcessReady.event;
-	protected readonly _onDidChangeProperty = this._register(new Emitter<IProcessProperty<any>>());
+	protected readonly _onDidChangeProperty = this._register(
+		new Emitter<IProcessProperty<any>>(),
+	);
 	readonly onDidChangeProperty = this._onDidChangeProperty.event;
-	protected readonly _onProcessExit = this._register(new Emitter<number | undefined>());
+	protected readonly _onProcessExit = this._register(
+		new Emitter<number | undefined>(),
+	);
 	readonly onProcessExit = this._onProcessExit.event;
-	protected readonly _onRestoreCommands = this._register(new Emitter<ISerializedCommandDetectionCapability>());
+	protected readonly _onRestoreCommands = this._register(
+		new Emitter<ISerializedCommandDetectionCapability>(),
+	);
 	readonly onRestoreCommands = this._onRestoreCommands.event;
 
 	constructor(
 		readonly id: number,
-		readonly shouldPersist: boolean
+		readonly shouldPersist: boolean,
 	) {
 		super();
 	}
@@ -76,7 +104,7 @@ export abstract class BasePty extends Disposable implements Partial<ITerminalChi
 				this._properties.initialCwd = value;
 				break;
 			case ProcessPropertyType.ResolvedShellLaunchConfig:
-				if (value.cwd && typeof value.cwd !== 'string') {
+				if (value.cwd && typeof value.cwd !== "string") {
 					value.cwd = URI.revive(value.cwd);
 				}
 		}
@@ -89,9 +117,19 @@ export abstract class BasePty extends Disposable implements Partial<ITerminalChi
 			for (const innerEvent of e.events) {
 				if (innerEvent.cols !== 0 || innerEvent.rows !== 0) {
 					// never override with 0x0 as that is a marker for an unknown initial size
-					this._onDidChangeProperty.fire({ type: ProcessPropertyType.OverrideDimensions, value: { cols: innerEvent.cols, rows: innerEvent.rows, forceExactSize: true } });
+					this._onDidChangeProperty.fire({
+						type: ProcessPropertyType.OverrideDimensions,
+						value: {
+							cols: innerEvent.cols,
+							rows: innerEvent.rows,
+							forceExactSize: true,
+						},
+					});
 				}
-				const e: IProcessDataEvent = { data: innerEvent.data, trackCommit: true };
+				const e: IProcessDataEvent = {
+					data: innerEvent.data,
+					trackCommit: true,
+				};
 				this._onProcessData.fire(e);
 				await e.writePromise;
 			}
@@ -104,7 +142,10 @@ export abstract class BasePty extends Disposable implements Partial<ITerminalChi
 		}
 
 		// remove size override
-		this._onDidChangeProperty.fire({ type: ProcessPropertyType.OverrideDimensions, value: undefined });
+		this._onDidChangeProperty.fire({
+			type: ProcessPropertyType.OverrideDimensions,
+			value: undefined,
+		});
 
 		mark(`code/terminal/didHandleReplay/${this.id}`);
 		this._onProcessReplayComplete.fire();

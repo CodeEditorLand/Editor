@@ -3,17 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import './media/severityIcon.css';
-import { Codicon } from '../../../base/common/codicons.js';
-import { ThemeIcon } from '../../../base/common/themables.js';
-import Severity from '../../../base/common/severity.js';
+import "./media/severityIcon.css";
+
+import { Codicon } from "../../../base/common/codicons.js";
+import Severity from "../../../base/common/severity.js";
+import { ThemeIcon } from "../../../base/common/themables.js";
 
 export namespace SeverityIcon {
-
 	export function className(severity: Severity): string {
 		switch (severity) {
 			case Severity.Ignore:
-				return 'severity-ignore ' + ThemeIcon.asClassName(Codicon.info);
+				return "severity-ignore " + ThemeIcon.asClassName(Codicon.info);
 			case Severity.Info:
 				return ThemeIcon.asClassName(Codicon.info);
 			case Severity.Warning:
@@ -21,7 +21,7 @@ export namespace SeverityIcon {
 			case Severity.Error:
 				return ThemeIcon.asClassName(Codicon.error);
 			default:
-				return '';
+				return "";
 		}
 	}
 }

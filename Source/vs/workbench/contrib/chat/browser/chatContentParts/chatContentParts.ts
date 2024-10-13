@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDisposable } from '../../../../../base/common/lifecycle.js';
-import { ChatTreeItem } from '../chat.js';
-import { IChatRendererContent } from '../../common/chatViewModel.js';
+import { IDisposable } from "../../../../../base/common/lifecycle.js";
+import { IChatRendererContent } from "../../common/chatViewModel.js";
+import { ChatTreeItem } from "../chat.js";
 
 export interface IChatContentPart extends IDisposable {
 	domNode: HTMLElement;
@@ -15,7 +15,11 @@ export interface IChatContentPart extends IDisposable {
 	 * Returns false if a rerender is needed.
 	 * followingContent is all the content that will be rendered after this content part (to support progress messages' behavior).
 	 */
-	hasSameContent(other: IChatRendererContent, followingContent: IChatRendererContent[], element: ChatTreeItem): boolean;
+	hasSameContent(
+		other: IChatRendererContent,
+		followingContent: IChatRendererContent[],
+		element: ChatTreeItem,
+	): boolean;
 }
 
 export interface IChatContentPartRenderContext {

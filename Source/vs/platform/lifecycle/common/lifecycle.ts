@@ -3,10 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { isThenable, Promises } from '../../../base/common/async.js';
+import { isThenable, Promises } from "../../../base/common/async.js";
 
 // Shared veto handling across main and renderer
-export function handleVetos(vetos: (boolean | Promise<boolean>)[], onError: (error: Error) => void): Promise<boolean /* veto */> {
+export function handleVetos(
+	vetos: (boolean | Promise<boolean>)[],
+	onError: (error: Error) => void,
+): Promise<boolean /* veto */> {
 	if (vetos.length === 0) {
 		return Promise.resolve(false);
 	}
@@ -15,21 +18,25 @@ export function handleVetos(vetos: (boolean | Promise<boolean>)[], onError: (err
 	let lazyValue = false;
 
 	for (const valueOrPromise of vetos) {
-
 		// veto, done
 		if (valueOrPromise === true) {
 			return Promise.resolve(true);
 		}
 
 		if (isThenable(valueOrPromise)) {
-			promises.push(valueOrPromise.then(value => {
-				if (value) {
-					lazyValue = true; // veto, done
-				}
-			}, err => {
-				onError(err); // error, treated like a veto, done
-				lazyValue = true;
-			}));
+			promises.push(
+				valueOrPromise.then(
+					(value) => {
+						if (value) {
+							lazyValue = true; // veto, done
+						}
+					},
+					(err) => {
+						onError(err); // error, treated like a veto, done
+						lazyValue = true;
+					},
+				),
+			);
 		}
 	}
 

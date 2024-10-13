@@ -3,22 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Range } from '../core/range.js';
-import { TrackedRangeStickiness, TrackedRangeStickiness as ActualTrackedRangeStickiness } from '../model.js';
-import { ModelDecorationOptions } from './textModel.js';
+import { Range } from "../core/range.js";
+import {
+	TrackedRangeStickiness as ActualTrackedRangeStickiness,
+	TrackedRangeStickiness,
+} from "../model.js";
+import { ModelDecorationOptions } from "./textModel.js";
 
 //
 // The red-black tree is based on the "Introduction to Algorithms" by Cormen, Leiserson and Rivest.
 //
 
 export const enum ClassName {
-	EditorHintDecoration = 'squiggly-hint',
-	EditorInfoDecoration = 'squiggly-info',
-	EditorWarningDecoration = 'squiggly-warning',
-	EditorErrorDecoration = 'squiggly-error',
-	EditorUnnecessaryDecoration = 'squiggly-unnecessary',
-	EditorUnnecessaryInlineDecoration = 'squiggly-inline-unnecessary',
-	EditorDeprecatedInlineDecoration = 'squiggly-inline-deprecated'
+	EditorHintDecoration = "squiggly-hint",
+	EditorInfoDecoration = "squiggly-info",
+	EditorWarningDecoration = "squiggly-warning",
+	EditorErrorDecoration = "squiggly-error",
+	EditorUnnecessaryDecoration = "squiggly-unnecessary",
+	EditorUnnecessaryInlineDecoration = "squiggly-inline-unnecessary",
+	EditorDeprecatedInlineDecoration = "squiggly-inline-deprecated",
 }
 
 export const enum NodeColor {
@@ -75,59 +78,83 @@ const enum Constants {
 }
 
 export function getNodeColor(node: IntervalNode): NodeColor {
-	return ((node.metadata & Constants.ColorMask) >>> Constants.ColorOffset);
+	return (node.metadata & Constants.ColorMask) >>> Constants.ColorOffset;
 }
 function setNodeColor(node: IntervalNode, color: NodeColor): void {
-	node.metadata = (
-		(node.metadata & Constants.ColorMaskInverse) | (color << Constants.ColorOffset)
-	);
+	node.metadata =
+		(node.metadata & Constants.ColorMaskInverse) |
+		(color << Constants.ColorOffset);
 }
 function getNodeIsVisited(node: IntervalNode): boolean {
-	return ((node.metadata & Constants.IsVisitedMask) >>> Constants.IsVisitedOffset) === 1;
+	return (
+		(node.metadata & Constants.IsVisitedMask) >>>
+			Constants.IsVisitedOffset ===
+		1
+	);
 }
 function setNodeIsVisited(node: IntervalNode, value: boolean): void {
-	node.metadata = (
-		(node.metadata & Constants.IsVisitedMaskInverse) | ((value ? 1 : 0) << Constants.IsVisitedOffset)
-	);
+	node.metadata =
+		(node.metadata & Constants.IsVisitedMaskInverse) |
+		((value ? 1 : 0) << Constants.IsVisitedOffset);
 }
 function getNodeIsForValidation(node: IntervalNode): boolean {
-	return ((node.metadata & Constants.IsForValidationMask) >>> Constants.IsForValidationOffset) === 1;
+	return (
+		(node.metadata & Constants.IsForValidationMask) >>>
+			Constants.IsForValidationOffset ===
+		1
+	);
 }
 function setNodeIsForValidation(node: IntervalNode, value: boolean): void {
-	node.metadata = (
-		(node.metadata & Constants.IsForValidationMaskInverse) | ((value ? 1 : 0) << Constants.IsForValidationOffset)
-	);
+	node.metadata =
+		(node.metadata & Constants.IsForValidationMaskInverse) |
+		((value ? 1 : 0) << Constants.IsForValidationOffset);
 }
 function getNodeIsInGlyphMargin(node: IntervalNode): boolean {
-	return ((node.metadata & Constants.IsMarginMask) >>> Constants.IsMarginOffset) === 1;
+	return (
+		(node.metadata & Constants.IsMarginMask) >>>
+			Constants.IsMarginOffset ===
+		1
+	);
 }
 function setNodeIsInGlyphMargin(node: IntervalNode, value: boolean): void {
-	node.metadata = (
-		(node.metadata & Constants.IsMarginMaskInverse) | ((value ? 1 : 0) << Constants.IsMarginOffset)
-	);
+	node.metadata =
+		(node.metadata & Constants.IsMarginMaskInverse) |
+		((value ? 1 : 0) << Constants.IsMarginOffset);
 }
 function getNodeStickiness(node: IntervalNode): TrackedRangeStickiness {
-	return ((node.metadata & Constants.StickinessMask) >>> Constants.StickinessOffset);
-}
-function _setNodeStickiness(node: IntervalNode, stickiness: TrackedRangeStickiness): void {
-	node.metadata = (
-		(node.metadata & Constants.StickinessMaskInverse) | (stickiness << Constants.StickinessOffset)
+	return (
+		(node.metadata & Constants.StickinessMask) >>>
+		Constants.StickinessOffset
 	);
+}
+function _setNodeStickiness(
+	node: IntervalNode,
+	stickiness: TrackedRangeStickiness,
+): void {
+	node.metadata =
+		(node.metadata & Constants.StickinessMaskInverse) |
+		(stickiness << Constants.StickinessOffset);
 }
 function getCollapseOnReplaceEdit(node: IntervalNode): boolean {
-	return ((node.metadata & Constants.CollapseOnReplaceEditMask) >>> Constants.CollapseOnReplaceEditOffset) === 1;
-}
-function setCollapseOnReplaceEdit(node: IntervalNode, value: boolean): void {
-	node.metadata = (
-		(node.metadata & Constants.CollapseOnReplaceEditMaskInverse) | ((value ? 1 : 0) << Constants.CollapseOnReplaceEditOffset)
+	return (
+		(node.metadata & Constants.CollapseOnReplaceEditMask) >>>
+			Constants.CollapseOnReplaceEditOffset ===
+		1
 	);
 }
-export function setNodeStickiness(node: IntervalNode, stickiness: ActualTrackedRangeStickiness): void {
+function setCollapseOnReplaceEdit(node: IntervalNode, value: boolean): void {
+	node.metadata =
+		(node.metadata & Constants.CollapseOnReplaceEditMaskInverse) |
+		((value ? 1 : 0) << Constants.CollapseOnReplaceEditOffset);
+}
+export function setNodeStickiness(
+	node: IntervalNode,
+	stickiness: ActualTrackedRangeStickiness,
+): void {
 	_setNodeStickiness(node, <number>stickiness);
 }
 
 export class IntervalNode {
-
 	/**
 	 * contains binary encoded information for color, visited, isForValidation and stickiness.
 	 */
@@ -170,7 +197,10 @@ export class IntervalNode {
 		this.options = null!;
 		setNodeIsForValidation(this, false);
 		setNodeIsInGlyphMargin(this, false);
-		_setNodeStickiness(this, TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges);
+		_setNodeStickiness(
+			this,
+			TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+		);
 		setCollapseOnReplaceEdit(this, false);
 
 		this.cachedVersionId = 0;
@@ -181,7 +211,12 @@ export class IntervalNode {
 		setNodeIsVisited(this, false);
 	}
 
-	public reset(versionId: number, start: number, end: number, range: Range): void {
+	public reset(
+		versionId: number,
+		start: number,
+		end: number,
+		range: Range,
+	): void {
 		this.start = start;
 		this.end = end;
 		this.maxEnd = end;
@@ -194,17 +229,25 @@ export class IntervalNode {
 	public setOptions(options: ModelDecorationOptions) {
 		this.options = options;
 		const className = this.options.className;
-		setNodeIsForValidation(this, (
-			className === ClassName.EditorErrorDecoration
-			|| className === ClassName.EditorWarningDecoration
-			|| className === ClassName.EditorInfoDecoration
-		));
-		setNodeIsInGlyphMargin(this, this.options.glyphMarginClassName !== null);
+		setNodeIsForValidation(
+			this,
+			className === ClassName.EditorErrorDecoration ||
+				className === ClassName.EditorWarningDecoration ||
+				className === ClassName.EditorInfoDecoration,
+		);
+		setNodeIsInGlyphMargin(
+			this,
+			this.options.glyphMarginClassName !== null,
+		);
 		_setNodeStickiness(this, <number>this.options.stickiness);
 		setCollapseOnReplaceEdit(this, this.options.collapseOnReplaceEdit);
 	}
 
-	public setCachedOffsets(absoluteStart: number, absoluteEnd: number, cachedVersionId: number): void {
+	public setCachedOffsets(
+		absoluteStart: number,
+		absoluteEnd: number,
+		cachedVersionId: number,
+	): void {
 		if (this.cachedVersionId !== cachedVersionId) {
 			this.range = null;
 		}
@@ -227,7 +270,6 @@ SENTINEL.right = SENTINEL;
 setNodeColor(SENTINEL, NodeColor.Black);
 
 export class IntervalTree {
-
 	public root: IntervalNode;
 	public requestNormalizeDelta: boolean;
 
@@ -236,18 +278,44 @@ export class IntervalTree {
 		this.requestNormalizeDelta = false;
 	}
 
-	public intervalSearch(start: number, end: number, filterOwnerId: number, filterOutValidation: boolean, cachedVersionId: number, onlyMarginDecorations: boolean): IntervalNode[] {
+	public intervalSearch(
+		start: number,
+		end: number,
+		filterOwnerId: number,
+		filterOutValidation: boolean,
+		cachedVersionId: number,
+		onlyMarginDecorations: boolean,
+	): IntervalNode[] {
 		if (this.root === SENTINEL) {
 			return [];
 		}
-		return intervalSearch(this, start, end, filterOwnerId, filterOutValidation, cachedVersionId, onlyMarginDecorations);
+		return intervalSearch(
+			this,
+			start,
+			end,
+			filterOwnerId,
+			filterOutValidation,
+			cachedVersionId,
+			onlyMarginDecorations,
+		);
 	}
 
-	public search(filterOwnerId: number, filterOutValidation: boolean, cachedVersionId: number, onlyMarginDecorations: boolean): IntervalNode[] {
+	public search(
+		filterOwnerId: number,
+		filterOutValidation: boolean,
+		cachedVersionId: number,
+		onlyMarginDecorations: boolean,
+	): IntervalNode[] {
 		if (this.root === SENTINEL) {
 			return [];
 		}
-		return search(this, filterOwnerId, filterOutValidation, cachedVersionId, onlyMarginDecorations);
+		return search(
+			this,
+			filterOwnerId,
+			filterOutValidation,
+			cachedVersionId,
+			onlyMarginDecorations,
+		);
 	}
 
 	/**
@@ -289,7 +357,12 @@ export class IntervalTree {
 		initialNode.setCachedOffsets(nodeStart, nodeEnd, cachedVersionId);
 	}
 
-	public acceptReplace(offset: number, length: number, textLength: number, forceMoveMarkers: boolean): void {
+	public acceptReplace(
+		offset: number,
+		length: number,
+		textLength: number,
+		forceMoveMarkers: boolean,
+	): void {
 		// Our strategy is to remove all directly impacted nodes, and then add them back to the tree.
 
 		// (1) collect all nodes that are intersecting this edit as nodes of interest
@@ -311,7 +384,13 @@ export class IntervalTree {
 			const node = nodesOfInterest[i];
 			node.start = node.cachedAbsoluteStart;
 			node.end = node.cachedAbsoluteEnd;
-			nodeAcceptEdit(node, offset, (offset + length), textLength, forceMoveMarkers);
+			nodeAcceptEdit(
+				node,
+				offset,
+				offset + length,
+				textLength,
+				forceMoveMarkers,
+			);
 			node.maxEnd = node.end;
 			rbTreeInsert(this, node);
 		}
@@ -336,7 +415,6 @@ function normalizeDelta(T: IntervalTree): void {
 	let node = T.root;
 	let delta = 0;
 	while (node !== SENTINEL) {
-
 		if (node.left !== SENTINEL && !getNodeIsVisited(node.left)) {
 			// go left
 			node = node.left;
@@ -376,10 +454,15 @@ function normalizeDelta(T: IntervalTree): void {
 const enum MarkerMoveSemantics {
 	MarkerDefined = 0,
 	ForceMove = 1,
-	ForceStay = 2
+	ForceStay = 2,
 }
 
-function adjustMarkerBeforeColumn(markerOffset: number, markerStickToPreviousCharacter: boolean, checkOffset: number, moveSemantics: MarkerMoveSemantics): boolean {
+function adjustMarkerBeforeColumn(
+	markerOffset: number,
+	markerStickToPreviousCharacter: boolean,
+	checkOffset: number,
+	moveSemantics: MarkerMoveSemantics,
+): boolean {
 	if (markerOffset < checkOffset) {
 		return true;
 	}
@@ -399,18 +482,23 @@ function adjustMarkerBeforeColumn(markerOffset: number, markerStickToPreviousCha
  * This is a lot more complicated than strictly necessary to maintain the same behaviour
  * as when decorations were implemented using two markers.
  */
-export function nodeAcceptEdit(node: IntervalNode, start: number, end: number, textLength: number, forceMoveMarkers: boolean): void {
+export function nodeAcceptEdit(
+	node: IntervalNode,
+	start: number,
+	end: number,
+	textLength: number,
+	forceMoveMarkers: boolean,
+): void {
 	const nodeStickiness = getNodeStickiness(node);
-	const startStickToPreviousCharacter = (
-		nodeStickiness === TrackedRangeStickiness.AlwaysGrowsWhenTypingAtEdges
-		|| nodeStickiness === TrackedRangeStickiness.GrowsOnlyWhenTypingBefore
-	);
-	const endStickToPreviousCharacter = (
-		nodeStickiness === TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
-		|| nodeStickiness === TrackedRangeStickiness.GrowsOnlyWhenTypingBefore
-	);
+	const startStickToPreviousCharacter =
+		nodeStickiness ===
+			TrackedRangeStickiness.AlwaysGrowsWhenTypingAtEdges ||
+		nodeStickiness === TrackedRangeStickiness.GrowsOnlyWhenTypingBefore;
+	const endStickToPreviousCharacter =
+		nodeStickiness === TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges ||
+		nodeStickiness === TrackedRangeStickiness.GrowsOnlyWhenTypingBefore;
 
-	const deletingCnt = (end - start);
+	const deletingCnt = end - start;
 	const insertingCnt = textLength;
 	const commonLength = Math.min(deletingCnt, insertingCnt);
 
@@ -420,7 +508,11 @@ export function nodeAcceptEdit(node: IntervalNode, start: number, end: number, t
 	const nodeEnd = node.end;
 	let endDone = false;
 
-	if (start <= nodeStart && nodeEnd <= end && getCollapseOnReplaceEdit(node)) {
+	if (
+		start <= nodeStart &&
+		nodeEnd <= end &&
+		getCollapseOnReplaceEdit(node)
+	) {
 		// This edit encompasses the entire decoration range
 		// and the decoration has asked to become collapsed
 		node.start = start;
@@ -430,39 +522,96 @@ export function nodeAcceptEdit(node: IntervalNode, start: number, end: number, t
 	}
 
 	{
-		const moveSemantics = forceMoveMarkers ? MarkerMoveSemantics.ForceMove : (deletingCnt > 0 ? MarkerMoveSemantics.ForceStay : MarkerMoveSemantics.MarkerDefined);
-		if (!startDone && adjustMarkerBeforeColumn(nodeStart, startStickToPreviousCharacter, start, moveSemantics)) {
+		const moveSemantics = forceMoveMarkers
+			? MarkerMoveSemantics.ForceMove
+			: deletingCnt > 0
+				? MarkerMoveSemantics.ForceStay
+				: MarkerMoveSemantics.MarkerDefined;
+		if (
+			!startDone &&
+			adjustMarkerBeforeColumn(
+				nodeStart,
+				startStickToPreviousCharacter,
+				start,
+				moveSemantics,
+			)
+		) {
 			startDone = true;
 		}
-		if (!endDone && adjustMarkerBeforeColumn(nodeEnd, endStickToPreviousCharacter, start, moveSemantics)) {
+		if (
+			!endDone &&
+			adjustMarkerBeforeColumn(
+				nodeEnd,
+				endStickToPreviousCharacter,
+				start,
+				moveSemantics,
+			)
+		) {
 			endDone = true;
 		}
 	}
 
 	if (commonLength > 0 && !forceMoveMarkers) {
-		const moveSemantics = (deletingCnt > insertingCnt ? MarkerMoveSemantics.ForceStay : MarkerMoveSemantics.MarkerDefined);
-		if (!startDone && adjustMarkerBeforeColumn(nodeStart, startStickToPreviousCharacter, start + commonLength, moveSemantics)) {
+		const moveSemantics =
+			deletingCnt > insertingCnt
+				? MarkerMoveSemantics.ForceStay
+				: MarkerMoveSemantics.MarkerDefined;
+		if (
+			!startDone &&
+			adjustMarkerBeforeColumn(
+				nodeStart,
+				startStickToPreviousCharacter,
+				start + commonLength,
+				moveSemantics,
+			)
+		) {
 			startDone = true;
 		}
-		if (!endDone && adjustMarkerBeforeColumn(nodeEnd, endStickToPreviousCharacter, start + commonLength, moveSemantics)) {
+		if (
+			!endDone &&
+			adjustMarkerBeforeColumn(
+				nodeEnd,
+				endStickToPreviousCharacter,
+				start + commonLength,
+				moveSemantics,
+			)
+		) {
 			endDone = true;
 		}
 	}
 
 	{
-		const moveSemantics = forceMoveMarkers ? MarkerMoveSemantics.ForceMove : MarkerMoveSemantics.MarkerDefined;
-		if (!startDone && adjustMarkerBeforeColumn(nodeStart, startStickToPreviousCharacter, end, moveSemantics)) {
+		const moveSemantics = forceMoveMarkers
+			? MarkerMoveSemantics.ForceMove
+			: MarkerMoveSemantics.MarkerDefined;
+		if (
+			!startDone &&
+			adjustMarkerBeforeColumn(
+				nodeStart,
+				startStickToPreviousCharacter,
+				end,
+				moveSemantics,
+			)
+		) {
 			node.start = start + insertingCnt;
 			startDone = true;
 		}
-		if (!endDone && adjustMarkerBeforeColumn(nodeEnd, endStickToPreviousCharacter, end, moveSemantics)) {
+		if (
+			!endDone &&
+			adjustMarkerBeforeColumn(
+				nodeEnd,
+				endStickToPreviousCharacter,
+				end,
+				moveSemantics,
+			)
+		) {
 			node.end = start + insertingCnt;
 			endDone = true;
 		}
 	}
 
 	// Finish
-	const deltaColumn = (insertingCnt - deletingCnt);
+	const deltaColumn = insertingCnt - deletingCnt;
 	if (!startDone) {
 		node.start = Math.max(0, nodeStart + deltaColumn);
 	}
@@ -475,7 +624,11 @@ export function nodeAcceptEdit(node: IntervalNode, start: number, end: number, t
 	}
 }
 
-function searchForEditing(T: IntervalTree, start: number, end: number): IntervalNode[] {
+function searchForEditing(
+	T: IntervalTree,
+	start: number,
+	end: number,
+): IntervalNode[] {
 	// https://en.wikipedia.org/wiki/Interval_tree#Augmented_tree
 	// Now, it is known that two intervals A and B overlap only when both
 	// A.low <= B.high and A.high >= B.low. When searching the trees for
@@ -547,7 +700,12 @@ function searchForEditing(T: IntervalTree, start: number, end: number): Interval
 	return result;
 }
 
-function noOverlapReplace(T: IntervalTree, start: number, end: number, textLength: number): void {
+function noOverlapReplace(
+	T: IntervalTree,
+	start: number,
+	end: number,
+	textLength: number,
+): void {
 	// https://en.wikipedia.org/wiki/Interval_tree#Augmented_tree
 	// Now, it is known that two intervals A and B overlap only when both
 	// A.low <= B.high and A.high >= B.low. When searching the trees for
@@ -558,7 +716,7 @@ function noOverlapReplace(T: IntervalTree, start: number, end: number, textLengt
 	let delta = 0;
 	let nodeMaxEnd = 0;
 	let nodeStart = 0;
-	const editDelta = (textLength - (end - start));
+	const editDelta = textLength - (end - start);
 	while (node !== SENTINEL) {
 		if (getNodeIsVisited(node)) {
 			// going up from this node
@@ -595,7 +753,10 @@ function noOverlapReplace(T: IntervalTree, start: number, end: number, textLengt
 			node.start += editDelta;
 			node.end += editDelta;
 			node.delta += editDelta;
-			if (node.delta < Constants.MIN_SAFE_DELTA || node.delta > Constants.MAX_SAFE_DELTA) {
+			if (
+				node.delta < Constants.MIN_SAFE_DELTA ||
+				node.delta > Constants.MAX_SAFE_DELTA
+			) {
 				T.requestNormalizeDelta = true;
 			}
 			// cover case a) from above
@@ -621,7 +782,10 @@ function noOverlapReplace(T: IntervalTree, start: number, end: number, textLengt
 
 //#region Searching
 
-function collectNodesFromOwner(T: IntervalTree, ownerId: number): IntervalNode[] {
+function collectNodesFromOwner(
+	T: IntervalTree,
+	ownerId: number,
+): IntervalNode[] {
 	let node = T.root;
 	const result: IntervalNode[] = [];
 	let resultLen = 0;
@@ -694,7 +858,13 @@ function collectNodesPostOrder(T: IntervalTree): IntervalNode[] {
 	return result;
 }
 
-function search(T: IntervalTree, filterOwnerId: number, filterOutValidation: boolean, cachedVersionId: number, onlyMarginDecorations: boolean): IntervalNode[] {
+function search(
+	T: IntervalTree,
+	filterOwnerId: number,
+	filterOutValidation: boolean,
+	cachedVersionId: number,
+	onlyMarginDecorations: boolean,
+): IntervalNode[] {
 	let node = T.root;
 	let delta = 0;
 	let nodeStart = 0;
@@ -755,7 +925,15 @@ function search(T: IntervalTree, filterOwnerId: number, filterOutValidation: boo
 	return result;
 }
 
-function intervalSearch(T: IntervalTree, intervalStart: number, intervalEnd: number, filterOwnerId: number, filterOutValidation: boolean, cachedVersionId: number, onlyMarginDecorations: boolean): IntervalNode[] {
+function intervalSearch(
+	T: IntervalTree,
+	intervalStart: number,
+	intervalEnd: number,
+	filterOwnerId: number,
+	filterOutValidation: boolean,
+	cachedVersionId: number,
+	onlyMarginDecorations: boolean,
+): IntervalNode[] {
 	// https://en.wikipedia.org/wiki/Interval_tree#Augmented_tree
 	// Now, it is known that two intervals A and B overlap only when both
 	// A.low <= B.high and A.high >= B.low. When searching the trees for
@@ -815,7 +993,11 @@ function intervalSearch(T: IntervalTree, intervalStart: number, intervalEnd: num
 			node.setCachedOffsets(nodeStart, nodeEnd, cachedVersionId);
 
 			let include = true;
-			if (filterOwnerId && node.ownerId && node.ownerId !== filterOwnerId) {
+			if (
+				filterOwnerId &&
+				node.ownerId &&
+				node.ownerId !== filterOwnerId
+			) {
 				include = false;
 			}
 			if (filterOutValidation && getNodeIsForValidation(node)) {
@@ -913,7 +1095,12 @@ function treeInsert(T: IntervalTree, z: IntervalNode): void {
 	const zAbsoluteStart = z.start;
 	const zAbsoluteEnd = z.end;
 	while (true) {
-		const cmp = intervalCompare(zAbsoluteStart, zAbsoluteEnd, x.start + delta, x.end + delta);
+		const cmp = intervalCompare(
+			zAbsoluteStart,
+			zAbsoluteEnd,
+			x.start + delta,
+			x.end + delta,
+		);
 		if (cmp < 0) {
 			// this node should be inserted to the left
 			// => it is not affected by the node's delta
@@ -930,9 +1117,9 @@ function treeInsert(T: IntervalTree, z: IntervalNode): void {
 			// this node should be inserted to the right
 			// => it is not affected by the node's delta
 			if (x.right === SENTINEL) {
-				z.start -= (delta + x.delta);
-				z.end -= (delta + x.delta);
-				z.maxEnd -= (delta + x.delta);
+				z.start -= delta + x.delta;
+				z.end -= delta + x.delta;
+				z.maxEnd -= delta + x.delta;
 				x.right = z;
 				break;
 			} else {
@@ -951,7 +1138,6 @@ function treeInsert(T: IntervalTree, z: IntervalNode): void {
 
 //#region Deletion
 function rbTreeDelete(T: IntervalTree, z: IntervalNode): void {
-
 	let x: IntervalNode;
 	let y: IntervalNode;
 
@@ -964,16 +1150,17 @@ function rbTreeDelete(T: IntervalTree, z: IntervalNode): void {
 
 		// x's delta is no longer influenced by z's delta
 		x.delta += z.delta;
-		if (x.delta < Constants.MIN_SAFE_DELTA || x.delta > Constants.MAX_SAFE_DELTA) {
+		if (
+			x.delta < Constants.MIN_SAFE_DELTA ||
+			x.delta > Constants.MAX_SAFE_DELTA
+		) {
 			T.requestNormalizeDelta = true;
 		}
 		x.start += z.delta;
 		x.end += z.delta;
-
 	} else if (z.right === SENTINEL) {
 		x = z.left;
 		y = z;
-
 	} else {
 		y = leftest(z.right);
 		x = y.right;
@@ -984,14 +1171,20 @@ function rbTreeDelete(T: IntervalTree, z: IntervalNode): void {
 		x.start += y.delta;
 		x.end += y.delta;
 		x.delta += y.delta;
-		if (x.delta < Constants.MIN_SAFE_DELTA || x.delta > Constants.MAX_SAFE_DELTA) {
+		if (
+			x.delta < Constants.MIN_SAFE_DELTA ||
+			x.delta > Constants.MAX_SAFE_DELTA
+		) {
 			T.requestNormalizeDelta = true;
 		}
 
 		y.start += z.delta;
 		y.end += z.delta;
 		y.delta = z.delta;
-		if (y.delta < Constants.MIN_SAFE_DELTA || y.delta > Constants.MAX_SAFE_DELTA) {
+		if (
+			y.delta < Constants.MIN_SAFE_DELTA ||
+			y.delta > Constants.MAX_SAFE_DELTA
+		) {
 			T.requestNormalizeDelta = true;
 		}
 	}
@@ -1007,7 +1200,7 @@ function rbTreeDelete(T: IntervalTree, z: IntervalNode): void {
 		return;
 	}
 
-	const yWasRed = (getNodeColor(y) === NodeColor.Red);
+	const yWasRed = getNodeColor(y) === NodeColor.Red;
 
 	if (y === y.parent.left) {
 		y.parent.left = x;
@@ -1018,7 +1211,6 @@ function rbTreeDelete(T: IntervalTree, z: IntervalNode): void {
 	if (y === z) {
 		x.parent = y.parent;
 	} else {
-
 		if (y.parent === z) {
 			x.parent = y;
 		} else {
@@ -1070,7 +1262,6 @@ function rbTreeDelete(T: IntervalTree, z: IntervalNode): void {
 	// RB-DELETE-FIXUP
 	let w: IntervalNode;
 	while (x !== T.root && getNodeColor(x) === NodeColor.Black) {
-
 		if (x === x.parent.left) {
 			w = x.parent.right;
 
@@ -1081,7 +1272,10 @@ function rbTreeDelete(T: IntervalTree, z: IntervalNode): void {
 				w = x.parent.right;
 			}
 
-			if (getNodeColor(w.left) === NodeColor.Black && getNodeColor(w.right) === NodeColor.Black) {
+			if (
+				getNodeColor(w.left) === NodeColor.Black &&
+				getNodeColor(w.right) === NodeColor.Black
+			) {
 				setNodeColor(w, NodeColor.Red);
 				x = x.parent;
 			} else {
@@ -1098,7 +1292,6 @@ function rbTreeDelete(T: IntervalTree, z: IntervalNode): void {
 				leftRotate(T, x.parent);
 				x = T.root;
 			}
-
 		} else {
 			w = x.parent.left;
 
@@ -1109,10 +1302,12 @@ function rbTreeDelete(T: IntervalTree, z: IntervalNode): void {
 				w = x.parent.left;
 			}
 
-			if (getNodeColor(w.left) === NodeColor.Black && getNodeColor(w.right) === NodeColor.Black) {
+			if (
+				getNodeColor(w.left) === NodeColor.Black &&
+				getNodeColor(w.right) === NodeColor.Black
+			) {
 				setNodeColor(w, NodeColor.Red);
 				x = x.parent;
-
 			} else {
 				if (getNodeColor(w.left) === NodeColor.Black) {
 					setNodeColor(w.right, NodeColor.Black);
@@ -1151,20 +1346,23 @@ function resetSentinel(): void {
 
 //#region Rotations
 function leftRotate(T: IntervalTree, x: IntervalNode): void {
-	const y = x.right;				// set y.
+	const y = x.right; // set y.
 
-	y.delta += x.delta;				// y's delta is no longer influenced by x's delta
-	if (y.delta < Constants.MIN_SAFE_DELTA || y.delta > Constants.MAX_SAFE_DELTA) {
+	y.delta += x.delta; // y's delta is no longer influenced by x's delta
+	if (
+		y.delta < Constants.MIN_SAFE_DELTA ||
+		y.delta > Constants.MAX_SAFE_DELTA
+	) {
 		T.requestNormalizeDelta = true;
 	}
 	y.start += x.delta;
 	y.end += x.delta;
 
-	x.right = y.left;				// turn y's left subtree into x's right subtree.
+	x.right = y.left; // turn y's left subtree into x's right subtree.
 	if (y.left !== SENTINEL) {
 		y.left.parent = x;
 	}
-	y.parent = x.parent;			// link x's parent to y.
+	y.parent = x.parent; // link x's parent to y.
 	if (x.parent === SENTINEL) {
 		T.root = y;
 	} else if (x === x.parent.left) {
@@ -1173,7 +1371,7 @@ function leftRotate(T: IntervalTree, x: IntervalNode): void {
 		x.parent.right = y;
 	}
 
-	y.left = x;						// put x on y's left.
+	y.left = x; // put x on y's left.
 	x.parent = y;
 
 	recomputeMaxEnd(x);
@@ -1184,7 +1382,10 @@ function rightRotate(T: IntervalTree, y: IntervalNode): void {
 	const x = y.left;
 
 	y.delta -= x.delta;
-	if (y.delta < Constants.MIN_SAFE_DELTA || y.delta > Constants.MAX_SAFE_DELTA) {
+	if (
+		y.delta < Constants.MIN_SAFE_DELTA ||
+		y.delta > Constants.MAX_SAFE_DELTA
+	) {
 		T.requestNormalizeDelta = true;
 	}
 	y.start -= x.delta;
@@ -1236,7 +1437,6 @@ export function recomputeMaxEnd(node: IntervalNode): void {
 
 function recomputeMaxEndWalkToRoot(node: IntervalNode): void {
 	while (node !== SENTINEL) {
-
 		const maxEnd = computeMaxEnd(node);
 
 		if (node.maxEnd === maxEnd) {
@@ -1252,7 +1452,12 @@ function recomputeMaxEndWalkToRoot(node: IntervalNode): void {
 //#endregion
 
 //#region utils
-export function intervalCompare(aStart: number, aEnd: number, bStart: number, bEnd: number): number {
+export function intervalCompare(
+	aStart: number,
+	aEnd: number,
+	bStart: number,
+	bEnd: number,
+): number {
 	if (aStart === bStart) {
 		return aEnd - bEnd;
 	}

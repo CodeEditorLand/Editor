@@ -3,44 +3,59 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ResizableHTMLElement } from '../../../../base/browser/ui/resizable/resizable.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
-import { ContentWidgetPositionPreference, ICodeEditor, IContentWidget, IContentWidgetPosition } from '../../../browser/editorBrowser.js';
-import { EditorOption } from '../../../common/config/editorOptions.js';
-import { IPosition, Position } from '../../../common/core/position.js';
-import * as dom from '../../../../base/browser/dom.js';
+import * as dom from "../../../../base/browser/dom.js";
+import { ResizableHTMLElement } from "../../../../base/browser/ui/resizable/resizable.js";
+import { Disposable } from "../../../../base/common/lifecycle.js";
+import {
+	ContentWidgetPositionPreference,
+	ICodeEditor,
+	IContentWidget,
+	IContentWidgetPosition,
+} from "../../../browser/editorBrowser.js";
+import { EditorOption } from "../../../common/config/editorOptions.js";
+import { IPosition, Position } from "../../../common/core/position.js";
 
 const TOP_HEIGHT = 30;
 const BOTTOM_HEIGHT = 24;
 
-export abstract class ResizableContentWidget extends Disposable implements IContentWidget {
-
+export abstract class ResizableContentWidget
+	extends Disposable
+	implements IContentWidget
+{
 	readonly allowEditorOverflow: boolean = true;
 	readonly suppressMouseDown: boolean = false;
 
-	protected readonly _resizableNode = this._register(new ResizableHTMLElement());
+	protected readonly _resizableNode = this._register(
+		new ResizableHTMLElement(),
+	);
 	protected _contentPosition: IContentWidgetPosition | null = null;
 
 	private _isResizing: boolean = false;
 
 	constructor(
 		protected readonly _editor: ICodeEditor,
-		minimumSize: dom.IDimension = new dom.Dimension(10, 10)
+		minimumSize: dom.IDimension = new dom.Dimension(10, 10),
 	) {
 		super();
-		this._resizableNode.domNode.style.position = 'absolute';
+		this._resizableNode.domNode.style.position = "absolute";
 		this._resizableNode.minSize = dom.Dimension.lift(minimumSize);
 		this._resizableNode.layout(minimumSize.height, minimumSize.width);
 		this._resizableNode.enableSashes(true, true, true, true);
-		this._register(this._resizableNode.onDidResize(e => {
-			this._resize(new dom.Dimension(e.dimension.width, e.dimension.height));
-			if (e.done) {
-				this._isResizing = false;
-			}
-		}));
-		this._register(this._resizableNode.onDidWillResize(() => {
-			this._isResizing = true;
-		}));
+		this._register(
+			this._resizableNode.onDidResize((e) => {
+				this._resize(
+					new dom.Dimension(e.dimension.width, e.dimension.height),
+				);
+				if (e.done) {
+					this._isResizing = false;
+				}
+			}),
+		);
+		this._register(
+			this._resizableNode.onDidWillResize(() => {
+				this._isResizing = true;
+			}),
+		);
 	}
 
 	get isResizing() {
@@ -58,10 +73,14 @@ export abstract class ResizableContentWidget extends Disposable implements ICont
 	}
 
 	get position(): Position | undefined {
-		return this._contentPosition?.position ? Position.lift(this._contentPosition.position) : undefined;
+		return this._contentPosition?.position
+			? Position.lift(this._contentPosition.position)
+			: undefined;
 	}
 
-	protected _availableVerticalSpaceAbove(position: IPosition): number | undefined {
+	protected _availableVerticalSpaceAbove(
+		position: IPosition,
+	): number | undefined {
 		const editorDomNode = this._editor.getDomNode();
 		const mouseBox = this._editor.getScrolledVisiblePosition(position);
 		if (!editorDomNode || !mouseBox) {
@@ -71,7 +90,9 @@ export abstract class ResizableContentWidget extends Disposable implements ICont
 		return editorBox.top + mouseBox.top - TOP_HEIGHT;
 	}
 
-	protected _availableVerticalSpaceBelow(position: IPosition): number | undefined {
+	protected _availableVerticalSpaceBelow(
+		position: IPosition,
+	): number | undefined {
 		const editorDomNode = this._editor.getDomNode();
 		const mouseBox = this._editor.getScrolledVisiblePosition(position);
 		if (!editorDomNode || !mouseBox) {
@@ -83,16 +104,34 @@ export abstract class ResizableContentWidget extends Disposable implements ICont
 		return bodyBox.height - mouseBottom - BOTTOM_HEIGHT;
 	}
 
-	protected _findPositionPreference(widgetHeight: number, showAtPosition: IPosition): ContentWidgetPositionPreference | undefined {
-		const maxHeightBelow = Math.min(this._availableVerticalSpaceBelow(showAtPosition) ?? Infinity, widgetHeight);
-		const maxHeightAbove = Math.min(this._availableVerticalSpaceAbove(showAtPosition) ?? Infinity, widgetHeight);
-		const maxHeight = Math.min(Math.max(maxHeightAbove, maxHeightBelow), widgetHeight);
+	protected _findPositionPreference(
+		widgetHeight: number,
+		showAtPosition: IPosition,
+	): ContentWidgetPositionPreference | undefined {
+		const maxHeightBelow = Math.min(
+			this._availableVerticalSpaceBelow(showAtPosition) ?? Infinity,
+			widgetHeight,
+		);
+		const maxHeightAbove = Math.min(
+			this._availableVerticalSpaceAbove(showAtPosition) ?? Infinity,
+			widgetHeight,
+		);
+		const maxHeight = Math.min(
+			Math.max(maxHeightAbove, maxHeightBelow),
+			widgetHeight,
+		);
 		const height = Math.min(widgetHeight, maxHeight);
 		let renderingAbove: ContentWidgetPositionPreference;
 		if (this._editor.getOption(EditorOption.hover).above) {
-			renderingAbove = height <= maxHeightAbove ? ContentWidgetPositionPreference.ABOVE : ContentWidgetPositionPreference.BELOW;
+			renderingAbove =
+				height <= maxHeightAbove
+					? ContentWidgetPositionPreference.ABOVE
+					: ContentWidgetPositionPreference.BELOW;
 		} else {
-			renderingAbove = height <= maxHeightBelow ? ContentWidgetPositionPreference.BELOW : ContentWidgetPositionPreference.ABOVE;
+			renderingAbove =
+				height <= maxHeightBelow
+					? ContentWidgetPositionPreference.BELOW
+					: ContentWidgetPositionPreference.ABOVE;
 		}
 		if (renderingAbove === ContentWidgetPositionPreference.ABOVE) {
 			this._resizableNode.enableSashes(true, true, false, false);

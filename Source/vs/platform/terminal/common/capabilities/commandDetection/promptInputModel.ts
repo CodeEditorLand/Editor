@@ -3,13 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from '../../../../../base/common/event.js';
-import { Disposable } from '../../../../../base/common/lifecycle.js';
-import { ILogService, LogLevel } from '../../../../log/common/log.js';
-import type { ITerminalCommand } from '../capabilities.js';
-import { throttle } from '../../../../../base/common/decorators.js';
+import type {
+	IBuffer,
+	IBufferCell,
+	IBufferLine,
+	IMarker,
+	Terminal,
+} from "@xterm/headless";
 
-import type { Terminal, IMarker, IBufferCell, IBufferLine, IBuffer } from '@xterm/headless';
+import { throttle } from "../../../../../base/common/decorators.js";
+import { Emitter, Event } from "../../../../../base/common/event.js";
+import { Disposable } from "../../../../../base/common/lifecycle.js";
+import { ILogService, LogLevel } from "../../../../log/common/log.js";
+import type { ITerminalCommand } from "../capabilities.js";
 
 const enum PromptInputState {
 	Unknown = 0,
@@ -77,50 +83,101 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 	private _lastPromptLine: string | undefined;
 	private _continuationPrompt: string | undefined;
 
-	private _lastUserInput: string = '';
+	private _lastUserInput: string = "";
 
-	private _value: string = '';
-	get value() { return this._value; }
-	get prefix() { return this._value.substring(0, this._cursorIndex); }
-	get suffix() { return this._value.substring(this._cursorIndex, this._ghostTextIndex === -1 ? undefined : this._ghostTextIndex); }
+	private _value: string = "";
+	get value() {
+		return this._value;
+	}
+	get prefix() {
+		return this._value.substring(0, this._cursorIndex);
+	}
+	get suffix() {
+		return this._value.substring(
+			this._cursorIndex,
+			this._ghostTextIndex === -1 ? undefined : this._ghostTextIndex,
+		);
+	}
 
 	private _cursorIndex: number = 0;
-	get cursorIndex() { return this._cursorIndex; }
+	get cursorIndex() {
+		return this._cursorIndex;
+	}
 
 	private _ghostTextIndex: number = -1;
-	get ghostTextIndex() { return this._ghostTextIndex; }
+	get ghostTextIndex() {
+		return this._ghostTextIndex;
+	}
 
-	private readonly _onDidStartInput = this._register(new Emitter<IPromptInputModelState>());
+	private readonly _onDidStartInput = this._register(
+		new Emitter<IPromptInputModelState>(),
+	);
 	readonly onDidStartInput = this._onDidStartInput.event;
-	private readonly _onDidChangeInput = this._register(new Emitter<IPromptInputModelState>());
+	private readonly _onDidChangeInput = this._register(
+		new Emitter<IPromptInputModelState>(),
+	);
 	readonly onDidChangeInput = this._onDidChangeInput.event;
-	private readonly _onDidFinishInput = this._register(new Emitter<IPromptInputModelState>());
+	private readonly _onDidFinishInput = this._register(
+		new Emitter<IPromptInputModelState>(),
+	);
 	readonly onDidFinishInput = this._onDidFinishInput.event;
-	private readonly _onDidInterrupt = this._register(new Emitter<IPromptInputModelState>());
+	private readonly _onDidInterrupt = this._register(
+		new Emitter<IPromptInputModelState>(),
+	);
 	readonly onDidInterrupt = this._onDidInterrupt.event;
 
 	constructor(
 		private readonly _xterm: Terminal,
 		onCommandStart: Event<ITerminalCommand>,
 		onCommandExecuted: Event<ITerminalCommand>,
-		@ILogService private readonly _logService: ILogService
+		@ILogService private readonly _logService: ILogService,
 	) {
 		super();
 
-		this._register(Event.any(
-			this._xterm.onCursorMove,
-			this._xterm.onData,
-			this._xterm.onWriteParsed,
-		)(() => this._sync()));
-		this._register(this._xterm.onData(e => this._handleUserInput(e)));
+		this._register(
+			Event.any(
+				this._xterm.onCursorMove,
+				this._xterm.onData,
+				this._xterm.onWriteParsed,
+			)(() => this._sync()),
+		);
+		this._register(this._xterm.onData((e) => this._handleUserInput(e)));
 
-		this._register(onCommandStart(e => this._handleCommandStart(e as { marker: IMarker })));
+		this._register(
+			onCommandStart((e) =>
+				this._handleCommandStart(e as { marker: IMarker }),
+			),
+		);
 		this._register(onCommandExecuted(() => this._handleCommandExecuted()));
 
-		this._register(this.onDidStartInput(() => this._logCombinedStringIfTrace('PromptInputModel#onDidStartInput')));
-		this._register(this.onDidChangeInput(() => this._logCombinedStringIfTrace('PromptInputModel#onDidChangeInput')));
-		this._register(this.onDidFinishInput(() => this._logCombinedStringIfTrace('PromptInputModel#onDidFinishInput')));
-		this._register(this.onDidInterrupt(() => this._logCombinedStringIfTrace('PromptInputModel#onDidInterrupt')));
+		this._register(
+			this.onDidStartInput(() =>
+				this._logCombinedStringIfTrace(
+					"PromptInputModel#onDidStartInput",
+				),
+			),
+		);
+		this._register(
+			this.onDidChangeInput(() =>
+				this._logCombinedStringIfTrace(
+					"PromptInputModel#onDidChangeInput",
+				),
+			),
+		);
+		this._register(
+			this.onDidFinishInput(() =>
+				this._logCombinedStringIfTrace(
+					"PromptInputModel#onDidFinishInput",
+				),
+			),
+		);
+		this._register(
+			this.onDidInterrupt(() =>
+				this._logCombinedStringIfTrace(
+					"PromptInputModel#onDidInterrupt",
+				),
+			),
+		);
 	}
 
 	private _logCombinedStringIfTrace(message: string) {
@@ -150,7 +207,7 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 	}
 
 	getCombinedString(): string {
-		const value = this._value.replaceAll('\n', '\u23CE');
+		const value = this._value.replaceAll("\n", "\u23CE");
 		if (this._cursorIndex === -1) {
 			return value;
 		}
@@ -170,7 +227,7 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 			commandStartX: this._commandStartX,
 			lastPromptLine: this._lastPromptLine,
 			continuationPrompt: this._continuationPrompt,
-			lastUserInput: this._lastUserInput
+			lastUserInput: this._lastUserInput,
 		};
 	}
 
@@ -192,7 +249,7 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 		this._state = PromptInputState.Input;
 		this._commandStartMarker = command.marker;
 		this._commandStartX = this._xterm.buffer.active.cursorX;
-		this._value = '';
+		this._value = "";
 		this._cursorIndex = 0;
 		this._onDidStartInput.fire(this._createStateObject());
 		this._onDidChangeInput.fire(this._createStateObject());
@@ -200,8 +257,14 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 		// Trigger a sync if prompt terminator is set as that could adjust the command start X
 		if (this._lastPromptLine) {
 			if (this._commandStartX !== this._lastPromptLine.length) {
-				const line = this._xterm.buffer.active.getLine(this._commandStartMarker.line);
-				if (line?.translateToString(true).startsWith(this._lastPromptLine)) {
+				const line = this._xterm.buffer.active.getLine(
+					this._commandStartMarker.line,
+				);
+				if (
+					line
+						?.translateToString(true)
+						.startsWith(this._lastPromptLine)
+				) {
 					this._commandStartX = this._lastPromptLine.length;
 					this._sync();
 				}
@@ -223,8 +286,8 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 		}
 
 		const event = this._createStateObject();
-		if (this._lastUserInput === '\u0003') {
-			this._lastUserInput = '';
+		if (this._lastUserInput === "\u0003") {
+			this._lastUserInput = "";
 			this._onDidInterrupt.fire(event);
 		}
 
@@ -238,7 +301,7 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 		try {
 			this._doSync();
 		} catch (e) {
-			this._logService.error('Error while syncing prompt input model', e);
+			this._logService.error("Error while syncing prompt input model", e);
 		}
 	}
 
@@ -265,7 +328,11 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 		let ghostTextIndex = -1;
 		let cursorIndex: number;
 		if (absoluteCursorY === commandStartY) {
-			cursorIndex = this._getRelativeCursorIndex(this._commandStartX, buffer, line);
+			cursorIndex = this._getRelativeCursorIndex(
+				this._commandStartX,
+				buffer,
+				line,
+			);
 		} else {
 			cursorIndex = commandLine.trimEnd().length;
 		}
@@ -285,7 +352,11 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 				// Check if the line wrapped without a new line (continuation)
 				if (line.isWrapped) {
 					value += lineText;
-					const relativeCursorIndex = this._getRelativeCursorIndex(0, buffer, line);
+					const relativeCursorIndex = this._getRelativeCursorIndex(
+						0,
+						buffer,
+						line,
+					);
 					if (absoluteCursorY === y) {
 						cursorIndex += relativeCursorIndex;
 					} else {
@@ -294,12 +365,25 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 				}
 				// Verify continuation prompt if we have it, if this line doesn't have it then the
 				// user likely just pressed enter.
-				else if (this._continuationPrompt === undefined || this._lineContainsContinuationPrompt(lineText)) {
-					const trimmedLineText = this._trimContinuationPrompt(lineText);
+				else if (
+					this._continuationPrompt === undefined ||
+					this._lineContainsContinuationPrompt(lineText)
+				) {
+					const trimmedLineText =
+						this._trimContinuationPrompt(lineText);
 					value += `\n${trimmedLineText}`;
 					if (absoluteCursorY === y) {
-						const continuationCellWidth = this._getContinuationPromptCellWidth(line, lineText);
-						const relativeCursorIndex = this._getRelativeCursorIndex(continuationCellWidth, buffer, line);
+						const continuationCellWidth =
+							this._getContinuationPromptCellWidth(
+								line,
+								lineText,
+							);
+						const relativeCursorIndex =
+							this._getRelativeCursorIndex(
+								continuationCellWidth,
+								buffer,
+								line,
+							);
 						cursorIndex += relativeCursorIndex + 1;
 					} else {
 						cursorIndex += trimmedLineText.length + 1;
@@ -311,11 +395,18 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 		}
 
 		// Below cursor line
-		for (let y = absoluteCursorY + 1; y < buffer.baseY + this._xterm.rows; y++) {
+		for (
+			let y = absoluteCursorY + 1;
+			y < buffer.baseY + this._xterm.rows;
+			y++
+		) {
 			line = buffer.getLine(y);
 			const lineText = line?.translateToString(true);
 			if (lineText && line) {
-				if (this._continuationPrompt === undefined || this._lineContainsContinuationPrompt(lineText)) {
+				if (
+					this._continuationPrompt === undefined ||
+					this._lineContainsContinuationPrompt(lineText)
+				) {
 					value += `\n${this._trimContinuationPrompt(lineText)}`;
 				} else {
 					break;
@@ -326,70 +417,106 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 		}
 
 		if (this._logService.getLevel() === LogLevel.Trace) {
-			this._logService.trace(`PromptInputModel#_sync: ${this.getCombinedString()}`);
+			this._logService.trace(
+				`PromptInputModel#_sync: ${this.getCombinedString()}`,
+			);
 		}
 
 		// Adjust trailing whitespace
 		{
-			let trailingWhitespace = this._value.length - this._value.trimEnd().length;
+			let trailingWhitespace =
+				this._value.length - this._value.trimEnd().length;
 
 			// Handle backspace key
-			if (this._lastUserInput === '\x7F') {
-				this._lastUserInput = '';
+			if (this._lastUserInput === "\x7F") {
+				this._lastUserInput = "";
 				if (cursorIndex === this._cursorIndex - 1) {
 					// If trailing whitespace is being increased by removing a non-whitespace character
-					if (this._value.trimEnd().length > value.trimEnd().length && value.trimEnd().length <= cursorIndex) {
-						trailingWhitespace = Math.max((this._value.length - 1) - value.trimEnd().length, 0);
+					if (
+						this._value.trimEnd().length > value.trimEnd().length &&
+						value.trimEnd().length <= cursorIndex
+					) {
+						trailingWhitespace = Math.max(
+							this._value.length - 1 - value.trimEnd().length,
+							0,
+						);
 					}
 					// Standard case; subtract from trailing whitespace
 					else {
-						trailingWhitespace = Math.max(trailingWhitespace - 1, 0);
+						trailingWhitespace = Math.max(
+							trailingWhitespace - 1,
+							0,
+						);
 					}
-
 				}
 			}
 
 			// Handle delete key
-			if (this._lastUserInput === '\x1b[3~') {
-				this._lastUserInput = '';
+			if (this._lastUserInput === "\x1b[3~") {
+				this._lastUserInput = "";
 				if (cursorIndex === this._cursorIndex) {
 					trailingWhitespace = Math.max(trailingWhitespace - 1, 0);
 				}
 			}
 
-			const valueLines = value.split('\n');
+			const valueLines = value.split("\n");
 			const isMultiLine = valueLines.length > 1;
 			const valueEndTrimmed = value.trimEnd();
 			if (!isMultiLine) {
 				// Adjust trimmed whitespace value based on cursor position
 				if (valueEndTrimmed.length < value.length) {
 					// Handle space key
-					if (this._lastUserInput === ' ') {
-						this._lastUserInput = '';
-						if (cursorIndex > valueEndTrimmed.length && cursorIndex > this._cursorIndex) {
+					if (this._lastUserInput === " ") {
+						this._lastUserInput = "";
+						if (
+							cursorIndex > valueEndTrimmed.length &&
+							cursorIndex > this._cursorIndex
+						) {
 							trailingWhitespace++;
 						}
 					}
-					trailingWhitespace = Math.max(cursorIndex - valueEndTrimmed.length, trailingWhitespace, 0);
+					trailingWhitespace = Math.max(
+						cursorIndex - valueEndTrimmed.length,
+						trailingWhitespace,
+						0,
+					);
 				}
 
 				// Handle case where a non-space character is inserted in the middle of trailing whitespace
-				const charBeforeCursor = cursorIndex === 0 ? '' : value[cursorIndex - 1];
-				if (trailingWhitespace > 0 && cursorIndex === this._cursorIndex + 1 && this._lastUserInput !== '' && charBeforeCursor !== ' ') {
+				const charBeforeCursor =
+					cursorIndex === 0 ? "" : value[cursorIndex - 1];
+				if (
+					trailingWhitespace > 0 &&
+					cursorIndex === this._cursorIndex + 1 &&
+					this._lastUserInput !== "" &&
+					charBeforeCursor !== " "
+				) {
 					trailingWhitespace = this._value.length - this._cursorIndex;
 				}
 			}
 
 			if (isMultiLine) {
-				valueLines[valueLines.length - 1] = valueLines.at(-1)?.trimEnd() ?? '';
-				const continuationOffset = (valueLines.length - 1) * (this._continuationPrompt?.length ?? 0);
-				trailingWhitespace = Math.max(0, cursorIndex - value.length - continuationOffset);
+				valueLines[valueLines.length - 1] =
+					valueLines.at(-1)?.trimEnd() ?? "";
+				const continuationOffset =
+					(valueLines.length - 1) *
+					(this._continuationPrompt?.length ?? 0);
+				trailingWhitespace = Math.max(
+					0,
+					cursorIndex - value.length - continuationOffset,
+				);
 			}
 
-			value = valueLines.map(e => e.trimEnd()).join('\n') + ' '.repeat(trailingWhitespace);
+			value =
+				valueLines.map((e) => e.trimEnd()).join("\n") +
+				" ".repeat(trailingWhitespace);
 		}
 
-		if (this._value !== value || this._cursorIndex !== cursorIndex || this._ghostTextIndex !== ghostTextIndex) {
+		if (
+			this._value !== value ||
+			this._cursorIndex !== cursorIndex ||
+			this._ghostTextIndex !== ghostTextIndex
+		) {
 			this._value = value;
 			this._cursorIndex = cursorIndex;
 			this._ghostTextIndex = ghostTextIndex;
@@ -405,7 +532,11 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 	 * Detect ghost text by looking for italic or dim text in or after the cursor and
 	 * non-italic/dim text in the cell closest non-whitespace cell before the cursor.
 	 */
-	private _scanForGhostText(buffer: IBuffer, line: IBufferLine, cursorIndex: number): number {
+	private _scanForGhostText(
+		buffer: IBuffer,
+		line: IBufferLine,
+		cursorIndex: number,
+	): number {
 		// Check last non-whitespace character has non-ghost text styles
 		let ghostTextIndex = -1;
 		let proceedWithGhostTextCheck = false;
@@ -416,7 +547,8 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 				break;
 			}
 			if (cell.getChars().trim().length > 0) {
-				proceedWithGhostTextCheck = !this._isCellStyledLikeGhostText(cell);
+				proceedWithGhostTextCheck =
+					!this._isCellStyledLikeGhostText(cell);
 				break;
 			}
 		}
@@ -450,14 +582,23 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 	}
 
 	private _lineContainsContinuationPrompt(lineText: string): boolean {
-		return !!(this._continuationPrompt && lineText.startsWith(this._continuationPrompt));
+		return !!(
+			this._continuationPrompt &&
+			lineText.startsWith(this._continuationPrompt)
+		);
 	}
 
-	private _getContinuationPromptCellWidth(line: IBufferLine, lineText: string): number {
-		if (!this._continuationPrompt || !lineText.startsWith(this._continuationPrompt)) {
+	private _getContinuationPromptCellWidth(
+		line: IBufferLine,
+		lineText: string,
+	): number {
+		if (
+			!this._continuationPrompt ||
+			!lineText.startsWith(this._continuationPrompt)
+		) {
 			return 0;
 		}
-		let buffer = '';
+		let buffer = "";
 		let x = 0;
 		while (buffer !== this._continuationPrompt) {
 			buffer += line.getCell(x++)!.getChars();
@@ -465,8 +606,15 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 		return x;
 	}
 
-	private _getRelativeCursorIndex(startCellX: number, buffer: IBuffer, line: IBufferLine): number {
-		return line?.translateToString(true, startCellX, buffer.cursorX).length ?? 0;
+	private _getRelativeCursorIndex(
+		startCellX: number,
+		buffer: IBuffer,
+		line: IBufferLine,
+	): number {
+		return (
+			line?.translateToString(true, startCellX, buffer.cursorX).length ??
+			0
+		);
 	}
 
 	private _isCellStyledLikeGhostText(cell: IBufferCell): boolean {
@@ -479,7 +627,7 @@ export class PromptInputModel extends Disposable implements IPromptInputModel {
 			prefix: this.prefix,
 			suffix: this.suffix,
 			cursorIndex: this._cursorIndex,
-			ghostTextIndex: this._ghostTextIndex
+			ghostTextIndex: this._ghostTextIndex,
 		});
 	}
 }

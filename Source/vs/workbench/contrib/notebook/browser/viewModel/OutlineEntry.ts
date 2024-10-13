@@ -2,14 +2,20 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Codicon } from '../../../../../base/common/codicons.js';
-import { ThemeIcon } from '../../../../../base/common/themables.js';
-import { IMarkerService, MarkerSeverity } from '../../../../../platform/markers/common/markers.js';
-import { ICellViewModel } from '../notebookBrowser.js';
-import { executingStateIcon } from '../notebookIcons.js';
-import { CellKind } from '../../common/notebookCommon.js';
-import { IRange } from '../../../../../editor/common/core/range.js';
-import { SymbolKind, SymbolKinds } from '../../../../../editor/common/languages.js';
+import { Codicon } from "../../../../../base/common/codicons.js";
+import { ThemeIcon } from "../../../../../base/common/themables.js";
+import { IRange } from "../../../../../editor/common/core/range.js";
+import {
+	SymbolKind,
+	SymbolKinds,
+} from "../../../../../editor/common/languages.js";
+import {
+	IMarkerService,
+	MarkerSeverity,
+} from "../../../../../platform/markers/common/markers.js";
+import { CellKind } from "../../common/notebookCommon.js";
+import { ICellViewModel } from "../notebookBrowser.js";
+import { executingStateIcon } from "../notebookIcons.js";
 
 export interface IOutlineMarkerInfo {
 	readonly count: number;
@@ -25,9 +31,13 @@ export class OutlineEntry {
 		if (this.symbolKind) {
 			return SymbolKinds.toIcon(this.symbolKind);
 		}
-		return this.isExecuting && this.isPaused ? executingStateIcon :
-			this.isExecuting ? ThemeIcon.modify(executingStateIcon, 'spin') :
-				this.cell.cellKind === CellKind.Markup ? Codicon.markdown : Codicon.code;
+		return this.isExecuting && this.isPaused
+			? executingStateIcon
+			: this.isExecuting
+				? ThemeIcon.modify(executingStateIcon, "spin")
+				: this.cell.cellKind === CellKind.Markup
+					? Codicon.markdown
+					: Codicon.code;
 	}
 
 	constructor(
@@ -39,7 +49,7 @@ export class OutlineEntry {
 		readonly isPaused: boolean,
 		readonly range?: IRange,
 		readonly symbolKind?: SymbolKind,
-	) { }
+	) {}
 
 	addChild(entry: OutlineEntry) {
 		this._children.push(entry);
@@ -60,7 +70,10 @@ export class OutlineEntry {
 
 	get position() {
 		if (this.range) {
-			return { startLineNumber: this.range.startLineNumber, startColumn: this.range.startColumn };
+			return {
+				startLineNumber: this.range.startLineNumber,
+				startColumn: this.range.startColumn,
+			};
 		}
 		return undefined;
 	}
@@ -68,11 +81,16 @@ export class OutlineEntry {
 	updateMarkers(markerService: IMarkerService): void {
 		if (this.cell.cellKind === CellKind.Code) {
 			// a code cell can have marker
-			const marker = markerService.read({ resource: this.cell.uri, severities: MarkerSeverity.Error | MarkerSeverity.Warning });
+			const marker = markerService.read({
+				resource: this.cell.uri,
+				severities: MarkerSeverity.Error | MarkerSeverity.Warning,
+			});
 			if (marker.length === 0) {
 				this._markerInfo = undefined;
 			} else {
-				const topSev = marker.find(a => a.severity === MarkerSeverity.Error)?.severity ?? MarkerSeverity.Warning;
+				const topSev =
+					marker.find((a) => a.severity === MarkerSeverity.Error)
+						?.severity ?? MarkerSeverity.Warning;
 				this._markerInfo = { topSev, count: marker.length };
 			}
 		} else {
@@ -81,7 +99,9 @@ export class OutlineEntry {
 			for (const child of this.children) {
 				child.updateMarkers(markerService);
 				if (child.markerInfo) {
-					topChild = !topChild ? child.markerInfo.topSev : Math.max(child.markerInfo.topSev, topChild);
+					topChild = !topChild
+						? child.markerInfo.topSev
+						: Math.max(child.markerInfo.topSev, topChild);
 				}
 			}
 			this._markerInfo = topChild && { topSev: topChild, count: 0 };
@@ -95,7 +115,10 @@ export class OutlineEntry {
 		}
 	}
 
-	find(cell: ICellViewModel, parents: OutlineEntry[]): OutlineEntry | undefined {
+	find(
+		cell: ICellViewModel,
+		parents: OutlineEntry[],
+	): OutlineEntry | undefined {
 		if (cell.id === this.cell.id) {
 			return this;
 		}

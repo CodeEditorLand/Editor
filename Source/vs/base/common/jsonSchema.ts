@@ -3,7 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export type JSONSchemaType = 'string' | 'number' | 'integer' | 'boolean' | 'null' | 'array' | 'object';
+export type JSONSchemaType =
+	| "string"
+	| "number"
+	| "integer"
+	| "boolean"
+	| "null"
+	| "array"
+	| "object";
 
 export interface IJSONSchema {
 	id?: string;
@@ -105,25 +112,27 @@ export interface IJSONSchemaSnippet {
  *
  * TODO: only supports basic schemas. Doesn't support all JSON schema features.
  */
-export type SchemaToType<T> = T extends { type: 'string' }
+export type SchemaToType<T> = T extends { type: "string" }
 	? string
-	: T extends { type: 'number' }
-	? number
-	: T extends { type: 'boolean' }
-	? boolean
-	: T extends { type: 'null' }
-	? null
-	: T extends { type: 'object'; properties: infer P }
-	? { [K in keyof P]: SchemaToType<P[K]> }
-	: T extends { type: 'array'; items: infer I }
-	? Array<SchemaToType<I>>
-	: never;
+	: T extends { type: "number" }
+		? number
+		: T extends { type: "boolean" }
+			? boolean
+			: T extends { type: "null" }
+				? null
+				: T extends { type: "object"; properties: infer P }
+					? { [K in keyof P]: SchemaToType<P[K]> }
+					: T extends { type: "array"; items: infer I }
+						? Array<SchemaToType<I>>
+						: never;
 
-interface Equals { schemas: IJSONSchema[]; id?: string }
+interface Equals {
+	schemas: IJSONSchema[];
+	id?: string;
+}
 
 export function getCompressedContent(schema: IJSONSchema): string {
 	let hasDups = false;
-
 
 	// visit all schema nodes and collect the ones that are equal
 	const equalsByString = new Map<string, Equals>();
@@ -156,9 +165,9 @@ export function getCompressedContent(schema: IJSONSchema): string {
 		return JSON.stringify(schema);
 	}
 
-	let defNodeName = '$defs';
+	let defNodeName = "$defs";
 	while (schema.hasOwnProperty(defNodeName)) {
-		defNodeName += '_';
+		defNodeName += "_";
 	}
 
 	// used to collect all schemas that are later put in `$defs`. The index in the array is the id of the schema.
@@ -190,7 +199,7 @@ export function getCompressedContent(schema: IJSONSchema): string {
 		defStrings.push(`"_${i}":${stringify(definitions[i])}`);
 	}
 	if (defStrings.length) {
-		return `${str.substring(0, str.length - 1)},"${defNodeName}":{${defStrings.join(',')}}}`;
+		return `${str.substring(0, str.length - 1)},"${defNodeName}":{${defStrings.join(",")}}}`;
 	}
 	return str;
 }
@@ -198,14 +207,17 @@ export function getCompressedContent(schema: IJSONSchema): string {
 type IJSONSchemaRef = IJSONSchema | boolean;
 
 function isObject(thing: any): thing is object {
-	return typeof thing === 'object' && thing !== null;
+	return typeof thing === "object" && thing !== null;
 }
 
 /*
  * Traverse a JSON schema and visit each schema node
-*/
-function traverseNodes(root: IJSONSchema, visit: (schema: IJSONSchema) => boolean) {
-	if (!root || typeof root !== 'object') {
+ */
+function traverseNodes(
+	root: IJSONSchema,
+	visit: (schema: IJSONSchema) => boolean,
+) {
+	if (!root || typeof root !== "object") {
 		return;
 	}
 	const collectEntries = (...entries: (IJSONSchemaRef | undefined)[]) => {
@@ -227,7 +239,9 @@ function traverseNodes(root: IJSONSchema, visit: (schema: IJSONSchema) => boolea
 			}
 		}
 	};
-	const collectArrayEntries = (...arrays: (IJSONSchemaRef[] | undefined)[]) => {
+	const collectArrayEntries = (
+		...arrays: (IJSONSchemaRef[] | undefined)[]
+	) => {
 		for (const array of arrays) {
 			if (Array.isArray(array)) {
 				for (const entry of array) {
@@ -238,7 +252,9 @@ function traverseNodes(root: IJSONSchema, visit: (schema: IJSONSchema) => boolea
 			}
 		}
 	};
-	const collectEntryOrArrayEntries = (items: (IJSONSchemaRef[] | IJSONSchemaRef | undefined)) => {
+	const collectEntryOrArrayEntries = (
+		items: IJSONSchemaRef[] | IJSONSchemaRef | undefined,
+	) => {
 		if (Array.isArray(items)) {
 			for (const entry of items) {
 				if (isObject(entry)) {
@@ -256,12 +272,34 @@ function traverseNodes(root: IJSONSchema, visit: (schema: IJSONSchema) => boolea
 	while (next) {
 		const visitChildern = visit(next);
 		if (visitChildern) {
-			collectEntries(next.additionalItems, next.additionalProperties, next.not, next.contains, next.propertyNames, next.if, next.then, next.else, next.unevaluatedItems, next.unevaluatedProperties);
-			collectMapEntries(next.definitions, next.$defs, next.properties, next.patternProperties, <IJSONSchemaMap>next.dependencies, next.dependentSchemas);
-			collectArrayEntries(next.anyOf, next.allOf, next.oneOf, next.prefixItems);
+			collectEntries(
+				next.additionalItems,
+				next.additionalProperties,
+				next.not,
+				next.contains,
+				next.propertyNames,
+				next.if,
+				next.then,
+				next.else,
+				next.unevaluatedItems,
+				next.unevaluatedProperties,
+			);
+			collectMapEntries(
+				next.definitions,
+				next.$defs,
+				next.properties,
+				next.patternProperties,
+				<IJSONSchemaMap>next.dependencies,
+				next.dependentSchemas,
+			);
+			collectArrayEntries(
+				next.anyOf,
+				next.allOf,
+				next.oneOf,
+				next.prefixItems,
+			);
 			collectEntryOrArrayEntries(next.items);
 		}
 		next = toWalk.pop();
 	}
 }
-

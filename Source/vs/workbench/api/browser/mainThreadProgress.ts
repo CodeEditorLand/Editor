@@ -3,56 +3,92 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IProgress, IProgressService, IProgressStep, ProgressLocation, IProgressOptions, IProgressNotificationOptions } from '../../../platform/progress/common/progress.js';
-import { MainThreadProgressShape, MainContext, ExtHostProgressShape, ExtHostContext } from '../common/extHost.protocol.js';
-import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
-import { Action } from '../../../base/common/actions.js';
-import { ICommandService } from '../../../platform/commands/common/commands.js';
-import { localize } from '../../../nls.js';
+import { Action } from "../../../base/common/actions.js";
+import { localize } from "../../../nls.js";
+import { ICommandService } from "../../../platform/commands/common/commands.js";
+import {
+	IProgress,
+	IProgressNotificationOptions,
+	IProgressOptions,
+	IProgressService,
+	IProgressStep,
+	ProgressLocation,
+} from "../../../platform/progress/common/progress.js";
+import {
+	extHostNamedCustomer,
+	IExtHostContext,
+} from "../../services/extensions/common/extHostCustomers.js";
+import {
+	ExtHostContext,
+	ExtHostProgressShape,
+	MainContext,
+	MainThreadProgressShape,
+} from "../common/extHost.protocol.js";
 
 class ManageExtensionAction extends Action {
-	constructor(extensionId: string, label: string, commandService: ICommandService) {
+	constructor(
+		extensionId: string,
+		label: string,
+		commandService: ICommandService,
+	) {
 		super(extensionId, label, undefined, true, () => {
-			return commandService.executeCommand('_extensions.manage', extensionId);
+			return commandService.executeCommand(
+				"_extensions.manage",
+				extensionId,
+			);
 		});
 	}
 }
 
 @extHostNamedCustomer(MainContext.MainThreadProgress)
 export class MainThreadProgress implements MainThreadProgressShape {
-
 	private readonly _progressService: IProgressService;
-	private _progress = new Map<number, { resolve: () => void; progress: IProgress<IProgressStep> }>();
+	private _progress = new Map<
+		number,
+		{ resolve: () => void; progress: IProgress<IProgressStep> }
+	>();
 	private readonly _proxy: ExtHostProgressShape;
 
 	constructor(
 		extHostContext: IExtHostContext,
 		@IProgressService progressService: IProgressService,
-		@ICommandService private readonly _commandService: ICommandService
+		@ICommandService private readonly _commandService: ICommandService,
 	) {
 		this._proxy = extHostContext.getProxy(ExtHostContext.ExtHostProgress);
 		this._progressService = progressService;
 	}
 
 	dispose(): void {
-		this._progress.forEach(handle => handle.resolve());
+		this._progress.forEach((handle) => handle.resolve());
 		this._progress.clear();
 	}
 
-	async $startProgress(handle: number, options: IProgressOptions, extensionId?: string): Promise<void> {
+	async $startProgress(
+		handle: number,
+		options: IProgressOptions,
+		extensionId?: string,
+	): Promise<void> {
 		const task = this._createTask(handle);
 
 		if (options.location === ProgressLocation.Notification && extensionId) {
 			const notificationOptions: IProgressNotificationOptions = {
 				...options,
 				location: ProgressLocation.Notification,
-				secondaryActions: [new ManageExtensionAction(extensionId, localize('manageExtension', "Manage Extension"), this._commandService)]
+				secondaryActions: [
+					new ManageExtensionAction(
+						extensionId,
+						localize("manageExtension", "Manage Extension"),
+						this._commandService,
+					),
+				],
 			};
 
 			options = notificationOptions;
 		}
 
-		this._progressService.withProgress(options, task, () => this._proxy.$acceptProgressCanceled(handle));
+		this._progressService.withProgress(options, task, () =>
+			this._proxy.$acceptProgressCanceled(handle),
+		);
 	}
 
 	$progressReport(handle: number, message: IProgressStep): void {
@@ -70,7 +106,7 @@ export class MainThreadProgress implements MainThreadProgressShape {
 
 	private _createTask(handle: number) {
 		return (progress: IProgress<IProgressStep>) => {
-			return new Promise<void>(resolve => {
+			return new Promise<void>((resolve) => {
 				this._progress.set(handle, { resolve, progress });
 			});
 		};

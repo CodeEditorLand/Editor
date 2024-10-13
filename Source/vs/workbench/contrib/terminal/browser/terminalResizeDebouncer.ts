@@ -3,10 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { getWindow, runWhenWindowIdle } from '../../../../base/browser/dom.js';
-import { debounce } from '../../../../base/common/decorators.js';
-import { Disposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
-import type { XtermTerminal } from './xterm/xtermTerminal.js';
+import { getWindow, runWhenWindowIdle } from "../../../../base/browser/dom.js";
+import { debounce } from "../../../../base/common/decorators.js";
+import {
+	Disposable,
+	MutableDisposable,
+} from "../../../../base/common/lifecycle.js";
+import type { XtermTerminal } from "./xterm/xtermTerminal.js";
 
 const enum Constants {
 	/**
@@ -25,19 +28,30 @@ export class TerminalResizeDebouncer extends Disposable {
 	constructor(
 		private readonly _isVisible: () => boolean,
 		private readonly _getXterm: () => XtermTerminal | undefined,
-		private readonly _resizeBothCallback: (cols: number, rows: number) => void,
+		private readonly _resizeBothCallback: (
+			cols: number,
+			rows: number,
+		) => void,
 		private readonly _resizeXCallback: (cols: number) => void,
 		private readonly _resizeYCallback: (rows: number) => void,
 	) {
 		super();
 	}
 
-	async resize(cols: number, rows: number, immediate: boolean): Promise<void> {
+	async resize(
+		cols: number,
+		rows: number,
+		immediate: boolean,
+	): Promise<void> {
 		this._latestX = cols;
 		this._latestY = rows;
 
 		// Resize immediately if requested explicitly or if the buffer is small
-		if (immediate || this._getXterm()!.raw.buffer.normal.length < Constants.StartDebouncingThreshold) {
+		if (
+			immediate ||
+			this._getXterm()!.raw.buffer.normal.length <
+				Constants.StartDebouncingThreshold
+		) {
 			this._resizeXJob.clear();
 			this._resizeYJob.clear();
 			this._resizeBothCallback(cols, rows);

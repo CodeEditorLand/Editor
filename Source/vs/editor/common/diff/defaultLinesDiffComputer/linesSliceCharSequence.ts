@@ -3,13 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { findLastIdxMonotonous, findLastMonotonous, findFirstMonotonous } from '../../../../base/common/arraysFind.js';
-import { CharCode } from '../../../../base/common/charCode.js';
-import { OffsetRange } from '../../core/offsetRange.js';
-import { Position } from '../../core/position.js';
-import { Range } from '../../core/range.js';
-import { ISequence } from './algorithms/diffAlgorithm.js';
-import { isSpace } from './utils.js';
+import {
+	findFirstMonotonous,
+	findLastIdxMonotonous,
+	findLastMonotonous,
+} from "../../../../base/common/arraysFind.js";
+import { CharCode } from "../../../../base/common/charCode.js";
+import { OffsetRange } from "../../core/offsetRange.js";
+import { Position } from "../../core/position.js";
+import { Range } from "../../core/range.js";
+import { ISequence } from "./algorithms/diffAlgorithm.js";
+import { isSpace } from "./utils.js";
 
 export class LinesSliceCharSequence implements ISequence {
 	private readonly elements: number[] = [];
@@ -17,12 +21,23 @@ export class LinesSliceCharSequence implements ISequence {
 	private readonly lineStartOffsets: number[] = [];
 	private readonly trimmedWsLengthsByLineIdx: number[] = [];
 
-	constructor(public readonly lines: string[], private readonly range: Range, public readonly considerWhitespaceChanges: boolean) {
+	constructor(
+		public readonly lines: string[],
+		private readonly range: Range,
+		public readonly considerWhitespaceChanges: boolean,
+	) {
 		this.firstElementOffsetByLineIdx.push(0);
-		for (let lineNumber = this.range.startLineNumber; lineNumber <= this.range.endLineNumber; lineNumber++) {
+		for (
+			let lineNumber = this.range.startLineNumber;
+			lineNumber <= this.range.endLineNumber;
+			lineNumber++
+		) {
 			let line = lines[lineNumber - 1];
 			let lineStartOffset = 0;
-			if (lineNumber === this.range.startLineNumber && this.range.startColumn > 1) {
+			if (
+				lineNumber === this.range.startLineNumber &&
+				this.range.startColumn > 1
+			) {
 				lineStartOffset = this.range.startColumn - 1;
 				line = line.substring(lineStartOffset);
 			}
@@ -36,13 +51,22 @@ export class LinesSliceCharSequence implements ISequence {
 			}
 			this.trimmedWsLengthsByLineIdx.push(trimmedWsLength);
 
-			const lineLength = lineNumber === this.range.endLineNumber ? Math.min(this.range.endColumn - 1 - lineStartOffset - trimmedWsLength, line.length) : line.length;
+			const lineLength =
+				lineNumber === this.range.endLineNumber
+					? Math.min(
+							this.range.endColumn -
+								1 -
+								lineStartOffset -
+								trimmedWsLength,
+							line.length,
+						)
+					: line.length;
 			for (let i = 0; i < lineLength; i++) {
 				this.elements.push(line.charCodeAt(i));
 			}
 
 			if (lineNumber < this.range.endLineNumber) {
-				this.elements.push('\n'.charCodeAt(0));
+				this.elements.push("\n".charCodeAt(0));
 				this.firstElementOffsetByLineIdx.push(this.elements.length);
 			}
 		}
@@ -57,7 +81,10 @@ export class LinesSliceCharSequence implements ISequence {
 	}
 
 	getText(range: OffsetRange): string {
-		return this.elements.slice(range.start, range.endExclusive).map(e => String.fromCharCode(e)).join('');
+		return this.elements
+			.slice(range.start, range.endExclusive)
+			.map((e) => String.fromCharCode(e))
+			.join("");
 	}
 
 	getElement(offset: number): number {
@@ -72,10 +99,17 @@ export class LinesSliceCharSequence implements ISequence {
 		//   a   b   c   ,           d   e   f
 		// 11  0   0   12  15  6   13  0   0   11
 
-		const prevCategory = getCategory(length > 0 ? this.elements[length - 1] : -1);
-		const nextCategory = getCategory(length < this.elements.length ? this.elements[length] : -1);
+		const prevCategory = getCategory(
+			length > 0 ? this.elements[length - 1] : -1,
+		);
+		const nextCategory = getCategory(
+			length < this.elements.length ? this.elements[length] : -1,
+		);
 
-		if (prevCategory === CharBoundaryCategory.LineBreakCR && nextCategory === CharBoundaryCategory.LineBreakLF) {
+		if (
+			prevCategory === CharBoundaryCategory.LineBreakCR &&
+			nextCategory === CharBoundaryCategory.LineBreakLF
+		) {
 			// don't break between \r and \n
 			return 0;
 		}
@@ -87,7 +121,10 @@ export class LinesSliceCharSequence implements ISequence {
 		let score = 0;
 		if (prevCategory !== nextCategory) {
 			score += 10;
-			if (prevCategory === CharBoundaryCategory.WordLower && nextCategory === CharBoundaryCategory.WordUpper) {
+			if (
+				prevCategory === CharBoundaryCategory.WordLower &&
+				nextCategory === CharBoundaryCategory.WordUpper
+			) {
 				score += 1;
 			}
 		}
@@ -98,19 +135,30 @@ export class LinesSliceCharSequence implements ISequence {
 		return score;
 	}
 
-	public translateOffset(offset: number, preference: 'left' | 'right' = 'right'): Position {
+	public translateOffset(
+		offset: number,
+		preference: "left" | "right" = "right",
+	): Position {
 		// find smallest i, so that lineBreakOffsets[i] <= offset using binary search
-		const i = findLastIdxMonotonous(this.firstElementOffsetByLineIdx, (value) => value <= offset);
+		const i = findLastIdxMonotonous(
+			this.firstElementOffsetByLineIdx,
+			(value) => value <= offset,
+		);
 		const lineOffset = offset - this.firstElementOffsetByLineIdx[i];
 		return new Position(
 			this.range.startLineNumber + i,
-			1 + this.lineStartOffsets[i] + lineOffset + ((lineOffset === 0 && preference === 'left') ? 0 : this.trimmedWsLengthsByLineIdx[i])
+			1 +
+				this.lineStartOffsets[i] +
+				lineOffset +
+				(lineOffset === 0 && preference === "left"
+					? 0
+					: this.trimmedWsLengthsByLineIdx[i]),
 		);
 	}
 
 	public translateRange(range: OffsetRange): Range {
-		const pos1 = this.translateOffset(range.start, 'right');
-		const pos2 = this.translateOffset(range.endExclusive, 'left');
+		const pos1 = this.translateOffset(range.start, "right");
+		const pos2 = this.translateOffset(range.endExclusive, "left");
 		if (pos2.isBefore(pos1)) {
 			return Range.fromPositions(pos2, pos2);
 		}
@@ -145,7 +193,10 @@ export class LinesSliceCharSequence implements ISequence {
 	}
 
 	public countLinesIn(range: OffsetRange): number {
-		return this.translateOffset(range.endExclusive).lineNumber - this.translateOffset(range.start).lineNumber;
+		return (
+			this.translateOffset(range.endExclusive).lineNumber -
+			this.translateOffset(range.start).lineNumber
+		);
 	}
 
 	public isStronglyEqual(offset1: number, offset2: number): boolean {
@@ -153,16 +204,26 @@ export class LinesSliceCharSequence implements ISequence {
 	}
 
 	public extendToFullLines(range: OffsetRange): OffsetRange {
-		const start = findLastMonotonous(this.firstElementOffsetByLineIdx, x => x <= range.start) ?? 0;
-		const end = findFirstMonotonous(this.firstElementOffsetByLineIdx, x => range.endExclusive <= x) ?? this.elements.length;
+		const start =
+			findLastMonotonous(
+				this.firstElementOffsetByLineIdx,
+				(x) => x <= range.start,
+			) ?? 0;
+		const end =
+			findFirstMonotonous(
+				this.firstElementOffsetByLineIdx,
+				(x) => range.endExclusive <= x,
+			) ?? this.elements.length;
 		return new OffsetRange(start, end);
 	}
 }
 
 function isWordChar(charCode: number): boolean {
-	return charCode >= CharCode.a && charCode <= CharCode.z
-		|| charCode >= CharCode.A && charCode <= CharCode.Z
-		|| charCode >= CharCode.Digit0 && charCode <= CharCode.Digit9;
+	return (
+		(charCode >= CharCode.a && charCode <= CharCode.z) ||
+		(charCode >= CharCode.A && charCode <= CharCode.Z) ||
+		(charCode >= CharCode.Digit0 && charCode <= CharCode.Digit9)
+	);
 }
 
 const enum CharBoundaryCategory {
@@ -214,4 +275,3 @@ function getCategory(charCode: number): CharBoundaryCategory {
 		return CharBoundaryCategory.Other;
 	}
 }
-

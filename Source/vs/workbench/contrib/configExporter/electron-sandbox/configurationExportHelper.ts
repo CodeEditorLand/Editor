@@ -3,15 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { INativeWorkbenchEnvironmentService } from '../../../services/environment/electron-sandbox/environmentService.js';
-import { Registry } from '../../../../platform/registry/common/platform.js';
-import { IConfigurationNode, IConfigurationRegistry, Extensions, IConfigurationPropertySchema } from '../../../../platform/configuration/common/configurationRegistry.js';
-import { IExtensionService } from '../../../services/extensions/common/extensions.js';
-import { ICommandService } from '../../../../platform/commands/common/commands.js';
-import { IFileService } from '../../../../platform/files/common/files.js';
-import { VSBuffer } from '../../../../base/common/buffer.js';
-import { URI } from '../../../../base/common/uri.js';
-import { IProductService } from '../../../../platform/product/common/productService.js';
+import { VSBuffer } from "../../../../base/common/buffer.js";
+import { URI } from "../../../../base/common/uri.js";
+import { ICommandService } from "../../../../platform/commands/common/commands.js";
+import {
+	Extensions,
+	IConfigurationNode,
+	IConfigurationPropertySchema,
+	IConfigurationRegistry,
+} from "../../../../platform/configuration/common/configurationRegistry.js";
+import { IFileService } from "../../../../platform/files/common/files.js";
+import { IProductService } from "../../../../platform/product/common/productService.js";
+import { Registry } from "../../../../platform/registry/common/platform.js";
+import { INativeWorkbenchEnvironmentService } from "../../../services/environment/electron-sandbox/environmentService.js";
+import { IExtensionService } from "../../../services/extensions/common/extensions.js";
 
 interface IExportedConfigurationNode {
 	name: string;
@@ -30,17 +35,20 @@ interface IConfigurationExport {
 }
 
 export class DefaultConfigurationExportHelper {
-
 	constructor(
-		@INativeWorkbenchEnvironmentService environmentService: INativeWorkbenchEnvironmentService,
+		@INativeWorkbenchEnvironmentService
+		environmentService: INativeWorkbenchEnvironmentService,
 		@IExtensionService private readonly extensionService: IExtensionService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IFileService private readonly fileService: IFileService,
-		@IProductService private readonly productService: IProductService
+		@IProductService private readonly productService: IProductService,
 	) {
-		const exportDefaultConfigurationPath = environmentService.args['export-default-configuration'];
+		const exportDefaultConfigurationPath =
+			environmentService.args["export-default-configuration"];
 		if (exportDefaultConfigurationPath) {
-			this.writeConfigModelAndQuit(URI.file(exportDefaultConfigurationPath));
+			this.writeConfigModelAndQuit(
+				URI.file(exportDefaultConfigurationPath),
+			);
 		}
 	}
 
@@ -49,35 +57,43 @@ export class DefaultConfigurationExportHelper {
 			await this.extensionService.whenInstalledExtensionsRegistered();
 			await this.writeConfigModel(target);
 		} finally {
-			this.commandService.executeCommand('workbench.action.quit');
+			this.commandService.executeCommand("workbench.action.quit");
 		}
 	}
 
 	private async writeConfigModel(target: URI): Promise<void> {
 		const config = this.getConfigModel();
 
-		const resultString = JSON.stringify(config, undefined, '  ');
-		await this.fileService.writeFile(target, VSBuffer.fromString(resultString));
+		const resultString = JSON.stringify(config, undefined, "  ");
+		await this.fileService.writeFile(
+			target,
+			VSBuffer.fromString(resultString),
+		);
 	}
 
 	private getConfigModel(): IConfigurationExport {
-		const configRegistry = Registry.as<IConfigurationRegistry>(Extensions.Configuration);
+		const configRegistry = Registry.as<IConfigurationRegistry>(
+			Extensions.Configuration,
+		);
 		const configurations = configRegistry.getConfigurations().slice();
 		const settings: IExportedConfigurationNode[] = [];
 		const processedNames = new Set<string>();
 
-		const processProperty = (name: string, prop: IConfigurationPropertySchema) => {
+		const processProperty = (
+			name: string,
+			prop: IConfigurationPropertySchema,
+		) => {
 			if (processedNames.has(name)) {
-				console.warn('Setting is registered twice: ' + name);
+				console.warn("Setting is registered twice: " + name);
 				return;
 			}
 
 			processedNames.add(name);
 			const propDetails: IExportedConfigurationNode = {
 				name,
-				description: prop.description || prop.markdownDescription || '',
+				description: prop.description || prop.markdownDescription || "",
 				default: prop.default,
-				type: prop.type
+				type: prop.type,
 			};
 
 			if (prop.enum) {
@@ -85,7 +101,8 @@ export class DefaultConfigurationExportHelper {
 			}
 
 			if (prop.enumDescriptions || prop.markdownEnumDescriptions) {
-				propDetails.enumDescriptions = prop.enumDescriptions || prop.markdownEnumDescriptions;
+				propDetails.enumDescriptions =
+					prop.enumDescriptions || prop.markdownEnumDescriptions;
 			}
 
 			settings.push(propDetails);
@@ -103,7 +120,8 @@ export class DefaultConfigurationExportHelper {
 
 		configurations.forEach(processConfig);
 
-		const excludedProps = configRegistry.getExcludedConfigurationProperties();
+		const excludedProps =
+			configRegistry.getExcludedConfigurationProperties();
 		for (const name in excludedProps) {
 			processProperty(name, excludedProps[name]);
 		}
@@ -112,7 +130,7 @@ export class DefaultConfigurationExportHelper {
 			settings: settings.sort((a, b) => a.name.localeCompare(b.name)),
 			buildTime: Date.now(),
 			commit: this.productService.commit,
-			buildNumber: this.productService.settingsSearchBuildId
+			buildNumber: this.productService.settingsSearchBuildId,
 		};
 
 		return result;

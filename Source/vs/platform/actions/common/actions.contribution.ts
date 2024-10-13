@@ -3,10 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IMenuService, registerAction2 } from './actions.js';
-import { MenuHiddenStatesReset } from './menuResetAction.js';
-import { MenuService } from './menuService.js';
-import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
+import {
+	InstantiationType,
+	registerSingleton,
+} from "../../instantiation/common/extensions.js";
+import { IMenuService, registerAction2 } from "./actions.js";
+import { MenuHiddenStatesReset } from "./menuResetAction.js";
+import { MenuService } from "./menuService.js";
 
 registerSingleton(IMenuService, MenuService, InstantiationType.Delayed);
 

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module 'vscode' {
+declare module "vscode" {
 	/**
 	 * An AITextSearchProvider provides additional AI text search results in the workspace.
 	 */
@@ -22,7 +22,12 @@ declare module 'vscode' {
 		 * @param progress A progress callback that must be invoked for all results.
 		 * @param token A cancellation token.
 		 */
-		provideAITextSearchResults(query: string, options: TextSearchProviderOptions, progress: Progress<TextSearchResultNew>, token: CancellationToken): ProviderResult<TextSearchCompleteNew>;
+		provideAITextSearchResults(
+			query: string,
+			options: TextSearchProviderOptions,
+			progress: Progress<TextSearchResultNew>,
+			token: CancellationToken,
+		): ProviderResult<TextSearchCompleteNew>;
 	}
 
 	export namespace workspace {
@@ -35,6 +40,9 @@ declare module 'vscode' {
 		 * @param provider The provider.
 		 * @return A {@link Disposable} that unregisters this provider when being disposed.
 		 */
-		export function registerAITextSearchProviderNew(scheme: string, provider: AITextSearchProviderNew): Disposable;
+		export function registerAITextSearchProviderNew(
+			scheme: string,
+			provider: AITextSearchProviderNew,
+		): Disposable;
 	}
 }

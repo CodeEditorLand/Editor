@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { addDisposableListener, getWindow } from './dom.js';
-import { Disposable } from '../common/lifecycle.js';
-import { Mimes } from '../common/mime.js';
+import { Disposable } from "../common/lifecycle.js";
+import { Mimes } from "../common/mime.js";
+import { addDisposableListener, getWindow } from "./dom.js";
 
 /**
  * A helper that will execute a provided function when the provided HTMLElement receives
@@ -17,22 +17,26 @@ export class DelayedDragHandler extends Disposable {
 	constructor(container: HTMLElement, callback: () => void) {
 		super();
 
-		this._register(addDisposableListener(container, 'dragover', e => {
-			e.preventDefault(); // needed so that the drop event fires (https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome)
+		this._register(
+			addDisposableListener(container, "dragover", (e) => {
+				e.preventDefault(); // needed so that the drop event fires (https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome)
 
-			if (!this.timeout) {
-				this.timeout = setTimeout(() => {
-					callback();
+				if (!this.timeout) {
+					this.timeout = setTimeout(() => {
+						callback();
 
-					this.timeout = null;
-				}, 800);
-			}
-		}));
+						this.timeout = null;
+					}, 800);
+				}
+			}),
+		);
 
-		['dragleave', 'drop', 'dragend'].forEach(type => {
-			this._register(addDisposableListener(container, type, () => {
-				this.clearDragTimeout();
-			}));
+		["dragleave", "drop", "dragend"].forEach((type) => {
+			this._register(
+				addDisposableListener(container, type, () => {
+					this.clearDragTimeout();
+				}),
+			);
 		});
 	}
 
@@ -52,21 +56,20 @@ export class DelayedDragHandler extends Disposable {
 
 // Common data transfers
 export const DataTransfers = {
-
 	/**
 	 * Application specific resource transfer type
 	 */
-	RESOURCES: 'ResourceURLs',
+	RESOURCES: "ResourceURLs",
 
 	/**
 	 * Browser specific transfer type to download
 	 */
-	DOWNLOAD_URL: 'DownloadURL',
+	DOWNLOAD_URL: "DownloadURL",
 
 	/**
 	 * Browser specific transfer type for files
 	 */
-	FILES: 'Files',
+	FILES: "Files",
 
 	/**
 	 * Typically transfer type for copy/paste transfers.
@@ -78,11 +81,17 @@ export const DataTransfers = {
 	 *
 	 * This is needed to work around https://bugs.chromium.org/p/chromium/issues/detail?id=239745.
 	 */
-	INTERNAL_URI_LIST: 'application/vnd.code.uri-list',
+	INTERNAL_URI_LIST: "application/vnd.code.uri-list",
 };
 
-export function applyDragImage(event: DragEvent, label: string | null, clazz: string, backgroundColor?: string | null, foregroundColor?: string | null): void {
-	const dragImage = document.createElement('div');
+export function applyDragImage(
+	event: DragEvent,
+	label: string | null,
+	clazz: string,
+	backgroundColor?: string | null,
+	foregroundColor?: string | null,
+): void {
+	const dragImage = document.createElement("div");
 	dragImage.className = clazz;
 	dragImage.textContent = label;
 

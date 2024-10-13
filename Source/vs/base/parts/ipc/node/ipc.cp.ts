@@ -3,18 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChildProcess, fork, ForkOptions } from 'child_process';
-import { createCancelablePromise, Delayer } from '../../../common/async.js';
-import { VSBuffer } from '../../../common/buffer.js';
-import { CancellationToken } from '../../../common/cancellation.js';
-import { isRemoteConsoleLog, log } from '../../../common/console.js';
-import * as errors from '../../../common/errors.js';
-import { Emitter, Event } from '../../../common/event.js';
-import { dispose, IDisposable, toDisposable } from '../../../common/lifecycle.js';
-import { deepClone } from '../../../common/objects.js';
-import { createQueuedSender } from '../../../node/processes.js';
-import { removeDangerousEnvVariables } from '../../../common/processes.js';
-import { ChannelClient as IPCClient, ChannelServer as IPCServer, IChannel, IChannelClient } from '../common/ipc.js';
+import { ChildProcess, fork, ForkOptions } from "child_process";
+
+import { createCancelablePromise, Delayer } from "../../../common/async.js";
+import { VSBuffer } from "../../../common/buffer.js";
+import { CancellationToken } from "../../../common/cancellation.js";
+import { isRemoteConsoleLog, log } from "../../../common/console.js";
+import * as errors from "../../../common/errors.js";
+import { Emitter, Event } from "../../../common/event.js";
+import {
+	dispose,
+	IDisposable,
+	toDisposable,
+} from "../../../common/lifecycle.js";
+import { deepClone } from "../../../common/objects.js";
+import { removeDangerousEnvVariables } from "../../../common/processes.js";
+import { createQueuedSender } from "../../../node/processes.js";
+import {
+	IChannel,
+	IChannelClient,
+	ChannelClient as IPCClient,
+	ChannelServer as IPCServer,
+} from "../common/ipc.js";
 
 /**
  * This implementation doesn't perform well since it uses base64 encoding for buffers.
@@ -23,21 +33,29 @@ import { ChannelClient as IPCClient, ChannelServer as IPCServer, IChannel, IChan
 
 export class Server<TContext extends string> extends IPCServer<TContext> {
 	constructor(ctx: TContext) {
-		super({
-			send: r => {
-				try {
-					process.send?.((<Buffer>r.buffer).toString('base64'));
-				} catch (e) { /* not much to do */ }
+		super(
+			{
+				send: (r) => {
+					try {
+						process.send?.((<Buffer>r.buffer).toString("base64"));
+					} catch (e) {
+						/* not much to do */
+					}
+				},
+				onMessage: Event.fromNodeEventEmitter(
+					process,
+					"message",
+					(msg) => VSBuffer.wrap(Buffer.from(msg, "base64")),
+				),
 			},
-			onMessage: Event.fromNodeEventEmitter(process, 'message', msg => VSBuffer.wrap(Buffer.from(msg, 'base64')))
-		}, ctx);
+			ctx,
+		);
 
-		process.once('disconnect', () => this.dispose());
+		process.once("disconnect", () => this.dispose());
 	}
 }
 
 export interface IIPCOptions {
-
 	/**
 	 * A descriptive name for the server this connection is to. Used in logging.
 	 */
@@ -82,17 +100,22 @@ export interface IIPCOptions {
 }
 
 export class Client implements IChannelClient, IDisposable {
-
 	private disposeDelayer: Delayer<void> | undefined;
 	private activeRequests = new Set<IDisposable>();
 	private child: ChildProcess | null;
 	private _client: IPCClient | null;
 	private channels = new Map<string, IChannel>();
 
-	private readonly _onDidProcessExit = new Emitter<{ code: number; signal: string }>();
+	private readonly _onDidProcessExit = new Emitter<{
+		code: number;
+		signal: string;
+	}>();
 	readonly onDidProcessExit = this._onDidProcessExit.event;
 
-	constructor(private modulePath: string, private options: IIPCOptions) {
+	constructor(
+		private modulePath: string,
+		private options: IIPCOptions,
+	) {
 		const timeout = options && options.timeout ? options.timeout : 60000;
 		this.disposeDelayer = new Delayer<void>(timeout);
 		this.child = null;
@@ -104,18 +127,32 @@ export class Client implements IChannelClient, IDisposable {
 
 		// eslint-disable-next-line local/code-no-dangerous-type-assertions
 		return {
-			call<T>(command: string, arg?: any, cancellationToken?: CancellationToken): Promise<T> {
-				return that.requestPromise<T>(channelName, command, arg, cancellationToken);
+			call<T>(
+				command: string,
+				arg?: any,
+				cancellationToken?: CancellationToken,
+			): Promise<T> {
+				return that.requestPromise<T>(
+					channelName,
+					command,
+					arg,
+					cancellationToken,
+				);
 			},
 			listen(event: string, arg?: any) {
 				return that.requestEvent(channelName, event, arg);
-			}
+			},
 		} as T;
 	}
 
-	protected requestPromise<T>(channelName: string, name: string, arg?: any, cancellationToken = CancellationToken.None): Promise<T> {
+	protected requestPromise<T>(
+		channelName: string,
+		name: string,
+		arg?: any,
+		cancellationToken = CancellationToken.None,
+	): Promise<T> {
 		if (!this.disposeDelayer) {
-			return Promise.reject(new Error('disposed'));
+			return Promise.reject(new Error("disposed"));
 		}
 
 		if (cancellationToken.isCancellationRequested) {
@@ -125,8 +162,11 @@ export class Client implements IChannelClient, IDisposable {
 		this.disposeDelayer.cancel();
 
 		const channel = this.getCachedChannel(channelName);
-		const result = createCancelablePromise(token => channel.call<T>(name, arg, token));
-		const cancellationTokenListener = cancellationToken.onCancellationRequested(() => result.cancel());
+		const result = createCancelablePromise((token) =>
+			channel.call<T>(name, arg, token),
+		);
+		const cancellationTokenListener =
+			cancellationToken.onCancellationRequested(() => result.cancel());
 
 		const disposable = toDisposable(() => result.cancel());
 		this.activeRequests.add(disposable);
@@ -143,7 +183,11 @@ export class Client implements IChannelClient, IDisposable {
 		return result;
 	}
 
-	protected requestEvent<T>(channelName: string, name: string, arg?: any): Event<T> {
+	protected requestEvent<T>(
+		channelName: string,
+		name: string,
+		arg?: any,
+	): Event<T> {
 		if (!this.disposeDelayer) {
 			return Event.None;
 		}
@@ -166,7 +210,7 @@ export class Client implements IChannelClient, IDisposable {
 				if (this.activeRequests.size === 0 && this.disposeDelayer) {
 					this.disposeDelayer.trigger(() => this.disposeClient());
 				}
-			}
+			},
 		});
 
 		return emitter.event;
@@ -174,10 +218,14 @@ export class Client implements IChannelClient, IDisposable {
 
 	private get client(): IPCClient {
 		if (!this._client) {
-			const args = this.options && this.options.args ? this.options.args : [];
+			const args =
+				this.options && this.options.args ? this.options.args : [];
 			const forkOpts: ForkOptions = Object.create(null);
 
-			forkOpts.env = { ...deepClone(process.env), 'VSCODE_PARENT_PID': String(process.pid) };
+			forkOpts.env = {
+				...deepClone(process.env),
+				"VSCODE_PARENT_PID": String(process.pid),
+			};
 
 			if (this.options && this.options.env) {
 				forkOpts.env = { ...forkOpts.env, ...this.options.env };
@@ -187,18 +235,24 @@ export class Client implements IChannelClient, IDisposable {
 				forkOpts.execArgv = [];
 			}
 
-			if (this.options && typeof this.options.debug === 'number') {
-				forkOpts.execArgv = ['--nolazy', '--inspect=' + this.options.debug];
+			if (this.options && typeof this.options.debug === "number") {
+				forkOpts.execArgv = [
+					"--nolazy",
+					"--inspect=" + this.options.debug,
+				];
 			}
 
-			if (this.options && typeof this.options.debugBrk === 'number') {
-				forkOpts.execArgv = ['--nolazy', '--inspect-brk=' + this.options.debugBrk];
+			if (this.options && typeof this.options.debugBrk === "number") {
+				forkOpts.execArgv = [
+					"--nolazy",
+					"--inspect-brk=" + this.options.debugBrk,
+				];
 			}
 
 			if (forkOpts.execArgv === undefined) {
-				forkOpts.execArgv = process.execArgv			// if not set, the forked process inherits the execArgv of the parent process
-					.filter(a => !/^--inspect(-brk)?=/.test(a)) // --inspect and --inspect-brk can not be inherited as the port would conflict
-					.filter(a => !a.startsWith('--vscode-')); 	// --vscode-* arguments are unsupported by node.js and thus need to remove
+				forkOpts.execArgv = process.execArgv // if not set, the forked process inherits the execArgv of the parent process
+					.filter((a) => !/^--inspect(-brk)?=/.test(a)) // --inspect and --inspect-brk can not be inherited as the port would conflict
+					.filter((a) => !a.startsWith("--vscode-")); // --vscode-* arguments are unsupported by node.js and thus need to remove
 			}
 
 			removeDangerousEnvVariables(forkOpts.env);
@@ -206,10 +260,13 @@ export class Client implements IChannelClient, IDisposable {
 			this.child = fork(this.modulePath, args, forkOpts);
 
 			const onMessageEmitter = new Emitter<VSBuffer>();
-			const onRawMessage = Event.fromNodeEventEmitter(this.child, 'message', msg => msg);
+			const onRawMessage = Event.fromNodeEventEmitter(
+				this.child,
+				"message",
+				(msg) => msg,
+			);
 
-			const rawMessageDisposable = onRawMessage(msg => {
-
+			const rawMessageDisposable = onRawMessage((msg) => {
 				// Handle remote console logs specially
 				if (isRemoteConsoleLog(msg)) {
 					log(msg, `IPC Library: ${this.options.serverName}`);
@@ -217,30 +274,48 @@ export class Client implements IChannelClient, IDisposable {
 				}
 
 				// Anything else goes to the outside
-				onMessageEmitter.fire(VSBuffer.wrap(Buffer.from(msg, 'base64')));
+				onMessageEmitter.fire(
+					VSBuffer.wrap(Buffer.from(msg, "base64")),
+				);
 			});
 
-			const sender = this.options.useQueue ? createQueuedSender(this.child) : this.child;
-			const send = (r: VSBuffer) => this.child && this.child.connected && sender.send((<Buffer>r.buffer).toString('base64'));
+			const sender = this.options.useQueue
+				? createQueuedSender(this.child)
+				: this.child;
+			const send = (r: VSBuffer) =>
+				this.child &&
+				this.child.connected &&
+				sender.send((<Buffer>r.buffer).toString("base64"));
 			const onMessage = onMessageEmitter.event;
 			const protocol = { send, onMessage };
 
 			this._client = new IPCClient(protocol);
 
 			const onExit = () => this.disposeClient();
-			process.once('exit', onExit);
+			process.once("exit", onExit);
 
-			this.child.on('error', err => console.warn('IPC "' + this.options.serverName + '" errored with ' + err));
+			this.child.on("error", (err) =>
+				console.warn(
+					'IPC "' + this.options.serverName + '" errored with ' + err,
+				),
+			);
 
-			this.child.on('exit', (code: any, signal: any) => {
-				process.removeListener('exit' as 'loaded', onExit); // https://github.com/electron/electron/issues/21475
+			this.child.on("exit", (code: any, signal: any) => {
+				process.removeListener("exit" as "loaded", onExit); // https://github.com/electron/electron/issues/21475
 				rawMessageDisposable.dispose();
 
-				this.activeRequests.forEach(r => dispose(r));
+				this.activeRequests.forEach((r) => dispose(r));
 				this.activeRequests.clear();
 
-				if (code !== 0 && signal !== 'SIGTERM') {
-					console.warn('IPC "' + this.options.serverName + '" crashed with exit code ' + code + ' and signal ' + signal);
+				if (code !== 0 && signal !== "SIGTERM") {
+					console.warn(
+						'IPC "' +
+							this.options.serverName +
+							'" crashed with exit code ' +
+							code +
+							" and signal " +
+							signal,
+					);
 				}
 
 				this.disposeDelayer?.cancel();

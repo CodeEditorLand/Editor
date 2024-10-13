@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 export class IdGenerator {
-
 	private _prefix: string;
 	private _lastId: number;
 
@@ -14,8 +13,8 @@ export class IdGenerator {
 	}
 
 	public nextId(): string {
-		return this._prefix + (++this._lastId);
+		return this._prefix + ++this._lastId;
 	}
 }
 
-export const defaultGenerator = new IdGenerator('id#');
+export const defaultGenerator = new IdGenerator("id#");

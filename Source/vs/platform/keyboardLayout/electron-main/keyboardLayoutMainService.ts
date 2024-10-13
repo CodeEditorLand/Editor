@@ -3,30 +3,43 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type * as nativeKeymap from 'native-keymap';
-import * as platform from '../../../base/common/platform.js';
-import { Emitter } from '../../../base/common/event.js';
-import { Disposable } from '../../../base/common/lifecycle.js';
-import { createDecorator } from '../../instantiation/common/instantiation.js';
-import { IKeyboardLayoutData, INativeKeyboardLayoutService } from '../common/keyboardLayoutService.js';
-import { ILifecycleMainService, LifecycleMainPhase } from '../../lifecycle/electron-main/lifecycleMainService.js';
+import type * as nativeKeymap from "native-keymap";
 
-export const IKeyboardLayoutMainService = createDecorator<IKeyboardLayoutMainService>('keyboardLayoutMainService');
+import { Emitter } from "../../../base/common/event.js";
+import { Disposable } from "../../../base/common/lifecycle.js";
+import * as platform from "../../../base/common/platform.js";
+import { createDecorator } from "../../instantiation/common/instantiation.js";
+import {
+	ILifecycleMainService,
+	LifecycleMainPhase,
+} from "../../lifecycle/electron-main/lifecycleMainService.js";
+import {
+	IKeyboardLayoutData,
+	INativeKeyboardLayoutService,
+} from "../common/keyboardLayoutService.js";
 
-export interface IKeyboardLayoutMainService extends INativeKeyboardLayoutService { }
+export const IKeyboardLayoutMainService =
+	createDecorator<IKeyboardLayoutMainService>("keyboardLayoutMainService");
 
-export class KeyboardLayoutMainService extends Disposable implements INativeKeyboardLayoutService {
+export interface IKeyboardLayoutMainService
+	extends INativeKeyboardLayoutService {}
 
+export class KeyboardLayoutMainService
+	extends Disposable
+	implements INativeKeyboardLayoutService
+{
 	declare readonly _serviceBrand: undefined;
 
-	private readonly _onDidChangeKeyboardLayout = this._register(new Emitter<IKeyboardLayoutData>());
+	private readonly _onDidChangeKeyboardLayout = this._register(
+		new Emitter<IKeyboardLayoutData>(),
+	);
 	readonly onDidChangeKeyboardLayout = this._onDidChangeKeyboardLayout.event;
 
 	private _initPromise: Promise<void> | null;
 	private _keyboardLayoutData: IKeyboardLayoutData | null;
 
 	constructor(
-		@ILifecycleMainService lifecycleMainService: ILifecycleMainService
+		@ILifecycleMainService lifecycleMainService: ILifecycleMainService,
 	) {
 		super();
 		this._initPromise = null;
@@ -35,7 +48,9 @@ export class KeyboardLayoutMainService extends Disposable implements INativeKeyb
 		// perf: automatically trigger initialize after windows
 		// have opened so that we can do this work in parallel
 		// to the window load.
-		lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen).then(() => this._initialize());
+		lifecycleMainService
+			.when(LifecycleMainPhase.AfterWindowOpen)
+			.then(() => this._initialize());
 	}
 
 	private _initialize(): Promise<void> {
@@ -46,7 +61,7 @@ export class KeyboardLayoutMainService extends Disposable implements INativeKeyb
 	}
 
 	private async _doInitialize(): Promise<void> {
-		const nativeKeymapMod = await import('native-keymap');
+		const nativeKeymapMod = await import("native-keymap");
 
 		this._keyboardLayoutData = readKeyboardLayoutData(nativeKeymapMod);
 		if (!platform.isCI) {
@@ -54,7 +69,8 @@ export class KeyboardLayoutMainService extends Disposable implements INativeKeyb
 			// Do not register the keyboard layout change listener in CI because it doesn't work
 			// on the build machines and it just adds noise to the build logs.
 			nativeKeymapMod.onDidChangeKeyboardLayout(() => {
-				this._keyboardLayoutData = readKeyboardLayoutData(nativeKeymapMod);
+				this._keyboardLayoutData =
+					readKeyboardLayoutData(nativeKeymapMod);
 				this._onDidChangeKeyboardLayout.fire(this._keyboardLayoutData);
 			});
 		}
@@ -66,7 +82,9 @@ export class KeyboardLayoutMainService extends Disposable implements INativeKeyb
 	}
 }
 
-function readKeyboardLayoutData(nativeKeymapMod: typeof nativeKeymap): IKeyboardLayoutData {
+function readKeyboardLayoutData(
+	nativeKeymapMod: typeof nativeKeymap,
+): IKeyboardLayoutData {
 	const keyboardMapping = nativeKeymapMod.getKeyMap();
 	const keyboardLayoutInfo = nativeKeymapMod.getCurrentKeyboardLayout();
 	return { keyboardMapping, keyboardLayoutInfo };

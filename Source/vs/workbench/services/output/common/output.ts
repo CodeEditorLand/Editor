@@ -3,50 +3,63 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event, Emitter } from '../../../../base/common/event.js';
-import { Registry } from '../../../../platform/registry/common/platform.js';
-import { URI } from '../../../../base/common/uri.js';
-import { RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { Emitter, Event } from "../../../../base/common/event.js";
+import { URI } from "../../../../base/common/uri.js";
+import { RawContextKey } from "../../../../platform/contextkey/common/contextkey.js";
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import { Registry } from "../../../../platform/registry/common/platform.js";
 
 /**
  * Mime type used by the output editor.
  */
-export const OUTPUT_MIME = 'text/x-code-output';
+export const OUTPUT_MIME = "text/x-code-output";
 
 /**
  * Id used by the output editor.
  */
-export const OUTPUT_MODE_ID = 'Log';
+export const OUTPUT_MODE_ID = "Log";
 
 /**
  * Mime type used by the log output editor.
  */
-export const LOG_MIME = 'text/x-code-log-output';
+export const LOG_MIME = "text/x-code-log-output";
 
 /**
  * Id used by the log output editor.
  */
-export const LOG_MODE_ID = 'log';
+export const LOG_MODE_ID = "log";
 
 /**
  * Output view id
  */
-export const OUTPUT_VIEW_ID = 'workbench.panel.output';
+export const OUTPUT_VIEW_ID = "workbench.panel.output";
 
-export const CONTEXT_IN_OUTPUT = new RawContextKey<boolean>('inOutput', false);
+export const CONTEXT_IN_OUTPUT = new RawContextKey<boolean>("inOutput", false);
 
-export const CONTEXT_ACTIVE_FILE_OUTPUT = new RawContextKey<boolean>('activeLogOutput', false);
+export const CONTEXT_ACTIVE_FILE_OUTPUT = new RawContextKey<boolean>(
+	"activeLogOutput",
+	false,
+);
 
-export const CONTEXT_ACTIVE_OUTPUT_LEVEL_SETTABLE = new RawContextKey<boolean>('activeLogOutput.levelSettable', false);
+export const CONTEXT_ACTIVE_OUTPUT_LEVEL_SETTABLE = new RawContextKey<boolean>(
+	"activeLogOutput.levelSettable",
+	false,
+);
 
-export const CONTEXT_ACTIVE_OUTPUT_LEVEL = new RawContextKey<string>('activeLogOutput.level', '');
+export const CONTEXT_ACTIVE_OUTPUT_LEVEL = new RawContextKey<string>(
+	"activeLogOutput.level",
+	"",
+);
 
-export const CONTEXT_ACTIVE_OUTPUT_LEVEL_IS_DEFAULT = new RawContextKey<boolean>('activeLogOutput.levelIsDefault', false);
+export const CONTEXT_ACTIVE_OUTPUT_LEVEL_IS_DEFAULT =
+	new RawContextKey<boolean>("activeLogOutput.levelIsDefault", false);
 
-export const CONTEXT_OUTPUT_SCROLL_LOCK = new RawContextKey<boolean>(`outputView.scrollLock`, false);
+export const CONTEXT_OUTPUT_SCROLL_LOCK = new RawContextKey<boolean>(
+	`outputView.scrollLock`,
+	false,
+);
 
-export const IOutputService = createDecorator<IOutputService>('outputService');
+export const IOutputService = createDecorator<IOutputService>("outputService");
 
 /**
  * The output service to manage output from the various processes running.
@@ -90,11 +103,10 @@ export interface IOutputService {
 export enum OutputChannelUpdateMode {
 	Append = 1,
 	Replace,
-	Clear
+	Clear,
 }
 
 export interface IOutputChannel {
-
 	/**
 	 * Identifier of the output channel.
 	 */
@@ -138,7 +150,7 @@ export interface IOutputChannel {
 }
 
 export const Extensions = {
-	OutputChannels: 'workbench.contributions.outputChannels'
+	OutputChannels: "workbench.contributions.outputChannels",
 };
 
 export interface IOutputChannelDescriptor {
@@ -155,7 +167,6 @@ export interface IFileOutputChannelDescriptor extends IOutputChannelDescriptor {
 }
 
 export interface IOutputChannelRegistry {
-
 	readonly onDidRegisterChannel: Event<string>;
 	readonly onDidRemoveChannel: Event<string>;
 
@@ -184,7 +195,8 @@ class OutputChannelRegistry implements IOutputChannelRegistry {
 	private channels = new Map<string, IOutputChannelDescriptor>();
 
 	private readonly _onDidRegisterChannel = new Emitter<string>();
-	readonly onDidRegisterChannel: Event<string> = this._onDidRegisterChannel.event;
+	readonly onDidRegisterChannel: Event<string> =
+		this._onDidRegisterChannel.event;
 
 	private readonly _onDidRemoveChannel = new Emitter<string>();
 	readonly onDidRemoveChannel: Event<string> = this._onDidRemoveChannel.event;
@@ -198,7 +210,7 @@ class OutputChannelRegistry implements IOutputChannelRegistry {
 
 	public getChannels(): IOutputChannelDescriptor[] {
 		const result: IOutputChannelDescriptor[] = [];
-		this.channels.forEach(value => result.push(value));
+		this.channels.forEach((value) => result.push(value));
 		return result;
 	}
 
@@ -214,4 +226,7 @@ class OutputChannelRegistry implements IOutputChannelRegistry {
 
 Registry.add(Extensions.OutputChannels, new OutputChannelRegistry());
 
-export const ACTIVE_OUTPUT_CHANNEL_CONTEXT = new RawContextKey<string>('activeOutputChannel', '');
+export const ACTIVE_OUTPUT_CHANNEL_CONTEXT = new RawContextKey<string>(
+	"activeOutputChannel",
+	"",
+);

@@ -3,20 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IMarkdownString } from '../../../../base/common/htmlContent.js';
-import { Event } from '../../../../base/common/event.js';
-import { ExtensionIdentifier, IExtensionManifest } from '../../../../platform/extensions/common/extensions.js';
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
-import { Registry } from '../../../../platform/registry/common/platform.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
-import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
-import Severity from '../../../../base/common/severity.js';
-import { IStringDictionary } from '../../../../base/common/collections.js';
-import { ResolvedKeybinding } from '../../../../base/common/keybindings.js';
-import { Color } from '../../../../base/common/color.js';
+import { IStringDictionary } from "../../../../base/common/collections.js";
+import { Color } from "../../../../base/common/color.js";
+import { Event } from "../../../../base/common/event.js";
+import { IMarkdownString } from "../../../../base/common/htmlContent.js";
+import { ResolvedKeybinding } from "../../../../base/common/keybindings.js";
+import { IDisposable } from "../../../../base/common/lifecycle.js";
+import Severity from "../../../../base/common/severity.js";
+import {
+	ExtensionIdentifier,
+	IExtensionManifest,
+} from "../../../../platform/extensions/common/extensions.js";
+import { SyncDescriptor } from "../../../../platform/instantiation/common/descriptors.js";
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import { Registry } from "../../../../platform/registry/common/platform.js";
 
 export namespace Extensions {
-	export const ExtensionFeaturesRegistry = 'workbench.registry.extensionFeatures';
+	export const ExtensionFeaturesRegistry =
+		"workbench.registry.extensionFeatures";
 }
 
 export interface IExtensionFeatureRenderer extends IDisposable {
@@ -30,26 +34,36 @@ export interface IRenderedData<T> extends IDisposable {
 	readonly onDidChange?: Event<T>;
 }
 
-export interface IExtensionFeatureMarkdownRenderer extends IExtensionFeatureRenderer {
-	type: 'markdown';
+export interface IExtensionFeatureMarkdownRenderer
+	extends IExtensionFeatureRenderer {
+	type: "markdown";
 	render(manifest: IExtensionManifest): IRenderedData<IMarkdownString>;
 }
 
-export type IRowData = string | IMarkdownString | ResolvedKeybinding | Color | ReadonlyArray<ResolvedKeybinding | IMarkdownString | Color>;
+export type IRowData =
+	| string
+	| IMarkdownString
+	| ResolvedKeybinding
+	| Color
+	| ReadonlyArray<ResolvedKeybinding | IMarkdownString | Color>;
 
 export interface ITableData {
 	headers: string[];
 	rows: IRowData[][];
 }
 
-export interface IExtensionFeatureTableRenderer extends IExtensionFeatureRenderer {
-	type: 'table';
+export interface IExtensionFeatureTableRenderer
+	extends IExtensionFeatureRenderer {
+	type: "table";
 	render(manifest: IExtensionManifest): IRenderedData<ITableData>;
 }
 
-export interface IExtensionFeatureMarkdownAndTableRenderer extends IExtensionFeatureRenderer {
-	type: 'markdown+table';
-	render(manifest: IExtensionManifest): IRenderedData<Array<IMarkdownString | ITableData>>;
+export interface IExtensionFeatureMarkdownAndTableRenderer
+	extends IExtensionFeatureRenderer {
+	type: "markdown+table";
+	render(
+		manifest: IExtensionManifest,
+	): IRenderedData<Array<IMarkdownString | ITableData>>;
 }
 
 export interface IExtensionFeatureDescriptor {
@@ -65,8 +79,9 @@ export interface IExtensionFeatureDescriptor {
 }
 
 export interface IExtensionFeaturesRegistry {
-
-	registerExtensionFeature(descriptor: IExtensionFeatureDescriptor): IDisposable;
+	registerExtensionFeature(
+		descriptor: IExtensionFeatureDescriptor,
+	): IDisposable;
 	getExtensionFeature(id: string): IExtensionFeatureDescriptor | undefined;
 	getExtensionFeatures(): ReadonlyArray<IExtensionFeatureDescriptor>;
 }
@@ -75,38 +90,77 @@ export interface IExtensionFeatureAccessData {
 	readonly current?: {
 		readonly count: number;
 		readonly lastAccessed: number;
-		readonly status?: { readonly severity: Severity; readonly message: string };
+		readonly status?: {
+			readonly severity: Severity;
+			readonly message: string;
+		};
 	};
 	readonly totalCount: number;
 }
 
-export const IExtensionFeaturesManagementService = createDecorator<IExtensionFeaturesManagementService>('IExtensionFeaturesManagementService');
+export const IExtensionFeaturesManagementService =
+	createDecorator<IExtensionFeaturesManagementService>(
+		"IExtensionFeaturesManagementService",
+	);
 export interface IExtensionFeaturesManagementService {
 	readonly _serviceBrand: undefined;
 
-	readonly onDidChangeEnablement: Event<{ readonly extension: ExtensionIdentifier; readonly featureId: string; readonly enabled: boolean }>;
+	readonly onDidChangeEnablement: Event<{
+		readonly extension: ExtensionIdentifier;
+		readonly featureId: string;
+		readonly enabled: boolean;
+	}>;
 	isEnabled(extension: ExtensionIdentifier, featureId: string): boolean;
-	setEnablement(extension: ExtensionIdentifier, featureId: string, enabled: boolean): void;
-	getEnablementData(featureId: string): { readonly extension: ExtensionIdentifier; readonly enabled: boolean }[];
+	setEnablement(
+		extension: ExtensionIdentifier,
+		featureId: string,
+		enabled: boolean,
+	): void;
+	getEnablementData(
+		featureId: string,
+	): { readonly extension: ExtensionIdentifier; readonly enabled: boolean }[];
 
-	getAccess(extension: ExtensionIdentifier, featureId: string, justification?: string): Promise<boolean>;
+	getAccess(
+		extension: ExtensionIdentifier,
+		featureId: string,
+		justification?: string,
+	): Promise<boolean>;
 
-	readonly onDidChangeAccessData: Event<{ readonly extension: ExtensionIdentifier; readonly featureId: string; readonly accessData: IExtensionFeatureAccessData }>;
-	getAccessData(extension: ExtensionIdentifier, featureId: string): IExtensionFeatureAccessData | undefined;
-	setStatus(extension: ExtensionIdentifier, featureId: string, status: { readonly severity: Severity; readonly message: string } | undefined): void;
+	readonly onDidChangeAccessData: Event<{
+		readonly extension: ExtensionIdentifier;
+		readonly featureId: string;
+		readonly accessData: IExtensionFeatureAccessData;
+	}>;
+	getAccessData(
+		extension: ExtensionIdentifier,
+		featureId: string,
+	): IExtensionFeatureAccessData | undefined;
+	setStatus(
+		extension: ExtensionIdentifier,
+		featureId: string,
+		status:
+			| { readonly severity: Severity; readonly message: string }
+			| undefined,
+	): void;
 }
 
 class ExtensionFeaturesRegistry implements IExtensionFeaturesRegistry {
+	private readonly extensionFeatures = new Map<
+		string,
+		IExtensionFeatureDescriptor
+	>();
 
-	private readonly extensionFeatures = new Map<string, IExtensionFeatureDescriptor>();
-
-	registerExtensionFeature(descriptor: IExtensionFeatureDescriptor): IDisposable {
+	registerExtensionFeature(
+		descriptor: IExtensionFeatureDescriptor,
+	): IDisposable {
 		if (this.extensionFeatures.has(descriptor.id)) {
-			throw new Error(`Extension feature with id '${descriptor.id}' already exists`);
+			throw new Error(
+				`Extension feature with id '${descriptor.id}' already exists`,
+			);
 		}
 		this.extensionFeatures.set(descriptor.id, descriptor);
 		return {
-			dispose: () => this.extensionFeatures.delete(descriptor.id)
+			dispose: () => this.extensionFeatures.delete(descriptor.id),
 		};
 	}
 
@@ -119,4 +173,7 @@ class ExtensionFeaturesRegistry implements IExtensionFeaturesRegistry {
 	}
 }
 
-Registry.add(Extensions.ExtensionFeaturesRegistry, new ExtensionFeaturesRegistry());
+Registry.add(
+	Extensions.ExtensionFeaturesRegistry,
+	new ExtensionFeaturesRegistry(),
+);

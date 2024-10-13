@@ -3,18 +3,40 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { INotification, INotificationHandle, INotificationActions, INotificationProgress, NoOpNotification, Severity, NotificationMessage, IPromptChoice, IStatusMessageOptions, NotificationsFilter, INotificationProgressProperties, IPromptChoiceWithMenu, NotificationPriority, INotificationSource, isNotificationSource } from '../../platform/notification/common/notification.js';
-import { toErrorMessage, isErrorWithActions } from '../../base/common/errorMessage.js';
-import { Event, Emitter } from '../../base/common/event.js';
-import { Disposable, IDisposable, toDisposable } from '../../base/common/lifecycle.js';
-import { isCancellationError } from '../../base/common/errors.js';
-import { Action } from '../../base/common/actions.js';
-import { equals } from '../../base/common/arrays.js';
-import { parseLinkedText, LinkedText } from '../../base/common/linkedText.js';
-import { mapsStrictEqualIgnoreOrder } from '../../base/common/map.js';
+import { Action } from "../../base/common/actions.js";
+import { equals } from "../../base/common/arrays.js";
+import {
+	isErrorWithActions,
+	toErrorMessage,
+} from "../../base/common/errorMessage.js";
+import { isCancellationError } from "../../base/common/errors.js";
+import { Emitter, Event } from "../../base/common/event.js";
+import {
+	Disposable,
+	IDisposable,
+	toDisposable,
+} from "../../base/common/lifecycle.js";
+import { LinkedText, parseLinkedText } from "../../base/common/linkedText.js";
+import { mapsStrictEqualIgnoreOrder } from "../../base/common/map.js";
+import {
+	INotification,
+	INotificationActions,
+	INotificationHandle,
+	INotificationProgress,
+	INotificationProgressProperties,
+	INotificationSource,
+	IPromptChoice,
+	IPromptChoiceWithMenu,
+	isNotificationSource,
+	IStatusMessageOptions,
+	NoOpNotification,
+	NotificationMessage,
+	NotificationPriority,
+	NotificationsFilter,
+	Severity,
+} from "../../platform/notification/common/notification.js";
 
 export interface INotificationsModel {
-
 	//#region Notifications as Toasts/Center
 
 	readonly notifications: INotificationViewItem[];
@@ -28,20 +50,21 @@ export interface INotificationsModel {
 
 	//#endregion
 
-
 	//#region  Notifications as Status
 
 	readonly statusMessage: IStatusMessageViewItem | undefined;
 
 	readonly onDidChangeStatusMessage: Event<IStatusMessageChangeEvent>;
 
-	showStatusMessage(message: NotificationMessage, options?: IStatusMessageOptions): IDisposable;
+	showStatusMessage(
+		message: NotificationMessage,
+		options?: IStatusMessageOptions,
+	): IDisposable;
 
 	//#endregion
 }
 
 export const enum NotificationChangeType {
-
 	/**
 	 * A notification was added.
 	 */
@@ -61,11 +84,10 @@ export const enum NotificationChangeType {
 	/**
 	 * A notification was removed.
 	 */
-	REMOVE
+	REMOVE,
 }
 
 export interface INotificationChangeEvent {
-
 	/**
 	 * The index this notification has in the list of notifications.
 	 */
@@ -90,7 +112,7 @@ export interface INotificationChangeEvent {
 
 export const enum StatusMessageChangeType {
 	ADD,
-	REMOVE
+	REMOVE,
 }
 
 export interface IStatusMessageViewItem {
@@ -99,7 +121,6 @@ export interface IStatusMessageViewItem {
 }
 
 export interface IStatusMessageChangeEvent {
-
 	/**
 	 * The status message item this change is about.
 	 */
@@ -111,24 +132,34 @@ export interface IStatusMessageChangeEvent {
 	kind: StatusMessageChangeType;
 }
 
-export class NotificationHandle extends Disposable implements INotificationHandle {
-
+export class NotificationHandle
+	extends Disposable
+	implements INotificationHandle
+{
 	private readonly _onDidClose = this._register(new Emitter<void>());
 	readonly onDidClose = this._onDidClose.event;
 
-	private readonly _onDidChangeVisibility = this._register(new Emitter<boolean>());
+	private readonly _onDidChangeVisibility = this._register(
+		new Emitter<boolean>(),
+	);
 	readonly onDidChangeVisibility = this._onDidChangeVisibility.event;
 
-	constructor(private readonly item: INotificationViewItem, private readonly onClose: (item: INotificationViewItem) => void) {
+	constructor(
+		private readonly item: INotificationViewItem,
+		private readonly onClose: (item: INotificationViewItem) => void,
+	) {
 		super();
 
 		this.registerListeners();
 	}
 
 	private registerListeners(): void {
-
 		// Visibility
-		this._register(this.item.onDidChangeVisibility(visible => this._onDidChangeVisibility.fire(visible)));
+		this._register(
+			this.item.onDidChangeVisibility((visible) =>
+				this._onDidChangeVisibility.fire(visible),
+			),
+		);
 
 		// Closing
 		Event.once(this.item.onDidClose)(() => {
@@ -166,47 +197,62 @@ export interface INotificationsFilter {
 	readonly sources: Map<string, NotificationsFilter>;
 }
 
-export class NotificationsModel extends Disposable implements INotificationsModel {
-
+export class NotificationsModel
+	extends Disposable
+	implements INotificationsModel
+{
 	private static readonly NO_OP_NOTIFICATION = new NoOpNotification();
 
-	private readonly _onDidChangeNotification = this._register(new Emitter<INotificationChangeEvent>());
+	private readonly _onDidChangeNotification = this._register(
+		new Emitter<INotificationChangeEvent>(),
+	);
 	readonly onDidChangeNotification = this._onDidChangeNotification.event;
 
-	private readonly _onDidChangeStatusMessage = this._register(new Emitter<IStatusMessageChangeEvent>());
+	private readonly _onDidChangeStatusMessage = this._register(
+		new Emitter<IStatusMessageChangeEvent>(),
+	);
 	readonly onDidChangeStatusMessage = this._onDidChangeStatusMessage.event;
 
-	private readonly _onDidChangeFilter = this._register(new Emitter<Partial<INotificationsFilter>>());
+	private readonly _onDidChangeFilter = this._register(
+		new Emitter<Partial<INotificationsFilter>>(),
+	);
 	readonly onDidChangeFilter = this._onDidChangeFilter.event;
 
 	private readonly _notifications: INotificationViewItem[] = [];
-	get notifications(): INotificationViewItem[] { return this._notifications; }
+	get notifications(): INotificationViewItem[] {
+		return this._notifications;
+	}
 
 	private _statusMessage: IStatusMessageViewItem | undefined;
-	get statusMessage(): IStatusMessageViewItem | undefined { return this._statusMessage; }
+	get statusMessage(): IStatusMessageViewItem | undefined {
+		return this._statusMessage;
+	}
 
 	private readonly filter = {
 		global: NotificationsFilter.OFF,
-		sources: new Map<string, NotificationsFilter>()
+		sources: new Map<string, NotificationsFilter>(),
 	};
 
 	setFilter(filter: Partial<INotificationsFilter>): void {
 		let globalChanged = false;
-		if (typeof filter.global === 'number') {
+		if (typeof filter.global === "number") {
 			globalChanged = this.filter.global !== filter.global;
 			this.filter.global = filter.global;
 		}
 
 		let sourcesChanged = false;
 		if (filter.sources) {
-			sourcesChanged = !mapsStrictEqualIgnoreOrder(this.filter.sources, filter.sources);
+			sourcesChanged = !mapsStrictEqualIgnoreOrder(
+				this.filter.sources,
+				filter.sources,
+			);
 			this.filter.sources = filter.sources;
 		}
 
 		if (globalChanged || sourcesChanged) {
 			this._onDidChangeFilter.fire({
 				global: globalChanged ? filter.global : undefined,
-				sources: sourcesChanged ? filter.sources : undefined
+				sources: sourcesChanged ? filter.sources : undefined,
 			});
 		}
 	}
@@ -225,10 +271,14 @@ export class NotificationsModel extends Disposable implements INotificationsMode
 		this._notifications.splice(0, 0, item);
 
 		// Events
-		this._onDidChangeNotification.fire({ item, index: 0, kind: NotificationChangeType.ADD });
+		this._onDidChangeNotification.fire({
+			item,
+			index: 0,
+			kind: NotificationChangeType.ADD,
+		});
 
 		// Wrap into handle
-		return new NotificationHandle(item, item => this.onClose(item));
+		return new NotificationHandle(item, (item) => this.onClose(item));
 	}
 
 	private onClose(item: INotificationViewItem): void {
@@ -240,26 +290,44 @@ export class NotificationsModel extends Disposable implements INotificationsMode
 		}
 	}
 
-	private findNotification(item: INotificationViewItem): INotificationViewItem | undefined {
-		return this._notifications.find(notification => notification.equals(item));
+	private findNotification(
+		item: INotificationViewItem,
+	): INotificationViewItem | undefined {
+		return this._notifications.find((notification) =>
+			notification.equals(item),
+		);
 	}
 
-	private createViewItem(notification: INotification): INotificationViewItem | undefined {
+	private createViewItem(
+		notification: INotification,
+	): INotificationViewItem | undefined {
 		const item = NotificationViewItem.create(notification, this.filter);
 		if (!item) {
 			return undefined;
 		}
 
 		// Item Events
-		const fireNotificationChangeEvent = (kind: NotificationChangeType, detail?: NotificationViewItemContentChangeKind) => {
+		const fireNotificationChangeEvent = (
+			kind: NotificationChangeType,
+			detail?: NotificationViewItemContentChangeKind,
+		) => {
 			const index = this._notifications.indexOf(item);
 			if (index >= 0) {
-				this._onDidChangeNotification.fire({ item, index, kind, detail });
+				this._onDidChangeNotification.fire({
+					item,
+					index,
+					kind,
+					detail,
+				});
 			}
 		};
 
-		const itemExpansionChangeListener = item.onDidChangeExpansion(() => fireNotificationChangeEvent(NotificationChangeType.EXPAND_COLLAPSE));
-		const itemContentChangeListener = item.onDidChangeContent(e => fireNotificationChangeEvent(NotificationChangeType.CHANGE, e.kind));
+		const itemExpansionChangeListener = item.onDidChangeExpansion(() =>
+			fireNotificationChangeEvent(NotificationChangeType.EXPAND_COLLAPSE),
+		);
+		const itemContentChangeListener = item.onDidChangeContent((e) =>
+			fireNotificationChangeEvent(NotificationChangeType.CHANGE, e.kind),
+		);
 
 		Event.once(item.onDidClose)(() => {
 			itemExpansionChangeListener.dispose();
@@ -268,14 +336,21 @@ export class NotificationsModel extends Disposable implements INotificationsMode
 			const index = this._notifications.indexOf(item);
 			if (index >= 0) {
 				this._notifications.splice(index, 1);
-				this._onDidChangeNotification.fire({ item, index, kind: NotificationChangeType.REMOVE });
+				this._onDidChangeNotification.fire({
+					item,
+					index,
+					kind: NotificationChangeType.REMOVE,
+				});
 			}
 		});
 
 		return item;
 	}
 
-	showStatusMessage(message: NotificationMessage, options?: IStatusMessageOptions): IDisposable {
+	showStatusMessage(
+		message: NotificationMessage,
+		options?: IStatusMessageOptions,
+	): IDisposable {
 		const item = StatusMessageViewItem.create(message, options);
 		if (!item) {
 			return Disposable.None;
@@ -283,14 +358,19 @@ export class NotificationsModel extends Disposable implements INotificationsMode
 
 		// Remember as current status message and fire events
 		this._statusMessage = item;
-		this._onDidChangeStatusMessage.fire({ kind: StatusMessageChangeType.ADD, item });
+		this._onDidChangeStatusMessage.fire({
+			kind: StatusMessageChangeType.ADD,
+			item,
+		});
 
 		return toDisposable(() => {
-
 			// Only reset status message if the item is still the one we had remembered
 			if (this._statusMessage === item) {
 				this._statusMessage = undefined;
-				this._onDidChangeStatusMessage.fire({ kind: StatusMessageChangeType.REMOVE, item });
+				this._onDidChangeStatusMessage.fire({
+					kind: StatusMessageChangeType.REMOVE,
+					item,
+				});
 			}
 		});
 	}
@@ -332,7 +412,9 @@ export interface INotificationViewItem {
 	equals(item: INotificationViewItem): boolean;
 }
 
-export function isNotificationViewItem(obj: unknown): obj is INotificationViewItem {
+export function isNotificationViewItem(
+	obj: unknown,
+): obj is INotificationViewItem {
 	return obj instanceof NotificationViewItem;
 }
 
@@ -340,7 +422,7 @@ export const enum NotificationViewItemContentChangeKind {
 	SEVERITY,
 	MESSAGE,
 	ACTIONS,
-	PROGRESS
+	PROGRESS,
 }
 
 export interface INotificationViewItemContentChangeEvent {
@@ -360,7 +442,10 @@ export interface INotificationViewItemProgress extends INotificationProgress {
 	dispose(): void;
 }
 
-export class NotificationViewItemProgress extends Disposable implements INotificationViewItemProgress {
+export class NotificationViewItemProgress
+	extends Disposable
+	implements INotificationViewItemProgress
+{
 	private readonly _state: INotificationViewItemProgressState;
 
 	private readonly _onDidChange = this._register(new Emitter<void>());
@@ -418,7 +503,7 @@ export class NotificationViewItemProgress extends Disposable implements INotific
 	}
 
 	worked(value: number): void {
-		if (typeof this._state.worked === 'number') {
+		if (typeof this._state.worked === "number") {
 			this._state.worked += value;
 		} else {
 			this._state.worked = value;
@@ -445,8 +530,10 @@ export interface INotificationMessage {
 	linkedText: LinkedText;
 }
 
-export class NotificationViewItem extends Disposable implements INotificationViewItem {
-
+export class NotificationViewItem
+	extends Disposable
+	implements INotificationViewItem
+{
 	private static readonly MAX_MESSAGE_LENGTH = 1000;
 
 	private _expanded: boolean | undefined;
@@ -455,31 +542,46 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 	private _actions: INotificationActions | undefined;
 	private _progress: NotificationViewItemProgress | undefined;
 
-	private readonly _onDidChangeExpansion = this._register(new Emitter<void>());
+	private readonly _onDidChangeExpansion = this._register(
+		new Emitter<void>(),
+	);
 	readonly onDidChangeExpansion = this._onDidChangeExpansion.event;
 
 	private readonly _onDidClose = this._register(new Emitter<void>());
 	readonly onDidClose = this._onDidClose.event;
 
-	private readonly _onDidChangeContent = this._register(new Emitter<INotificationViewItemContentChangeEvent>());
+	private readonly _onDidChangeContent = this._register(
+		new Emitter<INotificationViewItemContentChangeEvent>(),
+	);
 	readonly onDidChangeContent = this._onDidChangeContent.event;
 
-	private readonly _onDidChangeVisibility = this._register(new Emitter<boolean>());
+	private readonly _onDidChangeVisibility = this._register(
+		new Emitter<boolean>(),
+	);
 	readonly onDidChangeVisibility = this._onDidChangeVisibility.event;
 
-	static create(notification: INotification, filter: INotificationsFilter): INotificationViewItem | undefined {
-		if (!notification || !notification.message || isCancellationError(notification.message)) {
+	static create(
+		notification: INotification,
+		filter: INotificationsFilter,
+	): INotificationViewItem | undefined {
+		if (
+			!notification ||
+			!notification.message ||
+			isCancellationError(notification.message)
+		) {
 			return undefined; // we need a message to show
 		}
 
 		let severity: Severity;
-		if (typeof notification.severity === 'number') {
+		if (typeof notification.severity === "number") {
 			severity = notification.severity;
 		} else {
 			severity = Severity.Info;
 		}
 
-		const message = NotificationViewItem.parseNotificationMessage(notification.message);
+		const message = NotificationViewItem.parseNotificationMessage(
+			notification.message,
+		);
 		if (!message) {
 			return undefined; // we need a message to show
 		}
@@ -492,22 +594,40 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 		}
 
 		let priority = notification.priority ?? NotificationPriority.DEFAULT;
-		if (priority === NotificationPriority.DEFAULT && severity !== Severity.Error) {
+		if (
+			priority === NotificationPriority.DEFAULT &&
+			severity !== Severity.Error
+		) {
 			if (filter.global === NotificationsFilter.ERROR) {
 				priority = NotificationPriority.SILENT; // filtered globally
-			} else if (isNotificationSource(notification.source) && filter.sources.get(notification.source.id) === NotificationsFilter.ERROR) {
+			} else if (
+				isNotificationSource(notification.source) &&
+				filter.sources.get(notification.source.id) ===
+					NotificationsFilter.ERROR
+			) {
 				priority = NotificationPriority.SILENT; // filtered by source
 			}
 		}
 
-		return new NotificationViewItem(notification.id, severity, notification.sticky, priority, message, notification.source, notification.progress, actions);
+		return new NotificationViewItem(
+			notification.id,
+			severity,
+			notification.sticky,
+			priority,
+			message,
+			notification.source,
+			notification.progress,
+			actions,
+		);
 	}
 
-	private static parseNotificationMessage(input: NotificationMessage): INotificationMessage | undefined {
+	private static parseNotificationMessage(
+		input: NotificationMessage,
+	): INotificationMessage | undefined {
 		let message: string | undefined;
 		if (input instanceof Error) {
 			message = toErrorMessage(input, false);
-		} else if (typeof input === 'string') {
+		} else if (typeof input === "string") {
 			message = input;
 		}
 
@@ -523,7 +643,7 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 		}
 
 		// Remove newlines from messages as we do not support that and it makes link parsing hard
-		message = message.replace(/(\r\n|\n|\r)/gm, ' ').trim();
+		message = message.replace(/(\r\n|\n|\r)/gm, " ").trim();
 
 		// Parse Links
 		const linkedText = parseLinkedText(message);
@@ -539,7 +659,7 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 		private _message: INotificationMessage,
 		private _source: string | INotificationSource | undefined,
 		progress: INotificationProgressProperties | undefined,
-		actions?: INotificationActions
+		actions?: INotificationActions,
 	) {
 		super();
 
@@ -562,10 +682,14 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 		}
 	}
 
-	private setActions(actions: INotificationActions = { primary: [], secondary: [] }): void {
+	private setActions(
+		actions: INotificationActions = { primary: [], secondary: [] },
+	): void {
 		this._actions = {
 			primary: Array.isArray(actions.primary) ? actions.primary : [],
-			secondary: Array.isArray(actions.secondary) ? actions.secondary : []
+			secondary: Array.isArray(actions.secondary)
+				? actions.secondary
+				: [],
 		};
 
 		this._expanded = actions.primary && actions.primary.length > 0;
@@ -591,8 +715,8 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 		const hasActions = this.hasActions;
 		if (
 			(hasActions && this._severity === Severity.Error) || // notification errors with actions are sticky
-			(!hasActions && this._expanded) ||					 // notifications that got expanded are sticky
-			(this._progress && !this._progress.state.done)		 // notifications with running progress are sticky
+			(!hasActions && this._expanded) || // notifications that got expanded are sticky
+			(this._progress && !this._progress.state.done) // notifications with running progress are sticky
 		) {
 			return true;
 		}
@@ -623,7 +747,13 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 	get progress(): INotificationViewItemProgress {
 		if (!this._progress) {
 			this._progress = this._register(new NotificationViewItemProgress());
-			this._register(this._progress.onDidChange(() => this._onDidChangeContent.fire({ kind: NotificationViewItemContentChangeKind.PROGRESS })));
+			this._register(
+				this._progress.onDidChange(() =>
+					this._onDidChangeContent.fire({
+						kind: NotificationViewItemContentChangeKind.PROGRESS,
+					}),
+				),
+			);
 		}
 
 		return this._progress;
@@ -634,11 +764,19 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 	}
 
 	get source(): string | undefined {
-		return typeof this._source === 'string' ? this._source : (this._source ? this._source.label : undefined);
+		return typeof this._source === "string"
+			? this._source
+			: this._source
+				? this._source.label
+				: undefined;
 	}
 
 	get sourceId(): string | undefined {
-		return (this._source && typeof this._source !== 'string' && 'id' in this._source) ? this._source.id : undefined;
+		return this._source &&
+			typeof this._source !== "string" &&
+			"id" in this._source
+			? this._source.id
+			: undefined;
 	}
 
 	get actions(): INotificationActions | undefined {
@@ -655,7 +793,9 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 		}
 
 		this._severity = severity;
-		this._onDidChangeContent.fire({ kind: NotificationViewItemContentChangeKind.SEVERITY });
+		this._onDidChangeContent.fire({
+			kind: NotificationViewItemContentChangeKind.SEVERITY,
+		});
 	}
 
 	updateMessage(input: NotificationMessage): void {
@@ -665,12 +805,16 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 		}
 
 		this._message = message;
-		this._onDidChangeContent.fire({ kind: NotificationViewItemContentChangeKind.MESSAGE });
+		this._onDidChangeContent.fire({
+			kind: NotificationViewItemContentChangeKind.MESSAGE,
+		});
 	}
 
 	updateActions(actions?: INotificationActions): void {
 		this.setActions(actions);
-		this._onDidChangeContent.fire({ kind: NotificationViewItemContentChangeKind.ACTIONS });
+		this._onDidChangeContent.fire({
+			kind: NotificationViewItemContentChangeKind.ACTIONS,
+		});
 	}
 
 	updateVisibility(visible: boolean): void {
@@ -721,12 +865,15 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 			return false;
 		}
 
-		if (typeof this.id === 'string' || typeof other.id === 'string') {
+		if (typeof this.id === "string" || typeof other.id === "string") {
 			return this.id === other.id;
 		}
 
-		if (typeof this._source === 'object') {
-			if (this._source.label !== other.source || this._source.id !== other.sourceId) {
+		if (typeof this._source === "object") {
+			if (
+				this._source.label !== other.source ||
+				this._source.id !== other.sourceId
+			) {
 				return false;
 			}
 		} else if (this._source !== other.source) {
@@ -738,13 +885,18 @@ export class NotificationViewItem extends Disposable implements INotificationVie
 		}
 
 		const primaryActions = (this._actions && this._actions.primary) || [];
-		const otherPrimaryActions = (other.actions && other.actions.primary) || [];
-		return equals(primaryActions, otherPrimaryActions, (action, otherAction) => (action.id + action.label) === (otherAction.id + otherAction.label));
+		const otherPrimaryActions =
+			(other.actions && other.actions.primary) || [];
+		return equals(
+			primaryActions,
+			otherPrimaryActions,
+			(action, otherAction) =>
+				action.id + action.label === otherAction.id + otherAction.label,
+		);
 	}
 }
 
 export class ChoiceAction extends Action {
-
 	private readonly _onDidRun = this._register(new Emitter<void>());
 	readonly onDidRun = this._onDidRun.event;
 
@@ -753,7 +905,6 @@ export class ChoiceAction extends Action {
 
 	constructor(id: string, choice: IPromptChoice) {
 		super(id, choice.label, undefined, true, async () => {
-
 			// Pass to runner
 			choice.run();
 
@@ -762,7 +913,12 @@ export class ChoiceAction extends Action {
 		});
 
 		this._keepOpen = !!choice.keepOpen;
-		this._menu = !choice.isSecondary && (<IPromptChoiceWithMenu>choice).menu ? (<IPromptChoiceWithMenu>choice).menu.map((c, index) => new ChoiceAction(`${id}.${index}`, c)) : undefined;
+		this._menu =
+			!choice.isSecondary && (<IPromptChoiceWithMenu>choice).menu
+				? (<IPromptChoiceWithMenu>choice).menu.map(
+						(c, index) => new ChoiceAction(`${id}.${index}`, c),
+					)
+				: undefined;
 	}
 
 	get menu(): ChoiceAction[] | undefined {
@@ -775,8 +931,10 @@ export class ChoiceAction extends Action {
 }
 
 class StatusMessageViewItem {
-
-	static create(notification: NotificationMessage, options?: IStatusMessageOptions): IStatusMessageViewItem | undefined {
+	static create(
+		notification: NotificationMessage,
+		options?: IStatusMessageOptions,
+	): IStatusMessageViewItem | undefined {
 		if (!notification || isCancellationError(notification)) {
 			return undefined; // we need a message to show
 		}
@@ -784,7 +942,7 @@ class StatusMessageViewItem {
 		let message: string | undefined;
 		if (notification instanceof Error) {
 			message = toErrorMessage(notification, false);
-		} else if (typeof notification === 'string') {
+		} else if (typeof notification === "string") {
 			message = notification;
 		}
 

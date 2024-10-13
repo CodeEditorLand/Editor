@@ -3,7 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { registerMainProcessRemoteService } from '../../../../platform/ipc/electron-sandbox/services.js';
-import { IExtensionHostStarter, ipcExtensionHostStarterChannelName } from '../../../../platform/extensions/common/extensionHostStarter.js';
+import {
+	IExtensionHostStarter,
+	ipcExtensionHostStarterChannelName,
+} from "../../../../platform/extensions/common/extensionHostStarter.js";
+import { registerMainProcessRemoteService } from "../../../../platform/ipc/electron-sandbox/services.js";
 
-registerMainProcessRemoteService(IExtensionHostStarter, ipcExtensionHostStarterChannelName);
+registerMainProcessRemoteService(
+	IExtensionHostStarter,
+	ipcExtensionHostStarterChannelName,
+);

@@ -3,14 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Match, FileMatch, FileMatchOrMatch } from './searchModel.js';
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
-import { IProgress, IProgressStep } from '../../../../platform/progress/common/progress.js';
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import {
+	IProgress,
+	IProgressStep,
+} from "../../../../platform/progress/common/progress.js";
+import { FileMatch, FileMatchOrMatch, Match } from "./searchModel.js";
 
-export const IReplaceService = createDecorator<IReplaceService>('replaceService');
+export const IReplaceService =
+	createDecorator<IReplaceService>("replaceService");
 
 export interface IReplaceService {
-
 	readonly _serviceBrand: undefined;
 
 	/**
@@ -22,12 +25,20 @@ export interface IReplaceService {
 	 *	Replace all the matches from the given file matches in the files
 	 *  You can also pass the progress runner to update the progress of replacing.
 	 */
-	replace(files: FileMatch[], progress?: IProgress<IProgressStep>): Promise<any>;
+	replace(
+		files: FileMatch[],
+		progress?: IProgress<IProgressStep>,
+	): Promise<any>;
 
 	/**
 	 * Opens the replace preview for given file match or match
 	 */
-	openReplacePreview(element: FileMatchOrMatch, preserveFocus?: boolean, sideBySide?: boolean, pinned?: boolean): Promise<any>;
+	openReplacePreview(
+		element: FileMatchOrMatch,
+		preserveFocus?: boolean,
+		sideBySide?: boolean,
+		pinned?: boolean,
+	): Promise<any>;
 
 	/**
 	 * Update the replace preview for the given file.

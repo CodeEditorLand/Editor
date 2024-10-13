@@ -3,22 +3,29 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { EqualityComparer } from './commonFacade/deps.js';
-import { BaseObservable, IObserver, ISettableObservable, ITransaction, TransactionImpl } from './base.js';
-import { DebugNameData } from './debugName.js';
+import {
+	BaseObservable,
+	IObserver,
+	ISettableObservable,
+	ITransaction,
+	TransactionImpl,
+} from "./base.js";
+import { EqualityComparer } from "./commonFacade/deps.js";
+import { DebugNameData } from "./debugName.js";
 
 /**
  * Holds off updating observers until the value is actually read.
-*/
+ */
 export class LazyObservableValue<T, TChange = void>
 	extends BaseObservable<T, TChange>
-	implements ISettableObservable<T, TChange> {
+	implements ISettableObservable<T, TChange>
+{
 	protected _value: T;
 	private _isUpToDate = true;
 	private readonly _deltas: TChange[] = [];
 
 	get debugName() {
-		return this._debugNameData.getDebugName(this) ?? 'LazyObservableValue';
+		return this._debugNameData.getDebugName(this) ?? "LazyObservableValue";
 	}
 
 	constructor(
@@ -80,7 +87,8 @@ export class LazyObservableValue<T, TChange = void>
 	}
 
 	public override addObserver(observer: IObserver): void {
-		const shouldCallBeginUpdate = !this.observers.has(observer) && this._updateCounter > 0;
+		const shouldCallBeginUpdate =
+			!this.observers.has(observer) && this._updateCounter > 0;
 		super.addObserver(observer);
 
 		if (shouldCallBeginUpdate) {
@@ -89,7 +97,8 @@ export class LazyObservableValue<T, TChange = void>
 	}
 
 	public override removeObserver(observer: IObserver): void {
-		const shouldCallEndUpdate = this.observers.has(observer) && this._updateCounter > 0;
+		const shouldCallEndUpdate =
+			this.observers.has(observer) && this._updateCounter > 0;
 		super.removeObserver(observer);
 
 		if (shouldCallEndUpdate) {
@@ -99,13 +108,19 @@ export class LazyObservableValue<T, TChange = void>
 	}
 
 	public set(value: T, tx: ITransaction | undefined, change: TChange): void {
-		if (change === undefined && this._equalityComparator(this._value, value)) {
+		if (
+			change === undefined &&
+			this._equalityComparator(this._value, value)
+		) {
 			return;
 		}
 
 		let _tx: TransactionImpl | undefined;
 		if (!tx) {
-			tx = _tx = new TransactionImpl(() => { }, () => `Setting ${this.debugName}`);
+			tx = _tx = new TransactionImpl(
+				() => {},
+				() => `Setting ${this.debugName}`,
+			);
 		}
 		try {
 			this._isUpToDate = false;
@@ -114,12 +129,15 @@ export class LazyObservableValue<T, TChange = void>
 				this._deltas.push(change);
 			}
 
-			tx.updateObserver({
-				beginUpdate: () => this._beginUpdate(),
-				endUpdate: () => this._endUpdate(),
-				handleChange: (observable, change) => { },
-				handlePossibleChange: (observable) => { },
-			}, this);
+			tx.updateObserver(
+				{
+					beginUpdate: () => this._beginUpdate(),
+					endUpdate: () => this._endUpdate(),
+					handleChange: (observable, change) => {},
+					handlePossibleChange: (observable) => {},
+				},
+				this,
+			);
 
 			if (this._updateCounter > 1) {
 				// We already started begin/end update, so we need to manually call handlePossibleChange
@@ -127,7 +145,6 @@ export class LazyObservableValue<T, TChange = void>
 					observer.handlePossibleChange(this);
 				}
 			}
-
 		} finally {
 			if (_tx) {
 				_tx.finish();

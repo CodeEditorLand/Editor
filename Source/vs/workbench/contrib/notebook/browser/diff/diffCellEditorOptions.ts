@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDiffEditorConstructionOptions } from '../../../../../editor/browser/editorBrowser.js';
-import { IEditorOptions } from '../../../../../editor/common/config/editorOptions.js';
+import { IDiffEditorConstructionOptions } from "../../../../../editor/browser/editorBrowser.js";
+import { IEditorOptions } from "../../../../../editor/common/config/editorOptions.js";
 
 /**
  * Do not leave at 12, when at 12 and we have whitespace and only one line,
@@ -12,15 +12,17 @@ import { IEditorOptions } from '../../../../../editor/common/config/editorOption
  */
 const fixedEditorPaddingSingleLineCells = {
 	top: 24,
-	bottom: 24
+	bottom: 24,
 };
 const fixedEditorPadding = {
 	top: 12,
-	bottom: 12
+	bottom: 12,
 };
 
 export function getEditorPadding(lineCount: number) {
-	return lineCount === 1 ? fixedEditorPaddingSingleLineCells : fixedEditorPadding;
+	return lineCount === 1
+		? fixedEditorPaddingSingleLineCells
+		: fixedEditorPadding;
 }
 
 export const fixedEditorOptions: IEditorOptions = {
@@ -28,8 +30,8 @@ export const fixedEditorOptions: IEditorOptions = {
 	scrollBeyondLastLine: false,
 	scrollbar: {
 		verticalScrollbarSize: 14,
-		horizontal: 'auto',
-		vertical: 'auto',
+		horizontal: "auto",
+		vertical: "auto",
 		useShadows: true,
 		verticalHasArrows: false,
 		horizontalHasArrows: false,
@@ -39,14 +41,14 @@ export const fixedEditorOptions: IEditorOptions = {
 	overviewRulerLanes: 0,
 	overviewRulerBorder: false,
 	selectOnLineNumbers: false,
-	wordWrap: 'off',
-	lineNumbers: 'off',
+	wordWrap: "off",
+	lineNumbers: "off",
 	glyphMargin: true,
 	fixedOverflowWidgets: true,
 	minimap: { enabled: false },
-	renderValidationDecorations: 'on',
-	renderLineHighlight: 'none',
-	readOnly: true
+	renderValidationDecorations: "on",
+	renderLineHighlight: "none",
+	readOnly: true,
 };
 
 export const fixedDiffEditorOptions: IDiffEditorConstructionOptions = {
@@ -58,9 +60,9 @@ export const fixedDiffEditorOptions: IDiffEditorConstructionOptions = {
 	readOnly: false,
 	isInEmbeddedEditor: true,
 	renderOverviewRuler: false,
-	wordWrap: 'off',
-	diffWordWrap: 'off',
-	diffAlgorithm: 'advanced',
+	wordWrap: "off",
+	diffWordWrap: "off",
+	diffAlgorithm: "advanced",
 	renderSideBySide: true,
-	useInlineViewWhenSpaceIsLimited: false
+	useInlineViewWhenSpaceIsLimited: false,
 };

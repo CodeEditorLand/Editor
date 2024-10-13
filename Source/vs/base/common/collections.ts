@@ -19,7 +19,10 @@ export type INumberDictionary<V> = Record<number, V>;
  * Groups the collection into a dictionary based on the provided
  * group function.
  */
-export function groupBy<K extends string | number | symbol, V>(data: V[], groupFn: (element: V) => K): Record<K, V[]> {
+export function groupBy<K extends string | number | symbol, V>(
+	data: V[],
+	groupFn: (element: V) => K,
+): Record<K, V[]> {
 	const result: Record<K, V[]> = Object.create(null);
 	for (const element of data) {
 		const key = groupFn(element);
@@ -32,7 +35,10 @@ export function groupBy<K extends string | number | symbol, V>(data: V[], groupF
 	return result;
 }
 
-export function diffSets<T>(before: ReadonlySet<T>, after: ReadonlySet<T>): { removed: T[]; added: T[] } {
+export function diffSets<T>(
+	before: ReadonlySet<T>,
+	after: ReadonlySet<T>,
+): { removed: T[]; added: T[] } {
 	const removed: T[] = [];
 	const added: T[] = [];
 	for (const element of before) {
@@ -48,7 +54,10 @@ export function diffSets<T>(before: ReadonlySet<T>, after: ReadonlySet<T>): { re
 	return { removed, added };
 }
 
-export function diffMaps<K, V>(before: Map<K, V>, after: Map<K, V>): { removed: V[]; added: V[] } {
+export function diffMaps<K, V>(
+	before: Map<K, V>,
+	after: Map<K, V>,
+): { removed: V[]; added: V[] } {
 	const removed: V[] = [];
 	const added: V[] = [];
 	for (const [index, value] of before) {
@@ -84,7 +93,10 @@ export function intersection<T>(setA: Set<T>, setB: Iterable<T>): Set<T> {
 export class SetWithKey<T> implements Set<T> {
 	private _map = new Map<any, T>();
 
-	constructor(values: T[], private toKey: (t: T) => unknown) {
+	constructor(
+		values: T[],
+		private toKey: (t: T) => unknown,
+	) {
 		for (const value of values) {
 			this.add(value);
 		}
@@ -128,13 +140,18 @@ export class SetWithKey<T> implements Set<T> {
 		this._map.clear();
 	}
 
-	forEach(callbackfn: (value: T, value2: T, set: Set<T>) => void, thisArg?: any): void {
-		this._map.forEach(entry => callbackfn.call(thisArg, entry, entry, this));
+	forEach(
+		callbackfn: (value: T, value2: T, set: Set<T>) => void,
+		thisArg?: any,
+	): void {
+		this._map.forEach((entry) =>
+			callbackfn.call(thisArg, entry, entry, this),
+		);
 	}
 
 	[Symbol.iterator](): IterableIterator<T> {
 		return this.values();
 	}
 
-	[Symbol.toStringTag]: string = 'SetWithKey';
+	[Symbol.toStringTag]: string = "SetWithKey";
 }

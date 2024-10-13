@@ -3,15 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
-import { URI } from '../../../../base/common/uri.js';
-import { Event } from '../../../../base/common/event.js';
-import { ColorIdentifier } from '../../../../platform/theme/common/colorRegistry.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
-import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { ThemeIcon } from '../../../../base/common/themables.js';
+import { CancellationToken } from "../../../../base/common/cancellation.js";
+import { Event } from "../../../../base/common/event.js";
+import { IDisposable } from "../../../../base/common/lifecycle.js";
+import { ThemeIcon } from "../../../../base/common/themables.js";
+import { URI } from "../../../../base/common/uri.js";
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import { ColorIdentifier } from "../../../../platform/theme/common/colorRegistry.js";
 
-export const IDecorationsService = createDecorator<IDecorationsService>('IFileDecorationsService');
+export const IDecorationsService = createDecorator<IDecorationsService>(
+	"IFileDecorationsService",
+);
 
 export interface IDecorationData {
 	readonly weight?: number;
@@ -33,7 +35,10 @@ export interface IDecoration extends IDisposable {
 export interface IDecorationsProvider {
 	readonly label: string;
 	readonly onDidChange: Event<readonly URI[]>;
-	provideDecorations(uri: URI, token: CancellationToken): IDecorationData | Promise<IDecorationData | undefined> | undefined;
+	provideDecorations(
+		uri: URI,
+		token: CancellationToken,
+	): IDecorationData | Promise<IDecorationData | undefined> | undefined;
 }
 
 export interface IResourceDecorationChangeEvent {
@@ -41,7 +46,6 @@ export interface IResourceDecorationChangeEvent {
 }
 
 export interface IDecorationsService {
-
 	readonly _serviceBrand: undefined;
 
 	readonly onDidChangeDecorations: Event<IResourceDecorationChangeEvent>;

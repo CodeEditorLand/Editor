@@ -13,7 +13,7 @@ const path = require('path');
 module.exports = withDefaults({
 	context: path.join(__dirname, 'client'),
 	entry: {
-		extension: './Source/node/cssClientMain.ts',
+		extension: './src/node/cssClientMain.ts',
 	},
 	output: {
 		filename: 'cssClientMain.js',

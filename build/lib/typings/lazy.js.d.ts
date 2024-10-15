@@ -11,16 +11,9 @@ declare function Lazy(value: Object): Lazy.ObjectLikeSequence<any>;
 
 declare module Lazy {
 	function strict(): StrictLazy;
-	function generate<T>(
-		generatorFn: GeneratorCallback<T>,
-		length?: number,
-	): GeneratedSequence<T>;
+	function generate<T>(generatorFn: GeneratorCallback<T>, length?: number): GeneratedSequence<T>;
 	function range(to: number): GeneratedSequence<number>;
-	function range(
-		from: number,
-		to: number,
-		step?: number,
-	): GeneratedSequence<number>;
+	function range(from: number, to: number, step?: number): GeneratedSequence<number>;
 	function repeat<T>(value: T, count?: number): GeneratedSequence<T>;
 	function on<T>(eventType: string): Sequence<T>;
 	function readFile(path: string): StringLikeSequence;
@@ -33,16 +26,9 @@ declare module Lazy {
 		<T>(value: Object): ObjectLikeSequence<T>;
 		(value: Object): ObjectLikeSequence<any>;
 		strict(): StrictLazy;
-		generate<T>(
-			generatorFn: GeneratorCallback<T>,
-			length?: number,
-		): GeneratedSequence<T>;
+		generate<T>(generatorFn: GeneratorCallback<T>, length?: number): GeneratedSequence<T>;
 		range(to: number): GeneratedSequence<number>;
-		range(
-			from: number,
-			to: number,
-			step?: number,
-		): GeneratedSequence<number>;
+		range(from: number, to: number, step?: number): GeneratedSequence<number>;
 		repeat<T>(value: T, count?: number): GeneratedSequence<T>;
 		on<T>(eventType: string): Sequence<T>;
 		readFile(path: string): StringLikeSequence;
@@ -101,16 +87,13 @@ declare module Lazy {
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	interface Iterator<T> {
-		new (sequence: Sequence<T>): Iterator<T>;
+		new(sequence: Sequence<T>): Iterator<T>;
 		current(): T;
 		moveNext(): boolean;
 	}
 
 	interface GeneratedSequence<T> extends Sequence<T> {
-		new (
-			generatorFn: GeneratorCallback<T>,
-			length: number,
-		): GeneratedSequence<T>;
+		new(generatorFn: GeneratorCallback<T>, length: number): GeneratedSequence<T>;
 		length(): number;
 	}
 
@@ -287,6 +270,7 @@ declare module Lazy {
 	}
 }
 
-declare module "lazy.js" {
+declare module 'lazy.js' {
 	export = Lazy;
 }
+

@@ -4,10 +4,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
+const ts = require("typescript");
 const fs_1 = require("fs");
 const path_1 = require("path");
 const minimatch_1 = require("minimatch");
-const ts = require("typescript");
 //
 // #############################################################################################
 //
@@ -23,278 +23,270 @@ const ts = require("typescript");
 // Types we assume are present in all implementations of JS VMs (node.js, browsers)
 // Feel free to add more core types as you see needed if present in node.js and browsers
 const CORE_TYPES = [
-    "setTimeout",
-    "clearTimeout",
-    "setInterval",
-    "clearInterval",
-    "console",
-    "Console",
-    "Error",
-    "ErrorConstructor",
-    "String",
-    "TextDecoder",
-    "TextEncoder",
-    "self",
-    "queueMicrotask",
-    "Array",
-    "Uint8Array",
-    "Uint16Array",
-    "Uint32Array",
-    "Int8Array",
-    "Int16Array",
-    "Int32Array",
-    "Float32Array",
-    "Float64Array",
-    "Uint8ClampedArray",
-    "BigUint64Array",
-    "BigInt64Array",
-    "btoa",
-    "atob",
-    "AbortController",
-    "AbortSignal",
-    "MessageChannel",
-    "MessagePort",
-    "URL",
-    "URLSearchParams",
-    "ReadonlyArray",
-    "Event",
-    "EventTarget",
-    "BroadcastChannel",
-    "performance",
-    "Blob",
-    "crypto",
-    "File",
-    "fetch",
-    "RequestInit",
-    "Headers",
-    "Response",
-    "__global",
-    "PerformanceMark",
-    "PerformanceObserver",
-    "ImportMeta",
+    'setTimeout',
+    'clearTimeout',
+    'setInterval',
+    'clearInterval',
+    'console',
+    'Console',
+    'Error',
+    'ErrorConstructor',
+    'String',
+    'TextDecoder',
+    'TextEncoder',
+    'self',
+    'queueMicrotask',
+    'Array',
+    'Uint8Array',
+    'Uint16Array',
+    'Uint32Array',
+    'Int8Array',
+    'Int16Array',
+    'Int32Array',
+    'Float32Array',
+    'Float64Array',
+    'Uint8ClampedArray',
+    'BigUint64Array',
+    'BigInt64Array',
+    'btoa',
+    'atob',
+    'AbortController',
+    'AbortSignal',
+    'MessageChannel',
+    'MessagePort',
+    'URL',
+    'URLSearchParams',
+    'ReadonlyArray',
+    'Event',
+    'EventTarget',
+    'BroadcastChannel',
+    'performance',
+    'Blob',
+    'crypto',
+    'File',
+    'fetch',
+    'RequestInit',
+    'Headers',
+    'Response',
+    '__global',
+    'PerformanceMark',
+    'PerformanceObserver',
+    'ImportMeta',
     // webcrypto has been available since Node.js 19, but still live in dom.d.ts
-    "Crypto",
-    "SubtleCrypto",
+    'Crypto',
+    'SubtleCrypto'
 ];
 // Types that are defined in a common layer but are known to be only
 // available in native environments should not be allowed in browser
 const NATIVE_TYPES = [
-    "NativeParsedArgs",
-    "INativeEnvironmentService",
-    "AbstractNativeEnvironmentService",
-    "INativeWindowConfiguration",
-    "ICommonNativeHostService",
-    "INativeHostService",
-    "IMainProcessService",
+    'NativeParsedArgs',
+    'INativeEnvironmentService',
+    'AbstractNativeEnvironmentService',
+    'INativeWindowConfiguration',
+    'ICommonNativeHostService',
+    'INativeHostService',
+    'IMainProcessService'
 ];
 const RULES = [
     // Tests: skip
     {
-        target: "**/vs/**/test/**",
-        skip: true, // -> skip all test files
+        target: '**/vs/**/test/**',
+        skip: true // -> skip all test files
     },
     // Common: vs/base/common/platform.ts
     {
-        target: "**/vs/base/common/platform.ts",
+        target: '**/vs/base/common/platform.ts',
         allowedTypes: [
             ...CORE_TYPES,
             // Safe access to postMessage() and friends
-            "MessageEvent",
+            'MessageEvent',
         ],
         disallowedTypes: NATIVE_TYPES,
         disallowedDefinitions: [
-            "lib.dom.d.ts", // no DOM
-            "@types/node", // no node.js
-        ],
+            'lib.dom.d.ts', // no DOM
+            '@types/node' // no node.js
+        ]
     },
     // Common: vs/base/common/async.ts
     {
-        target: "**/vs/base/common/async.ts",
+        target: '**/vs/base/common/async.ts',
         allowedTypes: [
             ...CORE_TYPES,
             // Safe access to requestIdleCallback & cancelIdleCallback
-            "requestIdleCallback",
-            "cancelIdleCallback",
+            'requestIdleCallback',
+            'cancelIdleCallback'
         ],
         disallowedTypes: NATIVE_TYPES,
         disallowedDefinitions: [
-            "lib.dom.d.ts", // no DOM
-            "@types/node", // no node.js
-        ],
+            'lib.dom.d.ts', // no DOM
+            '@types/node' // no node.js
+        ]
     },
     // Common: vs/base/common/performance.ts
     {
-        target: "**/vs/base/common/performance.ts",
+        target: '**/vs/base/common/performance.ts',
         allowedTypes: [
             ...CORE_TYPES,
             // Safe access to Performance
-            "Performance",
-            "PerformanceEntry",
-            "PerformanceTiming",
+            'Performance',
+            'PerformanceEntry',
+            'PerformanceTiming'
         ],
         disallowedTypes: NATIVE_TYPES,
         disallowedDefinitions: [
-            "lib.dom.d.ts", // no DOM
-            "@types/node", // no node.js
-        ],
+            'lib.dom.d.ts', // no DOM
+            '@types/node' // no node.js
+        ]
     },
     // Common: vs/platform/environment/common/*
     {
-        target: "**/vs/platform/environment/common/*.ts",
+        target: '**/vs/platform/environment/common/*.ts',
         allowedTypes: CORE_TYPES,
-        disallowedTypes: [
-        /* Ignore native types that are defined from here */
-        ],
+        disallowedTypes: [ /* Ignore native types that are defined from here */],
         disallowedDefinitions: [
-            "lib.dom.d.ts", // no DOM
-            "@types/node", // no node.js
-        ],
+            'lib.dom.d.ts', // no DOM
+            '@types/node' // no node.js
+        ]
     },
     // Common: vs/platform/window/common/window.ts
     {
-        target: "**/vs/platform/window/common/window.ts",
+        target: '**/vs/platform/window/common/window.ts',
         allowedTypes: CORE_TYPES,
-        disallowedTypes: [
-        /* Ignore native types that are defined from here */
-        ],
+        disallowedTypes: [ /* Ignore native types that are defined from here */],
         disallowedDefinitions: [
-            "lib.dom.d.ts", // no DOM
-            "@types/node", // no node.js
-        ],
+            'lib.dom.d.ts', // no DOM
+            '@types/node' // no node.js
+        ]
     },
     // Common: vs/platform/native/common/native.ts
     {
-        target: "**/vs/platform/native/common/native.ts",
+        target: '**/vs/platform/native/common/native.ts',
         allowedTypes: CORE_TYPES,
-        disallowedTypes: [
-        /* Ignore native types that are defined from here */
-        ],
+        disallowedTypes: [ /* Ignore native types that are defined from here */],
         disallowedDefinitions: [
-            "lib.dom.d.ts", // no DOM
-            "@types/node", // no node.js
-        ],
+            'lib.dom.d.ts', // no DOM
+            '@types/node' // no node.js
+        ]
     },
     // Common: vs/platform/native/common/nativeHostService.ts
     {
-        target: "**/vs/platform/native/common/nativeHostService.ts",
+        target: '**/vs/platform/native/common/nativeHostService.ts',
         allowedTypes: CORE_TYPES,
-        disallowedTypes: [
-        /* Ignore native types that are defined from here */
-        ],
+        disallowedTypes: [ /* Ignore native types that are defined from here */],
         disallowedDefinitions: [
-            "lib.dom.d.ts", // no DOM
-            "@types/node", // no node.js
-        ],
+            'lib.dom.d.ts', // no DOM
+            '@types/node' // no node.js
+        ]
     },
     // Common: vs/workbench/api/common/extHostExtensionService.ts
     {
-        target: "**/vs/workbench/api/common/extHostExtensionService.ts",
+        target: '**/vs/workbench/api/common/extHostExtensionService.ts',
         allowedTypes: [
             ...CORE_TYPES,
             // Safe access to global
-            "global",
+            'global'
         ],
         disallowedTypes: NATIVE_TYPES,
         disallowedDefinitions: [
-            "lib.dom.d.ts", // no DOM
-            "@types/node", // no node.js
-        ],
+            'lib.dom.d.ts', // no DOM
+            '@types/node' // no node.js
+        ]
     },
     // Common: vs/base/parts/sandbox/electron-sandbox/preload.ts
     {
-        target: "**/vs/base/parts/sandbox/electron-sandbox/preload.ts",
+        target: '**/vs/base/parts/sandbox/electron-sandbox/preload.ts',
         allowedTypes: [
             ...CORE_TYPES,
             // Safe access to a very small subset of node.js
-            "process",
-            "NodeJS",
+            'process',
+            'NodeJS'
         ],
         disallowedTypes: NATIVE_TYPES,
         disallowedDefinitions: [
-            "@types/node", // no node.js
-        ],
+            '@types/node' // no node.js
+        ]
     },
     // Common
     {
-        target: "**/vs/**/common/**",
+        target: '**/vs/**/common/**',
         allowedTypes: CORE_TYPES,
         disallowedTypes: NATIVE_TYPES,
         disallowedDefinitions: [
-            "lib.dom.d.ts", // no DOM
-            "@types/node", // no node.js
-        ],
+            'lib.dom.d.ts', // no DOM
+            '@types/node' // no node.js
+        ]
     },
     // Browser
     {
-        target: "**/vs/**/browser/**",
+        target: '**/vs/**/browser/**',
         allowedTypes: CORE_TYPES,
         disallowedTypes: NATIVE_TYPES,
         allowedDefinitions: [
-            "@types/node/stream/consumers.d.ts", // node.js started to duplicate types from lib.dom.d.ts so we have to account for that
+            '@types/node/stream/consumers.d.ts' // node.js started to duplicate types from lib.dom.d.ts so we have to account for that
         ],
         disallowedDefinitions: [
-            "@types/node", // no node.js
-        ],
+            '@types/node' // no node.js
+        ]
     },
     // Browser (editor contrib)
     {
-        target: "**/Source/vs/editor/contrib/**",
+        target: '**/src/vs/editor/contrib/**',
         allowedTypes: CORE_TYPES,
         disallowedTypes: NATIVE_TYPES,
         disallowedDefinitions: [
-            "@types/node", // no node.js
-        ],
+            '@types/node' // no node.js
+        ]
     },
     // node.js
     {
-        target: "**/vs/**/node/**",
+        target: '**/vs/**/node/**',
         allowedTypes: CORE_TYPES,
         disallowedDefinitions: [
-            "lib.dom.d.ts", // no DOM
-        ],
+            'lib.dom.d.ts' // no DOM
+        ]
     },
     // Electron (sandbox)
     {
-        target: "**/vs/**/electron-sandbox/**",
+        target: '**/vs/**/electron-sandbox/**',
         allowedTypes: CORE_TYPES,
         disallowedDefinitions: [
-            "@types/node", // no node.js
-        ],
+            '@types/node' // no node.js
+        ]
     },
     // Electron (utility)
     {
-        target: "**/vs/**/electron-utility/**",
+        target: '**/vs/**/electron-utility/**',
         allowedTypes: [
             ...CORE_TYPES,
             // --> types from electron.d.ts that duplicate from lib.dom.d.ts
-            "Event",
-            "Request",
+            'Event',
+            'Request'
         ],
         disallowedTypes: [
-            "ipcMain", // not allowed, use validatedIpcMain instead
+            'ipcMain' // not allowed, use validatedIpcMain instead
         ],
         disallowedDefinitions: [
-            "lib.dom.d.ts", // no DOM
-        ],
+            'lib.dom.d.ts' // no DOM
+        ]
     },
     // Electron (main)
     {
-        target: "**/vs/**/electron-main/**",
+        target: '**/vs/**/electron-main/**',
         allowedTypes: [
             ...CORE_TYPES,
             // --> types from electron.d.ts that duplicate from lib.dom.d.ts
-            "Event",
-            "Request",
+            'Event',
+            'Request'
         ],
         disallowedTypes: [
-            "ipcMain", // not allowed, use validatedIpcMain instead
+            'ipcMain' // not allowed, use validatedIpcMain instead
         ],
         disallowedDefinitions: [
-            "lib.dom.d.ts", // no DOM
-        ],
-    },
+            'lib.dom.d.ts' // no DOM
+        ]
+    }
 ];
-const TS_CONFIG_PATH = (0, path_1.join)(__dirname, "../../", "Source", "tsconfig.json");
+const TS_CONFIG_PATH = (0, path_1.join)(__dirname, '../../', 'src', 'tsconfig.json');
 let hasErrors = false;
 function checkFile(program, sourceFile, rule) {
     checkNode(sourceFile);
@@ -313,10 +305,10 @@ function checkFile(program, sourceFile, rule) {
         }
         const parentSymbol = _parentSymbol;
         const text = parentSymbol.getName();
-        if (rule.allowedTypes?.some((allowed) => allowed === text)) {
+        if (rule.allowedTypes?.some(allowed => allowed === text)) {
             return; // override
         }
-        if (rule.disallowedTypes?.some((disallowed) => disallowed === text)) {
+        if (rule.disallowedTypes?.some(disallowed => disallowed === text)) {
             const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
             console.log(`[build/lib/layersChecker.ts]: Reference to type '${text}' violates layer '${rule.target}' (${sourceFile.fileName} (${line + 1},${character + 1}). Learn more about our source code organization at https://github.com/microsoft/vscode/wiki/Source-Code-Organization.`);
             hasErrors = true;
@@ -357,12 +349,7 @@ function checkFile(program, sourceFile, rule) {
 }
 function createProgram(tsconfigPath) {
     const tsConfig = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
-    const configHostParser = {
-        fileExists: fs_1.existsSync,
-        readDirectory: ts.sys.readDirectory,
-        readFile: (file) => (0, fs_1.readFileSync)(file, "utf8"),
-        useCaseSensitiveFileNames: process.platform === "linux",
-    };
+    const configHostParser = { fileExists: fs_1.existsSync, readDirectory: ts.sys.readDirectory, readFile: file => (0, fs_1.readFileSync)(file, 'utf8'), useCaseSensitiveFileNames: process.platform === 'linux' };
     const tsConfigParsed = ts.parseJsonConfigFileContent(tsConfig.config, configHostParser, (0, path_1.resolve)((0, path_1.dirname)(tsconfigPath)), { noEmit: true });
     const compilerHost = ts.createCompilerHost(tsConfigParsed.options, true);
     return ts.createProgram(tsConfigParsed.fileNames, tsConfigParsed.options, compilerHost);

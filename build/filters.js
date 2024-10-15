@@ -20,7 +20,7 @@ module.exports.all = [
 	'build/**/*',
 	'extensions/**/*',
 	'scripts/**/*',
-	'Source/**/*',
+	'src/**/*',
 	'test/**/*',
 	'!cli/**/*',
 	'!out*/**',
@@ -57,8 +57,8 @@ module.exports.unicodeFilter = [
 	'!extensions/**/snippets/**',
 	'!extensions/**/colorize-fixtures/**',
 
-	'!Source/vs/base/browser/dompurify/**',
-	'!Source/vs/workbench/services/keybinding/browser/keyboardLayouts/**',
+	'!src/vs/base/browser/dompurify/**',
+	'!src/vs/workbench/services/keybinding/browser/keyboardLayouts/**',
 ];
 
 module.exports.indentationFilter = [
@@ -71,13 +71,13 @@ module.exports.indentationFilter = [
 	'!LICENSES.chromium.html',
 	'!**/LICENSE',
 	'!**/*.mp3',
-	'!Source/vs/loader.js',
-	'!Source/vs/base/browser/dompurify/*',
-	'!Source/vs/base/common/marked/marked.js',
-	'!Source/vs/base/common/semver/semver.js',
-	'!Source/vs/base/node/terminateProcess.sh',
-	'!Source/vs/base/node/cpuUsage.sh',
-	'!Source/vs/editor/common/languages/highlights/*.scm',
+	'!src/vs/loader.js',
+	'!src/vs/base/browser/dompurify/*',
+	'!src/vs/base/common/marked/marked.js',
+	'!src/vs/base/common/semver/semver.js',
+	'!src/vs/base/node/terminateProcess.sh',
+	'!src/vs/base/node/cpuUsage.sh',
+	'!src/vs/editor/common/languages/highlights/*.scm',
 	'!test/unit/assert.js',
 	'!resources/linux/snap/electron-launch',
 	'!build/ext.js',
@@ -114,8 +114,8 @@ module.exports.indentationFilter = [
 	'!extensions/**/colorize-fixtures/**',
 
 	// except specific file types
-	'!Source/vs/*/**/*.d.ts',
-	'!Source/typings/**/*.d.ts',
+	'!src/vs/*/**/*.d.ts',
+	'!src/typings/**/*.d.ts',
 	'!extensions/**/*.d.ts',
 	'!**/*.{svg,exe,png,bmp,jpg,scpt,bat,cmd,cur,ttf,woff,eot,md,ps1,psm1,template,yaml,yml,d.ts.recipe,ico,icns,plist,opus,admx,adml,wasm}',
 	'!build/{lib,download,linux,darwin}/**/*.js',
@@ -173,15 +173,15 @@ module.exports.copyrightFilter = [
 	'!extensions/typescript-language-features/node-maintainer/**',
 	'!extensions/html-language-features/server/src/modes/typescript/*',
 	'!extensions/*/server/bin/*',
-	'!Source/vs/editor/test/node/classification/typescript-test.ts',
+	'!src/vs/editor/test/node/classification/typescript-test.ts',
 ];
 
 module.exports.tsFormattingFilter = [
-	'Source/**/*.ts',
+	'src/**/*.ts',
 	'test/**/*.ts',
 	'extensions/**/*.ts',
-	'!Source/vs/*/**/*.d.ts',
-	'!Source/typings/**/*.d.ts',
+	'!src/vs/*/**/*.d.ts',
+	'!src/typings/**/*.d.ts',
 	'!extensions/**/*.d.ts',
 	'!**/fixtures/**',
 	'!**/typings/**',
@@ -206,5 +206,5 @@ module.exports.eslintFilter = [
 ];
 
 module.exports.stylelintFilter = [
-	'Source/**/*.css'
+	'src/**/*.css'
 ];

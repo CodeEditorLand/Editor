@@ -15,6 +15,6 @@ module.exports = withDefaults({
 		mainFields: ['module', 'main']
 	},
 	entry: {
-		extension: './Source/extension.ts',
+		extension: './src/extension.ts',
 	}
 });

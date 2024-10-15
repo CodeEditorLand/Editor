@@ -1,5 +1,5 @@
 build/**
-Source/**
+src/**
 test/**
 tsconfig.json
 cgmanifest.json

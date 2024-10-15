@@ -30,27 +30,27 @@ function bundle(entryPoints, config, callback) {
             allMentionedModulesMap[excludedModule] = true;
         });
     });
-    const code = require("fs").readFileSync(path.join(__dirname, "../../Source/vs/loader.js"));
-    const r = (vm.runInThisContext("(function(require, module, exports) { " + code + "\n});"));
+    const code = require('fs').readFileSync(path.join(__dirname, '../../src/vs/loader.js'));
+    const r = vm.runInThisContext('(function(require, module, exports) { ' + code + '\n});');
     const loaderModule = { exports: {} };
     r.call({}, require, loaderModule, loaderModule.exports);
     const loader = loaderModule.exports;
     config.isBuild = true;
     config.paths = config.paths || {};
-    if (!config.paths["vs/css"]) {
-        config.paths["vs/css"] = "out-build/vs/css.build";
+    if (!config.paths['vs/css']) {
+        config.paths['vs/css'] = 'out-build/vs/css.build';
     }
     config.buildForceInvokeFactory = config.buildForceInvokeFactory || {};
-    config.buildForceInvokeFactory["vs/css"] = true;
+    config.buildForceInvokeFactory['vs/css'] = true;
     loader.config(config);
-    loader(["require"], (localRequire) => {
+    loader(['require'], (localRequire) => {
         const resolvePath = (entry) => {
             let r = localRequire.toUrl(entry.path);
-            if (!r.endsWith(".js")) {
-                r += ".js";
+            if (!r.endsWith('.js')) {
+                r += '.js';
             }
             // avoid packaging the build version of plugins:
-            r = r.replace("vs/css.build.js", "vs/css.js");
+            r = r.replace('vs/css.build.js', 'vs/css.js');
             return { path: r, amdModuleId: entry.amdModuleId };
         };
         for (const moduleId in entryPointsMap) {
@@ -63,11 +63,11 @@ function bundle(entryPoints, config, callback) {
     loader(Object.keys(allMentionedModulesMap), () => {
         const modules = loader.getBuildInfo();
         const partialResult = emitEntryPoints(modules, entryPointsMap);
-        const cssInlinedResources = loader("vs/css").getInlinedResources();
+        const cssInlinedResources = loader('vs/css').getInlinedResources();
         callback(null, {
             files: partialResult.files,
             cssInlinedResources: cssInlinedResources,
-            bundleData: partialResult.bundleData,
+            bundleData: partialResult.bundleData
         });
     }, (err) => callback(err, null));
 }
@@ -85,13 +85,13 @@ function emitEntryPoints(modules, entryPoints) {
     const usedPlugins = {};
     const bundleData = {
         graph: modulesGraph,
-        bundles: {},
+        bundles: {}
     };
     Object.keys(entryPoints).forEach((moduleToBundle) => {
         const info = entryPoints[moduleToBundle];
         const rootNodes = [moduleToBundle].concat(info.include || []);
         const allDependencies = visit(rootNodes, modulesGraph);
-        const excludes = ["require", "exports", "module"].concat(info.exclude || []);
+        const excludes = ['require', 'exports', 'module'].concat(info.exclude || []);
         excludes.forEach((excludeRoot) => {
             const allExcludes = visit([excludeRoot], modulesGraph);
             Object.keys(allExcludes).forEach((exclude) => {
@@ -105,22 +105,19 @@ function emitEntryPoints(modules, entryPoints) {
         const res = emitEntryPoint(modulesMap, modulesGraph, moduleToBundle, includedModules, info.prepend || [], info.dest);
         result = result.concat(res.files);
         for (const pluginName in res.usedPlugins) {
-            usedPlugins[pluginName] =
-                usedPlugins[pluginName] || res.usedPlugins[pluginName];
+            usedPlugins[pluginName] = usedPlugins[pluginName] || res.usedPlugins[pluginName];
         }
     });
     Object.keys(usedPlugins).forEach((pluginName) => {
         const plugin = usedPlugins[pluginName];
-        if (typeof plugin.finishBuild === "function") {
+        if (typeof plugin.finishBuild === 'function') {
             const write = (filename, contents) => {
                 result.push({
                     dest: filename,
-                    sources: [
-                        {
+                    sources: [{
                             path: null,
-                            contents: contents,
-                        },
-                    ],
+                            contents: contents
+                        }]
                 });
             };
             plugin.finishBuild(write);
@@ -129,39 +126,37 @@ function emitEntryPoints(modules, entryPoints) {
     return {
         // TODO@TS 2.1.2
         files: extractStrings(removeAllDuplicateTSBoilerplate(result)),
-        bundleData: bundleData,
+        bundleData: bundleData
     };
 }
 function extractStrings(destFiles) {
     const parseDefineCall = (moduleMatch, depsMatch) => {
-        const module = moduleMatch.replace(/^"|"$/g, "");
-        let deps = depsMatch.split(",");
+        const module = moduleMatch.replace(/^"|"$/g, '');
+        let deps = depsMatch.split(',');
         deps = deps.map((dep) => {
             dep = dep.trim();
-            dep = dep.replace(/^"|"$/g, "");
-            dep = dep.replace(/^'|'$/g, "");
+            dep = dep.replace(/^"|"$/g, '');
+            dep = dep.replace(/^'|'$/g, '');
             let prefix = null;
             let _path = null;
-            const pieces = dep.split("!");
+            const pieces = dep.split('!');
             if (pieces.length > 1) {
-                prefix = pieces[0] + "!";
+                prefix = pieces[0] + '!';
                 _path = pieces[1];
             }
             else {
-                prefix = "";
+                prefix = '';
                 _path = pieces[0];
             }
             if (/^\.\//.test(_path) || /^\.\.\//.test(_path)) {
-                const res = path
-                    .join(path.dirname(module), _path)
-                    .replace(/\\/g, "/");
+                const res = path.join(path.dirname(module), _path).replace(/\\/g, '/');
                 return prefix + res;
             }
             return prefix + _path;
         });
         return {
             module: module,
-            deps: deps,
+            deps: deps
         };
     };
     destFiles.forEach((destFile) => {
@@ -179,8 +174,7 @@ function extractStrings(destFiles) {
                 return;
             }
             const defineCall = parseDefineCall(matches[1], matches[2]);
-            useCounts[defineCall.module] =
-                (useCounts[defineCall.module] || 0) + 1;
+            useCounts[defineCall.module] = (useCounts[defineCall.module] || 0) + 1;
             defineCall.deps.forEach((dep) => {
                 useCounts[dep] = (useCounts[dep] || 0) + 1;
             });
@@ -196,13 +190,13 @@ function extractStrings(destFiles) {
         destFile.sources.forEach((source) => {
             source.contents = source.contents.replace(/define\(("[^"]+"),\s*\[(((, )?("|')[^"']+("|'))+)\]/, (_, moduleMatch, depsMatch) => {
                 const defineCall = parseDefineCall(moduleMatch, depsMatch);
-                return `define(__m[${replacementMap[defineCall.module]}/*${defineCall.module}*/], __M([${defineCall.deps.map((dep) => replacementMap[dep] + "/*" + dep + "*/").join(",")}])`;
+                return `define(__m[${replacementMap[defineCall.module]}/*${defineCall.module}*/], __M([${defineCall.deps.map(dep => replacementMap[dep] + '/*' + dep + '*/').join(',')}])`;
             });
         });
         destFile.sources.unshift({
             path: null,
             contents: [
-                "(function() {",
+                '(function() {',
                 `var __m = ${JSON.stringify(sortedByUseModules)};`,
                 `var __M = function(deps) {`,
                 `  var result = [];`,
@@ -210,12 +204,12 @@ function extractStrings(destFiles) {
                 `    result[i] = __m[deps[i]];`,
                 `  }`,
                 `  return result;`,
-                `};`,
-            ].join("\n"),
+                `};`
+            ].join('\n')
         });
         destFile.sources.push({
             path: null,
-            contents: "}).call(this);",
+            contents: '}).call(this);'
         });
     });
     return destFiles;
@@ -253,7 +247,7 @@ function removeDuplicateTSBoilerplate(source, SEEN_BOILERPLATE = []) {
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         if (IS_REMOVING_BOILERPLATE) {
-            newLines.push("");
+            newLines.push('');
             if (END_BOILERPLATE.test(line)) {
                 IS_REMOVING_BOILERPLATE = false;
             }
@@ -272,22 +266,22 @@ function removeDuplicateTSBoilerplate(source, SEEN_BOILERPLATE = []) {
                 }
             }
             if (IS_REMOVING_BOILERPLATE) {
-                newLines.push("");
+                newLines.push('');
             }
             else {
                 newLines.push(line);
             }
         }
     }
-    return newLines.join("\n");
+    return newLines.join('\n');
 }
 function emitEntryPoint(modulesMap, deps, entryPoint, includedModules, prepend, dest) {
     if (!dest) {
-        dest = entryPoint + ".js";
+        dest = entryPoint + '.js';
     }
     const mainResult = {
         sources: [],
-        dest: dest,
+        dest: dest
     }, results = [mainResult];
     const usedPlugins = {};
     const getLoaderPlugin = (pluginName) => {
@@ -297,7 +291,7 @@ function emitEntryPoint(modulesMap, deps, entryPoint, includedModules, prepend, 
         return usedPlugins[pluginName];
     };
     includedModules.forEach((c) => {
-        const bangIndex = c.indexOf("!");
+        const bangIndex = c.indexOf('!');
         if (bangIndex >= 0) {
             const pluginName = c.substr(0, bangIndex);
             const plugin = getLoaderPlugin(pluginName);
@@ -305,7 +299,7 @@ function emitEntryPoint(modulesMap, deps, entryPoint, includedModules, prepend, 
             return;
         }
         const module = modulesMap[c];
-        if (module.path === "empty:") {
+        if (module.path === 'empty:') {
             return;
         }
         const contents = readFileAndRemoveBOM(module.path);
@@ -320,27 +314,25 @@ function emitEntryPoint(modulesMap, deps, entryPoint, includedModules, prepend, 
                 id: module.id,
                 path: module.path,
                 defineLocation: module.defineLocation,
-                dependencies: module.dependencies,
+                dependencies: module.dependencies
             };
             throw new Error(`Cannot bundle module '${module.id}' for entry point '${entryPoint}' because it has no shim and it lacks a defineLocation: ${JSON.stringify(moduleCopy)}`);
         }
     });
     Object.keys(usedPlugins).forEach((pluginName) => {
         const plugin = usedPlugins[pluginName];
-        if (typeof plugin.writeFile === "function") {
+        if (typeof plugin.writeFile === 'function') {
             const req = (() => {
-                throw new Error("no-no!");
+                throw new Error('no-no!');
             });
-            req.toUrl = (something) => something;
+            req.toUrl = something => something;
             const write = (filename, contents) => {
                 results.push({
                     dest: filename,
-                    sources: [
-                        {
+                    sources: [{
                             path: null,
-                            contents: contents,
-                        },
-                    ],
+                            contents: contents
+                        }]
                 });
             };
             plugin.writeFile(pluginName, entryPoint, req, write, {});
@@ -353,19 +345,19 @@ function emitEntryPoint(modulesMap, deps, entryPoint, includedModules, prepend, 
         }
         return {
             path: entry.path,
-            contents: contents,
+            contents: contents
         };
     };
     const toPrepend = (prepend || []).map(toIFile);
     mainResult.sources = toPrepend.concat(mainResult.sources);
     return {
         files: results,
-        usedPlugins: usedPlugins,
+        usedPlugins: usedPlugins
     };
 }
 function readFileAndRemoveBOM(path) {
     const BOM_CHAR_CODE = 65279;
-    let contents = fs.readFileSync(path, "utf8");
+    let contents = fs.readFileSync(path, 'utf8');
     // Remove BOM
     if (contents.charCodeAt(0) === BOM_CHAR_CODE) {
         contents = contents.substring(1);
@@ -373,8 +365,8 @@ function readFileAndRemoveBOM(path) {
     return contents;
 }
 function emitPlugin(entryPoint, plugin, pluginName, moduleName) {
-    let result = "";
-    if (typeof plugin.write === "function") {
+    let result = '';
+    if (typeof plugin.write === 'function') {
         const write = ((what) => {
             result += what;
         });
@@ -389,28 +381,26 @@ function emitPlugin(entryPoint, plugin, pluginName, moduleName) {
     }
     return {
         path: null,
-        contents: result,
+        contents: result
     };
 }
 function emitNamedModule(moduleId, defineCallPosition, path, contents) {
     // `defineCallPosition` is the position in code: |define()
     const defineCallOffset = positionToOffset(contents, defineCallPosition.line, defineCallPosition.col);
     // `parensOffset` is the position in code: define|()
-    const parensOffset = contents.indexOf("(", defineCallOffset);
+    const parensOffset = contents.indexOf('(', defineCallOffset);
     const insertStr = '"' + moduleId + '", ';
     return {
         path: path,
-        contents: contents.substr(0, parensOffset + 1) +
-            insertStr +
-            contents.substr(parensOffset + 1),
+        contents: contents.substr(0, parensOffset + 1) + insertStr + contents.substr(parensOffset + 1)
     };
 }
 function emitShimmedModule(moduleId, myDeps, factory, path, contents) {
-    const strDeps = myDeps.length > 0 ? '"' + myDeps.join('", "') + '"' : "";
-    const strDefine = 'define("' + moduleId + '", [' + strDeps + "], " + factory + ");";
+    const strDeps = (myDeps.length > 0 ? '"' + myDeps.join('", "') + '"' : '');
+    const strDefine = 'define("' + moduleId + '", [' + strDeps + '], ' + factory + ');';
     return {
         path: path,
-        contents: contents + "\n;\n" + strDefine,
+        contents: contents + '\n;\n' + strDefine
     };
 }
 /**
@@ -426,7 +416,7 @@ function positionToOffset(str, desiredLine, desiredCol) {
         if (desiredLine === line) {
             return lastNewLineOffset + 1 + desiredCol - 1;
         }
-        lastNewLineOffset = str.indexOf("\n", lastNewLineOffset + 1);
+        lastNewLineOffset = str.indexOf('\n', lastNewLineOffset + 1);
         line++;
     } while (lastNewLineOffset >= 0);
     return -1;
@@ -490,8 +480,7 @@ function topologicalSort(graph) {
         });
     }
     if (Object.keys(outgoingEdgeCount).length > 0) {
-        throw new Error("Cannot do topological sort on cyclic graph, remaining nodes: " +
-            Object.keys(outgoingEdgeCount));
+        throw new Error('Cannot do topological sort on cyclic graph, remaining nodes: ' + Object.keys(outgoingEdgeCount));
     }
     return L;
 }

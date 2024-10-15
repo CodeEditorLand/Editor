@@ -12,7 +12,7 @@ const withDefaults = require('../shared.webpack.config');
 module.exports = withDefaults({
 	context: __dirname,
 	entry: {
-		extension: './Source/phpMain.ts',
+		extension: './src/phpMain.ts',
 	},
 	output: {
 		filename: 'phpMain.js'

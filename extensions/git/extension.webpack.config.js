@@ -12,8 +12,8 @@ const withDefaults = require('../shared.webpack.config');
 module.exports = withDefaults({
 	context: __dirname,
 	entry: {
-		main: './Source/main.ts',
-		['askpass-main']: './Source/askpass-main.ts',
-		['git-editor-main']: './Source/git-editor-main.ts'
+		main: './src/main.ts',
+		['askpass-main']: './src/askpass-main.ts',
+		['git-editor-main']: './src/git-editor-main.ts'
 	}
 });

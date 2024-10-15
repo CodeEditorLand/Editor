@@ -13,7 +13,7 @@ const path = require('path');
 module.exports = withBrowserDefaults({
 	context: __dirname,
 	entry: {
-		extension: './Source/extension.ts'
+		extension: './src/extension.ts'
 	},
 	output: {
 		filename: 'extension.js',

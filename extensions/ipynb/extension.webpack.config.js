@@ -13,8 +13,8 @@ const path = require('path');
 module.exports = withDefaults({
 	context: __dirname,
 	entry: {
-		['ipynbMain.node']: './Source/ipynbMain.node.ts',
-		notebookSerializerWorker: './Source/notebookSerializerWorker.ts',
+		['ipynbMain.node']: './src/ipynbMain.node.ts',
+		notebookSerializerWorker: './src/notebookSerializerWorker.ts',
 	},
 	output: {
 		path: path.resolve(__dirname, 'dist'),

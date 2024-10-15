@@ -13,7 +13,7 @@ const path = require('path');
 const config = withDefaults({
 	context: path.join(__dirname, 'client'),
 	entry: {
-		extension: './Source/node/jsonClientMain.ts'
+		extension: './src/node/jsonClientMain.ts'
 	},
 	output: {
 		filename: 'jsonClientMain.js',

@@ -1,6 +1,6 @@
 .gitignore
-Source/**
-!Source/common/config.json
+src/**
+!src/common/config.json
 out/**
 build/**
 extension.webpack.config.js

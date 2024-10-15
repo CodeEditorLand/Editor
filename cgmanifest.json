@@ -5,7 +5,7 @@
 				"type": "git",
 				"git": {
 					"name": "chromium",
-
+					"repositoryUrl": "https://chromium.googlesource.com/chromium/src",
 					"commitHash": "63df87866a2d74d20fb28e96d51ef32aea40c21e"
 				}
 			},

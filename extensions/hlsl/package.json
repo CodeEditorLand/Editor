@@ -1,37 +1,48 @@
 {
-	"contributes": {
-		"grammars": [
-			{
-				"language": "hlsl",
-				"path": "./syntaxes/hlsl.tmLanguage.json",
-				"scopeName": "source.hlsl"
-			}
-		],
-		"languages": [
-			{
-				"aliases": [
-					"HLSL",
-					"hlsl"
-				],
-				"configuration": "./language-configuration.json",
-				"extensions": [
-					".hlsl",
-					".hlsli",
-					".fx",
-					".fxh",
-					".vsh",
-					".psh",
-					".cginc",
-					".compute"
-				],
-				"id": "hlsl"
-			}
-		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "hlsl",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin tgjones/shaders-tmLanguage grammars/hlsl.json ./syntaxes/hlsl.tmLanguage.json"
-	}
+  "name": "hlsl",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "version": "1.0.0",
+  "publisher": "vscode",
+  "license": "MIT",
+  "engines": {
+    "vscode": "*"
+  },
+  "scripts": {
+    "update-grammar": "node ../node_modules/vscode-grammar-updater/bin tgjones/shaders-tmLanguage grammars/hlsl.json ./syntaxes/hlsl.tmLanguage.json"
+  },
+  "categories": ["Programming Languages"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "hlsl",
+        "extensions": [
+          ".hlsl",
+          ".hlsli",
+          ".fx",
+          ".fxh",
+          ".vsh",
+          ".psh",
+          ".cginc",
+          ".compute"
+        ],
+        "aliases": [
+          "HLSL",
+          "hlsl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "hlsl",
+        "path": "./syntaxes/hlsl.tmLanguage.json",
+        "scopeName": "source.hlsl"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/vscode.git"
+  }
 }

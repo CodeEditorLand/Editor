@@ -9,6 +9,6 @@
 		"module": "Node16",
 	},
 	"include": [
-		"Source/**/*"
+		"src/**/*"
 	]
 }

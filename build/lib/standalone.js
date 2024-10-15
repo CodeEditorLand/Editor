@@ -9,8 +9,8 @@ exports.createESMSourcesAndResources2 = createESMSourcesAndResources2;
 const fs = require("fs");
 const path = require("path");
 const tss = require("./treeshaking");
-const REPO_ROOT = path.join(__dirname, "../../");
-const SRC_DIR = path.join(REPO_ROOT, "Source");
+const REPO_ROOT = path.join(__dirname, '../../');
+const SRC_DIR = path.join(REPO_ROOT, 'src');
 const dirCache = {};
 function writeFile(filePath, contents) {
     function ensureDirs(dirPath) {
@@ -28,14 +28,11 @@ function writeFile(filePath, contents) {
     fs.writeFileSync(filePath, contents);
 }
 function extractEditor(options) {
-    const ts = require("typescript");
-    const tsConfig = JSON.parse(fs
-        .readFileSync(path.join(options.sourcesRoot, "tsconfig.monaco.json"))
-        .toString());
+    const ts = require('typescript');
+    const tsConfig = JSON.parse(fs.readFileSync(path.join(options.sourcesRoot, 'tsconfig.monaco.json')).toString());
     let compilerOptions;
     if (tsConfig.extends) {
-        compilerOptions = Object.assign({}, require(path.join(options.sourcesRoot, tsConfig.extends))
-            .compilerOptions, tsConfig.compilerOptions);
+        compilerOptions = Object.assign({}, require(path.join(options.sourcesRoot, tsConfig.extends)).compilerOptions, tsConfig.compilerOptions);
         delete tsConfig.extends;
     }
     else {
@@ -50,11 +47,11 @@ function extractEditor(options) {
     options.compilerOptions = compilerOptions;
     console.log(`Running tree shaker with shakeLevel ${tss.toStringShakeLevel(options.shakeLevel)}`);
     // Take the extra included .d.ts files from `tsconfig.monaco.json`
-    options.typings = tsConfig.include.filter((includedFile) => /\.d\.ts$/.test(includedFile));
+    options.typings = tsConfig.include.filter(includedFile => /\.d\.ts$/.test(includedFile));
     // Add extra .d.ts files from `node_modules/@types/`
     if (Array.isArray(options.compilerOptions?.types)) {
         options.compilerOptions.types.forEach((type) => {
-            if (type === "@webgpu/types") {
+            if (type === '@webgpu/types') {
                 options.typings.push(`../node_modules/${type}/dist/index.d.ts`);
             }
             else {
@@ -96,8 +93,7 @@ function extractEditor(options) {
                 }
                 else {
                     const pathToCopy = path.join(options.sourcesRoot, importedFilePath);
-                    if (fs.existsSync(pathToCopy) &&
-                        !fs.statSync(pathToCopy).isDirectory()) {
+                    if (fs.existsSync(pathToCopy) && !fs.statSync(pathToCopy).isDirectory()) {
                         copyFile(importedFilePath);
                     }
                 }
@@ -105,16 +101,18 @@ function extractEditor(options) {
         }
     }
     delete tsConfig.compilerOptions.moduleResolution;
-    writeOutputFile("tsconfig.json", JSON.stringify(tsConfig, null, "\t"));
-    ["vs/loader.js"].forEach(copyFile);
+    writeOutputFile('tsconfig.json', JSON.stringify(tsConfig, null, '\t'));
+    [
+        'vs/loader.js'
+    ].forEach(copyFile);
 }
 function createESMSourcesAndResources2(options) {
     const SRC_FOLDER = path.join(REPO_ROOT, options.srcFolder);
     const OUT_FOLDER = path.join(REPO_ROOT, options.outFolder);
     const OUT_RESOURCES_FOLDER = path.join(REPO_ROOT, options.outResourcesFolder);
     const getDestAbsoluteFilePath = (file) => {
-        const dest = options.renames[file.replace(/\\/g, "/")] || file;
-        if (dest === "tsconfig.json") {
+        const dest = options.renames[file.replace(/\\/g, '/')] || file;
+        if (dest === 'tsconfig.json') {
             return path.join(OUT_FOLDER, `tsconfig.json`);
         }
         if (/\.ts$/.test(dest)) {
@@ -124,23 +122,17 @@ function createESMSourcesAndResources2(options) {
     };
     const allFiles = walkDirRecursive(SRC_FOLDER);
     for (const file of allFiles) {
-        if (options.ignores.indexOf(file.replace(/\\/g, "/")) >= 0) {
+        if (options.ignores.indexOf(file.replace(/\\/g, '/')) >= 0) {
             continue;
         }
-        if (file === "tsconfig.json") {
+        if (file === 'tsconfig.json') {
             const tsConfig = JSON.parse(fs.readFileSync(path.join(SRC_FOLDER, file)).toString());
-            tsConfig.compilerOptions.module = "es2022";
-            tsConfig.compilerOptions.outDir = path
-                .join(path.relative(OUT_FOLDER, OUT_RESOURCES_FOLDER), "vs")
-                .replace(/\\/g, "/");
-            write(getDestAbsoluteFilePath(file), JSON.stringify(tsConfig, null, "\t"));
+            tsConfig.compilerOptions.module = 'es2022';
+            tsConfig.compilerOptions.outDir = path.join(path.relative(OUT_FOLDER, OUT_RESOURCES_FOLDER), 'vs').replace(/\\/g, '/');
+            write(getDestAbsoluteFilePath(file), JSON.stringify(tsConfig, null, '\t'));
             continue;
         }
-        if (/\.ts$/.test(file) ||
-            /\.d\.ts$/.test(file) ||
-            /\.css$/.test(file) ||
-            /\.js$/.test(file) ||
-            /\.ttf$/.test(file)) {
+        if (/\.ts$/.test(file) || /\.d\.ts$/.test(file) || /\.css$/.test(file) || /\.js$/.test(file) || /\.ttf$/.test(file)) {
             // Transport the files directly
             write(getDestAbsoluteFilePath(file), fs.readFileSync(path.join(SRC_FOLDER, file)));
             continue;
@@ -148,9 +140,8 @@ function createESMSourcesAndResources2(options) {
         console.log(`UNKNOWN FILE: ${file}`);
     }
     function walkDirRecursive(dir) {
-        if (dir.charAt(dir.length - 1) !== "/" ||
-            dir.charAt(dir.length - 1) !== "\\") {
-            dir += "/";
+        if (dir.charAt(dir.length - 1) !== '/' || dir.charAt(dir.length - 1) !== '\\') {
+            dir += '/';
         }
         const result = [];
         _walkDirRecursive(dir, result, dir.length);
@@ -194,7 +185,7 @@ function createESMSourcesAndResources2(options) {
                         mode = 0;
                         continue;
                     }
-                    lines[i] = "// " + line;
+                    lines[i] = '// ' + line;
                     continue;
                 }
                 if (mode === 2) {
@@ -207,7 +198,7 @@ function createESMSourcesAndResources2(options) {
                     });
                 }
             }
-            return lines.join("\n");
+            return lines.join('\n');
         }
     }
 }
@@ -217,8 +208,8 @@ function transportCSS(module, enqueue, write) {
     }
     const filename = path.join(SRC_DIR, module);
     const fileContents = fs.readFileSync(filename).toString();
-    const inlineResources = "base64"; // see https://github.com/microsoft/monaco-editor/issues/148
-    const newContents = _rewriteOrInlineUrls(fileContents, inlineResources === "base64");
+    const inlineResources = 'base64'; // see https://github.com/microsoft/monaco-editor/issues/148
+    const newContents = _rewriteOrInlineUrls(fileContents, inlineResources === 'base64');
     write(module, newContents);
     return true;
     function _rewriteOrInlineUrls(contents, forceBase64) {
@@ -232,19 +223,18 @@ function transportCSS(module, enqueue, write) {
             }
             const imagePath = path.join(path.dirname(module), url);
             const fileContents = fs.readFileSync(path.join(SRC_DIR, imagePath));
-            const MIME = /\.svg$/.test(url) ? "image/svg+xml" : "image/png";
-            let DATA = ";base64," + fileContents.toString("base64");
+            const MIME = /\.svg$/.test(url) ? 'image/svg+xml' : 'image/png';
+            let DATA = ';base64,' + fileContents.toString('base64');
             if (!forceBase64 && /\.svg$/.test(url)) {
                 // .svg => url encode as explained at https://codepen.io/tigt/post/optimizing-svgs-in-data-uris
-                const newText = fileContents
-                    .toString()
-                    .replace(/"/g, "'")
-                    .replace(/</g, "%3C")
-                    .replace(/>/g, "%3E")
-                    .replace(/&/g, "%26")
-                    .replace(/#/g, "%23")
-                    .replace(/\s+/g, " ");
-                const encodedData = "," + newText;
+                const newText = fileContents.toString()
+                    .replace(/"/g, '\'')
+                    .replace(/</g, '%3C')
+                    .replace(/>/g, '%3E')
+                    .replace(/&/g, '%26')
+                    .replace(/#/g, '%23')
+                    .replace(/\s+/g, ' ');
+                const encodedData = ',' + newText;
                 if (encodedData.length < DATA.length) {
                     DATA = encodedData;
                 }
@@ -257,31 +247,25 @@ function transportCSS(module, enqueue, write) {
         return contents.replace(/url\(\s*([^\)]+)\s*\)?/g, (_, ...matches) => {
             let url = matches[0];
             // Eliminate starting quotes (the initial whitespace is not captured)
-            if (url.charAt(0) === '"' || url.charAt(0) === "'") {
+            if (url.charAt(0) === '"' || url.charAt(0) === '\'') {
                 url = url.substring(1);
             }
             // The ending whitespace is captured
-            while (url.length > 0 &&
-                (url.charAt(url.length - 1) === " " ||
-                    url.charAt(url.length - 1) === "\t")) {
+            while (url.length > 0 && (url.charAt(url.length - 1) === ' ' || url.charAt(url.length - 1) === '\t')) {
                 url = url.substring(0, url.length - 1);
             }
             // Eliminate ending quotes
-            if (url.charAt(url.length - 1) === '"' ||
-                url.charAt(url.length - 1) === "'") {
+            if (url.charAt(url.length - 1) === '"' || url.charAt(url.length - 1) === '\'') {
                 url = url.substring(0, url.length - 1);
             }
-            if (!_startsWith(url, "data:") &&
-                !_startsWith(url, "http://") &&
-                !_startsWith(url, "https://")) {
+            if (!_startsWith(url, 'data:') && !_startsWith(url, 'http://') && !_startsWith(url, 'https://')) {
                 url = replacer(url);
             }
-            return "url(" + url + ")";
+            return 'url(' + url + ')';
         });
     }
     function _startsWith(haystack, needle) {
-        return (haystack.length >= needle.length &&
-            haystack.substr(0, needle.length) === needle);
+        return haystack.length >= needle.length && haystack.substr(0, needle.length) === needle;
     }
 }
 //# sourceMappingURL=standalone.js.map

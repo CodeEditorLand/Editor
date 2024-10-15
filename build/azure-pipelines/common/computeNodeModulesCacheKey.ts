@@ -3,35 +3,34 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as crypto from "crypto";
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
+const { dirs } = require('../../npm/dirs');
 
-const { dirs } = require("../../npm/dirs");
+const ROOT = path.join(__dirname, '../../../');
 
-const ROOT = path.join(__dirname, "../../../");
+const shasum = crypto.createHash('sha256');
 
-const shasum = crypto.createHash("sha256");
-
-shasum.update(fs.readFileSync(path.join(ROOT, "build/.cachesalt")));
-shasum.update(fs.readFileSync(path.join(ROOT, ".npmrc")));
-shasum.update(fs.readFileSync(path.join(ROOT, "build", ".npmrc")));
-shasum.update(fs.readFileSync(path.join(ROOT, "remote", ".npmrc")));
+shasum.update(fs.readFileSync(path.join(ROOT, 'build/.cachesalt')));
+shasum.update(fs.readFileSync(path.join(ROOT, '.npmrc')));
+shasum.update(fs.readFileSync(path.join(ROOT, 'build', '.npmrc')));
+shasum.update(fs.readFileSync(path.join(ROOT, 'remote', '.npmrc')));
 
 // Add `package.json` and `package-lock.json` files
 for (const dir of dirs) {
-	const packageJsonPath = path.join(ROOT, dir, "package.json");
+	const packageJsonPath = path.join(ROOT, dir, 'package.json');
 	const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString());
 	const relevantPackageJsonSections = {
 		dependencies: packageJson.dependencies,
 		devDependencies: packageJson.devDependencies,
 		optionalDependencies: packageJson.optionalDependencies,
 		resolutions: packageJson.resolutions,
-		distro: packageJson.distro,
+		distro: packageJson.distro
 	};
 	shasum.update(JSON.stringify(relevantPackageJsonSections));
 
-	const packageLockPath = path.join(ROOT, dir, "package-lock.json");
+	const packageLockPath = path.join(ROOT, dir, 'package-lock.json');
 	shasum.update(fs.readFileSync(packageLockPath));
 }
 
@@ -40,4 +39,4 @@ for (let i = 2; i < process.argv.length; i++) {
 	shasum.update(process.argv[i]);
 }
 
-process.stdout.write(shasum.digest("hex"));
+process.stdout.write(shasum.digest('hex'));

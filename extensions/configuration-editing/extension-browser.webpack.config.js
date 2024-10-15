@@ -13,14 +13,14 @@ const withBrowserDefaults = require('../shared.webpack.config').browser;
 module.exports = withBrowserDefaults({
 	context: __dirname,
 	entry: {
-		extension: './Source/configurationEditingMain.ts'
+		extension: './src/configurationEditingMain.ts'
 	},
 	output: {
 		filename: 'configurationEditingMain.js'
 	},
 	resolve: {
 		alias: {
-			'./node/net': path.resolve(__dirname, 'Source', 'browser', 'net'),
+			'./node/net': path.resolve(__dirname, 'src', 'browser', 'net'),
 		}
 	}
 });

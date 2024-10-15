@@ -13,7 +13,7 @@ const path = require('path');
 const serverConfig = withBrowserDefaults({
 	context: __dirname,
 	entry: {
-		extension: './Source/browser/htmlServerWorkerMain.ts',
+		extension: './src/browser/htmlServerWorkerMain.ts',
 	},
 	resolve: {
 		extensionAlias: {

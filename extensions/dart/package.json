@@ -1,29 +1,38 @@
 {
+	"name": "dart",
+	"displayName": "%displayName%",
+	"description": "%description%",
+	"version": "1.0.0",
+	"publisher": "vscode",
+	"license": "MIT",
+	"engines": {
+		"vscode": "0.10.x"
+	},
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin dart-lang/dart-syntax-highlight grammars/dart.json ./syntaxes/dart.tmLanguage.json"
+	},
+	"categories": [
+		"Programming Languages"
+	],
 	"contributes": {
-		"grammars": [
-			{
-				"language": "dart",
-				"path": "./syntaxes/dart.tmLanguage.json",
-				"scopeName": "source.dart"
-			}
-		],
 		"languages": [
 			{
-				"aliases": [
-					"Dart"
-				],
-				"configuration": "./language-configuration.json",
+				"id": "dart",
 				"extensions": [
 					".dart"
 				],
-				"id": "dart"
+				"aliases": [
+					"Dart"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "dart",
+				"scopeName": "source.dart",
+				"path": "./syntaxes/dart.tmLanguage.json"
 			}
 		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "dart",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin dart-lang/dart-syntax-highlight grammars/dart.json ./syntaxes/dart.tmLanguage.json"
 	}
 }

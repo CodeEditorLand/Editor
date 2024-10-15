@@ -1,40 +1,51 @@
 {
-	"contributes": {
-		"configurationDefaults": {
-			"[clojure]": {
-				"diffEditor.ignoreTrimWhitespace": false
-			}
-		},
-		"grammars": [
-			{
-				"language": "clojure",
-				"path": "./syntaxes/clojure.tmLanguage.json",
-				"scopeName": "source.clojure"
-			}
-		],
-		"languages": [
-			{
-				"aliases": [
-					"Clojure",
-					"clojure"
-				],
-				"configuration": "./language-configuration.json",
-				"extensions": [
-					".clj",
-					".cljs",
-					".cljc",
-					".cljx",
-					".clojure",
-					".edn"
-				],
-				"id": "clojure"
-			}
-		]
-	},
-	"description": "%description%",
-	"displayName": "%displayName%",
-	"name": "clojure",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin atom/language-clojure grammars/clojure.cson ./syntaxes/clojure.tmLanguage.json"
-	}
+  "name": "clojure",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "version": "1.0.0",
+  "publisher": "vscode",
+  "license": "MIT",
+  "engines": {
+    "vscode": "*"
+  },
+  "scripts": {
+    "update-grammar": "node ../node_modules/vscode-grammar-updater/bin atom/language-clojure grammars/clojure.cson ./syntaxes/clojure.tmLanguage.json"
+  },
+  "categories": ["Programming Languages"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "clojure",
+        "aliases": [
+          "Clojure",
+          "clojure"
+        ],
+        "extensions": [
+          ".clj",
+          ".cljs",
+          ".cljc",
+          ".cljx",
+          ".clojure",
+          ".edn"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "clojure",
+        "scopeName": "source.clojure",
+        "path": "./syntaxes/clojure.tmLanguage.json"
+      }
+    ],
+    "configurationDefaults": {
+      "[clojure]": {
+        "diffEditor.ignoreTrimWhitespace": false
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/vscode.git"
+  }
 }

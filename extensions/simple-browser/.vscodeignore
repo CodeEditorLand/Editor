@@ -1,6 +1,6 @@
 test/**
 test-workspace/**
-Source/**
+src/**
 tsconfig.json
 out/test/**
 out/**
@@ -9,6 +9,6 @@ extension-browser.webpack.config.js
 cgmanifest.json
 .gitignore
 package-lock.json
-preview-Source/**
+preview-src/**
 webpack.config.js
 esbuild-preview.js

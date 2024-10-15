@@ -5,14 +5,20 @@
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
 const assert = require("assert");
-const promises_1 = require("fs/promises");
 const path = require("path");
+const promises_1 = require("fs/promises");
 const cross_spawn_promise_1 = require("@malept/cross-spawn-promise");
-const MACHO_PREFIX = "Mach-O ";
+const MACHO_PREFIX = 'Mach-O ';
 const MACHO_64_MAGIC_LE = 0xfeedfacf;
 const MACHO_UNIVERSAL_MAGIC_LE = 0xbebafeca;
-const MACHO_ARM64_CPU_TYPE = new Set([0x0c000001, 0x0100000c]);
-const MACHO_X86_64_CPU_TYPE = new Set([0x07000001, 0x01000007]);
+const MACHO_ARM64_CPU_TYPE = new Set([
+    0x0c000001,
+    0x0100000c,
+]);
+const MACHO_X86_64_CPU_TYPE = new Set([
+    0x07000001,
+    0x01000007,
+]);
 async function read(file, buf, offset, length, position) {
     let filehandle;
     try {
@@ -28,9 +34,9 @@ async function checkMachOFiles(appPath, arch) {
     const invalidFiles = [];
     const header = Buffer.alloc(8);
     const file_header_entry_size = 20;
-    const checkx86_64Arch = arch === "x64";
-    const checkArm64Arch = arch === "arm64";
-    const checkUniversalArch = arch === "universal";
+    const checkx86_64Arch = (arch === 'x64');
+    const checkArm64Arch = (arch === 'arm64');
+    const checkUniversalArch = (arch === 'universal');
     const traverse = async (p) => {
         p = await (0, promises_1.realpath)(p);
         if (visited.has(p)) {
@@ -42,9 +48,9 @@ async function checkMachOFiles(appPath, arch) {
             return;
         }
         if (info.isFile()) {
-            let fileOutput = "";
+            let fileOutput = '';
             try {
-                fileOutput = await (0, cross_spawn_promise_1.spawn)("file", ["--brief", "--no-pad", p]);
+                fileOutput = await (0, cross_spawn_promise_1.spawn)('file', ['--brief', '--no-pad', p]);
             }
             catch (e) {
                 if (e instanceof cross_spawn_promise_1.ExitCodeError) {
@@ -56,19 +62,17 @@ async function checkMachOFiles(appPath, arch) {
             }
             if (fileOutput.startsWith(MACHO_PREFIX)) {
                 console.log(`Verifying architecture of ${p}`);
-                read(p, header, 0, 8, 0).then((_) => {
+                read(p, header, 0, 8, 0).then(_ => {
                     const header_magic = header.readUInt32LE();
                     if (header_magic === MACHO_64_MAGIC_LE) {
                         const cpu_type = header.readUInt32LE(4);
                         if (checkUniversalArch) {
                             invalidFiles.push(p);
                         }
-                        else if (checkArm64Arch &&
-                            !MACHO_ARM64_CPU_TYPE.has(cpu_type)) {
+                        else if (checkArm64Arch && !MACHO_ARM64_CPU_TYPE.has(cpu_type)) {
                             invalidFiles.push(p);
                         }
-                        else if (checkx86_64Arch &&
-                            !MACHO_X86_64_CPU_TYPE.has(cpu_type)) {
+                        else if (checkx86_64Arch && !MACHO_X86_64_CPU_TYPE.has(cpu_type)) {
                             invalidFiles.push(p);
                         }
                     }
@@ -77,11 +81,10 @@ async function checkMachOFiles(appPath, arch) {
                         assert.equal(num_binaries, 2);
                         const file_entries_size = file_header_entry_size * num_binaries;
                         const file_entries = Buffer.alloc(file_entries_size);
-                        read(p, file_entries, 0, file_entries_size, 8).then((_) => {
+                        read(p, file_entries, 0, file_entries_size, 8).then(_ => {
                             for (let i = 0; i < num_binaries; i++) {
                                 const cpu_type = file_entries.readUInt32LE(file_header_entry_size * i);
-                                if (!MACHO_ARM64_CPU_TYPE.has(cpu_type) &&
-                                    !MACHO_X86_64_CPU_TYPE.has(cpu_type)) {
+                                if (!MACHO_ARM64_CPU_TYPE.has(cpu_type) && !MACHO_X86_64_CPU_TYPE.has(cpu_type)) {
                                     invalidFiles.push(p);
                                 }
                             }
@@ -100,24 +103,20 @@ async function checkMachOFiles(appPath, arch) {
     return invalidFiles;
 }
 const archToCheck = process.argv[2];
-assert(process.env["APP_PATH"], "APP_PATH not set");
-assert(archToCheck === "x64" ||
-    archToCheck === "arm64" ||
-    archToCheck === "universal", `Invalid architecture ${archToCheck} to check`);
-checkMachOFiles(process.env["APP_PATH"], archToCheck)
-    .then((invalidFiles) => {
+assert(process.env['APP_PATH'], 'APP_PATH not set');
+assert(archToCheck === 'x64' || archToCheck === 'arm64' || archToCheck === 'universal', `Invalid architecture ${archToCheck} to check`);
+checkMachOFiles(process.env['APP_PATH'], archToCheck).then(invalidFiles => {
     if (invalidFiles.length > 0) {
-        console.error("\x1b[31mThe following files are built for the wrong architecture:\x1b[0m");
+        console.error('\x1b[31mThe following files are built for the wrong architecture:\x1b[0m');
         for (const file of invalidFiles) {
             console.error(`\x1b[31m${file}\x1b[0m`);
         }
         process.exit(1);
     }
     else {
-        console.log("\x1b[32mAll files are valid\x1b[0m");
+        console.log('\x1b[32mAll files are valid\x1b[0m');
     }
-})
-    .catch((err) => {
+}).catch(err => {
     console.error(err);
     process.exit(1);
 });

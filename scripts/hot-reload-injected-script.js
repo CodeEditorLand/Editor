@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 // @ts-check
-/// <reference path='../Source/vscode-dts/vscode.d.ts' />
+/// <reference path='../src/vscode-dts/vscode.d.ts' />
 /// <reference path='debugger-scripts-api.d.ts' />
 
 const path = require('path');

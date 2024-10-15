@@ -4,8 +4,8 @@
 		"outDir": "./out"
 	},
 	"include": [
-		"Source/**/*",
-		"../../Source/vscode-dts/vscode.d.ts",
-		"../../Source/vscode-dts/vscode.proposed.documentPaste.d.ts"
+		"src/**/*",
+		"../../src/vscode-dts/vscode.d.ts",
+		"../../src/vscode-dts/vscode.proposed.documentPaste.d.ts"
 	]
 }

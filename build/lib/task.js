@@ -7,10 +7,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.series = series;
 exports.parallel = parallel;
 exports.define = define;
-const ansiColors = require("ansi-colors");
 const fancyLog = require("fancy-log");
+const ansiColors = require("ansi-colors");
 function _isPromise(p) {
-    if (typeof p.then === "function") {
+    if (typeof p.then === 'function') {
         return true;
     }
     return false;
@@ -21,14 +21,14 @@ function _renderTime(time) {
 async function _execute(task) {
     const name = task.taskName || task.displayName || `<anonymous>`;
     if (!task._tasks) {
-        fancyLog("Starting", ansiColors.cyan(name), "...");
+        fancyLog('Starting', ansiColors.cyan(name), '...');
     }
     const startTime = process.hrtime();
     await _doExecute(task);
     const elapsedArr = process.hrtime(startTime);
-    const elapsedNanoseconds = elapsedArr[0] * 1e9 + elapsedArr[1];
+    const elapsedNanoseconds = (elapsedArr[0] * 1e9 + elapsedArr[1]);
     if (!task._tasks) {
-        fancyLog(`Finished`, ansiColors.cyan(name), "after", ansiColors.magenta(_renderTime(elapsedNanoseconds / 1e6)));
+        fancyLog(`Finished`, ansiColors.cyan(name), 'after', ansiColors.magenta(_renderTime(elapsedNanoseconds / 1e6)));
     }
 }
 async function _doExecute(task) {
@@ -45,7 +45,7 @@ async function _doExecute(task) {
             return;
         }
         const taskResult = task();
-        if (typeof taskResult === "undefined") {
+        if (typeof taskResult === 'undefined') {
             // this is a sync task
             resolve();
             return;
@@ -56,8 +56,8 @@ async function _doExecute(task) {
             return;
         }
         // this is a stream returning task
-        taskResult.on("end", (_) => resolve());
-        taskResult.on("error", (err) => reject(err));
+        taskResult.on('end', _ => resolve());
+        taskResult.on('error', err => reject(err));
     });
 }
 function series(...tasks) {
@@ -71,7 +71,7 @@ function series(...tasks) {
 }
 function parallel(...tasks) {
     const result = async () => {
-        await Promise.all(tasks.map((t) => _execute(t)));
+        await Promise.all(tasks.map(t => _execute(t)));
     };
     result._tasks = tasks;
     return result;

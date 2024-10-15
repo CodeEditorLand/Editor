@@ -13,7 +13,7 @@ const { browserPlugins, browser } = require('../shared.webpack.config');
 module.exports = browser({
 	context: __dirname,
 	entry: {
-		extension: './Source/extension.browser.ts'
+		extension: './src/extension.browser.ts'
 	},
 	plugins: [
 		...browserPlugins(__dirname), // add plugins, don't replace inherited

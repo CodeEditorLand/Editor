@@ -83,7 +83,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 	const name = relativeDirname.replace(/\//g, '-');
 
 	const srcRoot = path.dirname(tsconfigFile);
-	const srcBase = path.join(srcRoot, 'Source');
+	const srcBase = path.join(srcRoot, 'src');
 	const src = path.join(srcBase, '**');
 	const srcOpts = { cwd: root, base: srcBase, dot: true };
 
@@ -131,7 +131,7 @@ const tasks = compilations.map(function (tsconfigFile) {
 					addComment: !!build,
 					includeContent: !!build,
 					// note: trailing slash is important, else the source URLs in V8's file coverage are incorrect
-					sourceRoot: '../Source/',
+					sourceRoot: '../src/',
 				}))
 				.pipe(tsFilter.restore)
 				.pipe(reporter.end(emitError));

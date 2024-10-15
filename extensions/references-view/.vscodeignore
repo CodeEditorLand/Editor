@@ -1,5 +1,5 @@
 .vscode/**
-Source/**
+src/**
 out/**
 tsconfig.json
 *.webpack.config.js

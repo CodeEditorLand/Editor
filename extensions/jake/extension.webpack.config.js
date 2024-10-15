@@ -12,7 +12,7 @@ const withDefaults = require('../shared.webpack.config');
 module.exports = withDefaults({
 	context: __dirname,
 	entry: {
-		main: './Source/main.ts',
+		main: './src/main.ts',
 	},
 	resolve: {
 		mainFields: ['module', 'main']

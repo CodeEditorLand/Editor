@@ -4,6 +4,6 @@
 		"types": []
 	},
 	"exclude": [
-		"./Source/test/**"
+		"./src/test/**"
 	]
 }

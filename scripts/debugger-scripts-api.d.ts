@@ -17,7 +17,7 @@ interface IDebugSession {
 }
 
 interface Context {
-	vscode: typeof import("vscode");
+	vscode: typeof import('vscode');
 }
 
 interface IDisposable {
@@ -25,15 +25,11 @@ interface IDisposable {
 }
 
 interface HotReloadConfig {
-	mode?: "patch-prototype" | undefined;
+	mode?: 'patch-prototype' | undefined;
 }
 
 interface GlobalThisAddition {
-	$hotReload_applyNewExports?(args: {
-		oldExports: Record<string, unknown>;
-		newSrc: string;
-		config?: HotReloadConfig;
-	}): AcceptNewExportsFn | undefined;
+	$hotReload_applyNewExports?(args: { oldExports: Record<string, unknown>; newSrc: string; config?: HotReloadConfig }): AcceptNewExportsFn | undefined;
 }
 
 type AcceptNewExportsFn = (newExports: Record<string, unknown>) => boolean;

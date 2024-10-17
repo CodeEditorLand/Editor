@@ -3,34 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from "../../../../base/common/event.js";
-import { Iterable } from "../../../../base/common/iterator.js";
-import { Disposable } from "../../../../base/common/lifecycle.js";
-import { deepClone } from "../../../../base/common/objects.js";
-import {
-	IContextKey,
-	IContextKeyService,
-} from "../../../../platform/contextkey/common/contextkey.js";
-import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
-import {
-	IStorageService,
-	StorageScope,
-	StorageTarget,
-} from "../../../../platform/storage/common/storage.js";
-import { StoredValue } from "./storedValue.js";
-import { TestId } from "./testId.js";
-import { TestingContextKeys } from "./testingContextKeys.js";
-import { IMainThreadTestController } from "./testService.js";
-import {
-	InternalTestItem,
-	ITestItem,
-	ITestRunProfile,
-	TestRunProfileBitset,
-	testRunProfileBitsetList,
-} from "./testTypes.js";
+import { Emitter, Event } from '../../../../base/common/event.js';
+import { Iterable } from '../../../../base/common/iterator.js';
+import { Disposable } from '../../../../base/common/lifecycle.js';
+import { deepClone } from '../../../../base/common/objects.js';
+import { IContextKey, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
+import { StoredValue } from './storedValue.js';
+import { TestId } from './testId.js';
+import { IMainThreadTestController } from './testService.js';
+import { ITestItem, ITestRunProfile, InternalTestItem, TestRunProfileBitset, testRunProfileBitsetList } from './testTypes.js';
+import { TestingContextKeys } from './testingContextKeys.js';
 
-export const ITestProfileService =
-	createDecorator<ITestProfileService>("testProfileService");
+export const ITestProfileService = createDecorator<ITestProfileService>('testProfileService');
 
 export interface ITestProfileService {
 	readonly _serviceBrand: undefined;
@@ -43,19 +29,12 @@ export interface ITestProfileService {
 	/**
 	 * Publishes a new test profile.
 	 */
-	addProfile(
-		controller: IMainThreadTestController,
-		profile: ITestRunProfile,
-	): void;
+	addProfile(controller: IMainThreadTestController, profile: ITestRunProfile): void;
 
 	/**
 	 * Updates an existing test run profile
 	 */
-	updateProfile(
-		controllerId: string,
-		profileId: number,
-		update: Partial<ITestRunProfile>,
-	): void;
+	updateProfile(controllerId: string, profileId: number, update: Partial<ITestRunProfile>): void;
 
 	/**
 	 * Removes a profile. If profileId is not given, all profiles
@@ -78,28 +57,20 @@ export interface ITestProfileService {
 	/**
 	 * Gets all registered controllers, grouping by controller.
 	 */
-	all(): Iterable<
-		Readonly<{
-			controller: IMainThreadTestController;
-			profiles: ITestRunProfile[];
-		}>
-	>;
+	all(): Iterable<Readonly<{
+		controller: IMainThreadTestController;
+		profiles: ITestRunProfile[];
+	}>>;
 
 	/**
 	 * Gets the default profiles to be run for a given run group.
 	 */
-	getGroupDefaultProfiles(
-		group: TestRunProfileBitset,
-		controllerId?: string,
-	): ITestRunProfile[];
+	getGroupDefaultProfiles(group: TestRunProfileBitset, controllerId?: string): ITestRunProfile[];
 
 	/**
 	 * Sets the default profiles to be run for a given run group.
 	 */
-	setGroupDefaultProfiles(
-		group: TestRunProfileBitset,
-		profiles: ITestRunProfile[],
-	): void;
+	setGroupDefaultProfiles(group: TestRunProfileBitset, profiles: ITestRunProfile[]): void;
 
 	/**
 	 * Gets the profiles for a controller, in priority order.
@@ -109,23 +80,14 @@ export interface ITestProfileService {
 	/**
 	 * Gets the preferred profile, if any, to run the test.
 	 */
-	getDefaultProfileForTest(
-		group: TestRunProfileBitset,
-		test: InternalTestItem,
-	): ITestRunProfile | undefined;
+	getDefaultProfileForTest(group: TestRunProfileBitset, test: InternalTestItem): ITestRunProfile | undefined;
 }
 
 /**
  * Gets whether the given profile can be used to run the test.
  */
-export const canUseProfileWithTest = (
-	profile: ITestRunProfile,
-	test: InternalTestItem,
-) =>
-	profile.controllerId === test.controllerId &&
-	(TestId.isRoot(test.item.extId) ||
-		!profile.tag ||
-		test.item.tags.includes(profile.tag));
+export const canUseProfileWithTest = (profile: ITestRunProfile, test: InternalTestItem) =>
+	profile.controllerId === test.controllerId && (TestId.isRoot(test.item.extId) || !profile.tag || test.item.tags.includes(profile.tag));
 
 const sorter = (a: ITestRunProfile, b: ITestRunProfile) => {
 	if (a.isDefault !== b.isDefault) {
@@ -143,44 +105,23 @@ interface IExtendedTestRunProfile extends ITestRunProfile {
  * Given a capabilities bitset, returns a map of context keys representing
  * them.
  */
-export const capabilityContextKeys = (
-	capabilities: number,
-): [key: string, value: boolean][] => [
-	[
-		TestingContextKeys.hasRunnableTests.key,
-		(capabilities & TestRunProfileBitset.Run) !== 0,
-	],
-	[
-		TestingContextKeys.hasDebuggableTests.key,
-		(capabilities & TestRunProfileBitset.Debug) !== 0,
-	],
-	[
-		TestingContextKeys.hasCoverableTests.key,
-		(capabilities & TestRunProfileBitset.Coverage) !== 0,
-	],
+export const capabilityContextKeys = (capabilities: number): [key: string, value: boolean][] => [
+	[TestingContextKeys.hasRunnableTests.key, (capabilities & TestRunProfileBitset.Run) !== 0],
+	[TestingContextKeys.hasDebuggableTests.key, (capabilities & TestRunProfileBitset.Debug) !== 0],
+	[TestingContextKeys.hasCoverableTests.key, (capabilities & TestRunProfileBitset.Coverage) !== 0],
 ];
 
-type DefaultsMap = {
-	[controllerId: string]: { [profileId: number]: /* isDefault */ boolean };
-};
+type DefaultsMap = { [controllerId: string]: { [profileId: number]: /* isDefault */ boolean } };
 
-export class TestProfileService
-	extends Disposable
-	implements ITestProfileService
-{
+export class TestProfileService extends Disposable implements ITestProfileService {
 	declare readonly _serviceBrand: undefined;
 	private readonly userDefaults: StoredValue<DefaultsMap>;
-	private readonly capabilitiesContexts: {
-		[K in TestRunProfileBitset]: IContextKey<boolean>;
-	};
+	private readonly capabilitiesContexts: { [K in TestRunProfileBitset]: IContextKey<boolean> };
 	private readonly changeEmitter = this._register(new Emitter<void>());
-	private readonly controllerProfiles = new Map<
-		/* controller ID */ string,
-		{
-			profiles: IExtendedTestRunProfile[];
-			controller: IMainThreadTestController;
-		}
-	>();
+	private readonly controllerProfiles = new Map</* controller ID */string, {
+		profiles: IExtendedTestRunProfile[];
+		controller: IMainThreadTestController;
+	}>();
 
 	/** @inheritdoc */
 	public readonly onDidChange = this.changeEmitter.event;
@@ -191,52 +132,28 @@ export class TestProfileService
 	) {
 		super();
 
-		storageService.remove(
-			"testingPreferredProfiles",
-			StorageScope.WORKSPACE,
-		); // cleanup old format
-		this.userDefaults = this._register(
-			new StoredValue(
-				{
-					key: "testingPreferredProfiles2",
-					scope: StorageScope.WORKSPACE,
-					target: StorageTarget.MACHINE,
-				},
-				storageService,
-			),
-		);
+		storageService.remove('testingPreferredProfiles', StorageScope.WORKSPACE); // cleanup old format
+		this.userDefaults = this._register(new StoredValue({
+			key: 'testingPreferredProfiles2',
+			scope: StorageScope.WORKSPACE,
+			target: StorageTarget.MACHINE,
+		}, storageService));
 
 		this.capabilitiesContexts = {
-			[TestRunProfileBitset.Run]:
-				TestingContextKeys.hasRunnableTests.bindTo(contextKeyService),
-			[TestRunProfileBitset.Debug]:
-				TestingContextKeys.hasDebuggableTests.bindTo(contextKeyService),
-			[TestRunProfileBitset.Coverage]:
-				TestingContextKeys.hasCoverableTests.bindTo(contextKeyService),
-			[TestRunProfileBitset.HasNonDefaultProfile]:
-				TestingContextKeys.hasNonDefaultProfile.bindTo(
-					contextKeyService,
-				),
-			[TestRunProfileBitset.HasConfigurable]:
-				TestingContextKeys.hasConfigurableProfile.bindTo(
-					contextKeyService,
-				),
-			[TestRunProfileBitset.SupportsContinuousRun]:
-				TestingContextKeys.supportsContinuousRun.bindTo(
-					contextKeyService,
-				),
+			[TestRunProfileBitset.Run]: TestingContextKeys.hasRunnableTests.bindTo(contextKeyService),
+			[TestRunProfileBitset.Debug]: TestingContextKeys.hasDebuggableTests.bindTo(contextKeyService),
+			[TestRunProfileBitset.Coverage]: TestingContextKeys.hasCoverableTests.bindTo(contextKeyService),
+			[TestRunProfileBitset.HasNonDefaultProfile]: TestingContextKeys.hasNonDefaultProfile.bindTo(contextKeyService),
+			[TestRunProfileBitset.HasConfigurable]: TestingContextKeys.hasConfigurableProfile.bindTo(contextKeyService),
+			[TestRunProfileBitset.SupportsContinuousRun]: TestingContextKeys.supportsContinuousRun.bindTo(contextKeyService),
 		};
 
 		this.refreshContextKeys();
 	}
 
 	/** @inheritdoc */
-	public addProfile(
-		controller: IMainThreadTestController,
-		profile: ITestRunProfile,
-	): void {
-		const previousExplicitDefaultValue =
-			this.userDefaults.get()?.[controller.id]?.[profile.profileId];
+	public addProfile(controller: IMainThreadTestController, profile: ITestRunProfile): void {
+		const previousExplicitDefaultValue = this.userDefaults.get()?.[controller.id]?.[profile.profileId];
 		const extended: IExtendedTestRunProfile = {
 			...profile,
 			isDefault: previousExplicitDefaultValue ?? profile.isDefault,
@@ -260,19 +177,13 @@ export class TestProfileService
 	}
 
 	/** @inheritdoc */
-	public updateProfile(
-		controllerId: string,
-		profileId: number,
-		update: Partial<ITestRunProfile>,
-	): void {
+	public updateProfile(controllerId: string, profileId: number, update: Partial<ITestRunProfile>): void {
 		const ctrl = this.controllerProfiles.get(controllerId);
 		if (!ctrl) {
 			return;
 		}
 
-		const profile = ctrl.profiles.find(
-			(c) => c.controllerId === controllerId && c.profileId === profileId,
-		);
+		const profile = ctrl.profiles.find(c => c.controllerId === controllerId && c.profileId === profileId);
 		if (!profile) {
 			return;
 		}
@@ -293,9 +204,7 @@ export class TestProfileService
 
 	/** @inheritdoc */
 	public configure(controllerId: string, profileId: number) {
-		this.controllerProfiles
-			.get(controllerId)
-			?.controller.configureRunProfile(profileId);
+		this.controllerProfiles.get(controllerId)?.controller.configureRunProfile(profileId);
 	}
 
 	/** @inheritdoc */
@@ -311,7 +220,7 @@ export class TestProfileService
 			return;
 		}
 
-		const index = ctrl.profiles.findIndex((c) => c.profileId === profileId);
+		const index = ctrl.profiles.findIndex(c => c.profileId === profileId);
 		if (index === -1) {
 			return;
 		}
@@ -331,10 +240,7 @@ export class TestProfileService
 		let capabilities = 0;
 		for (const profile of ctrl.profiles) {
 			if (!profile.tag || test.tags.includes(profile.tag)) {
-				capabilities |=
-					capabilities & profile.group
-						? TestRunProfileBitset.HasNonDefaultProfile
-						: profile.group;
+				capabilities |= capabilities & profile.group ? TestRunProfileBitset.HasNonDefaultProfile : profile.group;
 			}
 		}
 
@@ -352,25 +258,15 @@ export class TestProfileService
 	}
 
 	/** @inheritdoc */
-	public getGroupDefaultProfiles(
-		group: TestRunProfileBitset,
-		controllerId?: string,
-	) {
+	public getGroupDefaultProfiles(group: TestRunProfileBitset, controllerId?: string) {
 		const allProfiles = controllerId
-			? this.controllerProfiles.get(controllerId)?.profiles || []
-			: [
-					...Iterable.flatMap(
-						this.controllerProfiles.values(),
-						(c) => c.profiles,
-					),
-				];
-		const defaults = allProfiles.filter(
-			(c) => c.group === group && c.isDefault,
-		);
+			? (this.controllerProfiles.get(controllerId)?.profiles || [])
+			: [...Iterable.flatMap(this.controllerProfiles.values(), c => c.profiles)];
+		const defaults = allProfiles.filter(c => c.group === group && c.isDefault);
 
 		// have *some* default profile to run if none are set otherwise
 		if (defaults.length === 0) {
-			const first = allProfiles.find((p) => p.group === group);
+			const first = allProfiles.find(p => p.group === group);
 			if (first) {
 				defaults.push(first);
 			}
@@ -380,10 +276,7 @@ export class TestProfileService
 	}
 
 	/** @inheritdoc */
-	public setGroupDefaultProfiles(
-		group: TestRunProfileBitset,
-		profiles: ITestRunProfile[],
-	) {
+	public setGroupDefaultProfiles(group: TestRunProfileBitset, profiles: ITestRunProfile[]) {
 		const next: DefaultsMap = {};
 		for (const ctrl of this.controllerProfiles.values()) {
 			next[ctrl.controller.id] = {};
@@ -392,11 +285,7 @@ export class TestProfileService
 					continue;
 				}
 
-				setIsDefault(
-					next,
-					profile,
-					profiles.some((p) => p.profileId === profile.profileId),
-				);
+				setIsDefault(next, profile, profiles.some(p => p.profileId === profile.profileId));
 			}
 
 			// When switching a profile, if the controller has a same-named profile in
@@ -405,9 +294,7 @@ export class TestProfileService
 				if (profile.group === group) {
 					continue;
 				}
-				const matching = ctrl.profiles.find(
-					(p) => p.group === group && p.label === profile.label,
-				);
+				const matching = ctrl.profiles.find(p => p.group === group && p.label === profile.label);
 				if (matching) {
 					setIsDefault(next, profile, matching.isDefault);
 				}
@@ -420,42 +307,26 @@ export class TestProfileService
 		this.changeEmitter.fire();
 	}
 
-	getDefaultProfileForTest(
-		group: TestRunProfileBitset,
-		test: InternalTestItem,
-	): ITestRunProfile | undefined {
-		return this.getControllerProfiles(test.controllerId).find(
-			(p) => (p.group & group) !== 0 && canUseProfileWithTest(p, test),
-		);
+	getDefaultProfileForTest(group: TestRunProfileBitset, test: InternalTestItem): ITestRunProfile | undefined {
+		return this.getControllerProfiles(test.controllerId).find(p => (p.group & group) !== 0 && canUseProfileWithTest(p, test));
 	}
 
 	private refreshContextKeys() {
 		let allCapabilities = 0;
 		for (const { profiles } of this.controllerProfiles.values()) {
 			for (const profile of profiles) {
-				allCapabilities |=
-					allCapabilities & profile.group
-						? TestRunProfileBitset.HasNonDefaultProfile
-						: profile.group;
-				allCapabilities |= profile.supportsContinuousRun
-					? TestRunProfileBitset.SupportsContinuousRun
-					: 0;
+				allCapabilities |= allCapabilities & profile.group ? TestRunProfileBitset.HasNonDefaultProfile : profile.group;
+				allCapabilities |= profile.supportsContinuousRun ? TestRunProfileBitset.SupportsContinuousRun : 0;
 			}
 		}
 
 		for (const group of testRunProfileBitsetList) {
-			this.capabilitiesContexts[group].set(
-				(allCapabilities & group) !== 0,
-			);
+			this.capabilitiesContexts[group].set((allCapabilities & group) !== 0);
 		}
 	}
 }
 
-const setIsDefault = (
-	map: DefaultsMap,
-	profile: IExtendedTestRunProfile,
-	isDefault: boolean,
-) => {
+const setIsDefault = (map: DefaultsMap, profile: IExtendedTestRunProfile, isDefault: boolean) => {
 	profile.isDefault = isDefault;
 	map[profile.controllerId] ??= {};
 	if (profile.isDefault !== profile.wasInitiallyDefault) {

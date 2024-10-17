@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { ViewportData } from "../../common/viewLayout/viewLinesViewportData.js";
-import type { ViewLineOptions } from "../viewParts/viewLines/viewLineOptions.js";
+import type { ViewportData } from '../../common/viewLayout/viewLinesViewportData.js';
+import type { ViewLineOptions } from '../viewParts/viewLines/viewLineOptions.js';
 
 export const enum BindingId {
 	GlyphInfo0,
@@ -25,9 +25,6 @@ export interface IGpuRenderStrategy {
 	 * Resets the render strategy, clearing all data and setting up for a new frame.
 	 */
 	reset(): void;
-	update(
-		viewportData: ViewportData,
-		viewLineOptions: ViewLineOptions,
-	): number;
+	update(viewportData: ViewportData, viewLineOptions: ViewLineOptions): number;
 	draw?(pass: GPURenderPassEncoder, viewportData: ViewportData): void;
 }

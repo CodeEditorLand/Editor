@@ -3,21 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { isNonEmptyArray } from "../../../../base/common/arrays.js";
-import { EditorExtensionsRegistry } from "../../../../editor/browser/editorExtensions.js";
-import {
-	isIMenuItem,
-	MenuId,
-	MenuRegistry,
-} from "../../../../platform/actions/common/actions.js";
-import {
-	CommandsRegistry,
-	ICommandMetadata,
-} from "../../../../platform/commands/common/commands.js";
+import { CommandsRegistry, ICommandMetadata } from '../../../../platform/commands/common/commands.js';
+import { isNonEmptyArray } from '../../../../base/common/arrays.js';
+import { EditorExtensionsRegistry } from '../../../../editor/browser/editorExtensions.js';
+import { MenuRegistry, MenuId, isIMenuItem } from '../../../../platform/actions/common/actions.js';
 
-export function getAllUnboundCommands(
-	boundCommands: Map<string, boolean>,
-): string[] {
+export function getAllUnboundCommands(boundCommands: Map<string, boolean>): string[] {
 	const unboundCommands: string[] = [];
 	const seenMap: Map<string, boolean> = new Map<string, boolean>();
 	const addCommand = (id: string, includeCommandWithArgs: boolean) => {
@@ -25,8 +16,7 @@ export function getAllUnboundCommands(
 			return;
 		}
 		seenMap.set(id, true);
-		if (id[0] === "_" || id.indexOf("vscode.") === 0) {
-			// private command
+		if (id[0] === '_' || id.indexOf('vscode.') === 0) { // private command
 			return;
 		}
 		if (boundCommands.get(id) === true) {
@@ -34,12 +24,8 @@ export function getAllUnboundCommands(
 		}
 		if (!includeCommandWithArgs) {
 			const command = CommandsRegistry.getCommand(id);
-			if (
-				command &&
-				typeof command.metadata === "object" &&
-				isNonEmptyArray((<ICommandMetadata>command.metadata).args)
-			) {
-				// command with args
+			if (command && typeof command.metadata === 'object'
+				&& isNonEmptyArray((<ICommandMetadata>command.metadata).args)) { // command with args
 				return;
 			}
 		}

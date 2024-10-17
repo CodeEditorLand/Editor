@@ -3,27 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	CancellationToken,
-	CancellationTokenSource,
-} from "../../../../base/common/cancellation.js";
-import { Event } from "../../../../base/common/event.js";
-import { IMarkdownString } from "../../../../base/common/htmlContent.js";
-import { IDisposable } from "../../../../base/common/lifecycle.js";
-import { ThemeIcon } from "../../../../base/common/themables.js";
-import { URI } from "../../../../base/common/uri.js";
-import { Command } from "../../../../editor/common/languages.js";
-import { IAccessibilityInformation } from "../../../../platform/accessibility/common/accessibility.js";
-import { ExtensionIdentifier } from "../../../../platform/extensions/common/extensions.js";
-import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { Event } from '../../../../base/common/event.js';
+import { IDisposable } from '../../../../base/common/lifecycle.js';
+import { URI } from '../../../../base/common/uri.js';
+import { Command } from '../../../../editor/common/languages.js';
+import { ExtensionIdentifier } from '../../../../platform/extensions/common/extensions.js';
+import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { IAccessibilityInformation } from '../../../../platform/accessibility/common/accessibility.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
+import { IMarkdownString } from '../../../../base/common/htmlContent.js';
 
 export function toKey(extension: ExtensionIdentifier | string, source: string) {
-	return `${typeof extension === "string" ? extension : ExtensionIdentifier.toKey(extension)}|${source}`;
+	return `${typeof extension === 'string' ? extension : ExtensionIdentifier.toKey(extension)}|${source}`;
 }
 
-export const TimelinePaneId = "timeline";
+export const TimelinePaneId = 'timeline';
 
 export interface TimelineItem {
+
 	/**
 	 * The handle of the item must be unique across all the
 	 * timeline items provided by this source.
@@ -58,6 +56,7 @@ export interface TimelineItem {
 }
 
 export interface TimelineChangeEvent {
+
 	/**
 	 * The identifier of the timeline provider this event is from.
 	 */
@@ -83,6 +82,7 @@ export interface TimelineOptions {
 }
 
 export interface Timeline {
+
 	/**
 	 * The identifier of the timeline provider this timeline is from.
 	 */
@@ -95,16 +95,10 @@ export interface Timeline {
 	};
 }
 
-export interface TimelineProvider
-	extends TimelineProviderDescriptor,
-		IDisposable {
+export interface TimelineProvider extends TimelineProviderDescriptor, IDisposable {
 	onDidChange?: Event<TimelineChangeEvent>;
 
-	provideTimeline(
-		uri: URI,
-		options: TimelineOptions,
-		token: CancellationToken,
-	): Promise<Timeline | undefined>;
+	provideTimeline(uri: URI, options: TimelineOptions, token: CancellationToken): Promise<Timeline | undefined>;
 }
 
 export interface TimelineSource {
@@ -113,6 +107,7 @@ export interface TimelineSource {
 }
 
 export interface TimelineProviderDescriptor {
+
 	/**
 	 * An identifier of the source of the timeline items. This can be used to filter sources.
 	 */
@@ -154,16 +149,10 @@ export interface ITimelineService {
 
 	getSources(): TimelineSource[];
 
-	getTimeline(
-		id: string,
-		uri: URI,
-		options: TimelineOptions,
-		tokenSource: CancellationTokenSource,
-	): TimelineRequest | undefined;
+	getTimeline(id: string, uri: URI, options: TimelineOptions, tokenSource: CancellationTokenSource): TimelineRequest | undefined;
 
 	setUri(uri: URI): void;
 }
 
-const TIMELINE_SERVICE_ID = "timeline";
-export const ITimelineService =
-	createDecorator<ITimelineService>(TIMELINE_SERVICE_ID);
+const TIMELINE_SERVICE_ID = 'timeline';
+export const ITimelineService = createDecorator<ITimelineService>(TIMELINE_SERVICE_ID);

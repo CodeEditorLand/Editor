@@ -3,49 +3,35 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { timeout } from "../../../../base/common/async.js";
-import { Emitter, Event } from "../../../../base/common/event.js";
-import { Disposable } from "../../../../base/common/lifecycle.js";
-import {
-	CommandsRegistry,
-	ICommandEvent,
-	ICommandService,
-} from "../../../../platform/commands/common/commands.js";
-import {
-	InstantiationType,
-	registerSingleton,
-} from "../../../../platform/instantiation/common/extensions.js";
-import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
-import { ILogService } from "../../../../platform/log/common/log.js";
-import { IExtensionService } from "../../extensions/common/extensions.js";
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { ICommandService, ICommandEvent, CommandsRegistry } from '../../../../platform/commands/common/commands.js';
+import { IExtensionService } from '../../extensions/common/extensions.js';
+import { Event, Emitter } from '../../../../base/common/event.js';
+import { Disposable } from '../../../../base/common/lifecycle.js';
+import { ILogService } from '../../../../platform/log/common/log.js';
+import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
+import { timeout } from '../../../../base/common/async.js';
 
 export class CommandService extends Disposable implements ICommandService {
+
 	declare readonly _serviceBrand: undefined;
 
 	private _extensionHostIsReady: boolean = false;
 	private _starActivation: Promise<void> | null;
 
-	private readonly _onWillExecuteCommand: Emitter<ICommandEvent> =
-		this._register(new Emitter<ICommandEvent>());
-	public readonly onWillExecuteCommand: Event<ICommandEvent> =
-		this._onWillExecuteCommand.event;
+	private readonly _onWillExecuteCommand: Emitter<ICommandEvent> = this._register(new Emitter<ICommandEvent>());
+	public readonly onWillExecuteCommand: Event<ICommandEvent> = this._onWillExecuteCommand.event;
 
-	private readonly _onDidExecuteCommand: Emitter<ICommandEvent> =
-		new Emitter<ICommandEvent>();
-	public readonly onDidExecuteCommand: Event<ICommandEvent> =
-		this._onDidExecuteCommand.event;
+	private readonly _onDidExecuteCommand: Emitter<ICommandEvent> = new Emitter<ICommandEvent>();
+	public readonly onDidExecuteCommand: Event<ICommandEvent> = this._onDidExecuteCommand.event;
 
 	constructor(
-		@IInstantiationService
-		private readonly _instantiationService: IInstantiationService,
-		@IExtensionService
-		private readonly _extensionService: IExtensionService,
-		@ILogService private readonly _logService: ILogService,
+		@IInstantiationService private readonly _instantiationService: IInstantiationService,
+		@IExtensionService private readonly _extensionService: IExtensionService,
+		@ILogService private readonly _logService: ILogService
 	) {
 		super();
-		this._extensionService
-			.whenInstalledExtensionsRegistered()
-			.then((value) => (this._extensionHostIsReady = value));
+		this._extensionService.whenInstalledExtensionsRegistered().then(value => this._extensionHostIsReady = value);
 		this._starActivation = null;
 	}
 
@@ -54,19 +40,20 @@ export class CommandService extends Disposable implements ICommandService {
 			// wait for * activation, limited to at most 30s
 			this._starActivation = Promise.race<any>([
 				this._extensionService.activateByEvent(`*`),
-				timeout(30000),
+				timeout(30000)
 			]);
 		}
 		return this._starActivation;
 	}
 
 	async executeCommand<T>(id: string, ...args: any[]): Promise<T> {
-		this._logService.trace("CommandService#executeCommand", id);
+		this._logService.trace('CommandService#executeCommand', id);
 
 		const activationEvent = `onCommand:${id}`;
 		const commandIsRegistered = !!CommandsRegistry.getCommand(id);
 
 		if (commandIsRegistered) {
+
 			// if the activation event has already resolved (i.e. subsequent call),
 			// we will execute the registered command immediately
 			if (this._extensionService.activationEventIsDone(activationEvent)) {
@@ -92,12 +79,7 @@ export class CommandService extends Disposable implements ICommandService {
 			Promise.race<any>([
 				// race * activation against command registration
 				this._activateStar(),
-				Event.toPromise(
-					Event.filter(
-						CommandsRegistry.onDidRegisterCommand,
-						(e) => e === id,
-					),
-				),
+				Event.toPromise(Event.filter(CommandsRegistry.onDidRegisterCommand, e => e === id))
 			]),
 		]);
 		return this._tryExecuteCommand(id, args);
@@ -110,10 +92,7 @@ export class CommandService extends Disposable implements ICommandService {
 		}
 		try {
 			this._onWillExecuteCommand.fire({ commandId: id, args });
-			const result = this._instantiationService.invokeFunction(
-				command.handler,
-				...args,
-			);
+			const result = this._instantiationService.invokeFunction(command.handler, ...args);
 			this._onDidExecuteCommand.fire({ commandId: id, args });
 			return Promise.resolve(result);
 		} catch (err) {

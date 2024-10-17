@@ -3,18 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type * as WindowsProcessTreeType from "@vscode/windows-process-tree";
-
-import { timeout } from "../../../base/common/async.js";
-import { debounce } from "../../../base/common/decorators.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable, IDisposable } from "../../../base/common/lifecycle.js";
-import { isWindows, platform } from "../../../base/common/platform.js";
-import {
-	GeneralShellType,
-	TerminalShellType,
-	WindowsShellType,
-} from "../common/terminal.js";
+import { timeout } from '../../../base/common/async.js';
+import { debounce } from '../../../base/common/decorators.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
+import { isWindows, platform } from '../../../base/common/platform.js';
+import { GeneralShellType, TerminalShellType, WindowsShellType } from '../common/terminal.js';
+import type * as WindowsProcessTreeType from '@vscode/windows-process-tree';
 
 export interface IWindowsShellHelper extends IDisposable {
 	readonly onShellNameChanged: Event<string>;
@@ -24,52 +19,39 @@ export interface IWindowsShellHelper extends IDisposable {
 }
 
 const SHELL_EXECUTABLES = [
-	"cmd.exe",
-	"powershell.exe",
-	"pwsh.exe",
-	"bash.exe",
-	"wsl.exe",
-	"ubuntu.exe",
-	"ubuntu1804.exe",
-	"kali.exe",
-	"debian.exe",
-	"opensuse-42.exe",
-	"sles-12.exe",
+	'cmd.exe',
+	'powershell.exe',
+	'pwsh.exe',
+	'bash.exe',
+	'wsl.exe',
+	'ubuntu.exe',
+	'ubuntu1804.exe',
+	'kali.exe',
+	'debian.exe',
+	'opensuse-42.exe',
+	'sles-12.exe'
 ];
 
 let windowsProcessTree: typeof WindowsProcessTreeType;
 
-export class WindowsShellHelper
-	extends Disposable
-	implements IWindowsShellHelper
-{
+export class WindowsShellHelper extends Disposable implements IWindowsShellHelper {
 	private _currentRequest: Promise<string> | undefined;
 	private _shellType: TerminalShellType | undefined;
-	get shellType(): TerminalShellType | undefined {
-		return this._shellType;
-	}
-	private _shellTitle: string = "";
-	get shellTitle(): string {
-		return this._shellTitle;
-	}
+	get shellType(): TerminalShellType | undefined { return this._shellType; }
+	private _shellTitle: string = '';
+	get shellTitle(): string { return this._shellTitle; }
 	private readonly _onShellNameChanged = new Emitter<string>();
-	get onShellNameChanged(): Event<string> {
-		return this._onShellNameChanged.event;
-	}
-	private readonly _onShellTypeChanged = new Emitter<
-		TerminalShellType | undefined
-	>();
-	get onShellTypeChanged(): Event<TerminalShellType | undefined> {
-		return this._onShellTypeChanged.event;
-	}
+	get onShellNameChanged(): Event<string> { return this._onShellNameChanged.event; }
+	private readonly _onShellTypeChanged = new Emitter<TerminalShellType | undefined>();
+	get onShellTypeChanged(): Event<TerminalShellType | undefined> { return this._onShellTypeChanged.event; }
 
-	constructor(private _rootProcessId: number) {
+	constructor(
+		private _rootProcessId: number
+	) {
 		super();
 
 		if (!isWindows) {
-			throw new Error(
-				`WindowsShellHelper cannot be instantiated on ${platform}`,
-			);
+			throw new Error(`WindowsShellHelper cannot be instantiated on ${platform}`);
 		}
 
 		this._startMonitoringShell();
@@ -89,7 +71,7 @@ export class WindowsShellHelper
 			// could lead to a race condition but it would be recovered from when
 			// data stops and should cover the majority of cases
 			await timeout(300);
-			this.getShellName().then((title) => {
+			this.getShellName().then(title => {
 				const type = this.getShellType(title);
 				if (type !== this._shellType) {
 					this._onShellTypeChanged.fire(type);
@@ -103,7 +85,7 @@ export class WindowsShellHelper
 
 	private traverseTree(tree: any): string {
 		if (!tree) {
-			return "";
+			return '';
 		}
 		if (SHELL_EXECUTABLES.indexOf(tree.name) === -1) {
 			return tree.name;
@@ -117,7 +99,7 @@ export class WindowsShellHelper
 			if (!child.children || child.children.length === 0) {
 				break;
 			}
-			if (child.children[0].name !== "conhost.exe") {
+			if (child.children[0].name !== 'conhost.exe') {
 				break;
 			}
 		}
@@ -132,17 +114,17 @@ export class WindowsShellHelper
 	 */
 	async getShellName(): Promise<string> {
 		if (this._store.isDisposed) {
-			return Promise.resolve("");
+			return Promise.resolve('');
 		}
 		// Prevent multiple requests at once, instead return current request
 		if (this._currentRequest) {
 			return this._currentRequest;
 		}
 		if (!windowsProcessTree) {
-			windowsProcessTree = await import("@vscode/windows-process-tree");
+			windowsProcessTree = await import('@vscode/windows-process-tree');
 		}
-		this._currentRequest = new Promise<string>((resolve) => {
-			windowsProcessTree.getProcessTree(this._rootProcessId, (tree) => {
+		this._currentRequest = new Promise<string>(resolve => {
+			windowsProcessTree.getProcessTree(this._rootProcessId, tree => {
 				const name = this.traverseTree(tree);
 				this._currentRequest = undefined;
 				resolve(name);
@@ -153,25 +135,25 @@ export class WindowsShellHelper
 
 	getShellType(executable: string): TerminalShellType | undefined {
 		switch (executable.toLowerCase()) {
-			case "cmd.exe":
+			case 'cmd.exe':
 				return WindowsShellType.CommandPrompt;
-			case "powershell.exe":
-			case "pwsh.exe":
+			case 'powershell.exe':
+			case 'pwsh.exe':
 				return GeneralShellType.PowerShell;
-			case "bash.exe":
-			case "git-cmd.exe":
+			case 'bash.exe':
+			case 'git-cmd.exe':
 				return WindowsShellType.GitBash;
-			case "julialauncher.exe":
+			case 'julialauncher.exe':
 				return GeneralShellType.Julia;
-			case "nu.exe":
+			case 'nu.exe':
 				return GeneralShellType.NuShell;
-			case "wsl.exe":
-			case "ubuntu.exe":
-			case "ubuntu1804.exe":
-			case "kali.exe":
-			case "debian.exe":
-			case "opensuse-42.exe":
-			case "sles-12.exe":
+			case 'wsl.exe':
+			case 'ubuntu.exe':
+			case 'ubuntu1804.exe':
+			case 'kali.exe':
+			case 'debian.exe':
+			case 'opensuse-42.exe':
+			case 'sles-12.exe':
 				return WindowsShellType.Wsl;
 			default:
 				if (executable.match(/python(\d(\.\d{0,2})?)?\.exe/)) {

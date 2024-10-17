@@ -3,48 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { assertNever } from "../../../../base/common/assert.js";
-import { VSBuffer } from "../../../../base/common/buffer.js";
-import { Emitter, Event } from "../../../../base/common/event.js";
-import {
-	Disposable,
-	DisposableStore,
-	toDisposable,
-} from "../../../../base/common/lifecycle.js";
-import { clamp } from "../../../../base/common/numbers.js";
-import { URI } from "../../../../base/common/uri.js";
-import {
-	createFileSystemProviderError,
-	FileChangeType,
-	FilePermission,
-	FileSystemProviderCapabilities,
-	FileSystemProviderErrorCode,
-	FileType,
-	IFileChange,
-	IFileOpenOptions,
-	IFileSystemProvider,
-	IStat,
-	IWatchOptions,
-} from "../../../../platform/files/common/files.js";
-import {
-	DEBUG_MEMORY_SCHEME,
-	IDebugService,
-	IDebugSession,
-	IMemoryInvalidationEvent,
-	IMemoryRegion,
-	MemoryRange,
-	MemoryRangeType,
-	State,
-} from "../common/debug.js";
+import { VSBuffer } from '../../../../base/common/buffer.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
+import { clamp } from '../../../../base/common/numbers.js';
+import { assertNever } from '../../../../base/common/assert.js';
+import { URI } from '../../../../base/common/uri.js';
+import { FileChangeType, IFileOpenOptions, FilePermission, FileSystemProviderCapabilities, FileSystemProviderErrorCode, FileType, IFileChange, IFileSystemProvider, IStat, IWatchOptions, createFileSystemProviderError } from '../../../../platform/files/common/files.js';
+import { DEBUG_MEMORY_SCHEME, IDebugService, IDebugSession, IMemoryInvalidationEvent, IMemoryRegion, MemoryRange, MemoryRangeType, State } from '../common/debug.js';
 
 const rangeRe = /range=([0-9]+):([0-9]+)/;
 
 export class DebugMemoryFileSystemProvider implements IFileSystemProvider {
 	private memoryFdCounter = 0;
-	private readonly fdMemory = new Map<
-		number,
-		{ session: IDebugSession; region: IMemoryRegion }
-	>();
+	private readonly fdMemory = new Map<number, { session: IDebugSession; region: IMemoryRegion }>();
 	private readonly changeEmitter = new Emitter<readonly IFileChange[]>();
 
 	/** @inheritdoc */
@@ -54,10 +26,9 @@ export class DebugMemoryFileSystemProvider implements IFileSystemProvider {
 	public readonly onDidChangeFile = this.changeEmitter.event;
 
 	/** @inheritdoc */
-	public readonly capabilities =
-		0 |
-		FileSystemProviderCapabilities.PathCaseSensitive |
-		FileSystemProviderCapabilities.FileOpenReadWriteClose;
+	public readonly capabilities = 0
+		| FileSystemProviderCapabilities.PathCaseSensitive
+		| FileSystemProviderCapabilities.FileOpenReadWriteClose;
 
 	constructor(private readonly debugService: IDebugService) {
 		debugService.onDidEndSession(({ session }) => {
@@ -71,44 +42,29 @@ export class DebugMemoryFileSystemProvider implements IFileSystemProvider {
 
 	public watch(resource: URI, opts: IWatchOptions) {
 		if (opts.recursive) {
-			return toDisposable(() => {});
+			return toDisposable(() => { });
 		}
 
 		const { session, memoryReference, offset } = this.parseUri(resource);
 		const disposable = new DisposableStore();
 
-		disposable.add(
-			session.onDidChangeState(() => {
-				if (
-					session.state === State.Running ||
-					session.state === State.Inactive
-				) {
-					this.changeEmitter.fire([
-						{ type: FileChangeType.DELETED, resource },
-					]);
-				}
-			}),
-		);
+		disposable.add(session.onDidChangeState(() => {
+			if (session.state === State.Running || session.state === State.Inactive) {
+				this.changeEmitter.fire([{ type: FileChangeType.DELETED, resource }]);
+			}
+		}));
 
-		disposable.add(
-			session.onDidInvalidateMemory((e) => {
-				if (e.body.memoryReference !== memoryReference) {
-					return;
-				}
+		disposable.add(session.onDidInvalidateMemory(e => {
+			if (e.body.memoryReference !== memoryReference) {
+				return;
+			}
 
-				if (
-					offset &&
-					(e.body.offset >= offset.toOffset ||
-						e.body.offset + e.body.count < offset.fromOffset)
-				) {
-					return;
-				}
+			if (offset && (e.body.offset >= offset.toOffset || e.body.offset + e.body.count < offset.fromOffset)) {
+				return;
+			}
 
-				this.changeEmitter.fire([
-					{ resource, type: FileChangeType.UPDATED },
-				]);
-			}),
-		);
+			this.changeEmitter.fire([{ resource, type: FileChangeType.UPDATED }]);
+		}));
 
 		return disposable;
 	}
@@ -127,34 +83,22 @@ export class DebugMemoryFileSystemProvider implements IFileSystemProvider {
 
 	/** @inheritdoc */
 	public mkdir(): never {
-		throw createFileSystemProviderError(
-			`Not allowed`,
-			FileSystemProviderErrorCode.NoPermissions,
-		);
+		throw createFileSystemProviderError(`Not allowed`, FileSystemProviderErrorCode.NoPermissions);
 	}
 
 	/** @inheritdoc */
 	public readdir(): never {
-		throw createFileSystemProviderError(
-			`Not allowed`,
-			FileSystemProviderErrorCode.NoPermissions,
-		);
+		throw createFileSystemProviderError(`Not allowed`, FileSystemProviderErrorCode.NoPermissions);
 	}
 
 	/** @inheritdoc */
 	public delete(): never {
-		throw createFileSystemProviderError(
-			`Not allowed`,
-			FileSystemProviderErrorCode.NoPermissions,
-		);
+		throw createFileSystemProviderError(`Not allowed`, FileSystemProviderErrorCode.NoPermissions);
 	}
 
 	/** @inheritdoc */
 	public rename(): never {
-		throw createFileSystemProviderError(
-			`Not allowed`,
-			FileSystemProviderErrorCode.NoPermissions,
-		);
+		throw createFileSystemProviderError(`Not allowed`, FileSystemProviderErrorCode.NoPermissions);
 	}
 
 	/** @inheritdoc */
@@ -181,10 +125,7 @@ export class DebugMemoryFileSystemProvider implements IFileSystemProvider {
 	public async writeFile(resource: URI, content: Uint8Array) {
 		const { offset } = this.parseUri(resource);
 		if (!offset) {
-			throw createFileSystemProviderError(
-				`Range must be present to read a file`,
-				FileSystemProviderErrorCode.FileNotFound,
-			);
+			throw createFileSystemProviderError(`Range must be present to read a file`, FileSystemProviderErrorCode.FileNotFound);
 		}
 
 		const fd = await this.open(resource, { create: false });
@@ -200,10 +141,7 @@ export class DebugMemoryFileSystemProvider implements IFileSystemProvider {
 	public async readFile(resource: URI) {
 		const { offset } = this.parseUri(resource);
 		if (!offset) {
-			throw createFileSystemProviderError(
-				`Range must be present to read a file`,
-				FileSystemProviderErrorCode.FileNotFound,
-			);
+			throw createFileSystemProviderError(`Range must be present to read a file`, FileSystemProviderErrorCode.FileNotFound);
 		}
 
 		const data = new Uint8Array(offset.toOffset - offset.fromOffset);
@@ -218,19 +156,10 @@ export class DebugMemoryFileSystemProvider implements IFileSystemProvider {
 	}
 
 	/** @inheritdoc */
-	public async read(
-		fd: number,
-		pos: number,
-		data: Uint8Array,
-		offset: number,
-		length: number,
-	): Promise<number> {
+	public async read(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number> {
 		const memory = this.fdMemory.get(fd);
 		if (!memory) {
-			throw createFileSystemProviderError(
-				`No file with that descriptor open`,
-				FileSystemProviderErrorCode.Unavailable,
-			);
+			throw createFileSystemProviderError(`No file with that descriptor open`, FileSystemProviderErrorCode.Unavailable);
 		}
 
 		const ranges = await memory.region.read(pos, length);
@@ -243,20 +172,11 @@ export class DebugMemoryFileSystemProvider implements IFileSystemProvider {
 					if (readSoFar > 0) {
 						return readSoFar;
 					} else {
-						throw createFileSystemProviderError(
-							range.error,
-							FileSystemProviderErrorCode.Unknown,
-						);
+						throw createFileSystemProviderError(range.error, FileSystemProviderErrorCode.Unknown);
 					}
 				case MemoryRangeType.Valid: {
 					const start = Math.max(0, pos - range.offset);
-					const toWrite = range.data.slice(
-						start,
-						Math.min(
-							range.data.byteLength,
-							start + (length - readSoFar),
-						),
-					);
+					const toWrite = range.data.slice(start, Math.min(range.data.byteLength, start + (length - readSoFar)));
 					data.set(toWrite.buffer, offset + readSoFar);
 					readSoFar += toWrite.byteLength;
 					break;
@@ -270,53 +190,32 @@ export class DebugMemoryFileSystemProvider implements IFileSystemProvider {
 	}
 
 	/** @inheritdoc */
-	public write(
-		fd: number,
-		pos: number,
-		data: Uint8Array,
-		offset: number,
-		length: number,
-	): Promise<number> {
+	public write(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number> {
 		const memory = this.fdMemory.get(fd);
 		if (!memory) {
-			throw createFileSystemProviderError(
-				`No file with that descriptor open`,
-				FileSystemProviderErrorCode.Unavailable,
-			);
+			throw createFileSystemProviderError(`No file with that descriptor open`, FileSystemProviderErrorCode.Unavailable);
 		}
 
-		return memory.region.write(
-			pos,
-			VSBuffer.wrap(data).slice(offset, offset + length),
-		);
+		return memory.region.write(pos, VSBuffer.wrap(data).slice(offset, offset + length));
 	}
 
 	protected parseUri(uri: URI) {
 		if (uri.scheme !== DEBUG_MEMORY_SCHEME) {
-			throw createFileSystemProviderError(
-				`Cannot open file with scheme ${uri.scheme}`,
-				FileSystemProviderErrorCode.FileNotFound,
-			);
+			throw createFileSystemProviderError(`Cannot open file with scheme ${uri.scheme}`, FileSystemProviderErrorCode.FileNotFound);
 		}
 
 		const session = this.debugService.getModel().getSession(uri.authority);
 		if (!session) {
-			throw createFileSystemProviderError(
-				`Debug session not found`,
-				FileSystemProviderErrorCode.FileNotFound,
-			);
+			throw createFileSystemProviderError(`Debug session not found`, FileSystemProviderErrorCode.FileNotFound);
 		}
 
 		let offset: { fromOffset: number; toOffset: number } | undefined;
 		const rangeMatch = rangeRe.exec(uri.query);
 		if (rangeMatch) {
-			offset = {
-				fromOffset: Number(rangeMatch[1]),
-				toOffset: Number(rangeMatch[2]),
-			};
+			offset = { fromOffset: Number(rangeMatch[1]), toOffset: Number(rangeMatch[2]) };
 		}
 
-		const [, memoryReference] = uri.path.split("/");
+		const [, memoryReference] = uri.path.split('/');
 
 		return {
 			session,
@@ -330,38 +229,24 @@ export class DebugMemoryFileSystemProvider implements IFileSystemProvider {
 
 /** A wrapper for a MemoryRegion that references a subset of data in another region. */
 class MemoryRegionView extends Disposable implements IMemoryRegion {
-	private readonly invalidateEmitter =
-		new Emitter<IMemoryInvalidationEvent>();
+	private readonly invalidateEmitter = new Emitter<IMemoryInvalidationEvent>();
 
 	public readonly onDidInvalidate = this.invalidateEmitter.event;
 	public readonly writable: boolean;
 	private readonly width = this.range.toOffset - this.range.fromOffset;
 
-	constructor(
-		private readonly parent: IMemoryRegion,
-		public readonly range: { fromOffset: number; toOffset: number },
-	) {
+	constructor(private readonly parent: IMemoryRegion, public readonly range: { fromOffset: number; toOffset: number }) {
 		super();
 		this.writable = parent.writable;
 
 		this._register(parent);
-		this._register(
-			parent.onDidInvalidate((e) => {
-				const fromOffset = clamp(
-					e.fromOffset - range.fromOffset,
-					0,
-					this.width,
-				);
-				const toOffset = clamp(
-					e.toOffset - range.fromOffset,
-					0,
-					this.width,
-				);
-				if (toOffset > fromOffset) {
-					this.invalidateEmitter.fire({ fromOffset, toOffset });
-				}
-			}),
-		);
+		this._register(parent.onDidInvalidate(e => {
+			const fromOffset = clamp(e.fromOffset - range.fromOffset, 0, this.width);
+			const toOffset = clamp(e.toOffset - range.fromOffset, 0, this.width);
+			if (toOffset > fromOffset) {
+				this.invalidateEmitter.fire({ fromOffset, toOffset });
+			}
+		}));
 	}
 
 	public read(fromOffset: number, toOffset: number): Promise<MemoryRange[]> {

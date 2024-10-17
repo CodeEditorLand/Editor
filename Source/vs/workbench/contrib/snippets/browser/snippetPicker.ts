@@ -3,24 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Codicon } from "../../../../base/common/codicons.js";
-import { Event } from "../../../../base/common/event.js";
-import { DisposableStore } from "../../../../base/common/lifecycle.js";
-import { ThemeIcon } from "../../../../base/common/themables.js";
-import * as nls from "../../../../nls.js";
-import { ServicesAccessor } from "../../../../platform/instantiation/common/instantiation.js";
-import {
-	IQuickInputService,
-	IQuickPickItem,
-	QuickPickInput,
-} from "../../../../platform/quickinput/common/quickInput.js";
-import { ISnippetsService } from "./snippets.js";
-import { Snippet, SnippetSource } from "./snippetsFile.js";
+import * as nls from '../../../../nls.js';
+import { ISnippetsService } from './snippets.js';
+import { Snippet, SnippetSource } from './snippetsFile.js';
+import { IQuickPickItem, IQuickInputService, QuickPickInput } from '../../../../platform/quickinput/common/quickInput.js';
+import { Codicon } from '../../../../base/common/codicons.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
+import { Event } from '../../../../base/common/event.js';
+import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
 
-export async function pickSnippet(
-	accessor: ServicesAccessor,
-	languageIdOrSnippets: string | Snippet[],
-): Promise<Snippet | undefined> {
+export async function pickSnippet(accessor: ServicesAccessor, languageIdOrSnippets: string | Snippet[]): Promise<Snippet | undefined> {
+
 	const snippetService = accessor.get(ISnippetsService);
 	const quickInputService = accessor.get(IQuickInputService);
 
@@ -32,10 +26,7 @@ export async function pickSnippet(
 	if (Array.isArray(languageIdOrSnippets)) {
 		snippets = languageIdOrSnippets;
 	} else {
-		snippets = await snippetService.getSnippets(languageIdOrSnippets, {
-			includeDisabledSnippets: true,
-			includeNoPrefixSnippets: true,
-		});
+		snippets = (await snippetService.getSnippets(languageIdOrSnippets, { includeDisabledSnippets: true, includeNoPrefixSnippets: true }));
 	}
 
 	snippets.sort((a, b) => a.snippetSource - b.snippetSource);
@@ -47,60 +38,37 @@ export async function pickSnippet(
 			const pick: ISnippetPick = {
 				label: snippet.prefix || snippet.name,
 				detail: snippet.description || snippet.body,
-				snippet,
+				snippet
 			};
-			if (
-				!prevSnippet ||
-				prevSnippet.snippetSource !== snippet.snippetSource ||
-				prevSnippet.source !== snippet.source
-			) {
-				let label = "";
+			if (!prevSnippet || prevSnippet.snippetSource !== snippet.snippetSource || prevSnippet.source !== snippet.source) {
+				let label = '';
 				switch (snippet.snippetSource) {
 					case SnippetSource.User:
-						label = nls.localize(
-							"sep.userSnippet",
-							"User Snippets",
-						);
+						label = nls.localize('sep.userSnippet', "User Snippets");
 						break;
 					case SnippetSource.Extension:
 						label = snippet.source;
 						break;
 					case SnippetSource.Workspace:
-						label = nls.localize(
-							"sep.workspaceSnippet",
-							"Workspace Snippets",
-						);
+						label = nls.localize('sep.workspaceSnippet', "Workspace Snippets");
 						break;
 				}
-				result.push({ type: "separator", label });
+				result.push({ type: 'separator', label });
 			}
 
 			if (snippet.snippetSource === SnippetSource.Extension) {
 				const isEnabled = snippetService.isEnabled(snippet);
 				if (isEnabled) {
-					pick.buttons = [
-						{
-							iconClass: ThemeIcon.asClassName(Codicon.eyeClosed),
-							tooltip: nls.localize(
-								"disableSnippet",
-								"Hide from IntelliSense",
-							),
-						},
-					];
+					pick.buttons = [{
+						iconClass: ThemeIcon.asClassName(Codicon.eyeClosed),
+						tooltip: nls.localize('disableSnippet', 'Hide from IntelliSense')
+					}];
 				} else {
-					pick.description = nls.localize(
-						"isDisabled",
-						"(hidden from IntelliSense)",
-					);
-					pick.buttons = [
-						{
-							iconClass: ThemeIcon.asClassName(Codicon.eye),
-							tooltip: nls.localize(
-								"enable.snippet",
-								"Show in IntelliSense",
-							),
-						},
-					];
+					pick.description = nls.localize('isDisabled', "(hidden from IntelliSense)");
+					pick.buttons = [{
+						iconClass: ThemeIcon.asClassName(Codicon.eye),
+						tooltip: nls.localize('enable.snippet', 'Show in IntelliSense')
+					}];
 				}
 			}
 
@@ -111,36 +79,24 @@ export async function pickSnippet(
 	};
 
 	const disposables = new DisposableStore();
-	const picker = disposables.add(
-		quickInputService.createQuickPick<ISnippetPick>({
-			useSeparators: true,
-		}),
-	);
-	picker.placeholder = nls.localize("pick.placeholder", "Select a snippet");
+	const picker = disposables.add(quickInputService.createQuickPick<ISnippetPick>({ useSeparators: true }));
+	picker.placeholder = nls.localize('pick.placeholder', "Select a snippet");
 	picker.matchOnDetail = true;
 	picker.ignoreFocusOut = false;
 	picker.keepScrollPosition = true;
-	disposables.add(
-		picker.onDidTriggerItemButton((ctx) => {
-			const isEnabled = snippetService.isEnabled(ctx.item.snippet);
-			snippetService.updateEnablement(ctx.item.snippet, !isEnabled);
-			picker.items = makeSnippetPicks();
-		}),
-	);
+	disposables.add(picker.onDidTriggerItemButton(ctx => {
+		const isEnabled = snippetService.isEnabled(ctx.item.snippet);
+		snippetService.updateEnablement(ctx.item.snippet, !isEnabled);
+		picker.items = makeSnippetPicks();
+	}));
 	picker.items = makeSnippetPicks();
 	if (!picker.items.length) {
-		picker.validationMessage = nls.localize(
-			"pick.noSnippetAvailable",
-			"No snippet available",
-		);
+		picker.validationMessage = nls.localize('pick.noSnippetAvailable', "No snippet available");
 	}
 	picker.show();
 
 	// wait for an item to be picked or the picker to become hidden
-	await Promise.race([
-		Event.toPromise(picker.onDidAccept),
-		Event.toPromise(picker.onDidHide),
-	]);
+	await Promise.race([Event.toPromise(picker.onDidAccept), Event.toPromise(picker.onDidHide)]);
 	const result = picker.selectedItems[0]?.snippet;
 	disposables.dispose();
 	return result;

@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IRange } from "../core/range.js";
-import { FoldingRules } from "../languages/languageConfiguration.js";
+import { IRange } from '../core/range.js';
+import { FoldingRules } from '../languages/languageConfiguration.js';
 
 export interface ISectionHeaderFinderTarget {
 	getLineCount(): number;
@@ -36,7 +36,7 @@ export interface SectionHeader {
 	shouldBeInComments: boolean;
 }
 
-const markRegex = new RegExp("\\bMARK:\\s*(.*)$", "d");
+const markRegex = new RegExp('\\bMARK:\\s*(.*)$', 'd');
 const trimDashesRegex = /^-+|-+$/g;
 
 /**
@@ -46,10 +46,7 @@ const trimDashesRegex = /^-+|-+$/g;
  * @param options options to search with
  * @returns an array of section headers
  */
-export function findSectionHeaders(
-	model: ISectionHeaderFinderTarget,
-	options: FindSectionHeaderOptions,
-): SectionHeader[] {
+export function findSectionHeaders(model: ISectionHeaderFinderTarget, options: FindSectionHeaderOptions): SectionHeader[] {
 	let headers: SectionHeader[] = [];
 	if (options.findRegionSectionHeaders && options.foldingRules?.markers) {
 		const regionHeaders = collectRegionHeaders(model, options);
@@ -62,27 +59,19 @@ export function findSectionHeaders(
 	return headers;
 }
 
-function collectRegionHeaders(
-	model: ISectionHeaderFinderTarget,
-	options: FindSectionHeaderOptions,
-): SectionHeader[] {
+function collectRegionHeaders(model: ISectionHeaderFinderTarget, options: FindSectionHeaderOptions): SectionHeader[] {
 	const regionHeaders: SectionHeader[] = [];
 	const endLineNumber = model.getLineCount();
 	for (let lineNumber = 1; lineNumber <= endLineNumber; lineNumber++) {
 		const lineContent = model.getLineContent(lineNumber);
 		const match = lineContent.match(options.foldingRules!.markers!.start);
 		if (match) {
-			const range = {
-				startLineNumber: lineNumber,
-				startColumn: match[0].length + 1,
-				endLineNumber: lineNumber,
-				endColumn: lineContent.length + 1,
-			};
+			const range = { startLineNumber: lineNumber, startColumn: match[0].length + 1, endLineNumber: lineNumber, endColumn: lineContent.length + 1 };
 			if (range.endColumn > range.startColumn) {
 				const sectionHeader = {
 					range,
 					...getHeaderText(lineContent.substring(match[0].length)),
-					shouldBeInComments: false,
+					shouldBeInComments: false
 				};
 				if (sectionHeader.text || sectionHeader.hasSeparatorLine) {
 					regionHeaders.push(sectionHeader);
@@ -93,9 +82,7 @@ function collectRegionHeaders(
 	return regionHeaders;
 }
 
-function collectMarkHeaders(
-	model: ISectionHeaderFinderTarget,
-): SectionHeader[] {
+function collectMarkHeaders(model: ISectionHeaderFinderTarget): SectionHeader[] {
 	const markHeaders: SectionHeader[] = [];
 	const endLineNumber = model.getLineCount();
 	for (let lineNumber = 1; lineNumber <= endLineNumber; lineNumber++) {
@@ -105,27 +92,18 @@ function collectMarkHeaders(
 	return markHeaders;
 }
 
-function addMarkHeaderIfFound(
-	lineContent: string,
-	lineNumber: number,
-	sectionHeaders: SectionHeader[],
-) {
+function addMarkHeaderIfFound(lineContent: string, lineNumber: number, sectionHeaders: SectionHeader[]) {
 	markRegex.lastIndex = 0;
 	const match = markRegex.exec(lineContent);
 	if (match) {
 		const column = match.indices![1][0] + 1;
 		const endColumn = match.indices![1][1] + 1;
-		const range = {
-			startLineNumber: lineNumber,
-			startColumn: column,
-			endLineNumber: lineNumber,
-			endColumn: endColumn,
-		};
+		const range = { startLineNumber: lineNumber, startColumn: column, endLineNumber: lineNumber, endColumn: endColumn };
 		if (range.endColumn > range.startColumn) {
 			const sectionHeader = {
 				range,
 				...getHeaderText(match[1]),
-				shouldBeInComments: true,
+				shouldBeInComments: true
 			};
 			if (sectionHeader.text || sectionHeader.hasSeparatorLine) {
 				sectionHeaders.push(sectionHeader);
@@ -134,12 +112,9 @@ function addMarkHeaderIfFound(
 	}
 }
 
-function getHeaderText(text: string): {
-	text: string;
-	hasSeparatorLine: boolean;
-} {
+function getHeaderText(text: string): { text: string; hasSeparatorLine: boolean } {
 	text = text.trim();
-	const hasSeparatorLine = text.startsWith("-");
-	text = text.replace(trimDashesRegex, "");
+	const hasSeparatorLine = text.startsWith('-');
+	text = text.replace(trimDashesRegex, '');
 	return { text, hasSeparatorLine };
 }

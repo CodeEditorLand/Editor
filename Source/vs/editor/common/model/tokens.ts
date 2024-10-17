@@ -3,36 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { equals } from "../../../base/common/arrays.js";
-import { RunOnceScheduler } from "../../../base/common/async.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { LineRange } from "../core/lineRange.js";
-import { StandardTokenType } from "../encodedTokenAttributes.js";
-import { ILanguageIdCodec } from "../languages.js";
-import { IAttachedView } from "../model.js";
-import {
-	IModelContentChangedEvent,
-	IModelTokensChangedEvent,
-} from "../textModelEvents.js";
-import {
-	BackgroundTokenizationState,
-	ITokenizeLineWithEditResult,
-	LineEditWithAdditionalLines,
-} from "../tokenizationTextModelPart.js";
-import { LineTokens } from "../tokens/lineTokens.js";
-import { TextModel } from "./textModel.js";
+import { equals } from '../../../base/common/arrays.js';
+import { RunOnceScheduler } from '../../../base/common/async.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { LineRange } from '../core/lineRange.js';
+import { StandardTokenType } from '../encodedTokenAttributes.js';
+import { ILanguageIdCodec } from '../languages.js';
+import { IAttachedView } from '../model.js';
+import { TextModel } from './textModel.js';
+import { IModelContentChangedEvent, IModelTokensChangedEvent } from '../textModelEvents.js';
+import { BackgroundTokenizationState, ITokenizeLineWithEditResult, LineEditWithAdditionalLines } from '../tokenizationTextModelPart.js';
+import { LineTokens } from '../tokens/lineTokens.js';
 
 /**
  * @internal
  */
 export class AttachedViews {
-	private readonly _onDidChangeVisibleRanges = new Emitter<{
-		view: IAttachedView;
-		state: IAttachedViewState | undefined;
-	}>();
-	public readonly onDidChangeVisibleRanges =
-		this._onDidChangeVisibleRanges.event;
+	private readonly _onDidChangeVisibleRanges = new Emitter<{ view: IAttachedView; state: IAttachedViewState | undefined }>();
+	public readonly onDidChangeVisibleRanges = this._onDidChangeVisibleRanges.event;
 
 	private readonly _views = new Set<AttachedViewImpl>();
 
@@ -59,43 +48,28 @@ export interface IAttachedViewState {
 }
 
 class AttachedViewImpl implements IAttachedView {
-	constructor(
-		private readonly handleStateChange: (state: IAttachedViewState) => void,
-	) {}
+	constructor(private readonly handleStateChange: (state: IAttachedViewState) => void) { }
 
-	setVisibleLines(
-		visibleLines: { startLineNumber: number; endLineNumber: number }[],
-		stabilized: boolean,
-	): void {
-		const visibleLineRanges = visibleLines.map(
-			(line) =>
-				new LineRange(line.startLineNumber, line.endLineNumber + 1),
-		);
+	setVisibleLines(visibleLines: { startLineNumber: number; endLineNumber: number }[], stabilized: boolean): void {
+		const visibleLineRanges = visibleLines.map((line) => new LineRange(line.startLineNumber, line.endLineNumber + 1));
 		this.handleStateChange({ visibleLineRanges, stabilized });
 	}
 }
 
+
 export class AttachedViewHandler extends Disposable {
-	private readonly runner = this._register(
-		new RunOnceScheduler(() => this.update(), 50),
-	);
+	private readonly runner = this._register(new RunOnceScheduler(() => this.update(), 50));
 
 	private _computedLineRanges: readonly LineRange[] = [];
 	private _lineRanges: readonly LineRange[] = [];
-	public get lineRanges(): readonly LineRange[] {
-		return this._lineRanges;
-	}
+	public get lineRanges(): readonly LineRange[] { return this._lineRanges; }
 
 	constructor(private readonly _refreshTokens: () => void) {
 		super();
 	}
 
 	private update(): void {
-		if (
-			equals(this._computedLineRanges, this._lineRanges, (a, b) =>
-				a.equals(b),
-			)
-		) {
+		if (equals(this._computedLineRanges, this._lineRanges, (a, b) => a.equals(b))) {
 			return;
 		}
 		this._computedLineRanges = this._lineRanges;
@@ -114,25 +88,18 @@ export class AttachedViewHandler extends Disposable {
 }
 
 export abstract class AbstractTokens extends Disposable {
-	protected _backgroundTokenizationState =
-		BackgroundTokenizationState.InProgress;
+	protected _backgroundTokenizationState = BackgroundTokenizationState.InProgress;
 	public get backgroundTokenizationState(): BackgroundTokenizationState {
 		return this._backgroundTokenizationState;
 	}
 
-	protected readonly _onDidChangeBackgroundTokenizationState = this._register(
-		new Emitter<void>(),
-	);
+	protected readonly _onDidChangeBackgroundTokenizationState = this._register(new Emitter<void>());
 	/** @internal, should not be exposed by the text model! */
-	public readonly onDidChangeBackgroundTokenizationState: Event<void> =
-		this._onDidChangeBackgroundTokenizationState.event;
+	public readonly onDidChangeBackgroundTokenizationState: Event<void> = this._onDidChangeBackgroundTokenizationState.event;
 
-	protected readonly _onDidChangeTokens = this._register(
-		new Emitter<IModelTokensChangedEvent>(),
-	);
+	protected readonly _onDidChangeTokens = this._register(new Emitter<IModelTokensChangedEvent>());
 	/** @internal, should not be exposed by the text model! */
-	public readonly onDidChangeTokens: Event<IModelTokensChangedEvent> =
-		this._onDidChangeTokens.event;
+	public readonly onDidChangeTokens: Event<IModelTokensChangedEvent> = this._onDidChangeTokens.event;
 
 	constructor(
 		protected readonly _languageIdCodec: ILanguageIdCodec,
@@ -162,16 +129,9 @@ export abstract class AbstractTokens extends Disposable {
 
 	public abstract getLineTokens(lineNumber: number): LineTokens;
 
-	public abstract getTokenTypeIfInsertingCharacter(
-		lineNumber: number,
-		column: number,
-		character: string,
-	): StandardTokenType;
+	public abstract getTokenTypeIfInsertingCharacter(lineNumber: number, column: number, character: string): StandardTokenType;
 
-	public abstract tokenizeLineWithEdit(
-		lineNumber: number,
-		edit: LineEditWithAdditionalLines,
-	): ITokenizeLineWithEditResult;
+	public abstract tokenizeLineWithEdit(lineNumber: number, edit: LineEditWithAdditionalLines): ITokenizeLineWithEditResult;
 
 	public abstract get hasTokens(): boolean;
 }

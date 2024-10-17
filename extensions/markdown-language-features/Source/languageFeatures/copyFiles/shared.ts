@@ -3,15 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from "path";
-import * as vscode from "vscode";
-import * as URI from "vscode-uri";
-
-import { ITextDocument } from "../../types/textDocument";
-import { getDocumentDir } from "../../util/document";
-import { Schemes } from "../../util/schemes";
-import { UriList } from "../../util/uriList";
-import { resolveSnippet } from "./snippets";
+import * as path from 'path';
+import * as vscode from 'vscode';
+import * as URI from 'vscode-uri';
+import { ITextDocument } from '../../types/textDocument';
+import { getDocumentDir } from '../../util/document';
+import { Schemes } from '../../util/schemes';
+import { UriList } from '../../util/uriList';
+import { resolveSnippet } from './snippets';
 
 enum MediaKind {
 	Image,
@@ -21,55 +20,48 @@ enum MediaKind {
 
 export const mediaFileExtensions = new Map<string, MediaKind>([
 	// Images
-	["avif", MediaKind.Image],
-	["bmp", MediaKind.Image],
-	["gif", MediaKind.Image],
-	["ico", MediaKind.Image],
-	["jpe", MediaKind.Image],
-	["jpeg", MediaKind.Image],
-	["jpg", MediaKind.Image],
-	["png", MediaKind.Image],
-	["psd", MediaKind.Image],
-	["svg", MediaKind.Image],
-	["tga", MediaKind.Image],
-	["tif", MediaKind.Image],
-	["tiff", MediaKind.Image],
-	["webp", MediaKind.Image],
+	['avif', MediaKind.Image],
+	['bmp', MediaKind.Image],
+	['gif', MediaKind.Image],
+	['ico', MediaKind.Image],
+	['jpe', MediaKind.Image],
+	['jpeg', MediaKind.Image],
+	['jpg', MediaKind.Image],
+	['png', MediaKind.Image],
+	['psd', MediaKind.Image],
+	['svg', MediaKind.Image],
+	['tga', MediaKind.Image],
+	['tif', MediaKind.Image],
+	['tiff', MediaKind.Image],
+	['webp', MediaKind.Image],
 
 	// Videos
-	["ogg", MediaKind.Video],
-	["mp4", MediaKind.Video],
+	['ogg', MediaKind.Video],
+	['mp4', MediaKind.Video],
 
 	// Audio Files
-	["mp3", MediaKind.Audio],
-	["aac", MediaKind.Audio],
-	["wav", MediaKind.Audio],
+	['mp3', MediaKind.Audio],
+	['aac', MediaKind.Audio],
+	['wav', MediaKind.Audio],
 ]);
 
-export function getSnippetLabel(counter: {
-	insertedAudioVideoCount: number;
-	insertedImageCount: number;
-	insertedLinkCount: number;
-}) {
+export function getSnippetLabel(counter: { insertedAudioVideoCount: number; insertedImageCount: number; insertedLinkCount: number }) {
 	if (counter.insertedAudioVideoCount > 0) {
 		if (counter.insertedLinkCount > 0) {
-			return vscode.l10n.t("Insert Markdown Media and Links");
+			return vscode.l10n.t('Insert Markdown Media and Links');
 		} else {
-			return vscode.l10n.t("Insert Markdown Media");
+			return vscode.l10n.t('Insert Markdown Media');
 		}
-	} else if (
-		counter.insertedImageCount > 0 &&
-		counter.insertedLinkCount > 0
-	) {
-		return vscode.l10n.t("Insert Markdown Images and Links");
+	} else if (counter.insertedImageCount > 0 && counter.insertedLinkCount > 0) {
+		return vscode.l10n.t('Insert Markdown Images and Links');
 	} else if (counter.insertedImageCount > 0) {
 		return counter.insertedImageCount > 1
-			? vscode.l10n.t("Insert Markdown Images")
-			: vscode.l10n.t("Insert Markdown Image");
+			? vscode.l10n.t('Insert Markdown Images')
+			: vscode.l10n.t('Insert Markdown Image');
 	} else {
 		return counter.insertedLinkCount > 1
-			? vscode.l10n.t("Insert Markdown Links")
-			: vscode.l10n.t("Insert Markdown Link");
+			? vscode.l10n.t('Insert Markdown Links')
+			: vscode.l10n.t('Insert Markdown Link');
 	}
 }
 
@@ -93,19 +85,13 @@ export function createInsertUriListEdit(
 	let placeHolderStartIndex = 1 + urlList.entries.length;
 
 	// Sort ranges by start position
-	const orderedRanges = [...ranges].sort((a, b) =>
-		a.start.compareTo(b.start),
-	);
-	const allRangesAreEmpty = orderedRanges.every((range) => range.isEmpty);
+	const orderedRanges = [...ranges].sort((a, b) => a.start.compareTo(b.start));
+	const allRangesAreEmpty = orderedRanges.every(range => range.isEmpty);
 
 	for (const range of orderedRanges) {
 		const snippet = createUriListSnippet(document.uri, urlList.entries, {
-			placeholderText: range.isEmpty
-				? undefined
-				: document.getText(range),
-			placeholderStartIndex: allRangesAreEmpty
-				? 1
-				: placeHolderStartIndex,
+			placeholderText: range.isEmpty ? undefined : document.getText(range),
+			placeholderStartIndex: allRangesAreEmpty ? 1 : placeHolderStartIndex,
 			...options,
 		});
 		if (!snippet) {
@@ -121,11 +107,7 @@ export function createInsertUriListEdit(
 		edits.push(new vscode.SnippetTextEdit(range, snippet.snippet));
 	}
 
-	const label = getSnippetLabel({
-		insertedAudioVideoCount,
-		insertedImageCount,
-		insertedLinkCount,
-	});
+	const label = getSnippetLabel({ insertedAudioVideoCount, insertedImageCount, insertedLinkCount });
 	return { edits, label };
 }
 
@@ -151,6 +133,7 @@ interface UriListSnippetOptions {
 	readonly preserveAbsoluteUris?: boolean;
 }
 
+
 interface UriSnippet {
 	snippet: vscode.SnippetString;
 	insertedLinkCount: number;
@@ -171,8 +154,8 @@ export function createUriListSnippet(
 	}
 
 	const documentDir = getDocumentDir(document);
-	const config = vscode.workspace.getConfiguration("markdown", document);
-	const title = options?.placeholderText || "Title";
+	const config = vscode.workspace.getConfiguration('markdown', document);
+	const title = options?.placeholderText || 'Title';
 
 	let insertedLinkCount = 0;
 	let insertedImageCount = 0;
@@ -182,87 +165,54 @@ export function createUriListSnippet(
 	let placeholderIndex = options?.placeholderStartIndex ?? 1;
 
 	uris.forEach((uri, i) => {
-		const mdPath =
-			(!options?.preserveAbsoluteUris
-				? getRelativeMdPath(documentDir, uri.uri)
-				: undefined) ??
-			uri.str ??
-			uri.uri.toString();
+		const mdPath = (!options?.preserveAbsoluteUris ? getRelativeMdPath(documentDir, uri.uri) : undefined) ?? uri.str ?? uri.uri.toString();
 
-		const ext = URI.Utils.extname(uri.uri).toLowerCase().replace(".", "");
-		const insertAsMedia =
-			options?.insertAsMedia ||
-			(typeof options?.insertAsMedia === "undefined" &&
-				mediaFileExtensions.has(ext));
+		const ext = URI.Utils.extname(uri.uri).toLowerCase().replace('.', '');
+		const insertAsMedia = options?.insertAsMedia || (typeof options?.insertAsMedia === 'undefined' && mediaFileExtensions.has(ext));
 
 		if (insertAsMedia) {
-			const insertAsVideo =
-				mediaFileExtensions.get(ext) === MediaKind.Video;
-			const insertAsAudio =
-				mediaFileExtensions.get(ext) === MediaKind.Audio;
+			const insertAsVideo = mediaFileExtensions.get(ext) === MediaKind.Video;
+			const insertAsAudio = mediaFileExtensions.get(ext) === MediaKind.Audio;
 			if (insertAsVideo || insertAsAudio) {
 				insertedAudioVideoCount++;
 				const mediaSnippet = insertAsVideo
-					? config.get<string>(
-							"editor.filePaste.videoSnippet",
-							'<video controls src="${src}" title="${title}"></video>',
-						)
-					: config.get<string>(
-							"editor.filePaste.audioSnippet",
-							'<audio controls src="${src}" title="${title}"></audio>',
-						);
-				snippet.value += resolveSnippet(
-					mediaSnippet,
-					new Map<string, string>([
-						["src", mdPath],
-						["title", `\${${placeholderIndex++}:${title}}`],
-					]),
-				);
+					? config.get<string>('editor.filePaste.videoSnippet', '<video controls src="${src}" title="${title}"></video>')
+					: config.get<string>('editor.filePaste.audioSnippet', '<audio controls src="${src}" title="${title}"></audio>');
+				snippet.value += resolveSnippet(mediaSnippet, new Map<string, string>([
+					['src', mdPath],
+					['title', `\${${placeholderIndex++}:${title}}`],
+				]));
 			} else {
 				insertedImageCount++;
-				snippet.appendText("![");
-				const placeholderText = escapeBrackets(
-					options?.placeholderText || "alt text",
-				);
+				snippet.appendText('![');
+				const placeholderText = escapeBrackets(options?.placeholderText || 'alt text');
 				snippet.appendPlaceholder(placeholderText, placeholderIndex);
 				snippet.appendText(`](${escapeMarkdownLinkPath(mdPath)})`);
 			}
 		} else {
 			insertedLinkCount++;
-			snippet.appendText("[");
-			snippet.appendPlaceholder(
-				escapeBrackets(options?.placeholderText ?? "text"),
-				placeholderIndex,
-			);
+			snippet.appendText('[');
+			snippet.appendPlaceholder(escapeBrackets(options?.placeholderText ?? 'text'), placeholderIndex);
 			snippet.appendText(`](${escapeMarkdownLinkPath(mdPath)})`);
 		}
 
 		if (i < uris.length - 1 && uris.length > 1) {
-			snippet.appendText(options?.separator ?? " ");
+			snippet.appendText(options?.separator ?? ' ');
 		}
 	});
 
-	return {
-		snippet,
-		insertedAudioVideoCount,
-		insertedImageCount,
-		insertedLinkCount,
-	};
+	return { snippet, insertedAudioVideoCount, insertedImageCount, insertedLinkCount };
 }
 
-function getRelativeMdPath(
-	dir: vscode.Uri | undefined,
-	file: vscode.Uri,
-): string | undefined {
+
+function getRelativeMdPath(dir: vscode.Uri | undefined, file: vscode.Uri): string | undefined {
 	if (dir && dir.scheme === file.scheme && dir.authority === file.authority) {
 		if (file.scheme === Schemes.file) {
 			// On windows, we must use the native `path.relative` to generate the relative path
 			// so that drive-letters are resolved cast insensitively. However we then want to
 			// convert back to a posix path to insert in to the document.
 			const relativePath = path.relative(dir.fsPath, file.fsPath);
-			return path.posix.normalize(
-				relativePath.split(path.sep).join(path.posix.sep),
-			);
+			return path.posix.normalize(relativePath.split(path.sep).join(path.posix.sep));
 		}
 
 		return path.posix.relative(dir.path, file.path);
@@ -272,20 +222,20 @@ function getRelativeMdPath(
 
 function escapeMarkdownLinkPath(mdPath: string): string {
 	if (needsBracketLink(mdPath)) {
-		return "<" + mdPath.replaceAll("<", "\\<").replaceAll(">", "\\>") + ">";
+		return '<' + mdPath.replaceAll('<', '\\<').replaceAll('>', '\\>') + '>';
 	}
 
 	return mdPath;
 }
 
 function escapeBrackets(value: string): string {
-	value = value.replace(/[\[\]]/g, "\\$&"); // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
+	value = value.replace(/[\[\]]/g, '\\$&'); // CodeQL [SM02383] The Markdown is fully sanitized after being rendered.
 	return value;
 }
 
 function needsBracketLink(mdPath: string): boolean {
 	// Links with whitespace or control characters must be enclosed in brackets
-	if (mdPath.startsWith("<") || /\s|[\u007F\u0000-\u001f]/.test(mdPath)) {
+	if (mdPath.startsWith('<') || /\s|[\u007F\u0000-\u001f]/.test(mdPath)) {
 		return true;
 	}
 
@@ -294,12 +244,12 @@ function needsBracketLink(mdPath: string): boolean {
 		return false;
 	}
 
-	let previousChar = "";
+	let previousChar = '';
 	let nestingCount = 0;
 	for (const char of mdPath) {
-		if (char === "(" && previousChar !== "\\") {
+		if (char === '(' && previousChar !== '\\') {
 			nestingCount++;
-		} else if (char === ")" && previousChar !== "\\") {
+		} else if (char === ')' && previousChar !== '\\') {
 			nestingCount--;
 		}
 

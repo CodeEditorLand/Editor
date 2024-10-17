@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+
 // #######################################################################
 // ###                                                                 ###
 // ###      electron.d.ts types we expose from electron-sandbox        ###
@@ -16,6 +17,7 @@ type Event<Params extends object = {}> = {
 } & Params;
 
 export interface IpcRendererEvent extends Event {
+
 	// Docs: https://electronjs.org/docs/api/structures/ipc-renderer-event
 
 	// Note: API with `Transferable` intentionally commented out because you
@@ -31,6 +33,7 @@ export interface IpcRendererEvent extends Event {
 }
 
 export interface IpcRenderer {
+
 	// Docs: https://electronjs.org/docs/api/ipc-renderer
 
 	/**
@@ -68,18 +71,12 @@ export interface IpcRenderer {
 	 * Listens to `channel`, when a new message arrives `listener` would be called with
 	 * `listener(event, args...)`.
 	 */
-	on(
-		channel: string,
-		listener: (event: IpcRendererEvent, ...args: any[]) => void,
-	): this;
+	on(channel: string, listener: (event: IpcRendererEvent, ...args: any[]) => void): this;
 	/**
 	 * Adds a one time `listener` function for the event. This `listener` is invoked
 	 * only the next time a message is sent to `channel`, after which it is removed.
 	 */
-	once(
-		channel: string,
-		listener: (event: IpcRendererEvent, ...args: any[]) => void,
-	): this;
+	once(channel: string, listener: (event: IpcRendererEvent, ...args: any[]) => void): this;
 	// Note: API with `Transferable` intentionally commented out because you
 	// cannot transfer these when `contextIsolation: true`.
 	// /**
@@ -100,10 +97,7 @@ export interface IpcRenderer {
 	 * Removes the specified `listener` from the listener array for the specified
 	 * `channel`.
 	 */
-	removeListener(
-		channel: string,
-		listener: (event: IpcRendererEvent, ...args: any[]) => void,
-	): this;
+	removeListener(channel: string, listener: (event: IpcRendererEvent, ...args: any[]) => void): this;
 	/**
 	 * Send an asynchronous message to the main process via `channel`, along with
 	 * arguments. Arguments will be serialized with the Structured Clone Algorithm,
@@ -147,6 +141,7 @@ export interface WebFrame {
 }
 
 export interface ProcessMemoryInfo {
+
 	// Docs: https://electronjs.org/docs/api/structures/process-memory-info
 
 	/**
@@ -179,6 +174,7 @@ export interface AuthInfo {
 }
 
 export interface WebUtils {
+
 	// Docs: https://electronjs.org/docs/api/web-utils
 
 	/**

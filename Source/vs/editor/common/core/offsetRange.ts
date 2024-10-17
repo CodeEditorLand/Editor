@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { BugIndicatingError } from "../../../base/common/errors.js";
+import { BugIndicatingError } from '../../../base/common/errors.js';
 
 export interface IOffsetRange {
 	readonly start: number;
@@ -12,42 +12,27 @@ export interface IOffsetRange {
 
 /**
  * A range of offsets (0-based).
- */
+*/
 export class OffsetRange implements IOffsetRange {
-	public static addRange(
-		range: OffsetRange,
-		sortedRanges: OffsetRange[],
-	): void {
+	public static addRange(range: OffsetRange, sortedRanges: OffsetRange[]): void {
 		let i = 0;
-		while (
-			i < sortedRanges.length &&
-			sortedRanges[i].endExclusive < range.start
-		) {
+		while (i < sortedRanges.length && sortedRanges[i].endExclusive < range.start) {
 			i++;
 		}
 		let j = i;
-		while (
-			j < sortedRanges.length &&
-			sortedRanges[j].start <= range.endExclusive
-		) {
+		while (j < sortedRanges.length && sortedRanges[j].start <= range.endExclusive) {
 			j++;
 		}
 		if (i === j) {
 			sortedRanges.splice(i, 0, range);
 		} else {
 			const start = Math.min(range.start, sortedRanges[i].start);
-			const end = Math.max(
-				range.endExclusive,
-				sortedRanges[j - 1].endExclusive,
-			);
+			const end = Math.max(range.endExclusive, sortedRanges[j - 1].endExclusive);
 			sortedRanges.splice(i, j - i, new OffsetRange(start, end));
 		}
 	}
 
-	public static tryCreate(
-		start: number,
-		endExclusive: number,
-	): OffsetRange | undefined {
+	public static tryCreate(start: number, endExclusive: number): OffsetRange | undefined {
 		if (start > endExclusive) {
 			return undefined;
 		}
@@ -66,10 +51,7 @@ export class OffsetRange implements IOffsetRange {
 		return new OffsetRange(offset, offset);
 	}
 
-	constructor(
-		public readonly start: number,
-		public readonly endExclusive: number,
-	) {
+	constructor(public readonly start: number, public readonly endExclusive: number) {
 		if (start > endExclusive) {
 			throw new BugIndicatingError(`Invalid range: ${this.toString()}`);
 		}
@@ -100,16 +82,11 @@ export class OffsetRange implements IOffsetRange {
 	}
 
 	public equals(other: OffsetRange): boolean {
-		return (
-			this.start === other.start &&
-			this.endExclusive === other.endExclusive
-		);
+		return this.start === other.start && this.endExclusive === other.endExclusive;
 	}
 
 	public containsRange(other: OffsetRange): boolean {
-		return (
-			this.start <= other.start && other.endExclusive <= this.endExclusive
-		);
+		return this.start <= other.start && other.endExclusive <= this.endExclusive;
 	}
 
 	public contains(offset: number): boolean {
@@ -121,10 +98,7 @@ export class OffsetRange implements IOffsetRange {
 	 * The joined range is the smallest range that contains both ranges.
 	 */
 	public join(other: OffsetRange): OffsetRange {
-		return new OffsetRange(
-			Math.min(this.start, other.start),
-			Math.max(this.endExclusive, other.endExclusive),
-		);
+		return new OffsetRange(Math.min(this.start, other.start), Math.max(this.endExclusive, other.endExclusive));
 	}
 
 	/**
@@ -182,9 +156,7 @@ export class OffsetRange implements IOffsetRange {
 	 */
 	public clip(value: number): number {
 		if (this.isEmpty) {
-			throw new BugIndicatingError(
-				`Invalid clipping range: ${this.toString()}`,
-			);
+			throw new BugIndicatingError(`Invalid clipping range: ${this.toString()}`);
 		}
 		return Math.max(this.start, Math.min(this.endExclusive - 1, value));
 	}
@@ -197,9 +169,7 @@ export class OffsetRange implements IOffsetRange {
 	 */
 	public clipCyclic(value: number): number {
 		if (this.isEmpty) {
-			throw new BugIndicatingError(
-				`Invalid clipping range: ${this.toString()}`,
-			);
+			throw new BugIndicatingError(`Invalid clipping range: ${this.toString()}`);
 		}
 		if (value < this.start) {
 			return this.endExclusive - ((this.start - value) % this.length);
@@ -230,33 +200,24 @@ export class OffsetRangeSet {
 
 	public addRange(range: OffsetRange): void {
 		let i = 0;
-		while (
-			i < this._sortedRanges.length &&
-			this._sortedRanges[i].endExclusive < range.start
-		) {
+		while (i < this._sortedRanges.length && this._sortedRanges[i].endExclusive < range.start) {
 			i++;
 		}
 		let j = i;
-		while (
-			j < this._sortedRanges.length &&
-			this._sortedRanges[j].start <= range.endExclusive
-		) {
+		while (j < this._sortedRanges.length && this._sortedRanges[j].start <= range.endExclusive) {
 			j++;
 		}
 		if (i === j) {
 			this._sortedRanges.splice(i, 0, range);
 		} else {
 			const start = Math.min(range.start, this._sortedRanges[i].start);
-			const end = Math.max(
-				range.endExclusive,
-				this._sortedRanges[j - 1].endExclusive,
-			);
+			const end = Math.max(range.endExclusive, this._sortedRanges[j - 1].endExclusive);
 			this._sortedRanges.splice(i, j - i, new OffsetRange(start, end));
 		}
 	}
 
 	public toString(): string {
-		return this._sortedRanges.map((r) => r.toString()).join(", ");
+		return this._sortedRanges.map(r => r.toString()).join(', ');
 	}
 
 	/**
@@ -265,16 +226,10 @@ export class OffsetRangeSet {
 	public intersectsStrict(other: OffsetRange): boolean {
 		// TODO use binary search
 		let i = 0;
-		while (
-			i < this._sortedRanges.length &&
-			this._sortedRanges[i].endExclusive <= other.start
-		) {
+		while (i < this._sortedRanges.length && this._sortedRanges[i].endExclusive <= other.start) {
 			i++;
 		}
-		return (
-			i < this._sortedRanges.length &&
-			this._sortedRanges[i].start < other.endExclusive
-		);
+		return i < this._sortedRanges.length && this._sortedRanges[i].start < other.endExclusive;
 	}
 
 	public intersectWithRange(other: OffsetRange): OffsetRangeSet {

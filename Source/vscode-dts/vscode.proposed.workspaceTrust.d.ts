@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	// https://github.com/microsoft/vscode/issues/120173
 
 	/**
@@ -24,8 +25,6 @@ declare module "vscode" {
 		 * @param options Optional object describing the properties of the
 		 * workspace trust request.
 		 */
-		export function requestWorkspaceTrust(
-			options?: WorkspaceTrustRequestOptions,
-		): Thenable<boolean | undefined>;
+		export function requestWorkspaceTrust(options?: WorkspaceTrustRequestOptions): Thenable<boolean | undefined>;
 	}
 }

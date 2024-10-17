@@ -5,7 +5,7 @@
 
 // https://github.com/microsoft/vscode/issues/176316
 
-declare module "vscode" {
+declare module 'vscode' {
 	export interface TreeItem {
 		shareableItem?: ShareableItem;
 	}
@@ -20,16 +20,10 @@ declare module "vscode" {
 		readonly label: string;
 		readonly priority: number;
 
-		provideShare(
-			item: ShareableItem,
-			token: CancellationToken,
-		): ProviderResult<Uri>;
+		provideShare(item: ShareableItem, token: CancellationToken): ProviderResult<Uri>;
 	}
 
 	export namespace window {
-		export function registerShareProvider(
-			selector: DocumentSelector,
-			provider: ShareProvider,
-		): Disposable;
+		export function registerShareProvider(selector: DocumentSelector, provider: ShareProvider): Disposable;
 	}
 }

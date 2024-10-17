@@ -3,56 +3,41 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable } from "../../../base/common/lifecycle.js";
-import {
-	createDecorator,
-	IInstantiationService,
-} from "../../instantiation/common/instantiation.js";
-import {
-	ILifecycleMainService,
-	LifecycleMainPhase,
-} from "../../lifecycle/electron-main/lifecycleMainService.js";
-import { ILogService } from "../../log/common/log.js";
-import { ICommonMenubarService, IMenubarData } from "../common/menubar.js";
-import { Menubar } from "./menubar.js";
+import { createDecorator, IInstantiationService } from '../../instantiation/common/instantiation.js';
+import { ILifecycleMainService, LifecycleMainPhase } from '../../lifecycle/electron-main/lifecycleMainService.js';
+import { ILogService } from '../../log/common/log.js';
+import { ICommonMenubarService, IMenubarData } from '../common/menubar.js';
+import { Menubar } from './menubar.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
 
-export const IMenubarMainService =
-	createDecorator<IMenubarMainService>("menubarMainService");
+export const IMenubarMainService = createDecorator<IMenubarMainService>('menubarMainService');
 
 export interface IMenubarMainService extends ICommonMenubarService {
 	readonly _serviceBrand: undefined;
 }
 
-export class MenubarMainService
-	extends Disposable
-	implements IMenubarMainService
-{
+export class MenubarMainService extends Disposable implements IMenubarMainService {
+
 	declare readonly _serviceBrand: undefined;
 
 	private readonly menubar = this.installMenuBarAfterWindowOpen();
 
 	constructor(
-		@IInstantiationService
-		private readonly instantiationService: IInstantiationService,
-		@ILifecycleMainService
-		private readonly lifecycleMainService: ILifecycleMainService,
-		@ILogService private readonly logService: ILogService,
+		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@ILifecycleMainService private readonly lifecycleMainService: ILifecycleMainService,
+		@ILogService private readonly logService: ILogService
 	) {
 		super();
 	}
 
 	private async installMenuBarAfterWindowOpen(): Promise<Menubar> {
-		await this.lifecycleMainService.when(
-			LifecycleMainPhase.AfterWindowOpen,
-		);
+		await this.lifecycleMainService.when(LifecycleMainPhase.AfterWindowOpen);
 
-		return this._register(
-			this.instantiationService.createInstance(Menubar),
-		);
+		return this._register(this.instantiationService.createInstance(Menubar));
 	}
 
 	async updateMenubar(windowId: number, menus: IMenubarData): Promise<void> {
-		this.logService.trace("menubarService#updateMenubar", windowId);
+		this.logService.trace('menubarService#updateMenubar', windowId);
 
 		const menubar = await this.menubar;
 		menubar.updateMenu(menus, windowId);

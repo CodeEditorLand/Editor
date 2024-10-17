@@ -3,28 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IIdentityProvider } from "../../../../../base/browser/ui/list/list.js";
-import { ObjectTree } from "../../../../../base/browser/ui/tree/objectTree.js";
-import {
-	IObjectTreeElement,
-	ObjectTreeElementCollapseState,
-} from "../../../../../base/browser/ui/tree/tree.js";
-import { Emitter, Event } from "../../../../../base/common/event.js";
-import { FuzzyScore } from "../../../../../base/common/filters.js";
-import { IMarkdownString } from "../../../../../base/common/htmlContent.js";
-import { Iterable } from "../../../../../base/common/iterator.js";
-import { IDisposable } from "../../../../../base/common/lifecycle.js";
-import { MarshalledId } from "../../../../../base/common/marshallingIds.js";
-import {
-	InternalTestItem,
-	ITestItemContext,
-	TestItemExpandState,
-	TestResultState,
-} from "../../common/testTypes.js";
-import {
-	isCollapsedInSerializedTestTree,
-	ISerializedTestTreeCollapseState,
-} from "./testingViewState.js";
+import { IIdentityProvider } from '../../../../../base/browser/ui/list/list.js';
+import { ObjectTree } from '../../../../../base/browser/ui/tree/objectTree.js';
+import { IObjectTreeElement, ObjectTreeElementCollapseState } from '../../../../../base/browser/ui/tree/tree.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { FuzzyScore } from '../../../../../base/common/filters.js';
+import { IMarkdownString } from '../../../../../base/common/htmlContent.js';
+import { Iterable } from '../../../../../base/common/iterator.js';
+import { IDisposable } from '../../../../../base/common/lifecycle.js';
+import { MarshalledId } from '../../../../../base/common/marshallingIds.js';
+import { ISerializedTestTreeCollapseState, isCollapsedInSerializedTestTree } from './testingViewState.js';
+import { ITestItemContext, InternalTestItem, TestItemExpandState, TestResultState } from '../../common/testTypes.js';
 
 /**
  * Describes a rendering of tests in the explorer view. Different
@@ -115,7 +104,7 @@ export abstract class TestItemTreeElement {
 		 * in a 'flat' projection.
 		 */
 		public readonly parent: TestItemTreeElement | null = null,
-	) {}
+	) { }
 
 	public toJSON() {
 		if (this.depth === 0) {
@@ -140,79 +129,55 @@ export class TestTreeErrorMessage {
 	public readonly children = new Set<never>();
 
 	public get description() {
-		return typeof this.message === "string"
-			? this.message
-			: this.message.value;
+		return typeof this.message === 'string' ? this.message : this.message.value;
 	}
 
 	constructor(
 		public readonly message: string | IMarkdownString,
 		public readonly parent: TestExplorerTreeElement,
-	) {}
+	) { }
 }
 
-export type TestExplorerTreeElement =
-	| TestItemTreeElement
-	| TestTreeErrorMessage;
+export type TestExplorerTreeElement = TestItemTreeElement | TestTreeErrorMessage;
 
-export const testIdentityProvider: IIdentityProvider<TestExplorerTreeElement> =
-	{
-		getId(element) {
-			// For "not expandable" elements, whether they have children is part of the
-			// ID so they're rerendered if that changes (#204805)
-			const expandComponent =
-				element instanceof TestTreeErrorMessage
-					? "error"
-					: element.test.expand === TestItemExpandState.NotExpandable
-						? !!element.children.size
-						: element.test.expand;
+export const testIdentityProvider: IIdentityProvider<TestExplorerTreeElement> = {
+	getId(element) {
+		// For "not expandable" elements, whether they have children is part of the
+		// ID so they're rerendered if that changes (#204805)
+		const expandComponent = element instanceof TestTreeErrorMessage
+			? 'error'
+			: element.test.expand === TestItemExpandState.NotExpandable
+				? !!element.children.size
+				: element.test.expand;
 
-			return element.treeId + "\0" + expandComponent;
-		},
-	};
+		return element.treeId + '\0' + expandComponent;
+	}
+};
 
-export const getChildrenForParent = (
-	serialized: ISerializedTestTreeCollapseState,
-	rootsWithChildren: Iterable<TestExplorerTreeElement>,
-	node: TestExplorerTreeElement | null,
-): Iterable<IObjectTreeElement<TestExplorerTreeElement>> => {
+export const getChildrenForParent = (serialized: ISerializedTestTreeCollapseState, rootsWithChildren: Iterable<TestExplorerTreeElement>, node: TestExplorerTreeElement | null): Iterable<IObjectTreeElement<TestExplorerTreeElement>> => {
 	let it: Iterable<TestExplorerTreeElement>;
-	if (node === null) {
-		// roots
+	if (node === null) { // roots
 		const rootsWithChildrenArr = [...rootsWithChildren];
 		if (rootsWithChildrenArr.length === 1) {
-			return getChildrenForParent(
-				serialized,
-				rootsWithChildrenArr,
-				rootsWithChildrenArr[0],
-			);
+			return getChildrenForParent(serialized, rootsWithChildrenArr, rootsWithChildrenArr[0]);
 		}
 		it = rootsWithChildrenArr;
 	} else {
 		it = node.children;
 	}
 
-	return Iterable.map(it, (element) =>
+	return Iterable.map(it, element => (
 		element instanceof TestTreeErrorMessage
 			? { element }
 			: {
-					element,
-					collapsible:
-						element.test.expand !==
-						TestItemExpandState.NotExpandable,
-					collapsed: element.test.item.error
-						? ObjectTreeElementCollapseState.PreserveOrExpanded
-						: (isCollapsedInSerializedTestTree(
-									serialized,
-									element.test.item.extId,
-							  ) ?? element.depth > 0)
-							? ObjectTreeElementCollapseState.PreserveOrCollapsed
-							: ObjectTreeElementCollapseState.PreserveOrExpanded,
-					children: getChildrenForParent(
-						serialized,
-						rootsWithChildren,
-						element,
-					),
-				},
-	);
+				element,
+				collapsible: element.test.expand !== TestItemExpandState.NotExpandable,
+				collapsed: element.test.item.error
+					? ObjectTreeElementCollapseState.PreserveOrExpanded
+					: (isCollapsedInSerializedTestTree(serialized, element.test.item.extId) ?? element.depth > 0
+						? ObjectTreeElementCollapseState.PreserveOrCollapsed
+						: ObjectTreeElementCollapseState.PreserveOrExpanded),
+				children: getChildrenForParent(serialized, rootsWithChildren, element),
+			}
+	));
 };

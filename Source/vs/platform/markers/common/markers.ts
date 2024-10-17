@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from "../../../base/common/event.js";
-import Severity from "../../../base/common/severity.js";
-import { URI } from "../../../base/common/uri.js";
-import { localize } from "../../../nls.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { Event } from '../../../base/common/event.js';
+import Severity from '../../../base/common/severity.js';
+import { URI } from '../../../base/common/uri.js';
+import { localize } from '../../../nls.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
 
 export interface IMarkerService {
 	readonly _serviceBrand: undefined;
@@ -20,12 +20,7 @@ export interface IMarkerService {
 
 	remove(owner: string, resources: URI[]): void;
 
-	read(filter?: {
-		owner?: string;
-		resource?: URI;
-		severities?: number;
-		take?: number;
-	}): IMarker[];
+	read(filter?: { owner?: string; resource?: URI; severities?: number; take?: number }): IMarker[];
 
 	readonly onMarkerChanged: Event<readonly URI[]>;
 }
@@ -44,7 +39,7 @@ export interface IRelatedInformation {
 
 export const enum MarkerTag {
 	Unnecessary = 1,
-	Deprecated = 2,
+	Deprecated = 2
 }
 
 export enum MarkerSeverity {
@@ -55,45 +50,35 @@ export enum MarkerSeverity {
 }
 
 export namespace MarkerSeverity {
+
 	export function compare(a: MarkerSeverity, b: MarkerSeverity): number {
 		return b - a;
 	}
 
 	const _displayStrings: { [value: number]: string } = Object.create(null);
-	_displayStrings[MarkerSeverity.Error] = localize("sev.error", "Error");
-	_displayStrings[MarkerSeverity.Warning] = localize(
-		"sev.warning",
-		"Warning",
-	);
-	_displayStrings[MarkerSeverity.Info] = localize("sev.info", "Info");
+	_displayStrings[MarkerSeverity.Error] = localize('sev.error', "Error");
+	_displayStrings[MarkerSeverity.Warning] = localize('sev.warning', "Warning");
+	_displayStrings[MarkerSeverity.Info] = localize('sev.info', "Info");
 
 	export function toString(a: MarkerSeverity): string {
-		return _displayStrings[a] || "";
+		return _displayStrings[a] || '';
 	}
 
 	export function fromSeverity(severity: Severity): MarkerSeverity {
 		switch (severity) {
-			case Severity.Error:
-				return MarkerSeverity.Error;
-			case Severity.Warning:
-				return MarkerSeverity.Warning;
-			case Severity.Info:
-				return MarkerSeverity.Info;
-			case Severity.Ignore:
-				return MarkerSeverity.Hint;
+			case Severity.Error: return MarkerSeverity.Error;
+			case Severity.Warning: return MarkerSeverity.Warning;
+			case Severity.Info: return MarkerSeverity.Info;
+			case Severity.Ignore: return MarkerSeverity.Hint;
 		}
 	}
 
 	export function toSeverity(severity: MarkerSeverity): Severity {
 		switch (severity) {
-			case MarkerSeverity.Error:
-				return Severity.Error;
-			case MarkerSeverity.Warning:
-				return Severity.Warning;
-			case MarkerSeverity.Info:
-				return Severity.Info;
-			case MarkerSeverity.Hint:
-				return Severity.Ignore;
+			case MarkerSeverity.Error: return Severity.Error;
+			case MarkerSeverity.Warning: return Severity.Warning;
+			case MarkerSeverity.Info: return Severity.Info;
+			case MarkerSeverity.Hint: return Severity.Ignore;
 		}
 	}
 }
@@ -144,26 +129,23 @@ export interface MarkerStatistics {
 }
 
 export namespace IMarkerData {
-	const emptyString = "";
+	const emptyString = '';
 	export function makeKey(markerData: IMarkerData): string {
 		return makeKeyOptionalMessage(markerData, true);
 	}
 
-	export function makeKeyOptionalMessage(
-		markerData: IMarkerData,
-		useMessage: boolean,
-	): string {
+	export function makeKeyOptionalMessage(markerData: IMarkerData, useMessage: boolean): string {
 		const result: string[] = [emptyString];
 		if (markerData.source) {
-			result.push(markerData.source.replace("¦", "\\¦"));
+			result.push(markerData.source.replace('¦', '\\¦'));
 		} else {
 			result.push(emptyString);
 		}
 		if (markerData.code) {
-			if (typeof markerData.code === "string") {
-				result.push(markerData.code.replace("¦", "\\¦"));
+			if (typeof markerData.code === 'string') {
+				result.push(markerData.code.replace('¦', '\\¦'));
 			} else {
-				result.push(markerData.code.value.replace("¦", "\\¦"));
+				result.push(markerData.code.value.replace('¦', '\\¦'));
 			}
 		} else {
 			result.push(emptyString);
@@ -177,45 +159,33 @@ export namespace IMarkerData {
 		// Modifed to not include the message as part of the marker key to work around
 		// https://github.com/microsoft/vscode/issues/77475
 		if (markerData.message && useMessage) {
-			result.push(markerData.message.replace("¦", "\\¦"));
+			result.push(markerData.message.replace('¦', '\\¦'));
 		} else {
 			result.push(emptyString);
 		}
-		if (
-			markerData.startLineNumber !== undefined &&
-			markerData.startLineNumber !== null
-		) {
+		if (markerData.startLineNumber !== undefined && markerData.startLineNumber !== null) {
 			result.push(markerData.startLineNumber.toString());
 		} else {
 			result.push(emptyString);
 		}
-		if (
-			markerData.startColumn !== undefined &&
-			markerData.startColumn !== null
-		) {
+		if (markerData.startColumn !== undefined && markerData.startColumn !== null) {
 			result.push(markerData.startColumn.toString());
 		} else {
 			result.push(emptyString);
 		}
-		if (
-			markerData.endLineNumber !== undefined &&
-			markerData.endLineNumber !== null
-		) {
+		if (markerData.endLineNumber !== undefined && markerData.endLineNumber !== null) {
 			result.push(markerData.endLineNumber.toString());
 		} else {
 			result.push(emptyString);
 		}
-		if (
-			markerData.endColumn !== undefined &&
-			markerData.endColumn !== null
-		) {
+		if (markerData.endColumn !== undefined && markerData.endColumn !== null) {
 			result.push(markerData.endColumn.toString());
 		} else {
 			result.push(emptyString);
 		}
 		result.push(emptyString);
-		return result.join("¦");
+		return result.join('¦');
 	}
 }
 
-export const IMarkerService = createDecorator<IMarkerService>("markerService");
+export const IMarkerService = createDecorator<IMarkerService>('markerService');

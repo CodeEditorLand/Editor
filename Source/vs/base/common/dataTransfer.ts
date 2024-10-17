@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { distinct } from "./arrays.js";
-import { Iterable } from "./iterator.js";
-import { URI } from "./uri.js";
-import { generateUuid } from "./uuid.js";
+import { distinct } from './arrays.js';
+import { Iterable } from './iterator.js';
+import { URI } from './uri.js';
+import { generateUuid } from './uuid.js';
 
 export interface IDataTransferFile {
 	readonly id: string;
@@ -21,32 +21,24 @@ export interface IDataTransferItem {
 	value: any;
 }
 
-export function createStringDataTransferItem(
-	stringOrPromise: string | Promise<string>,
-): IDataTransferItem {
+export function createStringDataTransferItem(stringOrPromise: string | Promise<string>): IDataTransferItem {
 	return {
 		asString: async () => stringOrPromise,
 		asFile: () => undefined,
-		value:
-			typeof stringOrPromise === "string" ? stringOrPromise : undefined,
+		value: typeof stringOrPromise === 'string' ? stringOrPromise : undefined,
 	};
 }
 
-export function createFileDataTransferItem(
-	fileName: string,
-	uri: URI | undefined,
-	data: () => Promise<Uint8Array>,
-): IDataTransferItem {
+export function createFileDataTransferItem(fileName: string, uri: URI | undefined, data: () => Promise<Uint8Array>): IDataTransferItem {
 	const file = { id: generateUuid(), name: fileName, uri, data };
 	return {
-		asString: async () => "",
+		asString: async () => '',
 		asFile: () => file,
 		value: undefined,
 	};
 }
 
-export interface IReadonlyVSDataTransfer
-	extends Iterable<readonly [string, IDataTransferItem]> {
+export interface IReadonlyVSDataTransfer extends Iterable<readonly [string, IDataTransferItem]> {
 	/**
 	 * Get the total number of entries in this data transfer.
 	 */
@@ -77,6 +69,7 @@ export interface IReadonlyVSDataTransfer
 }
 
 export class VSDataTransfer implements IReadonlyVSDataTransfer {
+
 	private readonly _entries = new Map<string, IDataTransferItem[]>();
 
 	public get size(): number {
@@ -94,7 +87,7 @@ export class VSDataTransfer implements IReadonlyVSDataTransfer {
 	public matches(pattern: string): boolean {
 		const mimes = [...this._entries.keys()];
 		if (Iterable.some(this, ([_, item]) => item.asFile())) {
-			mimes.push("files");
+			mimes.push('files');
 		}
 
 		return matchesMimeType_normalized(normalizeMimeType(pattern), mimes);
@@ -139,9 +132,7 @@ export class VSDataTransfer implements IReadonlyVSDataTransfer {
 	 *
 	 * There may be multiple entries for each mime type.
 	 */
-	public *[Symbol.iterator](): IterableIterator<
-		readonly [string, IDataTransferItem]
-	> {
+	public *[Symbol.iterator](): IterableIterator<readonly [string, IDataTransferItem]> {
 		for (const [mine, items] of this._entries) {
 			for (const item of items) {
 				yield [mine, item];
@@ -158,22 +149,15 @@ function normalizeMimeType(mimeType: string): string {
 	return mimeType.toLowerCase();
 }
 
-export function matchesMimeType(
-	pattern: string,
-	mimeTypes: readonly string[],
-): boolean {
+export function matchesMimeType(pattern: string, mimeTypes: readonly string[]): boolean {
 	return matchesMimeType_normalized(
 		normalizeMimeType(pattern),
-		mimeTypes.map(normalizeMimeType),
-	);
+		mimeTypes.map(normalizeMimeType));
 }
 
-function matchesMimeType_normalized(
-	normalizedPattern: string,
-	normalizedMimeTypes: readonly string[],
-): boolean {
+function matchesMimeType_normalized(normalizedPattern: string, normalizedMimeTypes: readonly string[]): boolean {
 	// Anything wildcard
-	if (normalizedPattern === "*/*") {
+	if (normalizedPattern === '*/*') {
 		return normalizedMimeTypes.length > 0;
 	}
 
@@ -189,22 +173,23 @@ function matchesMimeType_normalized(
 	}
 
 	const [_, type, subtype] = wildcard;
-	if (subtype === "*") {
-		return normalizedMimeTypes.some((mime) => mime.startsWith(type + "/"));
+	if (subtype === '*') {
+		return normalizedMimeTypes.some(mime => mime.startsWith(type + '/'));
 	}
 
 	return false;
 }
 
+
 export const UriList = Object.freeze({
 	// http://amundsen.com/hypermedia/urilist/
 	create: (entries: ReadonlyArray<string | URI>): string => {
-		return distinct(entries.map((x) => x.toString())).join("\r\n");
+		return distinct(entries.map(x => x.toString())).join('\r\n');
 	},
 	split: (str: string): string[] => {
-		return str.split("\r\n");
+		return str.split('\r\n');
 	},
 	parse: (str: string): string[] => {
-		return UriList.split(str).filter((value) => !value.startsWith("#"));
-	},
+		return UriList.split(str).filter(value => !value.startsWith('#'));
+	}
 });

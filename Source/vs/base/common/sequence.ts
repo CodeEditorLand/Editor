@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from "./event.js";
+import { Emitter, Event } from './event.js';
 
 export interface ISplice<T> {
 	readonly start: number;
@@ -21,16 +21,13 @@ export interface ISequence<T> {
 }
 
 export class Sequence<T> implements ISequence<T>, ISpliceable<T> {
+
 	readonly elements: T[] = [];
 
 	private readonly _onDidSplice = new Emitter<ISplice<T>>();
 	readonly onDidSplice: Event<ISplice<T>> = this._onDidSplice.event;
 
-	splice(
-		start: number,
-		deleteCount: number,
-		toInsert: readonly T[] = [],
-	): void {
+	splice(start: number, deleteCount: number, toInsert: readonly T[] = []): void {
 		this.elements.splice(start, deleteCount, ...toInsert);
 		this._onDidSplice.fire({ start, deleteCount, toInsert });
 	}

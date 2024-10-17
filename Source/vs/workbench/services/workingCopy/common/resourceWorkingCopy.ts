@@ -3,29 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { timeout } from "../../../../base/common/async.js";
-import { CancellationToken } from "../../../../base/common/cancellation.js";
-import { Emitter, Event } from "../../../../base/common/event.js";
-import { Disposable, IDisposable } from "../../../../base/common/lifecycle.js";
-import { URI } from "../../../../base/common/uri.js";
-import {
-	FileChangesEvent,
-	FileChangeType,
-	IFileService,
-} from "../../../../platform/files/common/files.js";
-import { IRevertOptions, ISaveOptions } from "../../../common/editor.js";
-import {
-	IWorkingCopy,
-	IWorkingCopyBackup,
-	IWorkingCopySaveEvent,
-	WorkingCopyCapabilities,
-} from "./workingCopy.js";
+import { timeout } from '../../../../base/common/async.js';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { Event, Emitter } from '../../../../base/common/event.js';
+import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
+import { URI } from '../../../../base/common/uri.js';
+import { FileChangesEvent, FileChangeType, IFileService } from '../../../../platform/files/common/files.js';
+import { ISaveOptions, IRevertOptions } from '../../../common/editor.js';
+import { IWorkingCopy, IWorkingCopyBackup, IWorkingCopySaveEvent, WorkingCopyCapabilities } from './workingCopy.js';
 
 /**
  * A resource based `IWorkingCopy` is backed by a `URI` from a
  * known file system provider.
  */
 export interface IResourceWorkingCopy extends IWorkingCopy, IDisposable {
+
 	/**
 	 * An event for when the orphaned state of the resource working copy changes.
 	 */
@@ -47,19 +39,15 @@ export interface IResourceWorkingCopy extends IWorkingCopy, IDisposable {
 	isDisposed(): boolean;
 }
 
-export abstract class ResourceWorkingCopy
-	extends Disposable
-	implements IResourceWorkingCopy
-{
+export abstract class ResourceWorkingCopy extends Disposable implements IResourceWorkingCopy {
+
 	constructor(
 		readonly resource: URI,
-		@IFileService protected readonly fileService: IFileService,
+		@IFileService protected readonly fileService: IFileService
 	) {
 		super();
 
-		this._register(
-			this.fileService.onDidFilesChange((e) => this.onDidFilesChange(e)),
-		);
+		this._register(this.fileService.onDidFilesChange(e => this.onDidFilesChange(e)));
 	}
 
 	//#region Orphaned Tracking
@@ -79,10 +67,7 @@ export abstract class ResourceWorkingCopy
 
 		// If we are currently orphaned, we check if the file was added back
 		if (this.orphaned) {
-			const fileWorkingCopyResourceAdded = e.contains(
-				this.resource,
-				FileChangeType.ADDED,
-			);
+			const fileWorkingCopyResourceAdded = e.contains(this.resource, FileChangeType.ADDED);
 			if (fileWorkingCopyResourceAdded) {
 				newInOrphanModeGuess = false;
 				fileEventImpactsUs = true;
@@ -91,10 +76,7 @@ export abstract class ResourceWorkingCopy
 
 		// Otherwise we check if the file was deleted
 		else {
-			const fileWorkingCopyResourceDeleted = e.contains(
-				this.resource,
-				FileChangeType.DELETED,
-			);
+			const fileWorkingCopyResourceDeleted = e.contains(this.resource, FileChangeType.DELETED);
 			if (fileWorkingCopyResourceDeleted) {
 				newInOrphanModeGuess = true;
 				fileEventImpactsUs = true;
@@ -104,6 +86,7 @@ export abstract class ResourceWorkingCopy
 		if (fileEventImpactsUs && this.orphaned !== newInOrphanModeGuess) {
 			let newInOrphanModeValidated: boolean = false;
 			if (newInOrphanModeGuess) {
+
 				// We have received reports of users seeing delete events even though the file still
 				// exists (network shares issue: https://github.com/microsoft/vscode/issues/13665).
 				// Since we do not want to mark the working copy as orphaned, we have to check if the
@@ -118,10 +101,7 @@ export abstract class ResourceWorkingCopy
 				}
 			}
 
-			if (
-				this.orphaned !== newInOrphanModeValidated &&
-				!this.isDisposed()
-			) {
+			if (this.orphaned !== newInOrphanModeValidated && !this.isDisposed()) {
 				this.setOrphaned(newInOrphanModeValidated);
 			}
 		}
@@ -137,6 +117,7 @@ export abstract class ResourceWorkingCopy
 
 	//#endregion
 
+
 	//#region Dispose
 
 	private readonly _onWillDispose = this._register(new Emitter<void>());
@@ -147,6 +128,7 @@ export abstract class ResourceWorkingCopy
 	}
 
 	override dispose(): void {
+
 		// State
 		this.orphaned = false;
 

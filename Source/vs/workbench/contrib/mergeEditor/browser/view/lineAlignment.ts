@@ -3,52 +3,26 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { compareBy } from "../../../../../base/common/arrays.js";
-import {
-	assertFn,
-	checkAdjacentItems,
-} from "../../../../../base/common/assert.js";
-import { isDefined } from "../../../../../base/common/types.js";
-import { Position } from "../../../../../editor/common/core/position.js";
-import { Range } from "../../../../../editor/common/core/range.js";
-import { TextLength } from "../../../../../editor/common/core/textLength.js";
-import { RangeMapping } from "../model/mapping.js";
-import { ModifiedBaseRange } from "../model/modifiedBaseRange.js";
-import {
-	addLength,
-	lengthBetweenPositions,
-	lengthOfRange,
-} from "../model/rangeUtils.js";
+import { compareBy } from '../../../../../base/common/arrays.js';
+import { assertFn, checkAdjacentItems } from '../../../../../base/common/assert.js';
+import { isDefined } from '../../../../../base/common/types.js';
+import { Position } from '../../../../../editor/common/core/position.js';
+import { Range } from '../../../../../editor/common/core/range.js';
+import { TextLength } from '../../../../../editor/common/core/textLength.js';
+import { RangeMapping } from '../model/mapping.js';
+import { ModifiedBaseRange } from '../model/modifiedBaseRange.js';
+import { addLength, lengthBetweenPositions, lengthOfRange } from '../model/rangeUtils.js';
 
-export type LineAlignment = [
-	input1LineNumber: number | undefined,
-	baseLineNumber: number,
-	input2LineNumber: number | undefined,
-];
+export type LineAlignment = [input1LineNumber: number | undefined, baseLineNumber: number, input2LineNumber: number | undefined];
 
 export function getAlignments(m: ModifiedBaseRange): LineAlignment[] {
-	const equalRanges1 = toEqualRangeMappings(
-		m.input1Diffs.flatMap((d) => d.rangeMappings),
-		m.baseRange.toRange(),
-		m.input1Range.toRange(),
-	);
-	const equalRanges2 = toEqualRangeMappings(
-		m.input2Diffs.flatMap((d) => d.rangeMappings),
-		m.baseRange.toRange(),
-		m.input2Range.toRange(),
-	);
+	const equalRanges1 = toEqualRangeMappings(m.input1Diffs.flatMap(d => d.rangeMappings), m.baseRange.toRange(), m.input1Range.toRange());
+	const equalRanges2 = toEqualRangeMappings(m.input2Diffs.flatMap(d => d.rangeMappings), m.baseRange.toRange(), m.input2Range.toRange());
 
-	const commonRanges = splitUpCommonEqualRangeMappings(
-		equalRanges1,
-		equalRanges2,
-	);
+	const commonRanges = splitUpCommonEqualRangeMappings(equalRanges1, equalRanges2);
 
 	let result: LineAlignment[] = [];
-	result.push([
-		m.input1Range.startLineNumber - 1,
-		m.baseRange.startLineNumber - 1,
-		m.input2Range.startLineNumber - 1,
-	]);
+	result.push([m.input1Range.startLineNumber - 1, m.baseRange.startLineNumber - 1, m.input2Range.startLineNumber - 1]);
 
 	function isFullSync(lineAlignment: LineAlignment) {
 		return lineAlignment.every((i) => i !== undefined);
@@ -56,37 +30,19 @@ export function getAlignments(m: ModifiedBaseRange): LineAlignment[] {
 
 	// One base line has either up to one full sync or up to two half syncs.
 	for (const m of commonRanges) {
-		const lineAlignment: LineAlignment = [
-			m.output1Pos?.lineNumber,
-			m.inputPos.lineNumber,
-			m.output2Pos?.lineNumber,
-		];
+		const lineAlignment: LineAlignment = [m.output1Pos?.lineNumber, m.inputPos.lineNumber, m.output2Pos?.lineNumber];
 		const alignmentIsFullSync = isFullSync(lineAlignment);
 
 		let shouldAdd = true;
 		if (alignmentIsFullSync) {
-			const isNewFullSyncAlignment = !result.some(
-				(r) =>
-					isFullSync(r) &&
-					r.some(
-						(v, idx) => v !== undefined && v === lineAlignment[idx],
-					),
-			);
+			const isNewFullSyncAlignment = !result.some(r => isFullSync(r) && r.some((v, idx) => v !== undefined && v === lineAlignment[idx]));
 			if (isNewFullSyncAlignment) {
 				// Remove half syncs
-				result = result.filter(
-					(r) =>
-						!r.some(
-							(v, idx) =>
-								v !== undefined && v === lineAlignment[idx],
-						),
-				);
+				result = result.filter(r => !r.some((v, idx) => v !== undefined && v === lineAlignment[idx]));
 			}
 			shouldAdd = isNewFullSyncAlignment;
 		} else {
-			const isNew = !result.some((r) =>
-				r.some((v, idx) => v !== undefined && v === lineAlignment[idx]),
-			);
+			const isNew = !result.some(r => r.some((v, idx) => v !== undefined && v === lineAlignment[idx]));
 			shouldAdd = isNew;
 		}
 
@@ -97,39 +53,20 @@ export function getAlignments(m: ModifiedBaseRange): LineAlignment[] {
 				result.push([
 					m.output1Pos ? m.output1Pos.lineNumber + 1 : undefined,
 					m.inputPos.lineNumber + 1,
-					m.output2Pos ? m.output2Pos.lineNumber + 1 : undefined,
+					m.output2Pos ? m.output2Pos.lineNumber + 1 : undefined
 				]);
 			}
 		}
 	}
 
-	const finalLineAlignment: LineAlignment = [
-		m.input1Range.endLineNumberExclusive,
-		m.baseRange.endLineNumberExclusive,
-		m.input2Range.endLineNumberExclusive,
-	];
-	result = result.filter((r) =>
-		r.every((v, idx) => v !== finalLineAlignment[idx]),
-	);
+	const finalLineAlignment: LineAlignment = [m.input1Range.endLineNumberExclusive, m.baseRange.endLineNumberExclusive, m.input2Range.endLineNumberExclusive];
+	result = result.filter(r => r.every((v, idx) => v !== finalLineAlignment[idx]));
 	result.push(finalLineAlignment);
 
-	assertFn(
-		() =>
-			checkAdjacentItems(
-				result.map((r) => r[0]).filter(isDefined),
-				(a, b) => a < b,
-			) &&
-			checkAdjacentItems(
-				result.map((r) => r[1]).filter(isDefined),
-				(a, b) => a <= b,
-			) &&
-			checkAdjacentItems(
-				result.map((r) => r[2]).filter(isDefined),
-				(a, b) => a < b,
-			) &&
-			result.every(
-				(alignment) => alignment.filter(isDefined).length >= 2,
-			),
+	assertFn(() => checkAdjacentItems(result.map(r => r[0]).filter(isDefined), (a, b) => a < b)
+		&& checkAdjacentItems(result.map(r => r[1]).filter(isDefined), (a, b) => a <= b)
+		&& checkAdjacentItems(result.map(r => r[2]).filter(isDefined), (a, b) => a < b)
+		&& result.every(alignment => alignment.filter(isDefined).length >= 2)
 	);
 
 	return result;
@@ -141,11 +78,7 @@ interface CommonRangeMapping {
 	length: TextLength;
 }
 
-function toEqualRangeMappings(
-	diffs: RangeMapping[],
-	inputRange: Range,
-	outputRange: Range,
-): RangeMapping[] {
+function toEqualRangeMappings(diffs: RangeMapping[], inputRange: Range, outputRange: Range): RangeMapping[] {
 	const result: RangeMapping[] = [];
 
 	let equalRangeInputStart = inputRange.getStartPosition();
@@ -153,19 +86,12 @@ function toEqualRangeMappings(
 
 	for (const d of diffs) {
 		const equalRangeMapping = new RangeMapping(
-			Range.fromPositions(
-				equalRangeInputStart,
-				d.inputRange.getStartPosition(),
-			),
-			Range.fromPositions(
-				equalRangeOutputStart,
-				d.outputRange.getStartPosition(),
-			),
+			Range.fromPositions(equalRangeInputStart, d.inputRange.getStartPosition()),
+			Range.fromPositions(equalRangeOutputStart, d.outputRange.getStartPosition())
 		);
-		assertFn(() =>
-			lengthOfRange(equalRangeMapping.inputRange).equals(
-				lengthOfRange(equalRangeMapping.outputRange),
-			),
+		assertFn(() => lengthOfRange(equalRangeMapping.inputRange).equals(
+			lengthOfRange(equalRangeMapping.outputRange)
+		)
 		);
 		if (!equalRangeMapping.inputRange.isEmpty()) {
 			result.push(equalRangeMapping);
@@ -177,15 +103,11 @@ function toEqualRangeMappings(
 
 	const equalRangeMapping = new RangeMapping(
 		Range.fromPositions(equalRangeInputStart, inputRange.getEndPosition()),
-		Range.fromPositions(
-			equalRangeOutputStart,
-			outputRange.getEndPosition(),
-		),
+		Range.fromPositions(equalRangeOutputStart, outputRange.getEndPosition())
 	);
-	assertFn(() =>
-		lengthOfRange(equalRangeMapping.inputRange).equals(
-			lengthOfRange(equalRangeMapping.outputRange),
-		),
+	assertFn(() => lengthOfRange(equalRangeMapping.inputRange).equals(
+		lengthOfRange(equalRangeMapping.outputRange)
+	)
 	);
 	if (!equalRangeMapping.inputRange.isEmpty()) {
 		result.push(equalRangeMapping);
@@ -196,56 +118,45 @@ function toEqualRangeMappings(
 
 /**
  * It is `result[i][0].inputRange.equals(result[i][1].inputRange)`.
- */
+*/
 function splitUpCommonEqualRangeMappings(
 	equalRangeMappings1: RangeMapping[],
-	equalRangeMappings2: RangeMapping[],
+	equalRangeMappings2: RangeMapping[]
 ): CommonRangeMapping[] {
 	const result: CommonRangeMapping[] = [];
 
-	const events: {
-		input: 0 | 1;
-		start: boolean;
-		inputPos: Position;
-		outputPos: Position;
-	}[] = [];
-	for (const [input, rangeMappings] of [
-		[0, equalRangeMappings1],
-		[1, equalRangeMappings2],
-	] as const) {
+	const events: { input: 0 | 1; start: boolean; inputPos: Position; outputPos: Position }[] = [];
+	for (const [input, rangeMappings] of [[0, equalRangeMappings1], [1, equalRangeMappings2]] as const) {
 		for (const rangeMapping of rangeMappings) {
 			events.push({
 				input: input,
 				start: true,
 				inputPos: rangeMapping.inputRange.getStartPosition(),
-				outputPos: rangeMapping.outputRange.getStartPosition(),
+				outputPos: rangeMapping.outputRange.getStartPosition()
 			});
 			events.push({
 				input: input,
 				start: false,
 				inputPos: rangeMapping.inputRange.getEndPosition(),
-				outputPos: rangeMapping.outputRange.getEndPosition(),
+				outputPos: rangeMapping.outputRange.getEndPosition()
 			});
 		}
 	}
 
 	events.sort(compareBy((m) => m.inputPos, Position.compare));
 
-	const starts: [Position | undefined, Position | undefined] = [
-		undefined,
-		undefined,
-	];
+	const starts: [Position | undefined, Position | undefined] = [undefined, undefined];
 	let lastInputPos: Position | undefined;
 
 	for (const event of events) {
-		if (lastInputPos && starts.some((s) => !!s)) {
+		if (lastInputPos && starts.some(s => !!s)) {
 			const length = lengthBetweenPositions(lastInputPos, event.inputPos);
 			if (!length.isZero()) {
 				result.push({
 					inputPos: lastInputPos,
 					length,
 					output1Pos: starts[0],
-					output2Pos: starts[1],
+					output2Pos: starts[1]
 				});
 				if (starts[0]) {
 					starts[0] = addLength(starts[0], length);

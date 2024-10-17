@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Range } from "../core/range.js";
-import { GlyphMarginLane, IGlyphMarginLanesModel } from "../model.js";
+import { Range } from '../core/range.js';
+import { GlyphMarginLane, IGlyphMarginLanesModel } from '../model.js';
+
 
 const MAX_LANE = GlyphMarginLane.Right;
 
@@ -33,15 +34,12 @@ export class GlyphMarginLanesModel implements IGlyphMarginLanesModel {
 
 	public push(lane: GlyphMarginLane, range: Range, persist?: boolean): void {
 		if (persist) {
-			this.persist |= 1 << (lane - 1);
+			this.persist |= (1 << (lane - 1));
 		}
 		for (let i = range.startLineNumber; i <= range.endLineNumber; i++) {
-			const bit = MAX_LANE * i + (lane - 1);
-			this.lanes[bit >>> 3] |= 1 << bit % 8;
-			this._requiredLanes = Math.max(
-				this._requiredLanes,
-				this.countAtLine(i),
-			);
+			const bit = (MAX_LANE * i) + (lane - 1);
+			this.lanes[bit >>> 3] |= (1 << (bit % 8));
+			this._requiredLanes = Math.max(this._requiredLanes, this.countAtLine(i));
 		}
 	}
 
@@ -49,10 +47,7 @@ export class GlyphMarginLanesModel implements IGlyphMarginLanesModel {
 		const lanes: GlyphMarginLane[] = [];
 		let bit = MAX_LANE * lineNumber;
 		for (let i = 0; i < MAX_LANE; i++) {
-			if (
-				this.persist & (1 << i) ||
-				this.lanes[bit >>> 3] & (1 << bit % 8)
-			) {
+			if (this.persist & (1 << i) || this.lanes[bit >>> 3] & (1 << (bit % 8))) {
 				lanes.push(i + 1);
 			}
 			bit++;
@@ -65,10 +60,7 @@ export class GlyphMarginLanesModel implements IGlyphMarginLanesModel {
 		let bit = MAX_LANE * lineNumber;
 		let count = 0;
 		for (let i = 0; i < MAX_LANE; i++) {
-			if (
-				this.persist & (1 << i) ||
-				this.lanes[bit >>> 3] & (1 << bit % 8)
-			) {
+			if (this.persist & (1 << i) || this.lanes[bit >>> 3] & (1 << (bit % 8))) {
 				count++;
 			}
 			bit++;

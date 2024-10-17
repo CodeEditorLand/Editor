@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as Assert from "../../../base/common/assert.js";
-import * as Types from "../../../base/common/types.js";
+import * as Assert from '../../../base/common/assert.js';
+import * as Types from '../../../base/common/types.js';
 
 export interface IRegistry {
+
 	/**
 	 * Adds the extension functions and properties defined by data to the
 	 * platform. The provided id must be unique.
@@ -29,15 +30,13 @@ export interface IRegistry {
 }
 
 class RegistryImpl implements IRegistry {
+
 	private readonly data = new Map<string, any>();
 
 	public add(id: string, data: any): void {
 		Assert.ok(Types.isString(id));
 		Assert.ok(Types.isObject(data));
-		Assert.ok(
-			!this.data.has(id),
-			"There is already an extension with this id",
-		);
+		Assert.ok(!this.data.has(id), 'There is already an extension with this id');
 
 		this.data.set(id, data);
 	}

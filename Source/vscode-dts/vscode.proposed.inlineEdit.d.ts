@@ -3,8 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
 	export class InlineEdit {
+
+
 		/**
 		 * The new text for this edit.
 		 */
@@ -66,14 +68,11 @@ declare module "vscode" {
 		 * @return An inline edit or a thenable that resolves to such. The lack of a result can be
 		 * signaled by returning `undefined` or `null`.
 		 */
-		provideInlineEdit(
-			document: TextDocument,
-			context: InlineEditContext,
-			token: CancellationToken,
-		): ProviderResult<InlineEdit>;
+		provideInlineEdit(document: TextDocument, context: InlineEditContext, token: CancellationToken): ProviderResult<InlineEdit>;
 	}
 
 	export namespace languages {
+
 		/**
 		 * Register a provider that can handle inline edits.
 		 *
@@ -81,9 +80,7 @@ declare module "vscode" {
 		 * @param provider A provider that can handle inline edits.
 		 * @return A {@link Disposable} that unregisters this provider when being disposed.
 		 */
-		export function registerInlineEditProvider(
-			selector: DocumentSelector,
-			provider: InlineEditProvider,
-		): Disposable;
+		export function registerInlineEditProvider(selector: DocumentSelector, provider: InlineEditProvider): Disposable;
+
 	}
 }

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type * as Proto from "./protocol/protocol";
+import type * as Proto from './protocol/protocol';
 
 export enum RequestQueueingType {
 	/**
@@ -44,10 +44,7 @@ export class RequestQueue {
 		if (item.queueingType === RequestQueueingType.Normal) {
 			let index = this.queue.length - 1;
 			while (index >= 0) {
-				if (
-					this.queue[index].queueingType !==
-					RequestQueueingType.LowPriority
-				) {
+				if (this.queue[index].queueingType !== RequestQueueingType.LowPriority) {
 					break;
 				}
 				--index;
@@ -76,9 +73,9 @@ export class RequestQueue {
 	public createRequest(command: string, args: any): Proto.Request {
 		return {
 			seq: this.sequenceNumber++,
-			type: "request",
+			type: 'request',
 			command: command,
-			arguments: args,
+			arguments: args
 		};
 	}
 }

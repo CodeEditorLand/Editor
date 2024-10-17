@@ -3,15 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Codicon } from "../../../../base/common/codicons.js";
-import { OS } from "../../../../base/common/platform.js";
-import { ThemeIcon } from "../../../../base/common/themables.js";
-import * as nls from "../../../../nls.js";
-import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
-import { registerIcon } from "../../../../platform/theme/common/iconRegistry.js";
-import { IUntypedEditorInput } from "../../../common/editor.js";
-import { EditorInput } from "../../../common/editor/editorInput.js";
-import { KeybindingsEditorModel } from "./keybindingsEditorModel.js";
+import { Codicon } from '../../../../base/common/codicons.js';
+import { OS } from '../../../../base/common/platform.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
+import * as nls from '../../../../nls.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
+import { IUntypedEditorInput } from '../../../common/editor.js';
+import { EditorInput } from '../../../common/editor/editorInput.js';
+import { KeybindingsEditorModel } from './keybindingsEditorModel.js';
 
 export interface IKeybindingsEditorSearchOptions {
 	searchValue: string;
@@ -19,32 +19,21 @@ export interface IKeybindingsEditorSearchOptions {
 	sortByPrecedence: boolean;
 }
 
-const KeybindingsEditorIcon = registerIcon(
-	"keybindings-editor-label-icon",
-	Codicon.keyboard,
-	nls.localize(
-		"keybindingsEditorLabelIcon",
-		"Icon of the keybindings editor label.",
-	),
-);
+const KeybindingsEditorIcon = registerIcon('keybindings-editor-label-icon', Codicon.keyboard, nls.localize('keybindingsEditorLabelIcon', 'Icon of the keybindings editor label.'));
 
 export class KeybindingsEditorInput extends EditorInput {
-	static readonly ID: string = "workbench.input.keybindings";
+
+	static readonly ID: string = 'workbench.input.keybindings';
 	readonly keybindingsModel: KeybindingsEditorModel;
 
 	searchOptions: IKeybindingsEditorSearchOptions | null = null;
 
 	readonly resource = undefined;
 
-	constructor(
-		@IInstantiationService instantiationService: IInstantiationService,
-	) {
+	constructor(@IInstantiationService instantiationService: IInstantiationService) {
 		super();
 
-		this.keybindingsModel = instantiationService.createInstance(
-			KeybindingsEditorModel,
-			OS,
-		);
+		this.keybindingsModel = instantiationService.createInstance(KeybindingsEditorModel, OS);
 	}
 
 	override get typeId(): string {
@@ -52,7 +41,7 @@ export class KeybindingsEditorInput extends EditorInput {
 	}
 
 	override getName(): string {
-		return nls.localize("keybindingsInputName", "Keyboard Shortcuts");
+		return nls.localize('keybindingsInputName', "Keyboard Shortcuts");
 	}
 
 	override getIcon(): ThemeIcon {

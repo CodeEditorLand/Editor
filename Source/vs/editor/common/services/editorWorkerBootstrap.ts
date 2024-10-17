@@ -3,12 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	IWorkerServer,
-	SimpleWorkerServer,
-} from "../../../base/common/worker/simpleWorker.js";
-import { EditorSimpleWorker } from "./editorSimpleWorker.js";
-import { EditorWorkerHost } from "./editorWorkerHost.js";
+import { IWorkerServer, SimpleWorkerServer } from '../../../base/common/worker/simpleWorker.js';
+import { EditorSimpleWorker } from './editorSimpleWorker.js';
+import { EditorWorkerHost } from './editorWorkerHost.js';
 
 type MessageEvent = {
 	data: any;
@@ -27,16 +24,9 @@ export function initialize(factory: any) {
 	}
 	initialized = true;
 
-	const simpleWorker = new SimpleWorkerServer(
-		(msg) => {
-			globalThis.postMessage(msg);
-		},
-		(workerServer: IWorkerServer) =>
-			new EditorSimpleWorker(
-				EditorWorkerHost.getChannel(workerServer),
-				null,
-			),
-	);
+	const simpleWorker = new SimpleWorkerServer((msg) => {
+		globalThis.postMessage(msg);
+	}, (workerServer: IWorkerServer) => new EditorSimpleWorker(EditorWorkerHost.getChannel(workerServer), null));
 
 	globalThis.onmessage = (e: MessageEvent) => {
 		simpleWorker.onmessage(e.data);
@@ -52,9 +42,7 @@ globalThis.onmessage = (e: MessageEvent) => {
 
 type CreateFunction<C, D, R = any> = (ctx: C, data: D) => R;
 
-export function bootstrapSimpleEditorWorker<C, D, R>(
-	createFn: CreateFunction<C, D, R>,
-) {
+export function bootstrapSimpleEditorWorker<C, D, R>(createFn: CreateFunction<C, D, R>) {
 	globalThis.onmessage = () => {
 		initialize((ctx: C, createData: D) => {
 			return createFn.call(self, ctx, createData);

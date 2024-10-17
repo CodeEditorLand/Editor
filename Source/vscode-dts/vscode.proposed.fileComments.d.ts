@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	export interface CommentThread2 {
 		/**
 		 * The range the comment thread is located within the document. The thread icon will be shown
@@ -29,20 +30,13 @@ declare module "vscode" {
 	}
 
 	export interface CommentController {
-		createCommentThread(
-			uri: Uri,
-			range: Range | undefined,
-			comments: readonly Comment[],
-		): CommentThread | CommentThread2;
+		createCommentThread(uri: Uri, range: Range | undefined, comments: readonly Comment[]): CommentThread | CommentThread2;
 	}
 
 	export interface CommentingRangeProvider2 {
 		/**
 		 * Provide a list of ranges which allow new comment threads creation or null for a given document
 		 */
-		provideCommentingRanges(
-			document: TextDocument,
-			token: CancellationToken,
-		): ProviderResult<Range[] | CommentingRanges>;
+		provideCommentingRanges(document: TextDocument, token: CancellationToken): ProviderResult<Range[] | CommentingRanges>;
 	}
 }

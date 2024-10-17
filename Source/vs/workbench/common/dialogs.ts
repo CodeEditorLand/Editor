@@ -3,13 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DeferredPromise } from "../../base/common/async.js";
-import { Emitter, Event } from "../../base/common/event.js";
-import { Disposable } from "../../base/common/lifecycle.js";
-import {
-	IDialogArgs,
-	IDialogResult,
-} from "../../platform/dialogs/common/dialogs.js";
+import { DeferredPromise } from '../../base/common/async.js';
+import { Event, Emitter } from '../../base/common/event.js';
+import { Disposable } from '../../base/common/lifecycle.js';
+import { IDialogArgs, IDialogResult } from '../../platform/dialogs/common/dialogs.js';
 
 export interface IDialogViewItem {
 	readonly args: IDialogArgs;
@@ -23,6 +20,7 @@ export interface IDialogHandle {
 }
 
 export interface IDialogsModel {
+
 	readonly onWillShowDialog: Event<void>;
 	readonly onDidShowDialog: Event<void>;
 
@@ -32,6 +30,7 @@ export interface IDialogsModel {
 }
 
 export class DialogsModel extends Disposable implements IDialogsModel {
+
 	readonly dialogs: IDialogViewItem[] = [];
 
 	private readonly _onWillShowDialog = this._register(new Emitter<void>());
@@ -45,7 +44,7 @@ export class DialogsModel extends Disposable implements IDialogsModel {
 
 		const item: IDialogViewItem = {
 			args: dialog,
-			close: (result) => {
+			close: result => {
 				this.dialogs.splice(0, 1);
 				if (result instanceof Error) {
 					promise.error(result);
@@ -53,7 +52,7 @@ export class DialogsModel extends Disposable implements IDialogsModel {
 					promise.complete(result);
 				}
 				this._onDidShowDialog.fire();
-			},
+			}
 		};
 
 		this.dialogs.push(item);
@@ -61,7 +60,7 @@ export class DialogsModel extends Disposable implements IDialogsModel {
 
 		return {
 			item,
-			result: promise.p,
+			result: promise.p
 		};
 	}
 }

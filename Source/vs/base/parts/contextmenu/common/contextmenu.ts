@@ -6,7 +6,7 @@
 export interface ICommonContextMenuItem {
 	label?: string;
 
-	type?: "normal" | "separator" | "submenu" | "checkbox" | "radio";
+	type?: 'normal' | 'separator' | 'submenu' | 'checkbox' | 'radio';
 
 	accelerator?: string;
 
@@ -38,5 +38,5 @@ export interface IPopupOptions {
 	positioningItem?: number;
 }
 
-export const CONTEXT_MENU_CHANNEL = "vscode:contextmenu";
-export const CONTEXT_MENU_CLOSE_CHANNEL = "vscode:onCloseContextMenu";
+export const CONTEXT_MENU_CHANNEL = 'vscode:contextmenu';
+export const CONTEXT_MENU_CLOSE_CHANNEL = 'vscode:onCloseContextMenu';

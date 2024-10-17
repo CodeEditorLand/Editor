@@ -3,21 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as nls from "../../../../nls.js";
-import { Action } from "../../../common/actions.js";
-import { AsyncDataTree } from "./asyncDataTree.js";
+import { AsyncDataTree } from './asyncDataTree.js';
+import { Action } from '../../../common/actions.js';
+import * as nls from '../../../../nls.js';
 
 export class CollapseAllAction<TInput, T, TFilterData = void> extends Action {
-	constructor(
-		private viewer: AsyncDataTree<TInput, T, TFilterData>,
-		enabled: boolean,
-	) {
-		super(
-			"vs.tree.collapse",
-			nls.localize("collapse all", "Collapse All"),
-			"collapse-all",
-			enabled,
-		);
+
+	constructor(private viewer: AsyncDataTree<TInput, T, TFilterData>, enabled: boolean) {
+		super('vs.tree.collapse', nls.localize('collapse all', "Collapse All"), 'collapse-all', enabled);
 	}
 
 	override async run(): Promise<void> {

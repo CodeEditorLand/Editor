@@ -3,16 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event, IValueWithChangeEvent } from "../../../../base/common/event.js";
-import { ContextKeyValue } from "../../../../platform/contextkey/common/contextkey.js";
-import { IDiffEditorOptions } from "../../../common/config/editorOptions.js";
-import { ITextModel } from "../../../common/model.js";
-import { RefCounted } from "../diffEditor/utils.js";
+import { Event, IValueWithChangeEvent } from '../../../../base/common/event.js';
+import { RefCounted } from '../diffEditor/utils.js';
+import { IDiffEditorOptions } from '../../../common/config/editorOptions.js';
+import { ITextModel } from '../../../common/model.js';
+import { ContextKeyValue } from '../../../../platform/contextkey/common/contextkey.js';
 
 export interface IMultiDiffEditorModel {
-	readonly documents: IValueWithChangeEvent<
-		readonly RefCounted<IDocumentDiffItem>[] | "loading"
-	>;
+	readonly documents: IValueWithChangeEvent<readonly RefCounted<IDocumentDiffItem>[] | 'loading'>;
 	readonly contextKeys?: Record<string, ContextKeyValue>;
 }
 

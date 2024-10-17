@@ -3,16 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from "./cancellation.js";
-import { onUnexpectedError } from "./errors.js";
-import { DisposableStore, toDisposable } from "./lifecycle.js";
+import { CancellationToken } from './cancellation.js';
+import { onUnexpectedError } from './errors.js';
+import { DisposableStore, toDisposable } from './lifecycle.js';
 
 /**
  * The payload that flows in readable stream events.
  */
-export type ReadableStreamEventPayload<T> = T | Error | "end";
+export type ReadableStreamEventPayload<T> = T | Error | 'end';
 
 export interface ReadableStreamEvents<T> {
+
 	/**
 	 * The 'data' event is emitted whenever the stream is
 	 * relinquishing ownership of a chunk of data to a consumer.
@@ -24,19 +25,19 @@ export interface ReadableStreamEvents<T> {
 	 * Use `listenStream` as a helper method to listen to
 	 * stream events in the right order.
 	 */
-	on(event: "data", callback: (data: T) => void): void;
+	on(event: 'data', callback: (data: T) => void): void;
 
 	/**
 	 * Emitted when any error occurs.
 	 */
-	on(event: "error", callback: (err: Error) => void): void;
+	on(event: 'error', callback: (err: Error) => void): void;
 
 	/**
 	 * The 'end' event is emitted when there is no more data
 	 * to be consumed from the stream. The 'end' event will
 	 * not be emitted unless the data is completely consumed.
 	 */
-	on(event: "end", callback: () => void): void;
+	on(event: 'end', callback: () => void): void;
 }
 
 /**
@@ -44,6 +45,7 @@ export interface ReadableStreamEvents<T> {
  * stream for use in native and web environments.
  */
 export interface ReadableStream<T> extends ReadableStreamEvents<T> {
+
 	/**
 	 * Stops emitting any events until resume() is called.
 	 */
@@ -70,6 +72,7 @@ export interface ReadableStream<T> extends ReadableStreamEvents<T> {
  * for use in native and web environments.
  */
 export interface Readable<T> {
+
 	/**
 	 * Read data from the underlying source. Will return
 	 * null to indicate that no more data can be read.
@@ -83,7 +86,7 @@ export function isReadable<T>(obj: unknown): obj is Readable<T> {
 		return false;
 	}
 
-	return typeof candidate.read === "function";
+	return typeof candidate.read === 'function';
 }
 
 /**
@@ -91,6 +94,7 @@ export function isReadable<T>(obj: unknown): obj is Readable<T> {
  * stream for use in native and web environments.
  */
 export interface WriteableStream<T> extends ReadableStream<T> {
+
 	/**
 	 * Writing data to the stream will trigger the on('data')
 	 * event listener if the stream is flowing and buffer the
@@ -129,6 +133,7 @@ export interface WriteableStream<T> extends ReadableStream<T> {
  * The `ended` flag indicates if the stream has been fully consumed.
  */
 export interface ReadableBufferedStream<T> {
+
 	/**
 	 * The original stream that is being read.
 	 */
@@ -152,27 +157,16 @@ export function isReadableStream<T>(obj: unknown): obj is ReadableStream<T> {
 		return false;
 	}
 
-	return [
-		candidate.on,
-		candidate.pause,
-		candidate.resume,
-		candidate.destroy,
-	].every((fn) => typeof fn === "function");
+	return [candidate.on, candidate.pause, candidate.resume, candidate.destroy].every(fn => typeof fn === 'function');
 }
 
-export function isReadableBufferedStream<T>(
-	obj: unknown,
-): obj is ReadableBufferedStream<T> {
+export function isReadableBufferedStream<T>(obj: unknown): obj is ReadableBufferedStream<T> {
 	const candidate = obj as ReadableBufferedStream<T> | undefined;
 	if (!candidate) {
 		return false;
 	}
 
-	return (
-		isReadableStream(candidate.stream) &&
-		Array.isArray(candidate.buffer) &&
-		typeof candidate.ended === "boolean"
-	);
+	return isReadableStream(candidate.stream) && Array.isArray(candidate.buffer) && typeof candidate.ended === 'boolean';
 }
 
 export interface IReducer<T, R = T> {
@@ -192,14 +186,12 @@ export interface ITransformer<Original, Transformed> {
 	error?: IErrorTransformer;
 }
 
-export function newWriteableStream<T>(
-	reducer: IReducer<T>,
-	options?: WriteableStreamOptions,
-): WriteableStream<T> {
+export function newWriteableStream<T>(reducer: IReducer<T>, options?: WriteableStreamOptions): WriteableStream<T> {
 	return new WriteableStreamImpl<T>(reducer, options);
 }
 
 export interface WriteableStreamOptions {
+
 	/**
 	 * The number of objects to buffer before WriteableStream#write()
 	 * signals back that the buffer is full. Can be used to reduce
@@ -209,29 +201,27 @@ export interface WriteableStreamOptions {
 }
 
 class WriteableStreamImpl<T> implements WriteableStream<T> {
+
 	private readonly state = {
 		flowing: false,
 		ended: false,
-		destroyed: false,
+		destroyed: false
 	};
 
 	private readonly buffer = {
 		data: [] as T[],
-		error: [] as Error[],
+		error: [] as Error[]
 	};
 
 	private readonly listeners = {
 		data: [] as { (data: T): void }[],
 		error: [] as { (error: Error): void }[],
-		end: [] as { (): void }[],
+		end: [] as { (): void }[]
 	};
 
 	private readonly pendingWritePromises: Function[] = [];
 
-	constructor(
-		private reducer: IReducer<T>,
-		private options?: WriteableStreamOptions,
-	) {}
+	constructor(private reducer: IReducer<T>, private options?: WriteableStreamOptions) { }
 
 	pause(): void {
 		if (this.state.destroyed) {
@@ -271,13 +261,8 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 			this.buffer.data.push(data);
 
 			// highWaterMark: if configured, signal back when buffer reached limits
-			if (
-				typeof this.options?.highWaterMark === "number" &&
-				this.buffer.data.length > this.options.highWaterMark
-			) {
-				return new Promise((resolve) =>
-					this.pendingWritePromises.push(resolve),
-				);
+			if (typeof this.options?.highWaterMark === 'number' && this.buffer.data.length > this.options.highWaterMark) {
+				return new Promise(resolve => this.pendingWritePromises.push(resolve));
 			}
 		}
 	}
@@ -304,7 +289,7 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 		}
 
 		// end with data if provided
-		if (typeof result !== "undefined") {
+		if (typeof result !== 'undefined') {
 			this.write(result);
 		}
 
@@ -322,33 +307,31 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 	}
 
 	private emitData(data: T): void {
-		this.listeners.data.slice(0).forEach((listener) => listener(data)); // slice to avoid listener mutation from delivering event
+		this.listeners.data.slice(0).forEach(listener => listener(data)); // slice to avoid listener mutation from delivering event
 	}
 
 	private emitError(error: Error): void {
 		if (this.listeners.error.length === 0) {
 			onUnexpectedError(error); // nobody listened to this error so we log it as unexpected
 		} else {
-			this.listeners.error
-				.slice(0)
-				.forEach((listener) => listener(error)); // slice to avoid listener mutation from delivering event
+			this.listeners.error.slice(0).forEach(listener => listener(error)); // slice to avoid listener mutation from delivering event
 		}
 	}
 
 	private emitEnd(): void {
-		this.listeners.end.slice(0).forEach((listener) => listener()); // slice to avoid listener mutation from delivering event
+		this.listeners.end.slice(0).forEach(listener => listener()); // slice to avoid listener mutation from delivering event
 	}
 
-	on(event: "data", callback: (data: T) => void): void;
-	on(event: "error", callback: (err: Error) => void): void;
-	on(event: "end", callback: () => void): void;
-	on(event: "data" | "error" | "end", callback: (arg0?: any) => void): void {
+	on(event: 'data', callback: (data: T) => void): void;
+	on(event: 'error', callback: (err: Error) => void): void;
+	on(event: 'end', callback: () => void): void;
+	on(event: 'data' | 'error' | 'end', callback: (arg0?: any) => void): void {
 		if (this.state.destroyed) {
 			return;
 		}
 
 		switch (event) {
-			case "data":
+			case 'data':
 				this.listeners.data.push(callback);
 
 				// switch into flowing mode as soon as the first 'data'
@@ -357,7 +340,7 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 
 				break;
 
-			case "end":
+			case 'end':
 				this.listeners.end.push(callback);
 
 				// emit 'end' event directly if we are flowing
@@ -370,7 +353,7 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 
 				break;
 
-			case "error":
+			case 'error':
 				this.listeners.error.push(callback);
 
 				// emit buffered 'error' events unless done already
@@ -391,15 +374,15 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 		let listeners: unknown[] | undefined = undefined;
 
 		switch (event) {
-			case "data":
+			case 'data':
 				listeners = this.listeners.data;
 				break;
 
-			case "end":
+			case 'end':
 				listeners = this.listeners.end;
 				break;
 
-			case "error":
+			case 'error':
 				listeners = this.listeners.error;
 				break;
 		}
@@ -423,9 +406,7 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 			// When the buffer is empty, resolve all pending writers
 			const pendingWritePromises = [...this.pendingWritePromises];
 			this.pendingWritePromises.length = 0;
-			pendingWritePromises.forEach((pendingWritePromise) =>
-				pendingWritePromise(),
-			);
+			pendingWritePromises.forEach(pendingWritePromise => pendingWritePromise());
 		}
 	}
 
@@ -469,10 +450,7 @@ class WriteableStreamImpl<T> implements WriteableStream<T> {
 /**
  * Helper to fully read a T readable into a T.
  */
-export function consumeReadable<T>(
-	readable: Readable<T>,
-	reducer: IReducer<T>,
-): T {
+export function consumeReadable<T>(readable: Readable<T>, reducer: IReducer<T>): T {
 	const chunks: T[] = [];
 
 	let chunk: T | null;
@@ -488,11 +466,7 @@ export function consumeReadable<T>(
  * reached, will return a readable instead to ensure all data can still
  * be read.
  */
-export function peekReadable<T>(
-	readable: Readable<T>,
-	reducer: IReducer<T>,
-	maxChunks: number,
-): T | Readable<T> {
+export function peekReadable<T>(readable: Readable<T>, reducer: IReducer<T>, maxChunks: number): T | Readable<T> {
 	const chunks: T[] = [];
 
 	let chunk: T | null | undefined = undefined;
@@ -512,13 +486,14 @@ export function peekReadable<T>(
 	// the underlying readable.
 	return {
 		read: () => {
+
 			// First consume chunks from our array
 			if (chunks.length > 0) {
 				return chunks.shift()!;
 			}
 
 			// Then ensure to return our last read chunk
-			if (typeof chunk !== "undefined") {
+			if (typeof chunk !== 'undefined') {
 				const lastReadChunk = chunk;
 
 				// explicitly use undefined here to indicate that we consumed
@@ -530,7 +505,7 @@ export function peekReadable<T>(
 
 			// Finally delegate back to the Readable
 			return readable.read();
-		},
+		}
 	};
 }
 
@@ -539,27 +514,19 @@ export function peekReadable<T>(
  * a stream fully, awaiting all the events without caring
  * about the data.
  */
-export function consumeStream<T, R = T>(
-	stream: ReadableStreamEvents<T>,
-	reducer: IReducer<T, R>,
-): Promise<R>;
-export function consumeStream(
-	stream: ReadableStreamEvents<unknown>,
-): Promise<undefined>;
-export function consumeStream<T, R = T>(
-	stream: ReadableStreamEvents<T>,
-	reducer?: IReducer<T, R>,
-): Promise<R | undefined> {
+export function consumeStream<T, R = T>(stream: ReadableStreamEvents<T>, reducer: IReducer<T, R>): Promise<R>;
+export function consumeStream(stream: ReadableStreamEvents<unknown>): Promise<undefined>;
+export function consumeStream<T, R = T>(stream: ReadableStreamEvents<T>, reducer?: IReducer<T, R>): Promise<R | undefined> {
 	return new Promise((resolve, reject) => {
 		const chunks: T[] = [];
 
 		listenStream(stream, {
-			onData: (chunk) => {
+			onData: chunk => {
 				if (reducer) {
 					chunks.push(chunk);
 				}
 			},
-			onError: (error) => {
+			onError: error => {
 				if (reducer) {
 					reject(error);
 				} else {
@@ -572,12 +539,13 @@ export function consumeStream<T, R = T>(
 				} else {
 					resolve(undefined);
 				}
-			},
+			}
 		});
 	});
 }
 
 export interface IStreamListener<T> {
+
 	/**
 	 * The 'data' event is emitted whenever the stream is
 	 * relinquishing ownership of a chunk of data to a consumer.
@@ -600,18 +568,15 @@ export interface IStreamListener<T> {
 /**
  * Helper to listen to all events of a T stream in proper order.
  */
-export function listenStream<T>(
-	stream: ReadableStreamEvents<T>,
-	listener: IStreamListener<T>,
-	token?: CancellationToken,
-): void {
-	stream.on("error", (error) => {
+export function listenStream<T>(stream: ReadableStreamEvents<T>, listener: IStreamListener<T>, token?: CancellationToken): void {
+
+	stream.on('error', error => {
 		if (!token?.isCancellationRequested) {
 			listener.onError(error);
 		}
 	});
 
-	stream.on("end", () => {
+	stream.on('end', () => {
 		if (!token?.isCancellationRequested) {
 			listener.onEnd();
 		}
@@ -620,7 +585,7 @@ export function listenStream<T>(
 	// Adding the `data` listener will turn the stream
 	// into flowing mode. As such it is important to
 	// add this listener last (DO NOT CHANGE!)
-	stream.on("data", (data) => {
+	stream.on('data', data => {
 		if (!token?.isCancellationRequested) {
 			listener.onData(data);
 		}
@@ -632,21 +597,20 @@ export function listenStream<T>(
  * the stream has ended or not. If not, caller needs to add a `data` listener
  * to continue reading.
  */
-export function peekStream<T>(
-	stream: ReadableStream<T>,
-	maxChunks: number,
-): Promise<ReadableBufferedStream<T>> {
+export function peekStream<T>(stream: ReadableStream<T>, maxChunks: number): Promise<ReadableBufferedStream<T>> {
 	return new Promise((resolve, reject) => {
 		const streamListeners = new DisposableStore();
 		const buffer: T[] = [];
 
 		// Data Listener
 		const dataListener = (chunk: T) => {
+
 			// Add to buffer
 			buffer.push(chunk);
 
 			// We reached maxChunks and thus need to return
 			if (buffer.length > maxChunks) {
+
 				// Dispose any listeners and ensure to pause the
 				// stream so that it can be consumed again by caller
 				streamListeners.dispose();
@@ -670,23 +634,17 @@ export function peekStream<T>(
 			return resolve({ stream, buffer, ended: true });
 		};
 
-		streamListeners.add(
-			toDisposable(() => stream.removeListener("error", errorListener)),
-		);
-		stream.on("error", errorListener);
+		streamListeners.add(toDisposable(() => stream.removeListener('error', errorListener)));
+		stream.on('error', errorListener);
 
-		streamListeners.add(
-			toDisposable(() => stream.removeListener("end", endListener)),
-		);
-		stream.on("end", endListener);
+		streamListeners.add(toDisposable(() => stream.removeListener('end', endListener)));
+		stream.on('end', endListener);
 
 		// Important: leave the `data` listener last because
 		// this can turn the stream into flowing mode and we
 		// want `error` events to be received as well.
-		streamListeners.add(
-			toDisposable(() => stream.removeListener("data", dataListener)),
-		);
-		stream.on("data", dataListener);
+		streamListeners.add(toDisposable(() => stream.removeListener('data', dataListener)));
+		stream.on('data', dataListener);
 	});
 }
 
@@ -705,9 +663,7 @@ export function toStream<T>(t: T, reducer: IReducer<T>): ReadableStream<T> {
  * Helper to create an empty stream
  */
 export function emptyStream(): ReadableStream<never> {
-	const stream = newWriteableStream<never>(() => {
-		throw new Error("not supported");
-	});
+	const stream = newWriteableStream<never>(() => { throw new Error('not supported'); });
 	stream.end();
 
 	return stream;
@@ -728,25 +684,20 @@ export function toReadable<T>(t: T): Readable<T> {
 			consumed = true;
 
 			return t;
-		},
+		}
 	};
 }
 
 /**
  * Helper to transform a readable stream into another stream.
  */
-export function transform<Original, Transformed>(
-	stream: ReadableStreamEvents<Original>,
-	transformer: ITransformer<Original, Transformed>,
-	reducer: IReducer<Transformed>,
-): ReadableStream<Transformed> {
+export function transform<Original, Transformed>(stream: ReadableStreamEvents<Original>, transformer: ITransformer<Original, Transformed>, reducer: IReducer<Transformed>): ReadableStream<Transformed> {
 	const target = newWriteableStream<Transformed>(reducer);
 
 	listenStream(stream, {
-		onData: (data) => target.write(transformer.data(data)),
-		onError: (error) =>
-			target.error(transformer.error ? transformer.error(error) : error),
-		onEnd: () => target.end(),
+		onData: data => target.write(transformer.data(data)),
+		onError: error => target.error(transformer.error ? transformer.error(error) : error),
+		onEnd: () => target.end()
 	});
 
 	return target;
@@ -756,11 +707,7 @@ export function transform<Original, Transformed>(
  * Helper to take an existing readable that will
  * have a prefix injected to the beginning.
  */
-export function prefixedReadable<T>(
-	prefix: T,
-	readable: Readable<T>,
-	reducer: IReducer<T>,
-): Readable<T> {
+export function prefixedReadable<T>(prefix: T, readable: Readable<T>, reducer: IReducer<T>): Readable<T> {
 	let prefixHandled = false;
 
 	return {
@@ -782,7 +729,7 @@ export function prefixedReadable<T>(
 			}
 
 			return chunk;
-		},
+		}
 	};
 }
 
@@ -790,17 +737,14 @@ export function prefixedReadable<T>(
  * Helper to take an existing stream that will
  * have a prefix injected to the beginning.
  */
-export function prefixedStream<T>(
-	prefix: T,
-	stream: ReadableStream<T>,
-	reducer: IReducer<T>,
-): ReadableStream<T> {
+export function prefixedStream<T>(prefix: T, stream: ReadableStream<T>, reducer: IReducer<T>): ReadableStream<T> {
 	let prefixHandled = false;
 
 	const target = newWriteableStream<T>(reducer);
 
 	listenStream(stream, {
-		onData: (data) => {
+		onData: data => {
+
 			// Handle prefix only once
 			if (!prefixHandled) {
 				prefixHandled = true;
@@ -810,8 +754,9 @@ export function prefixedStream<T>(
 
 			return target.write(data);
 		},
-		onError: (error) => target.error(error),
+		onError: error => target.error(error),
 		onEnd: () => {
+
 			// Handle prefix only once
 			if (!prefixHandled) {
 				prefixHandled = true;
@@ -820,7 +765,7 @@ export function prefixedStream<T>(
 			}
 
 			target.end();
-		},
+		}
 	});
 
 	return target;

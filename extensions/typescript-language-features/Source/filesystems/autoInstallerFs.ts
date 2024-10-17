@@ -3,60 +3,44 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { basename, join } from "path";
-import { PackageManager } from "@vscode/ts-package-manager";
-import * as vscode from "vscode";
-import { URI } from "vscode-uri";
+import { PackageManager } from '@vscode/ts-package-manager';
+import { basename, join } from 'path';
+import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
+import { Disposable } from '../utils/dispose';
+import { MemFs } from './memFs';
+import { Logger } from '../logging/logger';
 
-import { Logger } from "../logging/logger";
-import { Disposable } from "../utils/dispose";
-import { MemFs } from "./memFs";
-
-const TEXT_DECODER = new TextDecoder("utf-8");
+const TEXT_DECODER = new TextDecoder('utf-8');
 const TEXT_ENCODER = new TextEncoder();
 
-export class AutoInstallerFs
-	extends Disposable
-	implements vscode.FileSystemProvider
-{
+export class AutoInstallerFs extends Disposable implements vscode.FileSystemProvider {
+
 	private readonly memfs: MemFs;
 	private readonly packageManager: PackageManager;
-	private readonly _projectCache = new Map<
-		/* root */ string,
-		Promise<void> | undefined
-	>();
+	private readonly _projectCache = new Map</* root */ string, Promise<void> | undefined>();
 
-	private readonly _emitter = this._register(
-		new vscode.EventEmitter<vscode.FileChangeEvent[]>(),
-	);
+	private readonly _emitter = this._register(new vscode.EventEmitter<vscode.FileChangeEvent[]>());
 	readonly onDidChangeFile = this._emitter.event;
 
-	constructor(private readonly logger: Logger) {
+	constructor(
+		private readonly logger: Logger
+	) {
 		super();
 
-		const memfs = new MemFs("auto-installer", logger);
+		const memfs = new MemFs('auto-installer', logger);
 		this.memfs = memfs;
 		memfs.onDidChangeFile((e) => {
-			this._emitter.fire(
-				e.map((ev) => ({
-					type: ev.type,
-					// TODO: we're gonna need a MappedUri dance...
-					uri: ev.uri.with({ scheme: "memfs" }),
-				})),
-			);
+			this._emitter.fire(e.map(ev => ({
+				type: ev.type,
+				// TODO: we're gonna need a MappedUri dance...
+				uri: ev.uri.with({ scheme: 'memfs' })
+			})));
 		});
 
 		this.packageManager = new PackageManager({
-			readDirectory(
-				path: string,
-				_extensions?: readonly string[],
-				_exclude?: readonly string[],
-				_include?: readonly string[],
-				_depth?: number,
-			): string[] {
-				return memfs
-					.readDirectory(URI.file(path))
-					.map(([name, _]) => name);
+			readDirectory(path: string, _extensions?: readonly string[], _exclude?: readonly string[], _include?: readonly string[], _depth?: number): string[] {
+				return memfs.readDirectory(URI.file(path)).map(([name, _]) => name);
 			},
 
 			deleteFile(path: string): void {
@@ -67,15 +51,8 @@ export class AutoInstallerFs
 				memfs.createDirectory(URI.file(path));
 			},
 
-			writeFile(
-				path: string,
-				data: string,
-				_writeByteOrderMark?: boolean,
-			): void {
-				memfs.writeFile(URI.file(path), TEXT_ENCODER.encode(data), {
-					overwrite: true,
-					create: true,
-				});
+			writeFile(path: string, data: string, _writeByteOrderMark?: boolean): void {
+				memfs.writeFile(URI.file(path), TEXT_ENCODER.encode(data), { overwrite: true, create: true });
 			},
 
 			directoryExists(path: string): boolean {
@@ -93,14 +70,12 @@ export class AutoInstallerFs
 				} catch (e) {
 					return undefined;
 				}
-			},
+			}
 		});
 	}
 
 	watch(resource: vscode.Uri): vscode.Disposable {
-		this.logger.trace(
-			`AutoInstallerFs.watch. Resource: ${resource.toString()}}`,
-		);
+		this.logger.trace(`AutoInstallerFs.watch. Resource: ${resource.toString()}}`);
 		return this.memfs.watch(resource);
 	}
 
@@ -113,15 +88,12 @@ export class AutoInstallerFs
 
 		// We pretend every single node_modules or @types directory ever actually
 		// exists.
-		if (
-			basename(mapped.path) === "node_modules" ||
-			basename(mapped.path) === "@types"
-		) {
+		if (basename(mapped.path) === 'node_modules' || basename(mapped.path) === '@types') {
 			return {
 				mtime: 0,
 				ctime: 0,
 				type: vscode.FileType.Directory,
-				size: 0,
+				size: 0
 			};
 		}
 
@@ -148,41 +120,30 @@ export class AutoInstallerFs
 		return this.memfs.readFile(URI.file(mapped.path));
 	}
 
-	writeFile(
-		_uri: vscode.Uri,
-		_content: Uint8Array,
-		_options: { create: boolean; overwrite: boolean },
-	): void {
-		throw new Error("not implemented");
+	writeFile(_uri: vscode.Uri, _content: Uint8Array, _options: { create: boolean; overwrite: boolean }): void {
+		throw new Error('not implemented');
 	}
 
-	rename(
-		_oldUri: vscode.Uri,
-		_newUri: vscode.Uri,
-		_options: { overwrite: boolean },
-	): void {
-		throw new Error("not implemented");
+	rename(_oldUri: vscode.Uri, _newUri: vscode.Uri, _options: { overwrite: boolean }): void {
+		throw new Error('not implemented');
 	}
 
 	delete(_uri: vscode.Uri): void {
-		throw new Error("not implemented");
+		throw new Error('not implemented');
 	}
 
 	createDirectory(_uri: vscode.Uri): void {
-		throw new Error("not implemented");
+		throw new Error('not implemented');
 	}
 
 	private async ensurePackageContents(incomingUri: MappedUri): Promise<void> {
 		// If we're not looking for something inside node_modules, bail early.
-		if (!incomingUri.path.includes("node_modules")) {
+		if (!incomingUri.path.includes('node_modules')) {
 			throw vscode.FileSystemError.FileNotFound();
 		}
 
 		// standard lib files aren't handled through here
-		if (
-			incomingUri.path.includes("node_modules/@typescript") ||
-			incomingUri.path.includes("node_modules/@types/typescript__")
-		) {
+		if (incomingUri.path.includes('node_modules/@typescript') || incomingUri.path.includes('node_modules/@types/typescript__')) {
 			throw vscode.FileSystemError.FileNotFound();
 		}
 
@@ -191,30 +152,20 @@ export class AutoInstallerFs
 			return;
 		}
 
-		this.logger.trace(
-			`AutoInstallerFs.ensurePackageContents. Path: ${incomingUri.path}, Root: ${root}`,
-		);
+		this.logger.trace(`AutoInstallerFs.ensurePackageContents. Path: ${incomingUri.path}, Root: ${root}`);
 
 		const existingInstall = this._projectCache.get(root);
 		if (existingInstall) {
-			this.logger.trace(
-				`AutoInstallerFs.ensurePackageContents. Found ongoing install for: ${root}/node_modules`,
-			);
+			this.logger.trace(`AutoInstallerFs.ensurePackageContents. Found ongoing install for: ${root}/node_modules`);
 			return existingInstall;
 		}
 
 		const installing = (async () => {
-			const proj = await this.packageManager.resolveProject(
-				root,
-				await this.getInstallOpts(incomingUri.original, root),
-			);
+			const proj = await this.packageManager.resolveProject(root, await this.getInstallOpts(incomingUri.original, root));
 			try {
 				await proj.restore();
 			} catch (e) {
-				console.error(
-					`failed to restore package at ${incomingUri.path}: `,
-					e,
-				);
+				console.error(`failed to restore package at ${incomingUri.path}: `, e);
 				throw e;
 			}
 		})();
@@ -226,40 +177,26 @@ export class AutoInstallerFs
 		const vsfs = vscode.workspace.fs;
 
 		// We definitely need a package.json to be there.
-		const pkgJson = TEXT_DECODER.decode(
-			await vsfs.readFile(
-				originalUri.with({ path: join(root, "package.json") }),
-			),
-		);
+		const pkgJson = TEXT_DECODER.decode(await vsfs.readFile(originalUri.with({ path: join(root, 'package.json') })));
 
 		let kdlLock;
 		try {
-			kdlLock = TEXT_DECODER.decode(
-				await vsfs.readFile(
-					originalUri.with({ path: join(root, "package-lock.kdl") }),
-				),
-			);
-		} catch (e) {}
+			kdlLock = TEXT_DECODER.decode(await vsfs.readFile(originalUri.with({ path: join(root, 'package-lock.kdl') })));
+		} catch (e) { }
 
 		let npmLock;
 		try {
-			npmLock = TEXT_DECODER.decode(
-				await vsfs.readFile(
-					originalUri.with({ path: join(root, "package-lock.json") }),
-				),
-			);
-		} catch (e) {}
+			npmLock = TEXT_DECODER.decode(await vsfs.readFile(originalUri.with({ path: join(root, 'package-lock.json') })));
+		} catch (e) { }
 
 		return {
 			pkgJson,
 			kdlLock,
-			npmLock,
+			npmLock
 		};
 	}
 
-	private async getProjectRoot(
-		incomingUri: URI,
-	): Promise<string | undefined> {
+	private async getProjectRoot(incomingUri: URI): Promise<string | undefined> {
 		const vsfs = vscode.workspace.fs;
 		const pkgPath = incomingUri.path.match(/^(.*?)\/node_modules/);
 		const ret = pkgPath?.[1];
@@ -267,9 +204,7 @@ export class AutoInstallerFs
 			return;
 		}
 		try {
-			await vsfs.stat(
-				incomingUri.with({ path: join(ret, "package.json") }),
-			);
+			await vsfs.stat(incomingUri.with({ path: join(ret, 'package.json') }));
 			return ret;
 		} catch (e) {
 			return;
@@ -290,17 +225,10 @@ class MappedUri {
 		}
 
 		const scheme = parts[1];
-		const authority = parts[2] === "ts-nul-authority" ? "" : parts[2];
+		const authority = parts[2] === 'ts-nul-authority' ? '' : parts[2];
 		const path = parts[3];
-		this.original = URI.from({
-			scheme,
-			authority,
-			path: path ? "/" + path : path,
-		});
-		this.mapped = this.original.with({
-			scheme: this.raw.scheme,
-			authority: this.raw.authority,
-		});
+		this.original = URI.from({ scheme, authority, path: (path ? '/' + path : path) });
+		this.mapped = this.original.with({ scheme: this.raw.scheme, authority: this.raw.authority });
 	}
 
 	get path() {
@@ -313,6 +241,6 @@ class MappedUri {
 		return this.mapped.authority;
 	}
 	get flatPath() {
-		return join("/", this.scheme, this.authority, this.path);
+		return join('/', this.scheme, this.authority, this.path);
 	}
 }

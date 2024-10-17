@@ -3,56 +3,35 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { autorun } from "./autorun.js";
-import { IObservable, IReader } from "./base.js";
-import {
-	CancellationError,
-	CancellationToken,
-	CancellationTokenSource,
-} from "./commonFacade/cancellation.js";
-import { strictEquals } from "./commonFacade/deps.js";
-import { DebugNameData, DebugOwner } from "./debugName.js";
-import { Derived } from "./derived.js";
+import { IReader, IObservable } from './base.js';
+import { DebugOwner, DebugNameData } from './debugName.js';
+import { CancellationError, CancellationToken, CancellationTokenSource } from './commonFacade/cancellation.js';
+import { Derived } from './derived.js';
+import { strictEquals } from './commonFacade/deps.js';
+import { autorun } from './autorun.js';
 
 /**
  * Resolves the promise when the observables state matches the predicate.
  */
-export function waitForState<T>(
-	observable: IObservable<T | null | undefined>,
-): Promise<T>;
-export function waitForState<T, TState extends T>(
-	observable: IObservable<T>,
-	predicate: (state: T) => state is TState,
-	isError?: (state: T) => boolean | unknown | undefined,
-	cancellationToken?: CancellationToken,
-): Promise<TState>;
-export function waitForState<T>(
-	observable: IObservable<T>,
-	predicate: (state: T) => boolean,
-	isError?: (state: T) => boolean | unknown | undefined,
-	cancellationToken?: CancellationToken,
-): Promise<T>;
-export function waitForState<T>(
-	observable: IObservable<T>,
-	predicate?: (state: T) => boolean,
-	isError?: (state: T) => boolean | unknown | undefined,
-	cancellationToken?: CancellationToken,
-): Promise<T> {
+export function waitForState<T>(observable: IObservable<T | null | undefined>): Promise<T>;
+export function waitForState<T, TState extends T>(observable: IObservable<T>, predicate: (state: T) => state is TState, isError?: (state: T) => boolean | unknown | undefined, cancellationToken?: CancellationToken): Promise<TState>;
+export function waitForState<T>(observable: IObservable<T>, predicate: (state: T) => boolean, isError?: (state: T) => boolean | unknown | undefined, cancellationToken?: CancellationToken): Promise<T>;
+export function waitForState<T>(observable: IObservable<T>, predicate?: (state: T) => boolean, isError?: (state: T) => boolean | unknown | undefined, cancellationToken?: CancellationToken): Promise<T> {
 	if (!predicate) {
-		predicate = (state) => state !== null && state !== undefined;
+		predicate = state => state !== null && state !== undefined;
 	}
 	return new Promise((resolve, reject) => {
 		let isImmediateRun = true;
 		let shouldDispose = false;
-		const stateObs = observable.map((state) => {
+		const stateObs = observable.map(state => {
 			/** @description waitForState.state */
 			return {
 				isFinished: predicate(state),
 				error: isError ? isError(state) : false,
-				state,
+				state
 			};
 		});
-		const d = autorun((reader) => {
+		const d = autorun(reader => {
 			/** @description waitForState */
 			const { isFinished, error, state } = stateObs.read(reader);
 			if (isFinished || error) {
@@ -89,22 +68,9 @@ export function waitForState<T>(
 	});
 }
 
-export function derivedWithCancellationToken<T>(
-	computeFn: (reader: IReader, cancellationToken: CancellationToken) => T,
-): IObservable<T>;
-export function derivedWithCancellationToken<T>(
-	owner: object,
-	computeFn: (reader: IReader, cancellationToken: CancellationToken) => T,
-): IObservable<T>;
-export function derivedWithCancellationToken<T>(
-	computeFnOrOwner:
-		| ((reader: IReader, cancellationToken: CancellationToken) => T)
-		| object,
-	computeFnOrUndefined?: (
-		reader: IReader,
-		cancellationToken: CancellationToken,
-	) => T,
-): IObservable<T> {
+export function derivedWithCancellationToken<T>(computeFn: (reader: IReader, cancellationToken: CancellationToken) => T): IObservable<T>;
+export function derivedWithCancellationToken<T>(owner: object, computeFn: (reader: IReader, cancellationToken: CancellationToken) => T): IObservable<T>;
+export function derivedWithCancellationToken<T>(computeFnOrOwner: ((reader: IReader, cancellationToken: CancellationToken) => T) | object, computeFnOrUndefined?: ((reader: IReader, cancellationToken: CancellationToken) => T)): IObservable<T> {
 	let computeFn: (reader: IReader, store: CancellationToken) => T;
 	let owner: DebugOwner;
 	if (computeFnOrUndefined === undefined) {
@@ -115,20 +81,18 @@ export function derivedWithCancellationToken<T>(
 		computeFn = computeFnOrUndefined as any;
 	}
 
-	let cancellationTokenSource: CancellationTokenSource | undefined =
-		undefined;
+	let cancellationTokenSource: CancellationTokenSource | undefined = undefined;
 	return new Derived(
 		new DebugNameData(owner, undefined, computeFn),
-		(r) => {
+		r => {
 			if (cancellationTokenSource) {
 				cancellationTokenSource.dispose(true);
 			}
 			cancellationTokenSource = new CancellationTokenSource();
 			return computeFn(r, cancellationTokenSource.token);
-		},
-		undefined,
+		}, undefined,
 		undefined,
 		() => cancellationTokenSource?.dispose(),
-		strictEquals,
+		strictEquals
 	);
 }

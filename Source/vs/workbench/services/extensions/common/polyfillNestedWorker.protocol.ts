@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+
 export interface NewWorkerMessage {
-	type: "_newWorker";
+	type: '_newWorker';
 	id: string;
 	port: any /* MessagePort */;
 	url: string;
@@ -12,6 +13,6 @@ export interface NewWorkerMessage {
 }
 
 export interface TerminateWorkerMessage {
-	type: "_terminateWorker";
+	type: '_terminateWorker';
 	id: string;
 }

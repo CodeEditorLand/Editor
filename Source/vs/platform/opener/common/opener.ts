@@ -3,18 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { URI } from "../../../base/common/uri.js";
-import {
-	IEditorOptions,
-	ITextEditorSelection,
-} from "../../editor/common/editor.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { URI } from '../../../base/common/uri.js';
+import { IEditorOptions, ITextEditorSelection } from '../../editor/common/editor.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
 
-export const IOpenerService = createDecorator<IOpenerService>("openerService");
+export const IOpenerService = createDecorator<IOpenerService>('openerService');
 
 export type OpenInternalOptions = {
+
 	/**
 	 * Signals that the intent is to open an editor to the side
 	 * of the currently active editor.
@@ -56,36 +54,24 @@ export interface IResolvedExternalUri extends IDisposable {
 }
 
 export interface IOpener {
-	open(
-		resource: URI | string,
-		options?: OpenInternalOptions | OpenExternalOptions,
-	): Promise<boolean>;
+	open(resource: URI | string, options?: OpenInternalOptions | OpenExternalOptions): Promise<boolean>;
 }
 
 export interface IExternalOpener {
-	openExternal(
-		href: string,
-		ctx: { sourceUri: URI; preferredOpenerId?: string },
-		token: CancellationToken,
-	): Promise<boolean>;
+	openExternal(href: string, ctx: { sourceUri: URI; preferredOpenerId?: string }, token: CancellationToken): Promise<boolean>;
 	dispose?(): void;
 }
 
 export interface IValidator {
-	shouldOpen(
-		resource: URI | string,
-		openOptions?: OpenOptions,
-	): Promise<boolean>;
+	shouldOpen(resource: URI | string, openOptions?: OpenOptions): Promise<boolean>;
 }
 
 export interface IExternalUriResolver {
-	resolveExternalUri(
-		resource: URI,
-		options?: OpenOptions,
-	): Promise<{ resolved: URI; dispose(): void } | undefined>;
+	resolveExternalUri(resource: URI, options?: OpenOptions): Promise<{ resolved: URI; dispose(): void } | undefined>;
 }
 
 export interface IOpenerService {
+
 	readonly _serviceBrand: undefined;
 
 	/**
@@ -121,19 +107,13 @@ export interface IOpenerService {
 	 * @param resource A resource
 	 * @return A promise that resolves when the opening is done.
 	 */
-	open(
-		resource: URI | string,
-		options?: OpenInternalOptions | OpenExternalOptions,
-	): Promise<boolean>;
+	open(resource: URI | string, options?: OpenInternalOptions | OpenExternalOptions): Promise<boolean>;
 
 	/**
 	 * Resolve a resource to its external form.
 	 * @throws whenever resolvers couldn't resolve this resource externally.
 	 */
-	resolveExternalUri(
-		resource: URI,
-		options?: ResolveExternalUriOptions,
-	): Promise<IResolvedExternalUri>;
+	resolveExternalUri(resource: URI, options?: ResolveExternalUriOptions): Promise<IResolvedExternalUri>;
 }
 
 /**
@@ -144,9 +124,7 @@ export interface IOpenerService {
  * component that is not aware of selections.
  */
 export function withSelection(uri: URI, selection: ITextEditorSelection): URI {
-	return uri.with({
-		fragment: `${selection.startLineNumber},${selection.startColumn}${selection.endLineNumber ? `-${selection.endLineNumber}${selection.endColumn ? `,${selection.endColumn}` : ""}` : ""}`,
-	});
+	return uri.with({ fragment: `${selection.startLineNumber},${selection.startColumn}${selection.endLineNumber ? `-${selection.endLineNumber}${selection.endColumn ? `,${selection.endColumn}` : ''}` : ''}` });
 }
 
 /**
@@ -159,26 +137,17 @@ export function withSelection(uri: URI, selection: ITextEditorSelection): URI {
  * file:///some/file.js#73,84-83,52
  * file:///some/file.js#L73,84-L83,52
  */
-export function extractSelection(uri: URI): {
-	selection: ITextEditorSelection | undefined;
-	uri: URI;
-} {
+export function extractSelection(uri: URI): { selection: ITextEditorSelection | undefined; uri: URI } {
 	let selection: ITextEditorSelection | undefined = undefined;
-	const match = /^L?(\d+)(?:,(\d+))?(-L?(\d+)(?:,(\d+))?)?/.exec(
-		uri.fragment,
-	);
+	const match = /^L?(\d+)(?:,(\d+))?(-L?(\d+)(?:,(\d+))?)?/.exec(uri.fragment);
 	if (match) {
 		selection = {
 			startLineNumber: parseInt(match[1]),
 			startColumn: match[2] ? parseInt(match[2]) : 1,
 			endLineNumber: match[4] ? parseInt(match[4]) : undefined,
-			endColumn: match[4]
-				? match[5]
-					? parseInt(match[5])
-					: 1
-				: undefined,
+			endColumn: match[4] ? (match[5] ? parseInt(match[5]) : 1) : undefined
 		};
-		uri = uri.with({ fragment: "" });
+		uri = uri.with({ fragment: '' });
 	}
 	return { selection, uri };
 }

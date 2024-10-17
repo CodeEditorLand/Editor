@@ -3,40 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Dimension } from "../../../../base/browser/dom.js";
-import { isEqual } from "../../../../base/common/resources.js";
-import { assertIsDefined } from "../../../../base/common/types.js";
-import { URI } from "../../../../base/common/uri.js";
-import { ICodeEditor } from "../../../../editor/browser/editorBrowser.js";
-import {
-	CodeEditorWidget,
-	ICodeEditorWidgetOptions,
-} from "../../../../editor/browser/widget/codeEditor/codeEditorWidget.js";
-import { IEditorOptions as ICodeEditorOptions } from "../../../../editor/common/config/editorOptions.js";
-import {
-	IEditorViewState,
-	ScrollType,
-} from "../../../../editor/common/editorCommon.js";
-import { localize } from "../../../../nls.js";
-import { IContextKeyService } from "../../../../platform/contextkey/common/contextkey.js";
-import { ITextEditorOptions } from "../../../../platform/editor/common/editor.js";
-import { ITextEditorPane } from "../../../common/editor.js";
-import { applyTextEditorOptions } from "../../../common/editor/editorOptions.js";
-import { AbstractTextEditor } from "./textEditor.js";
+import { localize } from '../../../../nls.js';
+import { URI } from '../../../../base/common/uri.js';
+import { assertIsDefined } from '../../../../base/common/types.js';
+import { ITextEditorPane } from '../../../common/editor.js';
+import { applyTextEditorOptions } from '../../../common/editor/editorOptions.js';
+import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { ITextEditorOptions } from '../../../../platform/editor/common/editor.js';
+import { isEqual } from '../../../../base/common/resources.js';
+import { IEditorOptions as ICodeEditorOptions } from '../../../../editor/common/config/editorOptions.js';
+import { CodeEditorWidget, ICodeEditorWidgetOptions } from '../../../../editor/browser/widget/codeEditor/codeEditorWidget.js';
+import { IEditorViewState, ScrollType } from '../../../../editor/common/editorCommon.js';
+import { ICodeEditor } from '../../../../editor/browser/editorBrowser.js';
+import { AbstractTextEditor } from './textEditor.js';
+import { Dimension } from '../../../../base/browser/dom.js';
 
 /**
  * A text editor using the code editor widget.
  */
-export abstract class AbstractTextCodeEditor<T extends IEditorViewState>
-	extends AbstractTextEditor<T>
-	implements ITextEditorPane
-{
+export abstract class AbstractTextCodeEditor<T extends IEditorViewState> extends AbstractTextEditor<T> implements ITextEditorPane {
+
 	protected editorControl: ICodeEditor | undefined = undefined;
 
 	override get scopedContextKeyService(): IContextKeyService | undefined {
-		return this.editorControl?.invokeWithinContext((accessor) =>
-			accessor.get(IContextKeyService),
-		);
+		return this.editorControl?.invokeWithinContext(accessor => accessor.get(IContextKeyService));
 	}
 
 	override getTitle(): string {
@@ -44,21 +34,11 @@ export abstract class AbstractTextCodeEditor<T extends IEditorViewState>
 			return this.input.getName();
 		}
 
-		return localize("textEditor", "Text Editor");
+		return localize('textEditor', "Text Editor");
 	}
 
-	protected createEditorControl(
-		parent: HTMLElement,
-		initialOptions: ICodeEditorOptions,
-	): void {
-		this.editorControl = this._register(
-			this.instantiationService.createInstance(
-				CodeEditorWidget,
-				parent,
-				initialOptions,
-				this.getCodeEditorWidgetOptions(),
-			),
-		);
+	protected createEditorControl(parent: HTMLElement, initialOptions: ICodeEditorOptions): void {
+		this.editorControl = this._register(this.instantiationService.createInstance(CodeEditorWidget, parent, initialOptions, this.getCodeEditorWidgetOptions()));
 	}
 
 	protected getCodeEditorWidgetOptions(): ICodeEditorWidgetOptions {
@@ -96,20 +76,14 @@ export abstract class AbstractTextCodeEditor<T extends IEditorViewState>
 			return undefined; // prevent saving view state for a model that is not the expected one
 		}
 
-		return (
-			(this.editorControl.saveViewState() as unknown as T) ?? undefined
-		);
+		return this.editorControl.saveViewState() as unknown as T ?? undefined;
 	}
 
 	override setOptions(options: ITextEditorOptions | undefined): void {
 		super.setOptions(options);
 
 		if (options) {
-			applyTextEditorOptions(
-				options,
-				assertIsDefined(this.editorControl),
-				ScrollType.Smooth,
-			);
+			applyTextEditorOptions(options, assertIsDefined(this.editorControl), ScrollType.Smooth);
 		}
 	}
 

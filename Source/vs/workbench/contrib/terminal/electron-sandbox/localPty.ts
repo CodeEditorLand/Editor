@@ -3,14 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	IProcessPropertyMap,
-	IPtyService,
-	ITerminalChildProcess,
-	ITerminalLaunchError,
-	ProcessPropertyType,
-} from "../../../../platform/terminal/common/terminal.js";
-import { BasePty } from "../common/basePty.js";
+import { IProcessPropertyMap, IPtyService, ITerminalChildProcess, ITerminalLaunchError, ProcessPropertyType } from '../../../../platform/terminal/common/terminal.js';
+import { BasePty } from '../common/basePty.js';
 
 /**
  * Responsible for establishing and maintaining a connection with an existing terminal process
@@ -20,14 +14,12 @@ export class LocalPty extends BasePty implements ITerminalChildProcess {
 	constructor(
 		id: number,
 		shouldPersist: boolean,
-		private readonly _proxy: IPtyService,
+		private readonly _proxy: IPtyService
 	) {
 		super(id, shouldPersist);
 	}
 
-	start(): Promise<
-		ITerminalLaunchError | { injectedArgs: string[] } | undefined
-	> {
+	start(): Promise<ITerminalLaunchError | { injectedArgs: string[] } | undefined> {
 		return this._proxy.start(this.id);
 	}
 
@@ -54,11 +46,7 @@ export class LocalPty extends BasePty implements ITerminalChildProcess {
 	}
 
 	resize(cols: number, rows: number): void {
-		if (
-			this._inReplay ||
-			(this._lastDimensions.cols === cols &&
-				this._lastDimensions.rows === rows)
-		) {
+		if (this._inReplay || this._lastDimensions.cols === cols && this._lastDimensions.rows === rows) {
 			return;
 		}
 		this._lastDimensions.cols = cols;
@@ -70,27 +58,18 @@ export class LocalPty extends BasePty implements ITerminalChildProcess {
 		this._proxy.clearBuffer?.(this.id);
 	}
 
-	freePortKillProcess(
-		port: string,
-	): Promise<{ port: string; processId: string }> {
+	freePortKillProcess(port: string): Promise<{ port: string; processId: string }> {
 		if (!this._proxy.freePortKillProcess) {
-			throw new Error(
-				"freePortKillProcess does not exist on the local pty service",
-			);
+			throw new Error('freePortKillProcess does not exist on the local pty service');
 		}
 		return this._proxy.freePortKillProcess(port);
 	}
 
-	async refreshProperty<T extends ProcessPropertyType>(
-		type: T,
-	): Promise<IProcessPropertyMap[T]> {
+	async refreshProperty<T extends ProcessPropertyType>(type: T): Promise<IProcessPropertyMap[T]> {
 		return this._proxy.refreshProperty(this.id, type);
 	}
 
-	async updateProperty<T extends ProcessPropertyType>(
-		type: T,
-		value: IProcessPropertyMap[T],
-	): Promise<void> {
+	async updateProperty<T extends ProcessPropertyType>(type: T, value: IProcessPropertyMap[T]): Promise<void> {
 		return this._proxy.updateProperty(this.id, type, value);
 	}
 
@@ -101,7 +80,7 @@ export class LocalPty extends BasePty implements ITerminalChildProcess {
 		this._proxy.acknowledgeDataEvent(this.id, charCount);
 	}
 
-	setUnicodeVersion(version: "6" | "11"): Promise<void> {
+	setUnicodeVersion(version: '6' | '11'): Promise<void> {
 		return this._proxy.setUnicodeVersion(this.id, version);
 	}
 

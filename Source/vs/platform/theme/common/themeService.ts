@@ -3,22 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Codicon } from "../../../base/common/codicons.js";
-import { Color } from "../../../base/common/color.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import {
-	Disposable,
-	IDisposable,
-	toDisposable,
-} from "../../../base/common/lifecycle.js";
-import { IEnvironmentService } from "../../environment/common/environment.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import * as platform from "../../registry/common/platform.js";
-import { ColorIdentifier } from "./colorRegistry.js";
-import { IconContribution, IconDefinition } from "./iconRegistry.js";
-import { ColorScheme } from "./theme.js";
+import { Codicon } from '../../../base/common/codicons.js';
+import { Color } from '../../../base/common/color.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { IEnvironmentService } from '../../environment/common/environment.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import * as platform from '../../registry/common/platform.js';
+import { ColorIdentifier } from './colorRegistry.js';
+import { IconContribution, IconDefinition } from './iconRegistry.js';
+import { ColorScheme } from './theme.js';
 
-export const IThemeService = createDecorator<IThemeService>("themeService");
+export const IThemeService = createDecorator<IThemeService>('themeService');
 
 export function themeColorFromId(id: ColorIdentifier) {
 	return { id };
@@ -29,14 +25,10 @@ export const FolderThemeIcon = Codicon.folder;
 
 export function getThemeTypeSelector(type: ColorScheme): string {
 	switch (type) {
-		case ColorScheme.DARK:
-			return "vs-dark";
-		case ColorScheme.HIGH_CONTRAST_DARK:
-			return "hc-black";
-		case ColorScheme.HIGH_CONTRAST_LIGHT:
-			return "hc-light";
-		default:
-			return "vs";
+		case ColorScheme.DARK: return 'vs-dark';
+		case ColorScheme.HIGH_CONTRAST_DARK: return 'hc-black';
+		case ColorScheme.HIGH_CONTRAST_LIGHT: return 'hc-light';
+		default: return 'vs';
 	}
 }
 
@@ -49,6 +41,7 @@ export interface ITokenStyle {
 }
 
 export interface IColorTheme {
+
 	readonly type: ColorScheme;
 
 	readonly label: string;
@@ -70,11 +63,7 @@ export interface IColorTheme {
 	/**
 	 * Returns the token style for a given classification. The result uses the <code>MetadataConsts</code> format
 	 */
-	getTokenStyleMetadata(
-		type: string,
-		modifiers: string[],
-		modelLanguage: string,
-	): ITokenStyle | undefined;
+	getTokenStyleMetadata(type: string, modifiers: string[], modelLanguage: string): ITokenStyle | undefined;
 
 	/**
 	 * List of all colors used with tokens. <code>getTokenStyleMetadata</code> references the colors by index into this list.
@@ -102,16 +91,13 @@ export interface IProductIconTheme {
 	getIcon(iconContribution: IconContribution): IconDefinition | undefined;
 }
 
+
 export interface ICssStyleCollector {
 	addRule(rule: string): void;
 }
 
 export interface IThemingParticipant {
-	(
-		theme: IColorTheme,
-		collector: ICssStyleCollector,
-		environment: IEnvironmentService,
-	): void;
+	(theme: IColorTheme, collector: ICssStyleCollector, environment: IEnvironmentService): void;
 }
 
 export interface IThemeService {
@@ -128,14 +114,16 @@ export interface IThemeService {
 	getProductIconTheme(): IProductIconTheme;
 
 	readonly onDidProductIconThemeChange: Event<IProductIconTheme>;
+
 }
 
 // static theming participant
 export const Extensions = {
-	ThemingContribution: "base.contributions.theming",
+	ThemingContribution: 'base.contributions.theming'
 };
 
 export interface IThemingRegistry {
+
 	/**
 	 * Register a theming participant that is invoked on every theme change.
 	 */
@@ -152,8 +140,7 @@ class ThemingRegistry implements IThemingRegistry {
 
 	constructor() {
 		this.themingParticipants = [];
-		this.onThemingParticipantAddedEmitter =
-			new Emitter<IThemingParticipant>();
+		this.onThemingParticipantAddedEmitter = new Emitter<IThemingParticipant>();
 	}
 
 	public onColorThemeChange(participant: IThemingParticipant): IDisposable {
@@ -177,9 +164,7 @@ class ThemingRegistry implements IThemingRegistry {
 const themingRegistry = new ThemingRegistry();
 platform.Registry.add(Extensions.ThemingContribution, themingRegistry);
 
-export function registerThemingParticipant(
-	participant: IThemingParticipant,
-): IDisposable {
+export function registerThemingParticipant(participant: IThemingParticipant): IDisposable {
 	return themingRegistry.onColorThemeChange(participant);
 }
 
@@ -189,17 +174,15 @@ export function registerThemingParticipant(
 export class Themable extends Disposable {
 	protected theme: IColorTheme;
 
-	constructor(protected themeService: IThemeService) {
+	constructor(
+		protected themeService: IThemeService
+	) {
 		super();
 
 		this.theme = themeService.getColorTheme();
 
 		// Hook up to theme changes
-		this._register(
-			this.themeService.onDidColorThemeChange((theme) =>
-				this.onThemeChange(theme),
-			),
-		);
+		this._register(this.themeService.onDidColorThemeChange(theme => this.onThemeChange(theme)));
 	}
 
 	protected onThemeChange(theme: IColorTheme): void {
@@ -212,10 +195,7 @@ export class Themable extends Disposable {
 		// Subclasses to override
 	}
 
-	protected getColor(
-		id: string,
-		modify?: (color: Color, theme: IColorTheme) => Color,
-	): string | null {
+	protected getColor(id: string, modify?: (color: Color, theme: IColorTheme) => Color): string | null {
 		let color = this.theme.getColor(id);
 
 		if (color && modify) {
@@ -244,16 +224,14 @@ export interface IPartsSplash {
 		statusBarNoFolderBackground: string | undefined;
 		windowBorder: string | undefined;
 	};
-	layoutInfo:
-		| {
-				sideBarSide: string;
-				editorPartMinWidth: number;
-				titleBarHeight: number;
-				activityBarWidth: number;
-				sideBarWidth: number;
-				statusBarHeight: number;
-				windowBorder: boolean;
-				windowBorderRadius: string | undefined;
-		  }
-		| undefined;
+	layoutInfo: {
+		sideBarSide: string;
+		editorPartMinWidth: number;
+		titleBarHeight: number;
+		activityBarWidth: number;
+		sideBarWidth: number;
+		statusBarHeight: number;
+		windowBorder: boolean;
+		windowBorderRadius: string | undefined;
+	} | undefined;
 }

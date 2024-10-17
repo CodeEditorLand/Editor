@@ -3,18 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as dom from "../../../../base/browser/dom.js";
-import type { IManagedHover } from "../../../../base/browser/ui/hover/hover.js";
-import { getDefaultHoverDelegate } from "../../../../base/browser/ui/hover/hoverDelegateFactory.js";
-import { fromNow } from "../../../../base/common/date.js";
-import { Disposable } from "../../../../base/common/lifecycle.js";
-import { language } from "../../../../base/common/platform.js";
-import { IConfigurationService } from "../../../../platform/configuration/common/configuration.js";
-import type { IHoverService } from "../../../../platform/hover/browser/hover.js";
-import {
-	COMMENTS_SECTION,
-	ICommentsConfiguration,
-} from "../common/commentsConfiguration.js";
+import * as dom from '../../../../base/browser/dom.js';
+import type { IManagedHover } from '../../../../base/browser/ui/hover/hover.js';
+import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
+import { fromNow } from '../../../../base/common/date.js';
+import { Disposable } from '../../../../base/common/lifecycle.js';
+import { language } from '../../../../base/common/platform.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import type { IHoverService } from '../../../../platform/hover/browser/hover.js';
+import { COMMENTS_SECTION, ICommentsConfiguration } from '../common/commentsConfiguration.js';
 
 export class TimestampWidget extends Disposable {
 	private _date: HTMLElement;
@@ -27,33 +24,22 @@ export class TimestampWidget extends Disposable {
 		private configurationService: IConfigurationService,
 		hoverService: IHoverService,
 		container: HTMLElement,
-		timeStamp?: Date,
+		timeStamp?: Date
 	) {
 		super();
-		this._date = dom.append(container, dom.$("span.timestamp"));
-		this._date.style.display = "none";
+		this._date = dom.append(container, dom.$('span.timestamp'));
+		this._date.style.display = 'none';
 		this._useRelativeTime = this.useRelativeTimeSetting;
-		this.hover = this._register(
-			hoverService.setupManagedHover(
-				getDefaultHoverDelegate("mouse"),
-				this._date,
-				"",
-			),
-		);
+		this.hover = this._register(hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), this._date, ''));
 		this.setTimestamp(timeStamp);
 	}
 
 	private get useRelativeTimeSetting(): boolean {
-		return this.configurationService.getValue<ICommentsConfiguration>(
-			COMMENTS_SECTION,
-		).useRelativeTime;
+		return this.configurationService.getValue<ICommentsConfiguration>(COMMENTS_SECTION).useRelativeTime;
 	}
 
 	public async setTimestamp(timestamp: Date | undefined) {
-		if (
-			timestamp !== this._timestamp ||
-			this.useRelativeTimeSetting !== this._useRelativeTime
-		) {
+		if ((timestamp !== this._timestamp) || (this.useRelativeTimeSetting !== this._useRelativeTime)) {
 			this.updateDate(timestamp);
 		}
 		this._timestamp = timestamp;
@@ -62,13 +48,11 @@ export class TimestampWidget extends Disposable {
 
 	private updateDate(timestamp?: Date) {
 		if (!timestamp) {
-			this._date.textContent = "";
-			this._date.style.display = "none";
-		} else if (
-			timestamp !== this._timestamp ||
-			this.useRelativeTimeSetting !== this._useRelativeTime
-		) {
-			this._date.style.display = "";
+			this._date.textContent = '';
+			this._date.style.display = 'none';
+		} else if ((timestamp !== this._timestamp)
+			|| (this.useRelativeTimeSetting !== this._useRelativeTime)) {
+			this._date.style.display = '';
 			let textContent: string;
 			let tooltip: string | undefined;
 			if (this.useRelativeTimeSetting) {
@@ -79,7 +63,7 @@ export class TimestampWidget extends Disposable {
 			}
 
 			this._date.textContent = textContent;
-			this.hover.update(tooltip ?? "");
+			this.hover.update(tooltip ?? '');
 		}
 	}
 

@@ -26,6 +26,7 @@ export interface IBufferDirtyTrackerReader {
  * A simple tracker for dirty regions in a buffer.
  */
 export class BufferDirtyTracker implements IBufferDirtyTrackerReader {
+
 	private _startIndex: number | undefined;
 	private _endIndex: number | undefined;
 
@@ -40,9 +41,7 @@ export class BufferDirtyTracker implements IBufferDirtyTrackerReader {
 		return this._endIndex - this._startIndex + 1;
 	}
 
-	get isDirty(): boolean {
-		return this._startIndex !== undefined;
-	}
+	get isDirty(): boolean { return this._startIndex !== undefined; }
 
 	/**
 	 * Flag the index(es) as modified. Returns the index flagged.

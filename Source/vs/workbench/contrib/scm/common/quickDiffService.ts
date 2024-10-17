@@ -3,21 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter } from "../../../../base/common/event.js";
-import { Disposable, IDisposable } from "../../../../base/common/lifecycle.js";
-import { isEqualOrParent } from "../../../../base/common/resources.js";
-import { URI } from "../../../../base/common/uri.js";
-import { score } from "../../../../editor/common/languageSelector.js";
-import { IUriIdentityService } from "../../../../platform/uriIdentity/common/uriIdentity.js";
-import {
-	IQuickDiffService,
-	QuickDiff,
-	QuickDiffProvider,
-} from "./quickDiff.js";
+import { URI } from '../../../../base/common/uri.js';
+import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
+import { IQuickDiffService, QuickDiff, QuickDiffProvider } from './quickDiff.js';
+import { isEqualOrParent } from '../../../../base/common/resources.js';
+import { score } from '../../../../editor/common/languageSelector.js';
+import { Emitter } from '../../../../base/common/event.js';
+import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 
-function createProviderComparer(
-	uri: URI,
-): (a: QuickDiffProvider, b: QuickDiffProvider) => number {
+function createProviderComparer(uri: URI): (a: QuickDiffProvider, b: QuickDiffProvider) => number {
 	return (a, b) => {
 		if (a.rootUri && !b.rootUri) {
 			return -1;
@@ -46,16 +40,10 @@ export class QuickDiffService extends Disposable implements IQuickDiffService {
 	declare readonly _serviceBrand: undefined;
 
 	private quickDiffProviders: Set<QuickDiffProvider> = new Set();
-	private readonly _onDidChangeQuickDiffProviders = this._register(
-		new Emitter<void>(),
-	);
-	readonly onDidChangeQuickDiffProviders =
-		this._onDidChangeQuickDiffProviders.event;
+	private readonly _onDidChangeQuickDiffProviders = this._register(new Emitter<void>());
+	readonly onDidChangeQuickDiffProviders = this._onDidChangeQuickDiffProviders.event;
 
-	constructor(
-		@IUriIdentityService
-		private readonly uriIdentityService: IUriIdentityService,
-	) {
+	constructor(@IUriIdentityService private readonly uriIdentityService: IUriIdentityService) {
 		super();
 	}
 
@@ -66,62 +54,28 @@ export class QuickDiffService extends Disposable implements IQuickDiffService {
 			dispose: () => {
 				this.quickDiffProviders.delete(quickDiff);
 				this._onDidChangeQuickDiffProviders.fire();
-			},
+			}
 		};
 	}
 
-	private isQuickDiff(diff: {
-		originalResource?: URI;
-		label?: string;
-		isSCM?: boolean;
-	}): diff is QuickDiff {
-		return (
-			!!diff.originalResource &&
-			typeof diff.label === "string" &&
-			typeof diff.isSCM === "boolean"
-		);
+	private isQuickDiff(diff: { originalResource?: URI; label?: string; isSCM?: boolean }): diff is QuickDiff {
+		return !!diff.originalResource && (typeof diff.label === 'string') && (typeof diff.isSCM === 'boolean');
 	}
 
-	async getQuickDiffs(
-		uri: URI,
-		language: string = "",
-		isSynchronized: boolean = false,
-	): Promise<QuickDiff[]> {
+	async getQuickDiffs(uri: URI, language: string = '', isSynchronized: boolean = false): Promise<QuickDiff[]> {
 		const providers = Array.from(this.quickDiffProviders)
-			.filter(
-				(provider) =>
-					!provider.rootUri ||
-					this.uriIdentityService.extUri.isEqualOrParent(
-						uri,
-						provider.rootUri,
-					),
-			)
+			.filter(provider => !provider.rootUri || this.uriIdentityService.extUri.isEqualOrParent(uri, provider.rootUri))
 			.sort(createProviderComparer(uri));
 
-		const diffs = await Promise.all(
-			providers.map(async (provider) => {
-				const scoreValue = provider.selector
-					? score(
-							provider.selector,
-							uri,
-							language,
-							isSynchronized,
-							undefined,
-							undefined,
-						)
-					: 10;
-				const diff: Partial<QuickDiff> = {
-					originalResource:
-						scoreValue > 0
-							? ((await provider.getOriginalResource(uri)) ??
-								undefined)
-							: undefined,
-					label: provider.label,
-					isSCM: provider.isSCM,
-				};
-				return diff;
-			}),
-		);
+		const diffs = await Promise.all(providers.map(async provider => {
+			const scoreValue = provider.selector ? score(provider.selector, uri, language, isSynchronized, undefined, undefined) : 10;
+			const diff: Partial<QuickDiff> = {
+				originalResource: scoreValue > 0 ? await provider.getOriginalResource(uri) ?? undefined : undefined,
+				label: provider.label,
+				isSCM: provider.isSCM
+			};
+			return diff;
+		}));
 		return diffs.filter<QuickDiff>(this.isQuickDiff);
 	}
 }

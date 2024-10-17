@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CharCode } from "../../../base/common/charCode.js";
-import { ResolvedKeybinding } from "../../../base/common/keybindings.js";
-import { ContextKeyExpression } from "../../contextkey/common/contextkey.js";
+import { CharCode } from '../../../base/common/charCode.js';
+import { ResolvedKeybinding } from '../../../base/common/keybindings.js';
+import { ContextKeyExpression } from '../../contextkey/common/contextkey.js';
 
 export class ResolvedKeybindingItem {
 	_resolvedKeybindingItemBrand: void = undefined;
@@ -20,28 +20,14 @@ export class ResolvedKeybindingItem {
 	public readonly extensionId: string | null;
 	public readonly isBuiltinExtension: boolean;
 
-	constructor(
-		resolvedKeybinding: ResolvedKeybinding | undefined,
-		command: string | null,
-		commandArgs: any,
-		when: ContextKeyExpression | undefined,
-		isDefault: boolean,
-		extensionId: string | null,
-		isBuiltinExtension: boolean,
-	) {
+	constructor(resolvedKeybinding: ResolvedKeybinding | undefined, command: string | null, commandArgs: any, when: ContextKeyExpression | undefined, isDefault: boolean, extensionId: string | null, isBuiltinExtension: boolean) {
 		this.resolvedKeybinding = resolvedKeybinding;
-		this.chords = resolvedKeybinding
-			? toEmptyArrayIfContainsNull(resolvedKeybinding.getDispatchChords())
-			: [];
+		this.chords = resolvedKeybinding ? toEmptyArrayIfContainsNull(resolvedKeybinding.getDispatchChords()) : [];
 		if (resolvedKeybinding && this.chords.length === 0) {
 			// handle possible single modifier chord keybindings
-			this.chords = toEmptyArrayIfContainsNull(
-				resolvedKeybinding.getSingleModifierDispatchChords(),
-			);
+			this.chords = toEmptyArrayIfContainsNull(resolvedKeybinding.getSingleModifierDispatchChords());
 		}
-		this.bubble = command
-			? command.charCodeAt(0) === CharCode.Caret
-			: false;
+		this.bubble = (command ? command.charCodeAt(0) === CharCode.Caret : false);
 		this.command = this.bubble ? command!.substr(1) : command;
 		this.commandArgs = commandArgs;
 		this.when = when;

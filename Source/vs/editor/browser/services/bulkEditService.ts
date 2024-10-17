@@ -3,35 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { isObject } from "../../../base/common/types.js";
-import { URI } from "../../../base/common/uri.js";
-import { createDecorator } from "../../../platform/instantiation/common/instantiation.js";
-import {
-	IProgress,
-	IProgressStep,
-} from "../../../platform/progress/common/progress.js";
-import { UndoRedoSource } from "../../../platform/undoRedo/common/undoRedo.js";
-import {
-	IWorkspaceFileEdit,
-	IWorkspaceTextEdit,
-	TextEdit,
-	WorkspaceEdit,
-	WorkspaceEditMetadata,
-	WorkspaceFileEditOptions,
-} from "../../common/languages.js";
-import { ICodeEditor } from "../editorBrowser.js";
+import { ICodeEditor } from '../editorBrowser.js';
+import { TextEdit, WorkspaceEdit, WorkspaceEditMetadata, IWorkspaceFileEdit, WorkspaceFileEditOptions, IWorkspaceTextEdit } from '../../common/languages.js';
+import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
+import { IProgress, IProgressStep } from '../../../platform/progress/common/progress.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { URI } from '../../../base/common/uri.js';
+import { isObject } from '../../../base/common/types.js';
+import { UndoRedoSource } from '../../../platform/undoRedo/common/undoRedo.js';
+import { CancellationToken } from '../../../base/common/cancellation.js';
 
-export const IBulkEditService = createDecorator<IBulkEditService>(
-	"IWorkspaceEditService",
-);
+export const IBulkEditService = createDecorator<IBulkEditService>('IWorkspaceEditService');
 
 export class ResourceEdit {
-	protected constructor(readonly metadata?: WorkspaceEditMetadata) {}
+
+	protected constructor(readonly metadata?: WorkspaceEditMetadata) { }
 
 	static convert(edit: WorkspaceEdit): ResourceEdit[] {
-		return edit.edits.map((edit) => {
+
+		return edit.edits.map(edit => {
 			if (ResourceTextEdit.is(edit)) {
 				return ResourceTextEdit.lift(edit);
 			}
@@ -39,36 +29,27 @@ export class ResourceEdit {
 			if (ResourceFileEdit.is(edit)) {
 				return ResourceFileEdit.lift(edit);
 			}
-			throw new Error("Unsupported edit");
+			throw new Error('Unsupported edit');
 		});
 	}
 }
 
-export class ResourceTextEdit
-	extends ResourceEdit
-	implements IWorkspaceTextEdit
-{
+export class ResourceTextEdit extends ResourceEdit implements IWorkspaceTextEdit {
+
 	static is(candidate: any): candidate is IWorkspaceTextEdit {
 		if (candidate instanceof ResourceTextEdit) {
 			return true;
 		}
-		return (
-			isObject(candidate) &&
-			URI.isUri((<IWorkspaceTextEdit>candidate).resource) &&
-			isObject((<IWorkspaceTextEdit>candidate).textEdit)
-		);
+		return isObject(candidate)
+			&& URI.isUri((<IWorkspaceTextEdit>candidate).resource)
+			&& isObject((<IWorkspaceTextEdit>candidate).textEdit);
 	}
 
 	static lift(edit: IWorkspaceTextEdit): ResourceTextEdit {
 		if (edit instanceof ResourceTextEdit) {
 			return edit;
 		} else {
-			return new ResourceTextEdit(
-				edit.resource,
-				edit.textEdit,
-				edit.versionId,
-				edit.metadata,
-			);
+			return new ResourceTextEdit(edit.resource, edit.textEdit, edit.versionId, edit.metadata);
 		}
 	}
 
@@ -82,19 +63,14 @@ export class ResourceTextEdit
 	}
 }
 
-export class ResourceFileEdit
-	extends ResourceEdit
-	implements IWorkspaceFileEdit
-{
+export class ResourceFileEdit extends ResourceEdit implements IWorkspaceFileEdit {
+
 	static is(candidate: any): candidate is IWorkspaceFileEdit {
 		if (candidate instanceof ResourceFileEdit) {
 			return true;
 		} else {
-			return (
-				isObject(candidate) &&
-				(Boolean((<IWorkspaceFileEdit>candidate).newResource) ||
-					Boolean((<IWorkspaceFileEdit>candidate).oldResource))
-			);
+			return isObject(candidate)
+				&& (Boolean((<IWorkspaceFileEdit>candidate).newResource) || Boolean((<IWorkspaceFileEdit>candidate).oldResource));
 		}
 	}
 
@@ -102,12 +78,7 @@ export class ResourceFileEdit
 		if (edit instanceof ResourceFileEdit) {
 			return edit;
 		} else {
-			return new ResourceFileEdit(
-				edit.oldResource,
-				edit.newResource,
-				edit.options,
-				edit.metadata,
-			);
+			return new ResourceFileEdit(edit.oldResource, edit.newResource, edit.options, edit.metadata);
 		}
 	}
 
@@ -115,7 +86,7 @@ export class ResourceFileEdit
 		readonly oldResource: URI | undefined,
 		readonly newResource: URI | undefined,
 		readonly options: WorkspaceFileEditOptions = {},
-		metadata?: WorkspaceEditMetadata,
+		metadata?: WorkspaceEditMetadata
 	) {
 		super(metadata);
 	}
@@ -140,10 +111,7 @@ export interface IBulkEditResult {
 	isApplied: boolean;
 }
 
-export type IBulkEditPreviewHandler = (
-	edits: ResourceEdit[],
-	options?: IBulkEditOptions,
-) => Promise<ResourceEdit[]>;
+export type IBulkEditPreviewHandler = (edits: ResourceEdit[], options?: IBulkEditOptions) => Promise<ResourceEdit[]>;
 
 export interface IBulkEditService {
 	readonly _serviceBrand: undefined;
@@ -152,8 +120,5 @@ export interface IBulkEditService {
 
 	setPreviewHandler(handler: IBulkEditPreviewHandler): IDisposable;
 
-	apply(
-		edit: ResourceEdit[] | WorkspaceEdit,
-		options?: IBulkEditOptions,
-	): Promise<IBulkEditResult>;
+	apply(edit: ResourceEdit[] | WorkspaceEdit, options?: IBulkEditOptions): Promise<IBulkEditResult>;
 }

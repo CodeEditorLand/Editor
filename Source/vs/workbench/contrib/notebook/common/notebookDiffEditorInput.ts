@@ -3,28 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { URI } from "../../../../base/common/uri.js";
-import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
-import {
-	IResourceDiffEditorInput,
-	IResourceSideBySideEditorInput,
-	isResourceDiffEditorInput,
-	IUntypedEditorInput,
-} from "../../../common/editor.js";
-import { DiffEditorInput } from "../../../common/editor/diffEditorInput.js";
-import { EditorInput } from "../../../common/editor/editorInput.js";
-import { EditorModel } from "../../../common/editor/editorModel.js";
-import { IEditorService } from "../../../services/editor/common/editorService.js";
-import {
-	INotebookDiffEditorModel,
-	IResolvedNotebookEditorModel,
-} from "./notebookCommon.js";
-import { NotebookEditorInput } from "./notebookEditorInput.js";
+import { IResourceDiffEditorInput, IResourceSideBySideEditorInput, isResourceDiffEditorInput, IUntypedEditorInput } from '../../../common/editor.js';
+import { EditorInput } from '../../../common/editor/editorInput.js';
+import { EditorModel } from '../../../common/editor/editorModel.js';
+import { URI } from '../../../../base/common/uri.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { INotebookDiffEditorModel, IResolvedNotebookEditorModel } from './notebookCommon.js';
+import { DiffEditorInput } from '../../../common/editor/diffEditorInput.js';
+import { NotebookEditorInput } from './notebookEditorInput.js';
+import { IEditorService } from '../../../services/editor/common/editorService.js';
 
-class NotebookDiffEditorModel
-	extends EditorModel
-	implements INotebookDiffEditorModel
-{
+class NotebookDiffEditorModel extends EditorModel implements INotebookDiffEditorModel {
 	constructor(
 		readonly original: IResolvedNotebookEditorModel,
 		readonly modified: IResolvedNotebookEditorModel,
@@ -34,37 +23,13 @@ class NotebookDiffEditorModel
 }
 
 export class NotebookDiffEditorInput extends DiffEditorInput {
-	static create(
-		instantiationService: IInstantiationService,
-		resource: URI,
-		name: string | undefined,
-		description: string | undefined,
-		originalResource: URI,
-		viewType: string,
-	) {
-		const original = NotebookEditorInput.getOrCreate(
-			instantiationService,
-			originalResource,
-			undefined,
-			viewType,
-		);
-		const modified = NotebookEditorInput.getOrCreate(
-			instantiationService,
-			resource,
-			undefined,
-			viewType,
-		);
-		return instantiationService.createInstance(
-			NotebookDiffEditorInput,
-			name,
-			description,
-			original,
-			modified,
-			viewType,
-		);
+	static create(instantiationService: IInstantiationService, resource: URI, name: string | undefined, description: string | undefined, originalResource: URI, viewType: string) {
+		const original = NotebookEditorInput.getOrCreate(instantiationService, originalResource, undefined, viewType);
+		const modified = NotebookEditorInput.getOrCreate(instantiationService, resource, undefined, viewType);
+		return instantiationService.createInstance(NotebookDiffEditorInput, name, description, original, modified, viewType);
 	}
 
-	static override readonly ID: string = "workbench.input.diffNotebookInput";
+	static override readonly ID: string = 'workbench.input.diffNotebookInput';
 
 	private _modifiedTextModel: IResolvedNotebookEditorModel | null = null;
 	private _originalTextModel: IResolvedNotebookEditorModel | null = null;
@@ -85,9 +50,16 @@ export class NotebookDiffEditorInput extends DiffEditorInput {
 		override readonly original: NotebookEditorInput,
 		override readonly modified: NotebookEditorInput,
 		public readonly viewType: string,
-		@IEditorService editorService: IEditorService,
+		@IEditorService editorService: IEditorService
 	) {
-		super(name, description, original, modified, undefined, editorService);
+		super(
+			name,
+			description,
+			original,
+			modified,
+			undefined,
+			editorService
+		);
 	}
 
 	override get typeId(): string {
@@ -104,28 +76,20 @@ export class NotebookDiffEditorInput extends DiffEditorInput {
 
 		// TODO@rebornix check how we restore the editor in text diff editor
 		if (!modifiedEditorModel) {
-			throw new Error(
-				`Fail to resolve modified editor model for resource ${this.modified.resource} with notebookType ${this.viewType}`,
-			);
+			throw new Error(`Fail to resolve modified editor model for resource ${this.modified.resource} with notebookType ${this.viewType}`);
 		}
 
 		if (!originalEditorModel) {
-			throw new Error(
-				`Fail to resolve original editor model for resource ${this.original.resource} with notebookType ${this.viewType}`,
-			);
+			throw new Error(`Fail to resolve original editor model for resource ${this.original.resource} with notebookType ${this.viewType}`);
 		}
 
 		this._originalTextModel = originalEditorModel;
 		this._modifiedTextModel = modifiedEditorModel;
-		this._cachedModel = new NotebookDiffEditorModel(
-			this._originalTextModel,
-			this._modifiedTextModel,
-		);
+		this._cachedModel = new NotebookDiffEditorModel(this._originalTextModel, this._modifiedTextModel);
 		return this._cachedModel;
 	}
 
-	override toUntyped(): IResourceDiffEditorInput &
-		IResourceSideBySideEditorInput {
+	override toUntyped(): IResourceDiffEditorInput & IResourceSideBySideEditorInput {
 		const original = { resource: this.original.resource };
 		const modified = { resource: this.resource };
 		return {
@@ -134,8 +98,8 @@ export class NotebookDiffEditorInput extends DiffEditorInput {
 			primary: modified,
 			secondary: original,
 			options: {
-				override: this.viewType,
-			},
+				override: this.viewType
+			}
 		};
 	}
 
@@ -145,21 +109,16 @@ export class NotebookDiffEditorInput extends DiffEditorInput {
 		}
 
 		if (otherInput instanceof NotebookDiffEditorInput) {
-			return (
-				this.modified.matches(otherInput.modified) &&
-				this.original.matches(otherInput.original) &&
-				this.viewType === otherInput.viewType
-			);
+			return this.modified.matches(otherInput.modified)
+				&& this.original.matches(otherInput.original)
+				&& this.viewType === otherInput.viewType;
 		}
 
 		if (isResourceDiffEditorInput(otherInput)) {
-			return (
-				this.modified.matches(otherInput.modified) &&
-				this.original.matches(otherInput.original) &&
-				this.editorId !== undefined &&
-				(this.editorId === otherInput.options?.override ||
-					otherInput.options?.override === undefined)
-			);
+			return this.modified.matches(otherInput.modified)
+				&& this.original.matches(otherInput.original)
+				&& this.editorId !== undefined
+				&& (this.editorId === otherInput.options?.override || otherInput.options?.override === undefined);
 		}
 
 		return false;

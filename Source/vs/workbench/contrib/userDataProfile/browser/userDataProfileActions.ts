@@ -3,25 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { localize2 } from "../../../../nls.js";
-import { Categories } from "../../../../platform/action/common/actionCommonCategories.js";
-import {
-	Action2,
-	registerAction2,
-} from "../../../../platform/actions/common/actions.js";
-import { ServicesAccessor } from "../../../../platform/instantiation/common/instantiation.js";
-import { IUserDataProfilesService } from "../../../../platform/userDataProfile/common/userDataProfile.js";
-import {
-	IUserDataProfileManagementService,
-	PROFILES_CATEGORY,
-} from "../../../services/userDataProfile/common/userDataProfile.js";
+import { localize2 } from '../../../../nls.js';
+import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
+import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
+import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { IUserDataProfilesService } from '../../../../platform/userDataProfile/common/userDataProfile.js';
+import { IUserDataProfileManagementService, PROFILES_CATEGORY } from '../../../services/userDataProfile/common/userDataProfile.js';
 
 class CreateTransientProfileAction extends Action2 {
-	static readonly ID = "workbench.profiles.actions.createTemporaryProfile";
-	static readonly TITLE = localize2(
-		"create temporary profile",
-		"Create a Temporary Profile",
-	);
+	static readonly ID = 'workbench.profiles.actions.createTemporaryProfile';
+	static readonly TITLE = localize2('create temporary profile', "Create a Temporary Profile");
 	constructor() {
 		super({
 			id: CreateTransientProfileAction.ID,
@@ -32,9 +23,7 @@ class CreateTransientProfileAction extends Action2 {
 	}
 
 	async run(accessor: ServicesAccessor) {
-		return accessor
-			.get(IUserDataProfileManagementService)
-			.createAndEnterTransientProfile();
+		return accessor.get(IUserDataProfileManagementService).createAndEnterTransientProfile();
 	}
 }
 
@@ -42,42 +31,33 @@ registerAction2(CreateTransientProfileAction);
 
 // Developer Actions
 
-registerAction2(
-	class CleanupProfilesAction extends Action2 {
-		constructor() {
-			super({
-				id: "workbench.profiles.actions.cleanupProfiles",
-				title: localize2("cleanup profile", "Cleanup Profiles"),
-				category: Categories.Developer,
-				f1: true,
-			});
-		}
+registerAction2(class CleanupProfilesAction extends Action2 {
+	constructor() {
+		super({
+			id: 'workbench.profiles.actions.cleanupProfiles',
+			title: localize2('cleanup profile', "Cleanup Profiles"),
+			category: Categories.Developer,
+			f1: true,
+		});
+	}
 
-		async run(accessor: ServicesAccessor) {
-			return accessor.get(IUserDataProfilesService).cleanUp();
-		}
-	},
-);
+	async run(accessor: ServicesAccessor) {
+		return accessor.get(IUserDataProfilesService).cleanUp();
+	}
+});
 
-registerAction2(
-	class ResetWorkspacesAction extends Action2 {
-		constructor() {
-			super({
-				id: "workbench.profiles.actions.resetWorkspaces",
-				title: localize2(
-					"reset workspaces",
-					"Reset Workspace Profiles Associations",
-				),
-				category: Categories.Developer,
-				f1: true,
-			});
-		}
+registerAction2(class ResetWorkspacesAction extends Action2 {
+	constructor() {
+		super({
+			id: 'workbench.profiles.actions.resetWorkspaces',
+			title: localize2('reset workspaces', "Reset Workspace Profiles Associations"),
+			category: Categories.Developer,
+			f1: true,
+		});
+	}
 
-		async run(accessor: ServicesAccessor) {
-			const userDataProfilesService = accessor.get(
-				IUserDataProfilesService,
-			);
-			return userDataProfilesService.resetWorkspaces();
-		}
-	},
-);
+	async run(accessor: ServicesAccessor) {
+		const userDataProfilesService = accessor.get(IUserDataProfilesService);
+		return userDataProfilesService.resetWorkspaces();
+	}
+});

@@ -3,12 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-"use strict";
-
-import { TextDecoder } from "util";
-import { Uri, workspace } from "vscode";
-
-import { getExtensionContext } from "./main";
+'use strict';
+import { workspace, Uri } from 'vscode';
+import { getExtensionContext } from './main';
+import { TextDecoder } from 'util';
 
 const emojiRegex = /:([-+_a-z0-9]+):/g;
 
@@ -26,14 +24,8 @@ export async function ensureEmojis() {
 
 async function loadEmojiMap() {
 	const context = getExtensionContext();
-	const uri = (Uri as any).joinPath(
-		context.extensionUri,
-		"resources",
-		"emojis.json",
-	);
-	emojiMap = JSON.parse(
-		new TextDecoder("utf8").decode(await workspace.fs.readFile(uri)),
-	);
+	const uri = (Uri as any).joinPath(context.extensionUri, 'resources', 'emojis.json');
+	emojiMap = JSON.parse(new TextDecoder('utf8').decode(await workspace.fs.readFile(uri)));
 }
 
 export function emojify(message: string) {

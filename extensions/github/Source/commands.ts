@@ -3,29 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
+import * as vscode from 'vscode';
+import { API as GitAPI } from './typings/git';
+import { publishRepository } from './publish';
+import { DisposableStore } from './util';
+import { LinkContext, getLink, getVscodeDevHost } from './links';
 
-import { getLink, getVscodeDevHost, LinkContext } from "./links";
-import { publishRepository } from "./publish";
-import { API as GitAPI } from "./typings/git";
-import { DisposableStore } from "./util";
-
-async function copyVscodeDevLink(
-	gitAPI: GitAPI,
-	useSelection: boolean,
-	context: LinkContext,
-	includeRange = true,
-) {
+async function copyVscodeDevLink(gitAPI: GitAPI, useSelection: boolean, context: LinkContext, includeRange = true) {
 	try {
-		const permalink = await getLink(
-			gitAPI,
-			useSelection,
-			true,
-			getVscodeDevHost(),
-			"headlink",
-			context,
-			includeRange,
-		);
+		const permalink = await getLink(gitAPI, useSelection, true, getVscodeDevHost(), 'headlink', context, includeRange);
 		if (permalink) {
 			return vscode.env.clipboard.writeText(permalink);
 		}
@@ -36,17 +22,9 @@ async function copyVscodeDevLink(
 	}
 }
 
-async function openVscodeDevLink(
-	gitAPI: GitAPI,
-): Promise<vscode.Uri | undefined> {
+async function openVscodeDevLink(gitAPI: GitAPI): Promise<vscode.Uri | undefined> {
 	try {
-		const headlink = await getLink(
-			gitAPI,
-			true,
-			false,
-			getVscodeDevHost(),
-			"headlink",
-		);
+		const headlink = await getLink(gitAPI, true, false, getVscodeDevHost(), 'headlink');
 		return headlink ? vscode.Uri.parse(headlink) : undefined;
 	} catch (err) {
 		if (!(err instanceof vscode.CancellationError)) {
@@ -59,48 +37,29 @@ async function openVscodeDevLink(
 export function registerCommands(gitAPI: GitAPI): vscode.Disposable {
 	const disposables = new DisposableStore();
 
-	disposables.add(
-		vscode.commands.registerCommand("github.publish", async () => {
-			try {
-				publishRepository(gitAPI);
-			} catch (err) {
-				vscode.window.showErrorMessage(err.message);
-			}
-		}),
-	);
+	disposables.add(vscode.commands.registerCommand('github.publish', async () => {
+		try {
+			publishRepository(gitAPI);
+		} catch (err) {
+			vscode.window.showErrorMessage(err.message);
+		}
+	}));
 
-	disposables.add(
-		vscode.commands.registerCommand(
-			"github.copyVscodeDevLink",
-			async (context: LinkContext) => {
-				return copyVscodeDevLink(gitAPI, true, context);
-			},
-		),
-	);
+	disposables.add(vscode.commands.registerCommand('github.copyVscodeDevLink', async (context: LinkContext) => {
+		return copyVscodeDevLink(gitAPI, true, context);
+	}));
 
-	disposables.add(
-		vscode.commands.registerCommand(
-			"github.copyVscodeDevLinkFile",
-			async (context: LinkContext) => {
-				return copyVscodeDevLink(gitAPI, false, context);
-			},
-		),
-	);
+	disposables.add(vscode.commands.registerCommand('github.copyVscodeDevLinkFile', async (context: LinkContext) => {
+		return copyVscodeDevLink(gitAPI, false, context);
+	}));
 
-	disposables.add(
-		vscode.commands.registerCommand(
-			"github.copyVscodeDevLinkWithoutRange",
-			async (context: LinkContext) => {
-				return copyVscodeDevLink(gitAPI, true, context, false);
-			},
-		),
-	);
+	disposables.add(vscode.commands.registerCommand('github.copyVscodeDevLinkWithoutRange', async (context: LinkContext) => {
+		return copyVscodeDevLink(gitAPI, true, context, false);
+	}));
 
-	disposables.add(
-		vscode.commands.registerCommand("github.openOnVscodeDev", async () => {
-			return openVscodeDevLink(gitAPI);
-		}),
-	);
+	disposables.add(vscode.commands.registerCommand('github.openOnVscodeDev', async () => {
+		return openVscodeDevLink(gitAPI);
+	}));
 
 	return disposables;
 }

@@ -4,12 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 export class Cache<T> {
+
 	private static readonly enableDebugLogging = false;
 
 	private readonly _data = new Map<number, readonly T[]>();
 	private _idPool = 1;
 
-	constructor(private readonly id: string) {}
+	constructor(
+		private readonly id: string
+	) { }
 
 	add(item: readonly T[]): number {
 		const id = this._idPool++;

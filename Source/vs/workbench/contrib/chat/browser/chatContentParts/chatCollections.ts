@@ -3,20 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	Disposable,
-	IDisposable,
-} from "../../../../../base/common/lifecycle.js";
+import { IDisposable, Disposable } from '../../../../../base/common/lifecycle.js';
 
 export class ResourcePool<T extends IDisposable> extends Disposable {
 	private readonly pool: T[] = [];
 
-	private _inUse = new Set<T>();
+	private _inUse = new Set<T>;
 	public get inUse(): ReadonlySet<T> {
 		return this._inUse;
 	}
 
-	constructor(private readonly _itemFactory: () => T) {
+	constructor(
+		private readonly _itemFactory: () => T,
+	) {
 		super();
 	}
 

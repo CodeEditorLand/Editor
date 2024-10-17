@@ -16,7 +16,7 @@ use crate::{
 /// on `org.freedesktop.login1.Manager`, but this requires administrative
 /// permission to request inhibition, which is not possible here.
 ///
-
+/// See https://source.chromium.org/chromium/chromium/src/+/main:services/device/wake_lock/power_save_blocker/power_save_blocker_linux.cc;l=54;drc=2e85357a8b76996981cc6f783853a49df2cedc3a
 #[dbus_proxy(
 	interface = "org.freedesktop.PowerManagement.Inhibit",
 	gen_blocking = false,

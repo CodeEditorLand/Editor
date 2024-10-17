@@ -3,14 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { isObject } from "./types.js";
+import { isObject } from './types.js';
 
 interface IVerifier<T> {
 	verify(value: unknown): T;
 }
 
 abstract class Verifier<T> implements IVerifier<T> {
-	constructor(protected readonly defaultValue: T) {}
+
+	constructor(protected readonly defaultValue: T) { }
 
 	verify(value: unknown): T {
 		if (!this.isType(value)) {
@@ -25,13 +26,13 @@ abstract class Verifier<T> implements IVerifier<T> {
 
 export class BooleanVerifier extends Verifier<boolean> {
 	protected isType(value: unknown): value is boolean {
-		return typeof value === "boolean";
+		return typeof value === 'boolean';
 	}
 }
 
 export class NumberVerifier extends Verifier<number> {
 	protected isType(value: unknown): value is number {
-		return typeof value === "number";
+		return typeof value === 'number';
 	}
 }
 
@@ -55,10 +56,8 @@ export class EnumVerifier<T> extends Verifier<T> {
 }
 
 export class ObjectVerifier<T extends Object> extends Verifier<T> {
-	constructor(
-		defaultValue: T,
-		private readonly verifier: { [K in keyof T]: IVerifier<T[K]> },
-	) {
+
+	constructor(defaultValue: T, private readonly verifier: { [K in keyof T]: IVerifier<T[K]> }) {
 		super(defaultValue);
 	}
 
@@ -74,10 +73,7 @@ export class ObjectVerifier<T extends Object> extends Verifier<T> {
 	}
 }
 
-export function verifyObject<T extends Object>(
-	verifiers: { [K in keyof T]: IVerifier<T[K]> },
-	value: Object,
-): T {
+export function verifyObject<T extends Object>(verifiers: { [K in keyof T]: IVerifier<T[K]> }, value: Object): T {
 	const result = Object.create(null);
 
 	for (const key in verifiers) {

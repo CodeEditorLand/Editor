@@ -3,87 +3,58 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "./media/remoteViewlet.css";
-
-import * as dom from "../../../../base/browser/dom.js";
-import { IListVirtualDelegate } from "../../../../base/browser/ui/list/list.js";
-import {
-	IAsyncDataSource,
-	ITreeNode,
-	ITreeRenderer,
-} from "../../../../base/browser/ui/tree/tree.js";
-import { mainWindow } from "../../../../base/browser/window.js";
-import { Emitter, Event } from "../../../../base/common/event.js";
-import { Disposable, IDisposable } from "../../../../base/common/lifecycle.js";
-import { Schemas } from "../../../../base/common/network.js";
-import Severity from "../../../../base/common/severity.js";
-import { ThemeIcon } from "../../../../base/common/themables.js";
-import { isStringArray } from "../../../../base/common/types.js";
-import { URI } from "../../../../base/common/uri.js";
-import * as nls from "../../../../nls.js";
-import { ICommandService } from "../../../../platform/commands/common/commands.js";
-import { IConfigurationService } from "../../../../platform/configuration/common/configuration.js";
-import { IContextKeyService } from "../../../../platform/contextkey/common/contextkey.js";
-import { IContextMenuService } from "../../../../platform/contextview/browser/contextView.js";
-import { IDialogService } from "../../../../platform/dialogs/common/dialogs.js";
-import { IExtensionDescription } from "../../../../platform/extensions/common/extensions.js";
-import { IHoverService } from "../../../../platform/hover/browser/hover.js";
-import { SyncDescriptor } from "../../../../platform/instantiation/common/descriptors.js";
-import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
-import { IKeybindingService } from "../../../../platform/keybinding/common/keybinding.js";
-import { WorkbenchAsyncDataTree } from "../../../../platform/list/browser/listService.js";
-import { ILogService } from "../../../../platform/log/common/log.js";
-import { IOpenerService } from "../../../../platform/opener/common/opener.js";
-import {
-	IProgress,
-	IProgressService,
-	IProgressStep,
-	ProgressLocation,
-} from "../../../../platform/progress/common/progress.js";
-import { IQuickInputService } from "../../../../platform/quickinput/common/quickInput.js";
-import { Registry } from "../../../../platform/registry/common/platform.js";
-import {
-	PersistentConnectionEventType,
-	ReconnectionWaitEvent,
-} from "../../../../platform/remote/common/remoteAgentConnection.js";
-import { getRemoteName } from "../../../../platform/remote/common/remoteHosts.js";
-import { IStorageService } from "../../../../platform/storage/common/storage.js";
-import { ITelemetryService } from "../../../../platform/telemetry/common/telemetry.js";
-import { IThemeService } from "../../../../platform/theme/common/themeService.js";
-import { getVirtualWorkspaceLocation } from "../../../../platform/workspace/common/virtualWorkspace.js";
-import { IWorkspaceContextService } from "../../../../platform/workspace/common/workspace.js";
-import { ReloadWindowAction } from "../../../browser/actions/windowActions.js";
-import {
-	IViewPaneOptions,
-	ViewPane,
-} from "../../../browser/parts/views/viewPane.js";
-import { FilterViewPaneContainer } from "../../../browser/parts/views/viewsViewlet.js";
-import { IWorkbenchContribution } from "../../../common/contributions.js";
-import {
-	Extensions,
-	IViewContainersRegistry,
-	IViewDescriptor,
-	IViewDescriptorService,
-	IViewsRegistry,
-	ViewContainerLocation,
-} from "../../../common/views.js";
-import { IWorkbenchEnvironmentService } from "../../../services/environment/common/environmentService.js";
-import {
-	IExtensionService,
-	isProposedApiEnabled,
-} from "../../../services/extensions/common/extensions.js";
-import { IExtensionPointUser } from "../../../services/extensions/common/extensionsRegistry.js";
-import { IWorkbenchLayoutService } from "../../../services/layout/browser/layoutService.js";
-import { IRemoteAgentService } from "../../../services/remote/common/remoteAgentService.js";
-import {
-	HelpInformation,
-	IRemoteExplorerService,
-} from "../../../services/remote/common/remoteExplorerService.js";
-import { ITimerService } from "../../../services/timer/browser/timerService.js";
-import { IWalkthroughsService } from "../../welcomeGettingStarted/browser/gettingStartedService.js";
-import { SwitchRemoteViewItem } from "./explorerViewItems.js";
-import { VIEWLET_ID } from "./remoteExplorer.js";
-import * as icons from "./remoteIcons.js";
+import './media/remoteViewlet.css';
+import * as nls from '../../../../nls.js';
+import * as dom from '../../../../base/browser/dom.js';
+import { URI } from '../../../../base/common/uri.js';
+import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
+import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
+import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
+import { IStorageService } from '../../../../platform/storage/common/storage.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
+import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
+import { IExtensionService, isProposedApiEnabled } from '../../../services/extensions/common/extensions.js';
+import { FilterViewPaneContainer } from '../../../browser/parts/views/viewsViewlet.js';
+import { VIEWLET_ID } from './remoteExplorer.js';
+import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { IViewDescriptor, IViewsRegistry, Extensions, ViewContainerLocation, IViewContainersRegistry, IViewDescriptorService } from '../../../common/views.js';
+import { Registry } from '../../../../platform/registry/common/platform.js';
+import { IExtensionDescription } from '../../../../platform/extensions/common/extensions.js';
+import { IOpenerService } from '../../../../platform/opener/common/opener.js';
+import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IProgress, IProgressStep, IProgressService, ProgressLocation } from '../../../../platform/progress/common/progress.js';
+import { IWorkbenchContribution } from '../../../common/contributions.js';
+import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
+import { ReconnectionWaitEvent, PersistentConnectionEventType } from '../../../../platform/remote/common/remoteAgentConnection.js';
+import Severity from '../../../../base/common/severity.js';
+import { ReloadWindowAction } from '../../../browser/actions/windowActions.js';
+import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
+import { SwitchRemoteViewItem } from './explorerViewItems.js';
+import { isStringArray } from '../../../../base/common/types.js';
+import { HelpInformation, IRemoteExplorerService } from '../../../services/remote/common/remoteExplorerService.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
+import { ViewPane, IViewPaneOptions } from '../../../browser/parts/views/viewPane.js';
+import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
+import { ITreeRenderer, ITreeNode, IAsyncDataSource } from '../../../../base/browser/ui/tree/tree.js';
+import { WorkbenchAsyncDataTree } from '../../../../platform/list/browser/listService.js';
+import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
+import { Event, Emitter } from '../../../../base/common/event.js';
+import { IExtensionPointUser } from '../../../services/extensions/common/extensionsRegistry.js';
+import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
+import * as icons from './remoteIcons.js';
+import { ILogService } from '../../../../platform/log/common/log.js';
+import { ITimerService } from '../../../services/timer/browser/timerService.js';
+import { getRemoteName } from '../../../../platform/remote/common/remoteHosts.js';
+import { getVirtualWorkspaceLocation } from '../../../../platform/workspace/common/virtualWorkspace.js';
+import { IWalkthroughsService } from '../../welcomeGettingStarted/browser/gettingStartedService.js';
+import { Schemas } from '../../../../base/common/network.js';
+import { mainWindow } from '../../../../base/browser/window.js';
+import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 
 interface IViewModel {
 	onDidChangeHelpInformation: Event<void>;
@@ -96,7 +67,7 @@ class HelpTreeVirtualDelegate implements IListVirtualDelegate<IHelpItem> {
 	}
 
 	getTemplateId(element: IHelpItem): string {
-		return "HelpItemTemplate";
+		return 'HelpItemTemplate';
 	}
 }
 
@@ -105,36 +76,27 @@ interface IHelpItemTemplateData {
 	icon: HTMLElement;
 }
 
-class HelpTreeRenderer
-	implements
-		ITreeRenderer<HelpModel | IHelpItem, IHelpItem, IHelpItemTemplateData>
-{
-	templateId: string = "HelpItemTemplate";
+class HelpTreeRenderer implements ITreeRenderer<HelpModel | IHelpItem, IHelpItem, IHelpItemTemplateData> {
+	templateId: string = 'HelpItemTemplate';
 
 	renderTemplate(container: HTMLElement): IHelpItemTemplateData {
-		container.classList.add("remote-help-tree-node-item");
-		const icon = dom.append(
-			container,
-			dom.$(".remote-help-tree-node-item-icon"),
-		);
+		container.classList.add('remote-help-tree-node-item');
+		const icon = dom.append(container, dom.$('.remote-help-tree-node-item-icon'));
 		const parent = container;
 		return { parent, icon };
 	}
 
-	renderElement(
-		element: ITreeNode<IHelpItem, IHelpItem>,
-		index: number,
-		templateData: IHelpItemTemplateData,
-		height: number | undefined,
-	): void {
+	renderElement(element: ITreeNode<IHelpItem, IHelpItem>, index: number, templateData: IHelpItemTemplateData, height: number | undefined): void {
 		const container = templateData.parent;
 		dom.append(container, templateData.icon);
 		templateData.icon.classList.add(...element.element.iconClasses);
-		const labelContainer = dom.append(container, dom.$(".help-item-label"));
+		const labelContainer = dom.append(container, dom.$('.help-item-label'));
 		labelContainer.innerText = element.element.label;
 	}
 
-	disposeTemplate(templateData: IHelpItemTemplateData): void {}
+	disposeTemplate(templateData: IHelpItemTemplateData): void {
+
+	}
 }
 
 class HelpDataSource implements IAsyncDataSource<HelpModel, IHelpItem> {
@@ -169,132 +131,89 @@ class HelpModel {
 		private remoteExplorerService: IRemoteExplorerService,
 		private environmentService: IWorkbenchEnvironmentService,
 		private workspaceContextService: IWorkspaceContextService,
-		private walkthroughsService: IWalkthroughsService,
+		private walkthroughsService: IWalkthroughsService
 	) {
 		this.updateItems();
 		viewModel.onDidChangeHelpInformation(() => this.updateItems());
 	}
 
-	private createHelpItemValue(
-		info: HelpInformation,
-		infoKey: Exclude<
-			keyof HelpInformation,
-			"extensionDescription" | "remoteName" | "virtualWorkspace"
-		>,
-	) {
-		return new HelpItemValue(
-			this.commandService,
+	private createHelpItemValue(info: HelpInformation, infoKey: Exclude<keyof HelpInformation, 'extensionDescription' | 'remoteName' | 'virtualWorkspace'>) {
+		return new HelpItemValue(this.commandService,
 			this.walkthroughsService,
 			info.extensionDescription,
-			typeof info.remoteName === "string"
-				? [info.remoteName]
-				: info.remoteName,
+			(typeof info.remoteName === 'string') ? [info.remoteName] : info.remoteName,
 			info.virtualWorkspace,
-			info[infoKey],
-		);
+			info[infoKey]);
 	}
 
 	private updateItems() {
 		const helpItems: IHelpItem[] = [];
 
-		const getStarted = this.viewModel.helpInformation.filter(
-			(info) => info.getStarted,
-		);
+		const getStarted = this.viewModel.helpInformation.filter(info => info.getStarted);
 		if (getStarted.length) {
-			const helpItemValues = getStarted.map((info: HelpInformation) =>
-				this.createHelpItemValue(info, "getStarted"),
+			const helpItemValues = getStarted.map((info: HelpInformation) => this.createHelpItemValue(info, 'getStarted'));
+			const getStartedHelpItem = this.items?.find(item => item.icon === icons.getStartedIcon) ?? new GetStartedHelpItem(
+				icons.getStartedIcon,
+				nls.localize('remote.help.getStarted', "Get Started"),
+				helpItemValues,
+				this.quickInputService,
+				this.environmentService,
+				this.openerService,
+				this.remoteExplorerService,
+				this.workspaceContextService,
+				this.commandService
 			);
-			const getStartedHelpItem =
-				this.items?.find(
-					(item) => item.icon === icons.getStartedIcon,
-				) ??
-				new GetStartedHelpItem(
-					icons.getStartedIcon,
-					nls.localize("remote.help.getStarted", "Get Started"),
-					helpItemValues,
-					this.quickInputService,
-					this.environmentService,
-					this.openerService,
-					this.remoteExplorerService,
-					this.workspaceContextService,
-					this.commandService,
-				);
 			getStartedHelpItem.values = helpItemValues;
 			helpItems.push(getStartedHelpItem);
 		}
 
-		const documentation = this.viewModel.helpInformation.filter(
-			(info) => info.documentation,
-		);
+		const documentation = this.viewModel.helpInformation.filter(info => info.documentation);
 		if (documentation.length) {
-			const helpItemValues = documentation.map((info: HelpInformation) =>
-				this.createHelpItemValue(info, "documentation"),
+			const helpItemValues = documentation.map((info: HelpInformation) => this.createHelpItemValue(info, 'documentation'));
+			const documentationHelpItem = this.items?.find(item => item.icon === icons.documentationIcon) ?? new HelpItem(
+				icons.documentationIcon,
+				nls.localize('remote.help.documentation', "Read Documentation"),
+				helpItemValues,
+				this.quickInputService,
+				this.environmentService,
+				this.openerService,
+				this.remoteExplorerService,
+				this.workspaceContextService
 			);
-			const documentationHelpItem =
-				this.items?.find(
-					(item) => item.icon === icons.documentationIcon,
-				) ??
-				new HelpItem(
-					icons.documentationIcon,
-					nls.localize(
-						"remote.help.documentation",
-						"Read Documentation",
-					),
-					helpItemValues,
-					this.quickInputService,
-					this.environmentService,
-					this.openerService,
-					this.remoteExplorerService,
-					this.workspaceContextService,
-				);
 			documentationHelpItem.values = helpItemValues;
 			helpItems.push(documentationHelpItem);
 		}
 
-		const issues = this.viewModel.helpInformation.filter(
-			(info) => info.issues,
-		);
+		const issues = this.viewModel.helpInformation.filter(info => info.issues);
 		if (issues.length) {
-			const helpItemValues = issues.map((info: HelpInformation) =>
-				this.createHelpItemValue(info, "issues"),
+			const helpItemValues = issues.map((info: HelpInformation) => this.createHelpItemValue(info, 'issues'));
+			const reviewIssuesHelpItem = this.items?.find(item => item.icon === icons.reviewIssuesIcon) ?? new HelpItem(
+				icons.reviewIssuesIcon,
+				nls.localize('remote.help.issues', "Review Issues"),
+				helpItemValues,
+				this.quickInputService,
+				this.environmentService,
+				this.openerService,
+				this.remoteExplorerService,
+				this.workspaceContextService
 			);
-			const reviewIssuesHelpItem =
-				this.items?.find(
-					(item) => item.icon === icons.reviewIssuesIcon,
-				) ??
-				new HelpItem(
-					icons.reviewIssuesIcon,
-					nls.localize("remote.help.issues", "Review Issues"),
-					helpItemValues,
-					this.quickInputService,
-					this.environmentService,
-					this.openerService,
-					this.remoteExplorerService,
-					this.workspaceContextService,
-				);
 			reviewIssuesHelpItem.values = helpItemValues;
 			helpItems.push(reviewIssuesHelpItem);
 		}
 
 		if (helpItems.length) {
-			const helpItemValues = this.viewModel.helpInformation.map((info) =>
-				this.createHelpItemValue(info, "reportIssue"),
+			const helpItemValues = this.viewModel.helpInformation.map(info => this.createHelpItemValue(info, 'reportIssue'));
+			const issueReporterItem = this.items?.find(item => item.icon === icons.reportIssuesIcon) ?? new IssueReporterItem(
+				icons.reportIssuesIcon,
+				nls.localize('remote.help.report', "Report Issue"),
+				helpItemValues,
+				this.quickInputService,
+				this.environmentService,
+				this.commandService,
+				this.openerService,
+				this.remoteExplorerService,
+				this.workspaceContextService
 			);
-			const issueReporterItem =
-				this.items?.find(
-					(item) => item.icon === icons.reportIssuesIcon,
-				) ??
-				new IssueReporterItem(
-					icons.reportIssuesIcon,
-					nls.localize("remote.help.report", "Report Issue"),
-					helpItemValues,
-					this.quickInputService,
-					this.environmentService,
-					this.commandService,
-					this.openerService,
-					this.remoteExplorerService,
-					this.workspaceContextService,
-				);
 			issueReporterItem.values = helpItemValues;
 			helpItems.push(issueReporterItem);
 		}
@@ -309,14 +228,8 @@ class HelpItemValue {
 	private _url: string | undefined;
 	private _description: string | undefined;
 
-	constructor(
-		private commandService: ICommandService,
-		private walkthroughService: IWalkthroughsService,
-		public extensionDescription: IExtensionDescription,
-		public readonly remoteAuthority: string[] | undefined,
-		public readonly virtualWorkspace: string | undefined,
-		private urlOrCommandOrId?: string | { id: string },
-	) {}
+	constructor(private commandService: ICommandService, private walkthroughService: IWalkthroughsService, public extensionDescription: IExtensionDescription, public readonly remoteAuthority: string[] | undefined, public readonly virtualWorkspace: string | undefined, private urlOrCommandOrId?: string | { id: string }) {
+	}
 
 	get description(): Promise<string | undefined> {
 		return this.getUrl().then(() => this._description);
@@ -328,39 +241,31 @@ class HelpItemValue {
 
 	private async getUrl(): Promise<string> {
 		if (this._url === undefined) {
-			if (typeof this.urlOrCommandOrId === "string") {
+			if (typeof this.urlOrCommandOrId === 'string') {
 				const url = URI.parse(this.urlOrCommandOrId);
 				if (url.authority) {
 					this._url = this.urlOrCommandOrId;
 				} else {
-					const urlCommand: Promise<string | undefined> =
-						this.commandService
-							.executeCommand(this.urlOrCommandOrId)
-							.then((result) => {
-								// if executing this command times out, cache its value whenever it eventually resolves
-								this._url = result;
-								return this._url;
-							});
+					const urlCommand: Promise<string | undefined> = this.commandService.executeCommand(this.urlOrCommandOrId).then((result) => {
+						// if executing this command times out, cache its value whenever it eventually resolves
+						this._url = result;
+						return this._url;
+					});
 					// We must be defensive. The command may never return, meaning that no help at all is ever shown!
-					const emptyString: Promise<string> = new Promise(
-						(resolve) => setTimeout(() => resolve(""), 500),
-					);
+					const emptyString: Promise<string> = new Promise(resolve => setTimeout(() => resolve(''), 500));
 					this._url = await Promise.race([urlCommand, emptyString]);
 				}
 			} else if (this.urlOrCommandOrId?.id) {
 				try {
 					const walkthroughId = `${this.extensionDescription.id}#${this.urlOrCommandOrId.id}`;
-					const walkthrough =
-						await this.walkthroughService.getWalkthrough(
-							walkthroughId,
-						);
+					const walkthrough = await this.walkthroughService.getWalkthrough(walkthroughId);
 					this._description = walkthrough.title;
 					this._url = walkthroughId;
-				} catch {}
+				} catch { }
 			}
 		}
 		if (this._url === undefined) {
-			this._url = "";
+			this._url = '';
 		}
 		return this._url;
 	}
@@ -375,58 +280,38 @@ abstract class HelpItemBase implements IHelpItem {
 		private quickInputService: IQuickInputService,
 		private environmentService: IWorkbenchEnvironmentService,
 		private remoteExplorerService: IRemoteExplorerService,
-		private workspaceContextService: IWorkspaceContextService,
+		private workspaceContextService: IWorkspaceContextService
 	) {
 		this.iconClasses.push(...ThemeIcon.asClassNameArray(icon));
-		this.iconClasses.push("remote-help-tree-node-item-icon");
+		this.iconClasses.push('remote-help-tree-node-item-icon');
 	}
 
-	protected async getActions(): Promise<
-		{
-			label: string;
-			url: string;
-			description: string;
-			extensionDescription: IExtensionDescription;
-		}[]
-	> {
-		return (
-			await Promise.all(
-				this.values.map(async (value) => {
-					return {
-						label:
-							value.extensionDescription.displayName ||
-							value.extensionDescription.identifier.value,
-						description:
-							(await value.description) ?? (await value.url),
-						url: await value.url,
-						extensionDescription: value.extensionDescription,
-					};
-				}),
-			)
-		).filter((item) => item.description);
+	protected async getActions(): Promise<{
+		label: string;
+		url: string;
+		description: string;
+		extensionDescription: IExtensionDescription;
+	}[]> {
+		return (await Promise.all(this.values.map(async (value) => {
+			return {
+				label: value.extensionDescription.displayName || value.extensionDescription.identifier.value,
+				description: await value.description ?? await value.url,
+				url: await value.url,
+				extensionDescription: value.extensionDescription
+			};
+		}))).filter(item => item.description);
 	}
 
 	async handleClick() {
 		const remoteAuthority = this.environmentService.remoteAuthority;
 		if (remoteAuthority) {
-			for (
-				let i = 0;
-				i < this.remoteExplorerService.targetType.length;
-				i++
-			) {
-				if (
-					remoteAuthority.startsWith(
-						this.remoteExplorerService.targetType[i],
-					)
-				) {
+			for (let i = 0; i < this.remoteExplorerService.targetType.length; i++) {
+				if (remoteAuthority.startsWith(this.remoteExplorerService.targetType[i])) {
 					for (const value of this.values) {
 						if (value.remoteAuthority) {
 							for (const authority of value.remoteAuthority) {
 								if (remoteAuthority.startsWith(authority)) {
-									await this.takeAction(
-										value.extensionDescription,
-										await value.url,
-									);
+									await this.takeAction(value.extensionDescription, await value.url);
 									return;
 								}
 							}
@@ -435,34 +320,19 @@ abstract class HelpItemBase implements IHelpItem {
 				}
 			}
 		} else {
-			const virtualWorkspace = getVirtualWorkspaceLocation(
-				this.workspaceContextService.getWorkspace(),
-			)?.scheme;
+			const virtualWorkspace = getVirtualWorkspaceLocation(this.workspaceContextService.getWorkspace())?.scheme;
 			if (virtualWorkspace) {
-				for (
-					let i = 0;
-					i < this.remoteExplorerService.targetType.length;
-					i++
-				) {
+				for (let i = 0; i < this.remoteExplorerService.targetType.length; i++) {
 					for (const value of this.values) {
 						if (value.virtualWorkspace && value.remoteAuthority) {
 							for (const authority of value.remoteAuthority) {
-								if (
-									this.remoteExplorerService.targetType[
-										i
-									].startsWith(authority) &&
-									virtualWorkspace.startsWith(
-										value.virtualWorkspace,
-									)
-								) {
-									await this.takeAction(
-										value.extensionDescription,
-										await value.url,
-									);
+								if (this.remoteExplorerService.targetType[i].startsWith(authority) && virtualWorkspace.startsWith(value.virtualWorkspace)) {
+									await this.takeAction(value.extensionDescription, await value.url);
 									return;
 								}
 							}
 						}
+
 					}
 				}
 			}
@@ -472,31 +342,18 @@ abstract class HelpItemBase implements IHelpItem {
 			const actions = await this.getActions();
 
 			if (actions.length) {
-				const action = await this.quickInputService.pick(actions, {
-					placeHolder: nls.localize(
-						"pickRemoteExtension",
-						"Select url to open",
-					),
-				});
+				const action = await this.quickInputService.pick(actions, { placeHolder: nls.localize('pickRemoteExtension', "Select url to open") });
 				if (action) {
-					await this.takeAction(
-						action.extensionDescription,
-						action.url,
-					);
+					await this.takeAction(action.extensionDescription, action.url);
 				}
 			}
 		} else {
-			await this.takeAction(
-				this.values[0].extensionDescription,
-				await this.values[0].url,
-			);
+			await this.takeAction(this.values[0].extensionDescription, await this.values[0].url);
 		}
+
 	}
 
-	protected abstract takeAction(
-		extensionDescription: IExtensionDescription,
-		url?: string,
-	): Promise<void>;
+	protected abstract takeAction(extensionDescription: IExtensionDescription, url?: string): Promise<void>;
 }
 
 class GetStartedHelpItem extends HelpItemBase {
@@ -509,38 +366,18 @@ class GetStartedHelpItem extends HelpItemBase {
 		private openerService: IOpenerService,
 		remoteExplorerService: IRemoteExplorerService,
 		workspaceContextService: IWorkspaceContextService,
-		private commandService: ICommandService,
+		private commandService: ICommandService
 	) {
-		super(
-			icon,
-			label,
-			values,
-			quickInputService,
-			environmentService,
-			remoteExplorerService,
-			workspaceContextService,
-		);
+		super(icon, label, values, quickInputService, environmentService, remoteExplorerService, workspaceContextService);
 	}
 
-	protected async takeAction(
-		extensionDescription: IExtensionDescription,
-		urlOrWalkthroughId: string,
-	): Promise<void> {
-		if (
-			[Schemas.http, Schemas.https].includes(
-				URI.parse(urlOrWalkthroughId).scheme,
-			)
-		) {
-			this.openerService.open(urlOrWalkthroughId, {
-				allowCommands: true,
-			});
+	protected async takeAction(extensionDescription: IExtensionDescription, urlOrWalkthroughId: string): Promise<void> {
+		if ([Schemas.http, Schemas.https].includes(URI.parse(urlOrWalkthroughId).scheme)) {
+			this.openerService.open(urlOrWalkthroughId, { allowCommands: true });
 			return;
 		}
 
-		this.commandService.executeCommand(
-			"workbench.action.openWalkthrough",
-			urlOrWalkthroughId,
-		);
+		this.commandService.executeCommand('workbench.action.openWalkthrough', urlOrWalkthroughId);
 	}
 }
 
@@ -553,23 +390,12 @@ class HelpItem extends HelpItemBase {
 		environmentService: IWorkbenchEnvironmentService,
 		private openerService: IOpenerService,
 		remoteExplorerService: IRemoteExplorerService,
-		workspaceContextService: IWorkspaceContextService,
+		workspaceContextService: IWorkspaceContextService
 	) {
-		super(
-			icon,
-			label,
-			values,
-			quickInputService,
-			environmentService,
-			remoteExplorerService,
-			workspaceContextService,
-		);
+		super(icon, label, values, quickInputService, environmentService, remoteExplorerService, workspaceContextService);
 	}
 
-	protected async takeAction(
-		extensionDescription: IExtensionDescription,
-		url: string,
-	): Promise<void> {
+	protected async takeAction(extensionDescription: IExtensionDescription, url: string): Promise<void> {
 		await this.openerService.open(URI.parse(url), { allowCommands: true });
 	}
 }
@@ -584,50 +410,30 @@ class IssueReporterItem extends HelpItemBase {
 		private commandService: ICommandService,
 		private openerService: IOpenerService,
 		remoteExplorerService: IRemoteExplorerService,
-		workspaceContextService: IWorkspaceContextService,
+		workspaceContextService: IWorkspaceContextService
 	) {
-		super(
-			icon,
-			label,
-			values,
-			quickInputService,
-			environmentService,
-			remoteExplorerService,
-			workspaceContextService,
-		);
+		super(icon, label, values, quickInputService, environmentService, remoteExplorerService, workspaceContextService);
 	}
 
-	protected override async getActions(): Promise<
-		{
-			label: string;
-			description: string;
-			url: string;
-			extensionDescription: IExtensionDescription;
-		}[]
-	> {
-		return Promise.all(
-			this.values.map(async (value) => {
-				return {
-					label:
-						value.extensionDescription.displayName ||
-						value.extensionDescription.identifier.value,
-					description: "",
-					url: await value.url,
-					extensionDescription: value.extensionDescription,
-				};
-			}),
-		);
+	protected override async getActions(): Promise<{
+		label: string;
+		description: string;
+		url: string;
+		extensionDescription: IExtensionDescription;
+	}[]> {
+		return Promise.all(this.values.map(async (value) => {
+			return {
+				label: value.extensionDescription.displayName || value.extensionDescription.identifier.value,
+				description: '',
+				url: await value.url,
+				extensionDescription: value.extensionDescription
+			};
+		}));
 	}
 
-	protected async takeAction(
-		extensionDescription: IExtensionDescription,
-		url: string,
-	): Promise<void> {
+	protected async takeAction(extensionDescription: IExtensionDescription, url: string): Promise<void> {
 		if (!url) {
-			await this.commandService.executeCommand(
-				"workbench.action.openIssueReporter",
-				[extensionDescription.identifier.value],
-			);
+			await this.commandService.executeCommand('workbench.action.openIssueReporter', [extensionDescription.identifier.value]);
 		} else {
 			await this.openerService.open(URI.parse(url));
 		}
@@ -635,8 +441,8 @@ class IssueReporterItem extends HelpItemBase {
 }
 
 class HelpPanel extends ViewPane {
-	static readonly ID = "~remote.helpPanel";
-	static readonly TITLE = nls.localize2("remote.help", "Help and feedback");
+	static readonly ID = '~remote.helpPanel';
+	static readonly TITLE = nls.localize2('remote.help', "Help and feedback");
 	private tree!: WorkbenchAsyncDataTree<HelpModel, IHelpItem, IHelpItem>;
 
 	constructor(
@@ -651,84 +457,48 @@ class HelpPanel extends ViewPane {
 		@IOpenerService openerService: IOpenerService,
 		@IQuickInputService protected quickInputService: IQuickInputService,
 		@ICommandService protected commandService: ICommandService,
-		@IRemoteExplorerService
-		protected readonly remoteExplorerService: IRemoteExplorerService,
-		@IWorkbenchEnvironmentService
-		protected readonly environmentService: IWorkbenchEnvironmentService,
+		@IRemoteExplorerService protected readonly remoteExplorerService: IRemoteExplorerService,
+		@IWorkbenchEnvironmentService protected readonly environmentService: IWorkbenchEnvironmentService,
 		@IThemeService themeService: IThemeService,
 		@ITelemetryService telemetryService: ITelemetryService,
 		@IHoverService hoverService: IHoverService,
-		@IWorkspaceContextService
-		private readonly workspaceContextService: IWorkspaceContextService,
-		@IWalkthroughsService
-		private readonly walkthroughsService: IWalkthroughsService,
+		@IWorkspaceContextService private readonly workspaceContextService: IWorkspaceContextService,
+		@IWalkthroughsService private readonly walkthroughsService: IWalkthroughsService,
 	) {
-		super(
-			options,
-			keybindingService,
-			contextMenuService,
-			configurationService,
-			contextKeyService,
-			viewDescriptorService,
-			instantiationService,
-			openerService,
-			themeService,
-			telemetryService,
-			hoverService,
-		);
+		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, telemetryService, hoverService);
 	}
 
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 
-		container.classList.add("remote-help");
-		const treeContainer = document.createElement("div");
-		treeContainer.classList.add("remote-help-content");
+		container.classList.add('remote-help');
+		const treeContainer = document.createElement('div');
+		treeContainer.classList.add('remote-help-content');
 		container.appendChild(treeContainer);
 
-		this.tree = <WorkbenchAsyncDataTree<HelpModel, IHelpItem, IHelpItem>>(
-			this.instantiationService.createInstance(
-				WorkbenchAsyncDataTree,
-				"RemoteHelp",
-				treeContainer,
-				new HelpTreeVirtualDelegate(),
-				[new HelpTreeRenderer()],
-				new HelpDataSource(),
-				{
-					accessibilityProvider: {
-						getAriaLabel: (item: HelpItemBase) => {
-							return item.label;
-						},
-						getWidgetAriaLabel: () =>
-							nls.localize("remotehelp", "Remote Help"),
+		this.tree = <WorkbenchAsyncDataTree<HelpModel, IHelpItem, IHelpItem>>this.instantiationService.createInstance(WorkbenchAsyncDataTree,
+			'RemoteHelp',
+			treeContainer,
+			new HelpTreeVirtualDelegate(),
+			[new HelpTreeRenderer()],
+			new HelpDataSource(),
+			{
+				accessibilityProvider: {
+					getAriaLabel: (item: HelpItemBase) => {
+						return item.label;
 					},
-				},
-			)
+					getWidgetAriaLabel: () => nls.localize('remotehelp', "Remote Help")
+				}
+			}
 		);
 
-		const model = new HelpModel(
-			this.viewModel,
-			this.openerService,
-			this.quickInputService,
-			this.commandService,
-			this.remoteExplorerService,
-			this.environmentService,
-			this.workspaceContextService,
-			this.walkthroughsService,
-		);
+		const model = new HelpModel(this.viewModel, this.openerService, this.quickInputService, this.commandService, this.remoteExplorerService, this.environmentService, this.workspaceContextService, this.walkthroughsService);
 
 		this.tree.setInput(model);
 
-		this._register(
-			Event.debounce(
-				this.tree.onDidOpen,
-				(last, event) => event,
-				75,
-				true,
-			)((e) => {
-				e.element?.handleClick();
-			}),
-		);
+		this._register(Event.debounce(this.tree.onDidOpen, (last, event) => event, 75, true)(e => {
+			e.element?.handleClick();
+		}));
 	}
 
 	protected override layoutBody(height: number, width: number): void {
@@ -743,7 +513,7 @@ class HelpPanelDescriptor implements IViewDescriptor {
 	readonly ctorDescriptor: SyncDescriptor<HelpPanel>;
 	readonly canToggleVisibility = true;
 	readonly hideByDefault = false;
-	readonly group = "help@50";
+	readonly group = 'help@50';
 	readonly order = -10;
 
 	constructor(viewModel: IViewModel) {
@@ -751,15 +521,11 @@ class HelpPanelDescriptor implements IViewDescriptor {
 	}
 }
 
-class RemoteViewPaneContainer
-	extends FilterViewPaneContainer
-	implements IViewModel
-{
+class RemoteViewPaneContainer extends FilterViewPaneContainer implements IViewModel {
 	private helpPanelDescriptor = new HelpPanelDescriptor(this);
 	helpInformation: HelpInformation[] = [];
 	private _onDidChangeHelpInformation = new Emitter<void>();
-	public onDidChangeHelpInformation: Event<void> =
-		this._onDidChangeHelpInformation.event;
+	public onDidChangeHelpInformation: Event<void> = this._onDidChangeHelpInformation.event;
 	private hasRegisteredHelpView: boolean = false;
 	private remoteSwitcher: SwitchRemoteViewItem | undefined;
 
@@ -773,66 +539,39 @@ class RemoteViewPaneContainer
 		@IThemeService themeService: IThemeService,
 		@IContextMenuService contextMenuService: IContextMenuService,
 		@IExtensionService extensionService: IExtensionService,
-		@IRemoteExplorerService
-		private readonly remoteExplorerService: IRemoteExplorerService,
-		@IViewDescriptorService viewDescriptorService: IViewDescriptorService,
+		@IRemoteExplorerService private readonly remoteExplorerService: IRemoteExplorerService,
+		@IViewDescriptorService viewDescriptorService: IViewDescriptorService
 	) {
-		super(
-			VIEWLET_ID,
-			remoteExplorerService.onDidChangeTargetType,
-			configurationService,
-			layoutService,
-			telemetryService,
-			storageService,
-			instantiationService,
-			themeService,
-			contextMenuService,
-			extensionService,
-			contextService,
-			viewDescriptorService,
-		);
+		super(VIEWLET_ID, remoteExplorerService.onDidChangeTargetType, configurationService, layoutService, telemetryService, storageService, instantiationService, themeService, contextMenuService, extensionService, contextService, viewDescriptorService);
 		this.addConstantViewDescriptors([this.helpPanelDescriptor]);
-		this._register(
-			(this.remoteSwitcher =
-				this.instantiationService.createInstance(SwitchRemoteViewItem)),
-		);
-		this.remoteExplorerService.onDidChangeHelpInformation((extensions) => {
+		this._register(this.remoteSwitcher = this.instantiationService.createInstance(SwitchRemoteViewItem));
+		this.remoteExplorerService.onDidChangeHelpInformation(extensions => {
 			this._setHelpInformation(extensions);
 		});
 
 		this._setHelpInformation(this.remoteExplorerService.helpInformation);
-		const viewsRegistry = Registry.as<IViewsRegistry>(
-			Extensions.ViewsRegistry,
-		);
+		const viewsRegistry = Registry.as<IViewsRegistry>(Extensions.ViewsRegistry);
 
-		this.remoteSwitcher.createOptionItems(
-			viewsRegistry.getViews(this.viewContainer),
-		);
-		this._register(
-			viewsRegistry.onViewsRegistered((e) => {
-				const remoteViews: IViewDescriptor[] = [];
-				for (const view of e) {
-					if (view.viewContainer.id === VIEWLET_ID) {
-						remoteViews.push(...view.views);
-					}
+		this.remoteSwitcher.createOptionItems(viewsRegistry.getViews(this.viewContainer));
+		this._register(viewsRegistry.onViewsRegistered(e => {
+			const remoteViews: IViewDescriptor[] = [];
+			for (const view of e) {
+				if (view.viewContainer.id === VIEWLET_ID) {
+					remoteViews.push(...view.views);
 				}
-				if (remoteViews.length > 0) {
-					this.remoteSwitcher!.createOptionItems(remoteViews);
-				}
-			}),
-		);
-		this._register(
-			viewsRegistry.onViewsDeregistered((e) => {
-				if (e.viewContainer.id === VIEWLET_ID) {
-					this.remoteSwitcher!.removeOptionItems(e.views);
-				}
-			}),
-		);
+			}
+			if (remoteViews.length > 0) {
+				this.remoteSwitcher!.createOptionItems(remoteViews);
+			}
+		}));
+		this._register(viewsRegistry.onViewsDeregistered(e => {
+			if (e.viewContainer.id === VIEWLET_ID) {
+				this.remoteSwitcher!.removeOptionItems(e.views);
+			}
+		}));
 	}
 
-	private _setHelpInformation(
-		extensions: readonly IExtensionPointUser<HelpInformation>[],
-	) {
+	private _setHelpInformation(extensions: readonly IExtensionPointUser<HelpInformation>[]) {
 		const helpInformation: HelpInformation[] = [];
 		for (const extension of extensions) {
 			this._handleRemoteInfoExtensionPoint(extension, helpInformation);
@@ -841,40 +580,25 @@ class RemoteViewPaneContainer
 		this.helpInformation = helpInformation;
 		this._onDidChangeHelpInformation.fire();
 
-		const viewsRegistry = Registry.as<IViewsRegistry>(
-			Extensions.ViewsRegistry,
-		);
+		const viewsRegistry = Registry.as<IViewsRegistry>(Extensions.ViewsRegistry);
 		if (this.helpInformation.length && !this.hasRegisteredHelpView) {
 			const view = viewsRegistry.getView(this.helpPanelDescriptor.id);
 			if (!view) {
-				viewsRegistry.registerViews(
-					[this.helpPanelDescriptor],
-					this.viewContainer,
-				);
+				viewsRegistry.registerViews([this.helpPanelDescriptor], this.viewContainer);
 			}
 			this.hasRegisteredHelpView = true;
 		} else if (this.hasRegisteredHelpView) {
-			viewsRegistry.deregisterViews(
-				[this.helpPanelDescriptor],
-				this.viewContainer,
-			);
+			viewsRegistry.deregisterViews([this.helpPanelDescriptor], this.viewContainer);
 			this.hasRegisteredHelpView = false;
 		}
 	}
 
-	private _handleRemoteInfoExtensionPoint(
-		extension: IExtensionPointUser<HelpInformation>,
-		helpInformation: HelpInformation[],
-	) {
-		if (!isProposedApiEnabled(extension.description, "contribRemoteHelp")) {
+	private _handleRemoteInfoExtensionPoint(extension: IExtensionPointUser<HelpInformation>, helpInformation: HelpInformation[]) {
+		if (!isProposedApiEnabled(extension.description, 'contribRemoteHelp')) {
 			return;
 		}
 
-		if (
-			!extension.value.documentation &&
-			!extension.value.getStarted &&
-			!extension.value.issues
-		) {
+		if (!extension.value.documentation && !extension.value.getStarted && !extension.value.issues) {
 			return;
 		}
 
@@ -885,36 +609,28 @@ class RemoteViewPaneContainer
 			reportIssue: extension.value.reportIssue,
 			issues: extension.value.issues,
 			remoteName: extension.value.remoteName,
-			virtualWorkspace: extension.value.virtualWorkspace,
+			virtualWorkspace: extension.value.virtualWorkspace
 		});
 	}
 
 	protected getFilterOn(viewDescriptor: IViewDescriptor): string | undefined {
-		return isStringArray(viewDescriptor.remoteAuthority)
-			? viewDescriptor.remoteAuthority[0]
-			: viewDescriptor.remoteAuthority;
+		return isStringArray(viewDescriptor.remoteAuthority) ? viewDescriptor.remoteAuthority[0] : viewDescriptor.remoteAuthority;
 	}
 
 	protected setFilter(viewDescriptor: IViewDescriptor): void {
-		this.remoteExplorerService.targetType = isStringArray(
-			viewDescriptor.remoteAuthority,
-		)
-			? viewDescriptor.remoteAuthority
-			: [viewDescriptor.remoteAuthority!];
+		this.remoteExplorerService.targetType = isStringArray(viewDescriptor.remoteAuthority) ? viewDescriptor.remoteAuthority : [viewDescriptor.remoteAuthority!];
 	}
 
 	getTitle(): string {
-		const title = nls.localize("remote.explorer", "Remote Explorer");
+		const title = nls.localize('remote.explorer', "Remote Explorer");
 		return title;
 	}
 }
 
-Registry.as<IViewContainersRegistry>(
-	Extensions.ViewContainersRegistry,
-).registerViewContainer(
+Registry.as<IViewContainersRegistry>(Extensions.ViewContainersRegistry).registerViewContainer(
 	{
 		id: VIEWLET_ID,
-		title: nls.localize2("remote.explorer", "Remote Explorer"),
+		title: nls.localize2('remote.explorer', "Remote Explorer"),
 		ctorDescriptor: new SyncDescriptor(RemoteViewPaneContainer),
 		hideIfEmpty: true,
 		viewOrderDelegate: {
@@ -940,28 +656,28 @@ Registry.as<IViewContainersRegistry>(
 				}
 
 				return;
-			},
+			}
 		},
 		icon: icons.remoteExplorerViewIcon,
-		order: 4,
-	},
-	ViewContainerLocation.Sidebar,
-);
+		order: 4
+	}, ViewContainerLocation.Sidebar);
 
 export class RemoteMarkers implements IWorkbenchContribution {
+
 	constructor(
 		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
 		@ITimerService timerService: ITimerService,
 	) {
-		remoteAgentService.getEnvironment().then((remoteEnv) => {
+		remoteAgentService.getEnvironment().then(remoteEnv => {
 			if (remoteEnv) {
-				timerService.setPerformanceMarks("server", remoteEnv.marks);
+				timerService.setPerformanceMarks('server', remoteEnv.marks);
 			}
 		});
 	}
 }
 
 class VisibleProgress {
+
 	public readonly location: ProgressLocation;
 	private _isDisposed: boolean;
 	private _lastReport: string | null;
@@ -973,16 +689,7 @@ class VisibleProgress {
 		return this._lastReport;
 	}
 
-	constructor(
-		progressService: IProgressService,
-		location: ProgressLocation,
-		initialReport: string | null,
-		buttons: string[],
-		onDidCancel: (
-			choice: number | undefined,
-			lastReport: string | null,
-		) => void,
-	) {
+	constructor(progressService: IProgressService, location: ProgressLocation, initialReport: string | null, buttons: string[], onDidCancel: (choice: number | undefined, lastReport: string | null) => void) {
 		this.location = location;
 		this._isDisposed = false;
 		this._lastReport = initialReport;
@@ -990,19 +697,12 @@ class VisibleProgress {
 		this._currentProgress = null;
 		this._currentTimer = null;
 
-		const promise = new Promise<void>(
-			(resolve) => (this._currentProgressPromiseResolve = resolve),
-		);
+		const promise = new Promise<void>((resolve) => this._currentProgressPromiseResolve = resolve);
 
 		progressService.withProgress(
 			{ location: location, buttons: buttons },
-			(progress) => {
-				if (!this._isDisposed) {
-					this._currentProgress = progress;
-				}
-				return promise;
-			},
-			(choice) => onDidCancel(choice, this._lastReport),
+			(progress) => { if (!this._isDisposed) { this._currentProgress = progress; } return promise; },
+			(choice) => onDidCancel(choice, this._lastReport)
 		);
 
 		if (this._lastReport) {
@@ -1054,11 +754,7 @@ class ReconnectionTimer implements IDisposable {
 	constructor(parent: VisibleProgress, completionTime: number) {
 		this._parent = parent;
 		this._completionTime = completionTime;
-		this._renderInterval = dom.disposableWindowInterval(
-			mainWindow,
-			() => this._render(),
-			1000,
-		);
+		this._renderInterval = dom.disposableWindowInterval(mainWindow, () => this._render(), 1000);
 		this._render();
 	}
 
@@ -1073,21 +769,9 @@ class ReconnectionTimer implements IDisposable {
 		}
 		const remainingTime = Math.ceil(remainingTimeMs / 1000);
 		if (remainingTime === 1) {
-			this._parent.report(
-				nls.localize(
-					"reconnectionWaitOne",
-					"Attempting to reconnect in {0} second...",
-					remainingTime,
-				),
-			);
+			this._parent.report(nls.localize('reconnectionWaitOne', "Attempting to reconnect in {0} second...", remainingTime));
 		} else {
-			this._parent.report(
-				nls.localize(
-					"reconnectionWaitMany",
-					"Attempting to reconnect in {0} seconds...",
-					remainingTime,
-				),
-			);
+			this._parent.report(nls.localize('reconnectionWaitMany', "Attempting to reconnect in {0} seconds...", remainingTime));
 		}
 	}
 }
@@ -1097,10 +781,8 @@ class ReconnectionTimer implements IDisposable {
  */
 const DISCONNECT_PROMPT_TIME = 40 * 1000; // 40 seconds
 
-export class RemoteAgentConnectionStatusListener
-	extends Disposable
-	implements IWorkbenchContribution
-{
+export class RemoteAgentConnectionStatusListener extends Disposable implements IWorkbenchContribution {
+
 	private _reloadWindowShown: boolean = false;
 
 	constructor(
@@ -1110,65 +792,44 @@ export class RemoteAgentConnectionStatusListener
 		@ICommandService commandService: ICommandService,
 		@IQuickInputService quickInputService: IQuickInputService,
 		@ILogService logService: ILogService,
-		@IWorkbenchEnvironmentService
-		environmentService: IWorkbenchEnvironmentService,
-		@ITelemetryService telemetryService: ITelemetryService,
+		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
+		@ITelemetryService telemetryService: ITelemetryService
 	) {
 		super();
 		const connection = remoteAgentService.getConnection();
 		if (connection) {
 			let quickInputVisible = false;
-			this._register(
-				quickInputService.onShow(() => (quickInputVisible = true)),
-			);
-			this._register(
-				quickInputService.onHide(() => (quickInputVisible = false)),
-			);
+			this._register(quickInputService.onShow(() => quickInputVisible = true));
+			this._register(quickInputService.onHide(() => quickInputVisible = false));
 
 			let visibleProgress: VisibleProgress | null = null;
 			let reconnectWaitEvent: ReconnectionWaitEvent | null = null;
 			let disposableListener: IDisposable | null = null;
 
-			function showProgress(
-				location:
-					| ProgressLocation.Dialog
-					| ProgressLocation.Notification
-					| null,
-				buttons: { label: string; callback: () => void }[],
-				initialReport: string | null = null,
-			): VisibleProgress {
+			function showProgress(location: ProgressLocation.Dialog | ProgressLocation.Notification | null, buttons: { label: string; callback: () => void }[], initialReport: string | null = null): VisibleProgress {
 				if (visibleProgress) {
 					visibleProgress.dispose();
 					visibleProgress = null;
 				}
 
 				if (!location) {
-					location = quickInputVisible
-						? ProgressLocation.Notification
-						: ProgressLocation.Dialog;
+					location = quickInputVisible ? ProgressLocation.Notification : ProgressLocation.Dialog;
 				}
 
 				return new VisibleProgress(
-					progressService,
-					location,
-					initialReport,
-					buttons.map((button) => button.label),
+					progressService, location, initialReport, buttons.map(button => button.label),
 					(choice, lastReport) => {
 						// Handle choice from dialog
-						if (typeof choice !== "undefined" && buttons[choice]) {
+						if (typeof choice !== 'undefined' && buttons[choice]) {
 							buttons[choice].callback();
 						} else {
 							if (location === ProgressLocation.Dialog) {
-								visibleProgress = showProgress(
-									ProgressLocation.Notification,
-									buttons,
-									lastReport,
-								);
+								visibleProgress = showProgress(ProgressLocation.Notification, buttons, lastReport);
 							} else {
 								hideProgress();
 							}
 						}
-					},
+					}
 				);
 			}
 
@@ -1179,43 +840,28 @@ export class RemoteAgentConnectionStatusListener
 				}
 			}
 
-			let reconnectionToken: string = "";
+			let reconnectionToken: string = '';
 			let lastIncomingDataTime: number = 0;
 			let reconnectionAttempts: number = 0;
 
 			const reconnectButton = {
-				label: nls.localize("reconnectNow", "Reconnect Now"),
+				label: nls.localize('reconnectNow', "Reconnect Now"),
 				callback: () => {
 					reconnectWaitEvent?.skipWait();
-				},
+				}
 			};
 
 			const reloadButton = {
-				label: nls.localize("reloadWindow", "Reload Window"),
+				label: nls.localize('reloadWindow', "Reload Window"),
 				callback: () => {
+
 					type ReconnectReloadClassification = {
-						owner: "alexdima";
-						comment: "The reload button in the builtin permanent reconnection failure dialog was pressed";
-						remoteName: {
-							classification: "SystemMetaData";
-							purpose: "PerformanceAndHealth";
-							comment: "The name of the resolver.";
-						};
-						reconnectionToken: {
-							classification: "SystemMetaData";
-							purpose: "PerformanceAndHealth";
-							comment: "The identifier of the connection.";
-						};
-						millisSinceLastIncomingData: {
-							classification: "SystemMetaData";
-							purpose: "PerformanceAndHealth";
-							comment: "Elapsed time (in ms) since data was last received.";
-						};
-						attempt: {
-							classification: "SystemMetaData";
-							purpose: "PerformanceAndHealth";
-							comment: "The reconnection attempt counter.";
-						};
+						owner: 'alexdima';
+						comment: 'The reload button in the builtin permanent reconnection failure dialog was pressed';
+						remoteName: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The name of the resolver.' };
+						reconnectionToken: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The identifier of the connection.' };
+						millisSinceLastIncomingData: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'Elapsed time (in ms) since data was last received.' };
+						attempt: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The reconnection attempt counter.' };
 					};
 					type ReconnectReloadEvent = {
 						remoteName: string | undefined;
@@ -1223,21 +869,15 @@ export class RemoteAgentConnectionStatusListener
 						millisSinceLastIncomingData: number;
 						attempt: number;
 					};
-					telemetryService.publicLog2<
-						ReconnectReloadEvent,
-						ReconnectReloadClassification
-					>("remoteReconnectionReload", {
-						remoteName: getRemoteName(
-							environmentService.remoteAuthority,
-						),
+					telemetryService.publicLog2<ReconnectReloadEvent, ReconnectReloadClassification>('remoteReconnectionReload', {
+						remoteName: getRemoteName(environmentService.remoteAuthority),
 						reconnectionToken: reconnectionToken,
-						millisSinceLastIncomingData:
-							Date.now() - lastIncomingDataTime,
-						attempt: reconnectionAttempts,
+						millisSinceLastIncomingData: Date.now() - lastIncomingDataTime,
+						attempt: reconnectionAttempts
 					});
 
 					commandService.executeCommand(ReloadWindowAction.ID);
-				},
+				}
 			};
 
 			// Possible state transitions:
@@ -1256,100 +896,52 @@ export class RemoteAgentConnectionStatusListener
 				switch (e.type) {
 					case PersistentConnectionEventType.ConnectionLost:
 						reconnectionToken = e.reconnectionToken;
-						lastIncomingDataTime =
-							Date.now() - e.millisSinceLastIncomingData;
+						lastIncomingDataTime = Date.now() - e.millisSinceLastIncomingData;
 						reconnectionAttempts = 0;
 
 						type RemoteConnectionLostClassification = {
-							owner: "alexdima";
-							comment: "The remote connection state is now `ConnectionLost`";
-							remoteName: {
-								classification: "SystemMetaData";
-								purpose: "PerformanceAndHealth";
-								comment: "The name of the resolver.";
-							};
-							reconnectionToken: {
-								classification: "SystemMetaData";
-								purpose: "PerformanceAndHealth";
-								comment: "The identifier of the connection.";
-							};
+							owner: 'alexdima';
+							comment: 'The remote connection state is now `ConnectionLost`';
+							remoteName: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The name of the resolver.' };
+							reconnectionToken: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The identifier of the connection.' };
 						};
 						type RemoteConnectionLostEvent = {
 							remoteName: string | undefined;
 							reconnectionToken: string;
 						};
-						telemetryService.publicLog2<
-							RemoteConnectionLostEvent,
-							RemoteConnectionLostClassification
-						>("remoteConnectionLost", {
-							remoteName: getRemoteName(
-								environmentService.remoteAuthority,
-							),
+						telemetryService.publicLog2<RemoteConnectionLostEvent, RemoteConnectionLostClassification>('remoteConnectionLost', {
+							remoteName: getRemoteName(environmentService.remoteAuthority),
 							reconnectionToken: e.reconnectionToken,
 						});
 
-						if (
-							visibleProgress ||
-							e.millisSinceLastIncomingData >
-								DISCONNECT_PROMPT_TIME
-						) {
+						if (visibleProgress || e.millisSinceLastIncomingData > DISCONNECT_PROMPT_TIME) {
 							if (!visibleProgress) {
-								visibleProgress = showProgress(null, [
-									reconnectButton,
-									reloadButton,
-								]);
+								visibleProgress = showProgress(null, [reconnectButton, reloadButton]);
 							}
-							visibleProgress.report(
-								nls.localize(
-									"connectionLost",
-									"Connection Lost",
-								),
-							);
+							visibleProgress.report(nls.localize('connectionLost', "Connection Lost"));
 						}
 						break;
 
 					case PersistentConnectionEventType.ReconnectionWait:
 						if (visibleProgress) {
 							reconnectWaitEvent = e;
-							visibleProgress = showProgress(null, [
-								reconnectButton,
-								reloadButton,
-							]);
-							visibleProgress.startTimer(
-								Date.now() + 1000 * e.durationSeconds,
-							);
+							visibleProgress = showProgress(null, [reconnectButton, reloadButton]);
+							visibleProgress.startTimer(Date.now() + 1000 * e.durationSeconds);
 						}
 						break;
 
 					case PersistentConnectionEventType.ReconnectionRunning:
 						reconnectionToken = e.reconnectionToken;
-						lastIncomingDataTime =
-							Date.now() - e.millisSinceLastIncomingData;
+						lastIncomingDataTime = Date.now() - e.millisSinceLastIncomingData;
 						reconnectionAttempts = e.attempt;
 
 						type RemoteReconnectionRunningClassification = {
-							owner: "alexdima";
-							comment: "The remote connection state is now `ReconnectionRunning`";
-							remoteName: {
-								classification: "SystemMetaData";
-								purpose: "PerformanceAndHealth";
-								comment: "The name of the resolver.";
-							};
-							reconnectionToken: {
-								classification: "SystemMetaData";
-								purpose: "PerformanceAndHealth";
-								comment: "The identifier of the connection.";
-							};
-							millisSinceLastIncomingData: {
-								classification: "SystemMetaData";
-								purpose: "PerformanceAndHealth";
-								comment: "Elapsed time (in ms) since data was last received.";
-							};
-							attempt: {
-								classification: "SystemMetaData";
-								purpose: "PerformanceAndHealth";
-								comment: "The reconnection attempt counter.";
-							};
+							owner: 'alexdima';
+							comment: 'The remote connection state is now `ReconnectionRunning`';
+							remoteName: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The name of the resolver.' };
+							reconnectionToken: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The identifier of the connection.' };
+							millisSinceLastIncomingData: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'Elapsed time (in ms) since data was last received.' };
+							attempt: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The reconnection attempt counter.' };
 						};
 						type RemoteReconnectionRunningEvent = {
 							remoteName: string | undefined;
@@ -1357,91 +949,42 @@ export class RemoteAgentConnectionStatusListener
 							millisSinceLastIncomingData: number;
 							attempt: number;
 						};
-						telemetryService.publicLog2<
-							RemoteReconnectionRunningEvent,
-							RemoteReconnectionRunningClassification
-						>("remoteReconnectionRunning", {
-							remoteName: getRemoteName(
-								environmentService.remoteAuthority,
-							),
+						telemetryService.publicLog2<RemoteReconnectionRunningEvent, RemoteReconnectionRunningClassification>('remoteReconnectionRunning', {
+							remoteName: getRemoteName(environmentService.remoteAuthority),
 							reconnectionToken: e.reconnectionToken,
-							millisSinceLastIncomingData:
-								e.millisSinceLastIncomingData,
-							attempt: e.attempt,
+							millisSinceLastIncomingData: e.millisSinceLastIncomingData,
+							attempt: e.attempt
 						});
 
-						if (
-							visibleProgress ||
-							e.millisSinceLastIncomingData >
-								DISCONNECT_PROMPT_TIME
-						) {
-							visibleProgress = showProgress(null, [
-								reloadButton,
-							]);
-							visibleProgress.report(
-								nls.localize(
-									"reconnectionRunning",
-									"Disconnected. Attempting to reconnect...",
-								),
-							);
+						if (visibleProgress || e.millisSinceLastIncomingData > DISCONNECT_PROMPT_TIME) {
+							visibleProgress = showProgress(null, [reloadButton]);
+							visibleProgress.report(nls.localize('reconnectionRunning', "Disconnected. Attempting to reconnect..."));
 
 							// Register to listen for quick input is opened
-							disposableListener = quickInputService.onShow(
-								() => {
-									// Need to move from dialog if being shown and user needs to type in a prompt
-									if (
-										visibleProgress &&
-										visibleProgress.location ===
-											ProgressLocation.Dialog
-									) {
-										visibleProgress = showProgress(
-											ProgressLocation.Notification,
-											[reloadButton],
-											visibleProgress.lastReport,
-										);
-									}
-								},
-							);
+							disposableListener = quickInputService.onShow(() => {
+								// Need to move from dialog if being shown and user needs to type in a prompt
+								if (visibleProgress && visibleProgress.location === ProgressLocation.Dialog) {
+									visibleProgress = showProgress(ProgressLocation.Notification, [reloadButton], visibleProgress.lastReport);
+								}
+							});
 						}
 
 						break;
 
 					case PersistentConnectionEventType.ReconnectionPermanentFailure:
 						reconnectionToken = e.reconnectionToken;
-						lastIncomingDataTime =
-							Date.now() - e.millisSinceLastIncomingData;
+						lastIncomingDataTime = Date.now() - e.millisSinceLastIncomingData;
 						reconnectionAttempts = e.attempt;
 
-						type RemoteReconnectionPermanentFailureClassification =
-							{
-								owner: "alexdima";
-								comment: "The remote connection state is now `ReconnectionPermanentFailure`";
-								remoteName: {
-									classification: "SystemMetaData";
-									purpose: "PerformanceAndHealth";
-									comment: "The name of the resolver.";
-								};
-								reconnectionToken: {
-									classification: "SystemMetaData";
-									purpose: "PerformanceAndHealth";
-									comment: "The identifier of the connection.";
-								};
-								millisSinceLastIncomingData: {
-									classification: "SystemMetaData";
-									purpose: "PerformanceAndHealth";
-									comment: "Elapsed time (in ms) since data was last received.";
-								};
-								attempt: {
-									classification: "SystemMetaData";
-									purpose: "PerformanceAndHealth";
-									comment: "The reconnection attempt counter.";
-								};
-								handled: {
-									classification: "SystemMetaData";
-									purpose: "PerformanceAndHealth";
-									comment: "The error was handled by the resolver.";
-								};
-							};
+						type RemoteReconnectionPermanentFailureClassification = {
+							owner: 'alexdima';
+							comment: 'The remote connection state is now `ReconnectionPermanentFailure`';
+							remoteName: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The name of the resolver.' };
+							reconnectionToken: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The identifier of the connection.' };
+							millisSinceLastIncomingData: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'Elapsed time (in ms) since data was last received.' };
+							attempt: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The reconnection attempt counter.' };
+							handled: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The error was handled by the resolver.' };
+						};
 						type RemoteReconnectionPermanentFailureEvent = {
 							remoteName: string | undefined;
 							reconnectionToken: string;
@@ -1449,85 +992,45 @@ export class RemoteAgentConnectionStatusListener
 							attempt: number;
 							handled: boolean;
 						};
-						telemetryService.publicLog2<
-							RemoteReconnectionPermanentFailureEvent,
-							RemoteReconnectionPermanentFailureClassification
-						>("remoteReconnectionPermanentFailure", {
-							remoteName: getRemoteName(
-								environmentService.remoteAuthority,
-							),
+						telemetryService.publicLog2<RemoteReconnectionPermanentFailureEvent, RemoteReconnectionPermanentFailureClassification>('remoteReconnectionPermanentFailure', {
+							remoteName: getRemoteName(environmentService.remoteAuthority),
 							reconnectionToken: e.reconnectionToken,
-							millisSinceLastIncomingData:
-								e.millisSinceLastIncomingData,
+							millisSinceLastIncomingData: e.millisSinceLastIncomingData,
 							attempt: e.attempt,
-							handled: e.handled,
+							handled: e.handled
 						});
 
 						hideProgress();
 
 						if (e.handled) {
-							logService.info(
-								`Error handled: Not showing a notification for the error.`,
-							);
-							console.log(
-								`Error handled: Not showing a notification for the error.`,
-							);
+							logService.info(`Error handled: Not showing a notification for the error.`);
+							console.log(`Error handled: Not showing a notification for the error.`);
 						} else if (!this._reloadWindowShown) {
 							this._reloadWindowShown = true;
-							dialogService
-								.confirm({
-									type: Severity.Error,
-									message: nls.localize(
-										"reconnectionPermanentFailure",
-										"Cannot reconnect. Please reload the window.",
-									),
-									primaryButton: nls.localize(
-										{
-											key: "reloadWindow.dialog",
-											comment: ["&& denotes a mnemonic"],
-										},
-										"&&Reload Window",
-									),
-								})
-								.then((result) => {
-									if (result.confirmed) {
-										commandService.executeCommand(
-											ReloadWindowAction.ID,
-										);
-									}
-								});
+							dialogService.confirm({
+								type: Severity.Error,
+								message: nls.localize('reconnectionPermanentFailure', "Cannot reconnect. Please reload the window."),
+								primaryButton: nls.localize({ key: 'reloadWindow.dialog', comment: ['&& denotes a mnemonic'] }, "&&Reload Window")
+							}).then(result => {
+								if (result.confirmed) {
+									commandService.executeCommand(ReloadWindowAction.ID);
+								}
+							});
 						}
 						break;
 
 					case PersistentConnectionEventType.ConnectionGain:
 						reconnectionToken = e.reconnectionToken;
-						lastIncomingDataTime =
-							Date.now() - e.millisSinceLastIncomingData;
+						lastIncomingDataTime = Date.now() - e.millisSinceLastIncomingData;
 						reconnectionAttempts = e.attempt;
 
 						type RemoteConnectionGainClassification = {
-							owner: "alexdima";
-							comment: "The remote connection state is now `ConnectionGain`";
-							remoteName: {
-								classification: "SystemMetaData";
-								purpose: "PerformanceAndHealth";
-								comment: "The name of the resolver.";
-							};
-							reconnectionToken: {
-								classification: "SystemMetaData";
-								purpose: "PerformanceAndHealth";
-								comment: "The identifier of the connection.";
-							};
-							millisSinceLastIncomingData: {
-								classification: "SystemMetaData";
-								purpose: "PerformanceAndHealth";
-								comment: "Elapsed time (in ms) since data was last received.";
-							};
-							attempt: {
-								classification: "SystemMetaData";
-								purpose: "PerformanceAndHealth";
-								comment: "The reconnection attempt counter.";
-							};
+							owner: 'alexdima';
+							comment: 'The remote connection state is now `ConnectionGain`';
+							remoteName: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The name of the resolver.' };
+							reconnectionToken: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The identifier of the connection.' };
+							millisSinceLastIncomingData: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'Elapsed time (in ms) since data was last received.' };
+							attempt: { classification: 'SystemMetaData'; purpose: 'PerformanceAndHealth'; comment: 'The reconnection attempt counter.' };
 						};
 						type RemoteConnectionGainEvent = {
 							remoteName: string | undefined;
@@ -1535,17 +1038,11 @@ export class RemoteAgentConnectionStatusListener
 							millisSinceLastIncomingData: number;
 							attempt: number;
 						};
-						telemetryService.publicLog2<
-							RemoteConnectionGainEvent,
-							RemoteConnectionGainClassification
-						>("remoteConnectionGain", {
-							remoteName: getRemoteName(
-								environmentService.remoteAuthority,
-							),
+						telemetryService.publicLog2<RemoteConnectionGainEvent, RemoteConnectionGainClassification>('remoteConnectionGain', {
+							remoteName: getRemoteName(environmentService.remoteAuthority),
 							reconnectionToken: e.reconnectionToken,
-							millisSinceLastIncomingData:
-								e.millisSinceLastIncomingData,
-							attempt: e.attempt,
+							millisSinceLastIncomingData: e.millisSinceLastIncomingData,
+							attempt: e.attempt
 						});
 
 						hideProgress();

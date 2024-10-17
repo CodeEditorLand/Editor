@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	// https://github.com/microsoft/vscode/issues/124024 @hediet
 
 	export namespace languages {
@@ -19,18 +20,14 @@ declare module "vscode" {
 		 * @param metadata Metadata about the provider.
 		 * @return A {@link Disposable} that unregisters this provider when being disposed.
 		 */
-		export function registerInlineCompletionItemProvider(
-			selector: DocumentSelector,
-			provider: InlineCompletionItemProvider,
-			metadata: InlineCompletionItemProviderMetadata,
-		): Disposable;
+		export function registerInlineCompletionItemProvider(selector: DocumentSelector, provider: InlineCompletionItemProvider, metadata: InlineCompletionItemProviderMetadata): Disposable;
 	}
 
 	export interface InlineCompletionItem {
 		/**
 		 * If set to `true`, unopened closing brackets are removed and unclosed opening brackets are closed.
 		 * Defaults to `false`.
-		 */
+		*/
 		completeBracketPairs?: boolean;
 	}
 
@@ -48,37 +45,23 @@ declare module "vscode" {
 		 * @param updatedInsertText The actual insert text (after brackets were fixed).
 		 */
 		// eslint-disable-next-line local/vscode-dts-provider-naming
-		handleDidShowCompletionItem?(
-			completionItem: InlineCompletionItem,
-			updatedInsertText: string,
-		): void;
+		handleDidShowCompletionItem?(completionItem: InlineCompletionItem, updatedInsertText: string): void;
 
 		/**
 		 * Is called when an inline completion item was accepted partially.
 		 * @param acceptedLength The length of the substring of the inline completion that was accepted already.
 		 */
 		// eslint-disable-next-line local/vscode-dts-provider-naming
-		handleDidPartiallyAcceptCompletionItem?(
-			completionItem: InlineCompletionItem,
-			acceptedLength: number,
-		): void;
+		handleDidPartiallyAcceptCompletionItem?(completionItem: InlineCompletionItem, acceptedLength: number): void;
 
 		/**
 		 * Is called when an inline completion item was accepted partially.
 		 * @param info Additional info for the partial accepted trigger.
 		 */
 		// eslint-disable-next-line local/vscode-dts-provider-naming
-		handleDidPartiallyAcceptCompletionItem?(
-			completionItem: InlineCompletionItem,
-			info: PartialAcceptInfo,
-		): void;
+		handleDidPartiallyAcceptCompletionItem?(completionItem: InlineCompletionItem, info: PartialAcceptInfo): void;
 
-		provideInlineEditsForRange?(
-			document: TextDocument,
-			range: Range,
-			context: InlineCompletionContext,
-			token: CancellationToken,
-		): ProviderResult<InlineCompletionItem[] | InlineCompletionList>;
+		provideInlineEditsForRange?(document: TextDocument, range: Range, context: InlineCompletionContext, token: CancellationToken): ProviderResult<InlineCompletionItem[] | InlineCompletionList>;
 	}
 
 	export interface InlineCompletionContext {

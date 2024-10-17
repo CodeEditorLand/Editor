@@ -16,9 +16,7 @@ export const enum Constants {
 	BASE_CHAR_WIDTH = 1,
 
 	RGBA_CHANNELS_CNT = 4,
-	RGBA_SAMPLED_ROW_WIDTH = RGBA_CHANNELS_CNT *
-		CHAR_COUNT *
-		SAMPLED_CHAR_WIDTH,
+	RGBA_SAMPLED_ROW_WIDTH = RGBA_CHANNELS_CNT * CHAR_COUNT * SAMPLED_CHAR_WIDTH
 }
 
 export const allCharCodes: ReadonlyArray<number> = (() => {

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter } from "../../../../base/common/event.js";
+import { Emitter } from '../../../../base/common/event.js';
 
 export class DebugCompoundRoot {
 	private stopped = false;
@@ -12,8 +12,7 @@ export class DebugCompoundRoot {
 	onDidSessionStop = this.stopEmitter.event;
 
 	sessionStopped(): void {
-		if (!this.stopped) {
-			// avoid sending extranous terminate events
+		if (!this.stopped) { // avoid sending extranous terminate events
 			this.stopped = true;
 			this.stopEmitter.fire();
 		}

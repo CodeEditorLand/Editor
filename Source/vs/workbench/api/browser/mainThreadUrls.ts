@@ -3,75 +3,48 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { ExtensionIdentifier } from "../../../platform/extensions/common/extensions.js";
-import {
-	IOpenURLOptions,
-	IURLService,
-} from "../../../platform/url/common/url.js";
-import {
-	IExtensionContributedURLHandler,
-	IExtensionUrlHandler,
-} from "../../services/extensions/browser/extensionUrlHandler.js";
-import {
-	extHostNamedCustomer,
-	IExtHostContext,
-} from "../../services/extensions/common/extHostCustomers.js";
-import {
-	ExtHostContext,
-	ExtHostUrlsShape,
-	MainContext,
-	MainThreadUrlsShape,
-} from "../common/extHost.protocol.js";
+import { ExtHostContext, MainContext, MainThreadUrlsShape, ExtHostUrlsShape } from '../common/extHost.protocol.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { IURLService, IOpenURLOptions } from '../../../platform/url/common/url.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { IExtensionContributedURLHandler, IExtensionUrlHandler } from '../../services/extensions/browser/extensionUrlHandler.js';
+import { ExtensionIdentifier } from '../../../platform/extensions/common/extensions.js';
 
 class ExtensionUrlHandler implements IExtensionContributedURLHandler {
+
 	constructor(
 		private readonly proxy: ExtHostUrlsShape,
 		private readonly handle: number,
 		readonly extensionId: ExtensionIdentifier,
-		readonly extensionDisplayName: string,
-	) {}
+		readonly extensionDisplayName: string
+	) { }
 
 	handleURL(uri: URI, options?: IOpenURLOptions): Promise<boolean> {
 		if (!ExtensionIdentifier.equals(this.extensionId, uri.authority)) {
 			return Promise.resolve(false);
 		}
 
-		return Promise.resolve(
-			this.proxy.$handleExternalUri(this.handle, uri),
-		).then(() => true);
+		return Promise.resolve(this.proxy.$handleExternalUri(this.handle, uri)).then(() => true);
 	}
 }
 
 @extHostNamedCustomer(MainContext.MainThreadUrls)
 export class MainThreadUrls implements MainThreadUrlsShape {
+
 	private readonly proxy: ExtHostUrlsShape;
-	private handlers = new Map<
-		number,
-		{ extensionId: ExtensionIdentifier; disposable: IDisposable }
-	>();
+	private handlers = new Map<number, { extensionId: ExtensionIdentifier; disposable: IDisposable }>();
 
 	constructor(
 		context: IExtHostContext,
 		@IURLService private readonly urlService: IURLService,
-		@IExtensionUrlHandler
-		private readonly extensionUrlHandler: IExtensionUrlHandler,
+		@IExtensionUrlHandler private readonly extensionUrlHandler: IExtensionUrlHandler
 	) {
 		this.proxy = context.getProxy(ExtHostContext.ExtHostUrls);
 	}
 
-	$registerUriHandler(
-		handle: number,
-		extensionId: ExtensionIdentifier,
-		extensionDisplayName: string,
-	): Promise<void> {
-		const handler = new ExtensionUrlHandler(
-			this.proxy,
-			handle,
-			extensionId,
-			extensionDisplayName,
-		);
+	$registerUriHandler(handle: number, extensionId: ExtensionIdentifier, extensionDisplayName: string): Promise<void> {
+		const handler = new ExtensionUrlHandler(this.proxy, handle, extensionId, extensionDisplayName);
 		const disposable = this.urlService.registerHandler(handler);
 
 		this.handlers.set(handle, { extensionId, disposable });

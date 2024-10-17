@@ -3,14 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { ContextKeyExpression } from "../../contextkey/common/contextkey.js";
-import { ServicesAccessor } from "../../instantiation/common/instantiation.js";
-import {
-	AccessibleContentProvider,
-	AccessibleViewType,
-	ExtensionContentProvider,
-} from "./accessibleView.js";
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { AccessibleViewType, AccessibleContentProvider, ExtensionContentProvider } from './accessibleView.js';
+import { ContextKeyExpression } from '../../contextkey/common/contextkey.js';
+import { ServicesAccessor } from '../../instantiation/common/instantiation.js';
 
 export interface IAccessibleViewImplentation {
 	type: AccessibleViewType;
@@ -19,13 +15,11 @@ export interface IAccessibleViewImplentation {
 	/**
 	 * @returns the provider or undefined if the view should not be shown
 	 */
-	getProvider: (
-		accessor: ServicesAccessor,
-	) => AccessibleContentProvider | ExtensionContentProvider | undefined;
+	getProvider: (accessor: ServicesAccessor) => AccessibleContentProvider | ExtensionContentProvider | undefined;
 	when?: ContextKeyExpression | undefined;
 }
 
-export const AccessibleViewRegistry = new (class AccessibleViewRegistry {
+export const AccessibleViewRegistry = new class AccessibleViewRegistry {
 	_implementations: IAccessibleViewImplentation[] = [];
 
 	register(implementation: IAccessibleViewImplentation): IDisposable {
@@ -36,11 +30,12 @@ export const AccessibleViewRegistry = new (class AccessibleViewRegistry {
 				if (idx !== -1) {
 					this._implementations.splice(idx, 1);
 				}
-			},
+			}
 		};
 	}
 
 	getImplementations(): IAccessibleViewImplentation[] {
 		return this._implementations;
 	}
-})();
+};
+

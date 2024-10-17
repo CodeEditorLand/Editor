@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from "../../../base/common/event.js";
-import { localize } from "../../../nls.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { Event } from '../../../base/common/event.js';
+import { localize } from '../../../nls.js';
 
 export interface IRemoteTunnelSession {
 	readonly providerId: string;
@@ -14,9 +14,7 @@ export interface IRemoteTunnelSession {
 	readonly token?: string;
 }
 
-export const IRemoteTunnelService = createDecorator<IRemoteTunnelService>(
-	"IRemoteTunnelService",
-);
+export const IRemoteTunnelService = createDecorator<IRemoteTunnelService>('IRemoteTunnelService');
 export interface IRemoteTunnelService {
 	readonly _serviceBrand: undefined;
 
@@ -32,6 +30,7 @@ export interface IRemoteTunnelService {
 	startTunnel(mode: ActiveTunnelMode): Promise<TunnelStatus>;
 	stopTunnel(): Promise<void>;
 	getTunnelName(): Promise<string | undefined>;
+
 }
 
 export interface ActiveTunnelMode {
@@ -49,41 +48,30 @@ export const INACTIVE_TUNNEL_MODE: InactiveTunnelMode = { active: false };
 /** Saved mode for the tunnel. */
 export type TunnelMode = ActiveTunnelMode | InactiveTunnelMode;
 
-export type TunnelStatus =
-	| TunnelStates.Connected
-	| TunnelStates.Disconnected
-	| TunnelStates.Connecting
-	| TunnelStates.Uninitialized;
+export type TunnelStatus = TunnelStates.Connected | TunnelStates.Disconnected | TunnelStates.Connecting | TunnelStates.Uninitialized;
 
 export namespace TunnelStates {
 	export interface Uninitialized {
-		readonly type: "uninitialized";
+		readonly type: 'uninitialized';
 	}
 	export interface Connecting {
-		readonly type: "connecting";
+		readonly type: 'connecting';
 		readonly progress?: string;
 	}
 	export interface Connected {
-		readonly type: "connected";
+		readonly type: 'connected';
 		readonly info: ConnectionInfo;
 		readonly serviceInstallFailed: boolean;
 	}
 	export interface Disconnected {
-		readonly type: "disconnected";
+		readonly type: 'disconnected';
 		readonly onTokenFailed?: IRemoteTunnelSession;
 	}
-	export const disconnected = (
-		onTokenFailed?: IRemoteTunnelSession,
-	): Disconnected => ({ type: "disconnected", onTokenFailed });
-	export const connected = (
-		info: ConnectionInfo,
-		serviceInstallFailed: boolean,
-	): Connected => ({ type: "connected", info, serviceInstallFailed });
-	export const connecting = (progress?: string): Connecting => ({
-		type: "connecting",
-		progress,
-	});
-	export const uninitialized: Uninitialized = { type: "uninitialized" };
+	export const disconnected = (onTokenFailed?: IRemoteTunnelSession): Disconnected => ({ type: 'disconnected', onTokenFailed });
+	export const connected = (info: ConnectionInfo, serviceInstallFailed: boolean): Connected => ({ type: 'connected', info, serviceInstallFailed });
+	export const connecting = (progress?: string): Connecting => ({ type: 'connecting', progress });
+	export const uninitialized: Uninitialized = { type: 'uninitialized' };
+
 }
 
 export interface ConnectionInfo {
@@ -93,11 +81,9 @@ export interface ConnectionInfo {
 	isAttached: boolean;
 }
 
-export const CONFIGURATION_KEY_PREFIX = "remote.tunnels.access";
-export const CONFIGURATION_KEY_HOST_NAME =
-	CONFIGURATION_KEY_PREFIX + ".hostNameOverride";
-export const CONFIGURATION_KEY_PREVENT_SLEEP =
-	CONFIGURATION_KEY_PREFIX + ".preventSleep";
+export const CONFIGURATION_KEY_PREFIX = 'remote.tunnels.access';
+export const CONFIGURATION_KEY_HOST_NAME = CONFIGURATION_KEY_PREFIX + '.hostNameOverride';
+export const CONFIGURATION_KEY_PREVENT_SLEEP = CONFIGURATION_KEY_PREFIX + '.preventSleep';
 
-export const LOG_ID = "remoteTunnelService";
-export const LOGGER_NAME = localize("remoteTunnelLog", "Remote Tunnel Service");
+export const LOG_ID = 'remoteTunnelService';
+export const LOGGER_NAME = localize('remoteTunnelLog', "Remote Tunnel Service");

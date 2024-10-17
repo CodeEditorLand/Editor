@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from "../../../../base/common/event.js";
-import { Platform } from "../../../../base/common/platform.js";
-import { TerminateResponse } from "../../../../base/common/processes.js";
-import Severity from "../../../../base/common/severity.js";
-import { URI } from "../../../../base/common/uri.js";
-import { ConfigurationTarget } from "../../../../platform/configuration/common/configuration.js";
-import { IWorkspaceFolder } from "../../../../platform/workspace/common/workspace.js";
-import { ITaskEvent, KeyedTaskIdentifier, Task } from "./tasks.js";
+import { URI } from '../../../../base/common/uri.js';
+import Severity from '../../../../base/common/severity.js';
+import { TerminateResponse } from '../../../../base/common/processes.js';
+import { Event } from '../../../../base/common/event.js';
+import { Platform } from '../../../../base/common/platform.js';
+import { IWorkspaceFolder } from '../../../../platform/workspace/common/workspace.js';
+import { Task, ITaskEvent, KeyedTaskIdentifier } from './tasks.js';
+import { ConfigurationTarget } from '../../../../platform/configuration/common/configuration.js';
 
 export const enum TaskErrors {
 	NotConfigured,
@@ -20,7 +20,7 @@ export const enum TaskErrors {
 	ConfigValidationError,
 	TaskNotFound,
 	NoValidTaskRunner,
-	UnknownError,
+	UnknownError
 }
 
 export class TaskError {
@@ -36,9 +36,9 @@ export class TaskError {
 }
 
 export namespace Triggers {
-	export const shortcut: string = "shortcut";
-	export const command: string = "command";
-	export const reconnect: string = "reconnect";
+	export const shortcut: string = 'shortcut';
+	export const command: string = 'command';
+	export const reconnect: string = 'reconnect';
 }
 
 export interface ITaskSummary {
@@ -50,7 +50,7 @@ export interface ITaskSummary {
 
 export const enum TaskExecuteKind {
 	Started = 1,
-	Active = 2,
+	Active = 2
 }
 
 export interface ITaskExecuteResult {
@@ -67,10 +67,7 @@ export interface ITaskExecuteResult {
 }
 
 export interface ITaskResolver {
-	resolve(
-		uri: URI | string,
-		identifier: string | KeyedTaskIdentifier | undefined,
-	): Promise<Task | undefined>;
+	resolve(uri: URI | string, identifier: string | KeyedTaskIdentifier | undefined): Promise<Task | undefined>;
 }
 
 export interface ITaskTerminateResponse extends TerminateResponse {
@@ -95,22 +92,12 @@ export interface ITaskSystemInfo {
 	platform: Platform;
 	context: any;
 	uriProvider: (this: void, path: string) => URI;
-	resolveVariables(
-		workspaceFolder: IWorkspaceFolder,
-		toResolve: IResolveSet,
-		target: ConfigurationTarget,
-	): Promise<IResolvedVariables | undefined>;
-	findExecutable(
-		command: string,
-		cwd?: string,
-		paths?: string[],
-	): Promise<string | undefined>;
+	resolveVariables(workspaceFolder: IWorkspaceFolder, toResolve: IResolveSet, target: ConfigurationTarget): Promise<IResolvedVariables | undefined>;
+	findExecutable(command: string, cwd?: string, paths?: string[]): Promise<string | undefined>;
 }
 
 export interface ITaskSystemInfoResolver {
-	(
-		workspaceFolder: IWorkspaceFolder | undefined,
-	): ITaskSystemInfo | undefined;
+	(workspaceFolder: IWorkspaceFolder | undefined): ITaskSystemInfo | undefined;
 }
 
 export interface ITaskSystem {

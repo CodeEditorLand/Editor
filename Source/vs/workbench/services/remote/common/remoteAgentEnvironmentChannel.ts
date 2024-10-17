@@ -3,22 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { revive } from "../../../../base/common/marshalling.js";
-import * as performance from "../../../../base/common/performance.js";
-import * as platform from "../../../../base/common/platform.js";
-import { URI, UriComponents, UriDto } from "../../../../base/common/uri.js";
-import { IChannel } from "../../../../base/parts/ipc/common/ipc.js";
-import {
-	IDiagnosticInfo,
-	IDiagnosticInfoOptions,
-} from "../../../../platform/diagnostics/common/diagnostics.js";
-import { IRemoteAgentEnvironment } from "../../../../platform/remote/common/remoteAgentEnvironment.js";
-import {
-	ITelemetryData,
-	TelemetryLevel,
-} from "../../../../platform/telemetry/common/telemetry.js";
-import { IUserDataProfile } from "../../../../platform/userDataProfile/common/userDataProfile.js";
-import { IExtensionHostExitInfo } from "./remoteAgentService.js";
+import * as platform from '../../../../base/common/platform.js';
+import * as performance from '../../../../base/common/performance.js';
+import { URI, UriComponents, UriDto } from '../../../../base/common/uri.js';
+import { IChannel } from '../../../../base/parts/ipc/common/ipc.js';
+import { IRemoteAgentEnvironment } from '../../../../platform/remote/common/remoteAgentEnvironment.js';
+import { IDiagnosticInfoOptions, IDiagnosticInfo } from '../../../../platform/diagnostics/common/diagnostics.js';
+import { ITelemetryData, TelemetryLevel } from '../../../../platform/telemetry/common/telemetry.js';
+import { IExtensionHostExitInfo } from './remoteAgentService.js';
+import { revive } from '../../../../base/common/marshalling.js';
+import { IUserDataProfile } from '../../../../platform/userDataProfile/common/userDataProfile.js';
 
 export interface IGetEnvironmentDataArguments {
 	remoteAuthority: string;
@@ -53,20 +47,14 @@ export interface IRemoteAgentEnvironmentDTO {
 }
 
 export class RemoteExtensionEnvironmentChannelClient {
-	static async getEnvironmentData(
-		channel: IChannel,
-		remoteAuthority: string,
-		profile: string | undefined,
-	): Promise<IRemoteAgentEnvironment> {
+
+	static async getEnvironmentData(channel: IChannel, remoteAuthority: string, profile: string | undefined): Promise<IRemoteAgentEnvironment> {
 		const args: IGetEnvironmentDataArguments = {
 			remoteAuthority,
-			profile,
+			profile
 		};
 
-		const data = await channel.call<IRemoteAgentEnvironmentDTO>(
-			"getEnvironmentData",
-			args,
-		);
+		const data = await channel.call<IRemoteAgentEnvironmentDTO>('getEnvironmentData', args);
 
 		return {
 			pid: data.pid,
@@ -84,52 +72,35 @@ export class RemoteExtensionEnvironmentChannelClient {
 			marks: data.marks,
 			useHostProxy: data.useHostProxy,
 			profiles: revive(data.profiles),
-			isUnsupportedGlibc: data.isUnsupportedGlibc,
+			isUnsupportedGlibc: data.isUnsupportedGlibc
 		};
 	}
 
-	static async getExtensionHostExitInfo(
-		channel: IChannel,
-		remoteAuthority: string,
-		reconnectionToken: string,
-	): Promise<IExtensionHostExitInfo | null> {
+	static async getExtensionHostExitInfo(channel: IChannel, remoteAuthority: string, reconnectionToken: string): Promise<IExtensionHostExitInfo | null> {
 		const args: IGetExtensionHostExitInfoArguments = {
 			remoteAuthority,
-			reconnectionToken,
+			reconnectionToken
 		};
-		return channel.call<IExtensionHostExitInfo | null>(
-			"getExtensionHostExitInfo",
-			args,
-		);
+		return channel.call<IExtensionHostExitInfo | null>('getExtensionHostExitInfo', args);
 	}
 
-	static getDiagnosticInfo(
-		channel: IChannel,
-		options: IDiagnosticInfoOptions,
-	): Promise<IDiagnosticInfo> {
-		return channel.call<IDiagnosticInfo>("getDiagnosticInfo", options);
+	static getDiagnosticInfo(channel: IChannel, options: IDiagnosticInfoOptions): Promise<IDiagnosticInfo> {
+		return channel.call<IDiagnosticInfo>('getDiagnosticInfo', options);
 	}
 
-	static updateTelemetryLevel(
-		channel: IChannel,
-		telemetryLevel: TelemetryLevel,
-	): Promise<void> {
-		return channel.call<void>("updateTelemetryLevel", { telemetryLevel });
+	static updateTelemetryLevel(channel: IChannel, telemetryLevel: TelemetryLevel): Promise<void> {
+		return channel.call<void>('updateTelemetryLevel', { telemetryLevel });
 	}
 
-	static logTelemetry(
-		channel: IChannel,
-		eventName: string,
-		data: ITelemetryData,
-	): Promise<void> {
-		return channel.call<void>("logTelemetry", { eventName, data });
+	static logTelemetry(channel: IChannel, eventName: string, data: ITelemetryData): Promise<void> {
+		return channel.call<void>('logTelemetry', { eventName, data });
 	}
 
 	static flushTelemetry(channel: IChannel): Promise<void> {
-		return channel.call<void>("flushTelemetry");
+		return channel.call<void>('flushTelemetry');
 	}
 
 	static async ping(channel: IChannel): Promise<void> {
-		await channel.call<void>("ping");
+		await channel.call<void>('ping');
 	}
 }

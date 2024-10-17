@@ -3,33 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { groupBy } from "../../../../base/common/arrays.js";
-import { CancellationToken } from "../../../../base/common/cancellation.js";
-import { onUnexpectedExternalError } from "../../../../base/common/errors.js";
-import { IDisposable } from "../../../../base/common/lifecycle.js";
-import { compare } from "../../../../base/common/strings.js";
-import { isNumber } from "../../../../base/common/types.js";
-import { URI } from "../../../../base/common/uri.js";
-import { IRange, Range } from "../../../../editor/common/core/range.js";
-import {
-	Location,
-	ProviderResult,
-	SymbolKind,
-	SymbolTag,
-} from "../../../../editor/common/languages.js";
-import { RawContextKey } from "../../../../platform/contextkey/common/contextkey.js";
-import { IFileService } from "../../../../platform/files/common/files.js";
-import { ServicesAccessor } from "../../../../platform/instantiation/common/instantiation.js";
-import { IWorkspaceContextService } from "../../../../platform/workspace/common/workspace.js";
-import {
-	EditorResourceAccessor,
-	SideBySideEditor,
-} from "../../../common/editor.js";
-import { IEditorService } from "../../../services/editor/common/editorService.js";
-import {
-	ISearchConfiguration,
-	ISearchConfigurationProperties,
-} from "../../../services/search/common/search.js";
+import { onUnexpectedExternalError } from '../../../../base/common/errors.js';
+import { IDisposable } from '../../../../base/common/lifecycle.js';
+import { ISearchConfiguration, ISearchConfigurationProperties } from '../../../services/search/common/search.js';
+import { SymbolKind, Location, ProviderResult, SymbolTag } from '../../../../editor/common/languages.js';
+import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
+import { URI } from '../../../../base/common/uri.js';
+import { EditorResourceAccessor, SideBySideEditor } from '../../../common/editor.js';
+import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { IFileService } from '../../../../platform/files/common/files.js';
+import { IRange, Range } from '../../../../editor/common/core/range.js';
+import { isNumber } from '../../../../base/common/types.js';
+import { RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
+import { compare } from '../../../../base/common/strings.js';
+import { groupBy } from '../../../../base/common/arrays.js';
 
 export interface IWorkspaceSymbol {
 	name: string;
@@ -40,17 +29,12 @@ export interface IWorkspaceSymbol {
 }
 
 export interface IWorkspaceSymbolProvider {
-	provideWorkspaceSymbols(
-		search: string,
-		token: CancellationToken,
-	): ProviderResult<IWorkspaceSymbol[]>;
-	resolveWorkspaceSymbol?(
-		item: IWorkspaceSymbol,
-		token: CancellationToken,
-	): ProviderResult<IWorkspaceSymbol>;
+	provideWorkspaceSymbols(search: string, token: CancellationToken): ProviderResult<IWorkspaceSymbol[]>;
+	resolveWorkspaceSymbol?(item: IWorkspaceSymbol, token: CancellationToken): ProviderResult<IWorkspaceSymbol>;
 }
 
 export namespace WorkspaceSymbolProviderRegistry {
+
 	const _supports: IWorkspaceSymbolProvider[] = [];
 
 	export function register(provider: IWorkspaceSymbolProvider): IDisposable {
@@ -68,7 +52,7 @@ export namespace WorkspaceSymbolProviderRegistry {
 						support = undefined;
 					}
 				}
-			},
+			}
 		};
 	}
 
@@ -78,36 +62,26 @@ export namespace WorkspaceSymbolProviderRegistry {
 }
 
 export class WorkspaceSymbolItem {
-	constructor(
-		readonly symbol: IWorkspaceSymbol,
-		readonly provider: IWorkspaceSymbolProvider,
-	) {}
+	constructor(readonly symbol: IWorkspaceSymbol, readonly provider: IWorkspaceSymbolProvider) { }
 }
 
-export async function getWorkspaceSymbols(
-	query: string,
-	token: CancellationToken = CancellationToken.None,
-): Promise<WorkspaceSymbolItem[]> {
+export async function getWorkspaceSymbols(query: string, token: CancellationToken = CancellationToken.None): Promise<WorkspaceSymbolItem[]> {
+
 	const all: WorkspaceSymbolItem[] = [];
 
-	const promises = WorkspaceSymbolProviderRegistry.all().map(
-		async (provider) => {
-			try {
-				const value = await provider.provideWorkspaceSymbols(
-					query,
-					token,
-				);
-				if (!value) {
-					return;
-				}
-				for (const symbol of value) {
-					all.push(new WorkspaceSymbolItem(symbol, provider));
-				}
-			} catch (err) {
-				onUnexpectedExternalError(err);
+	const promises = WorkspaceSymbolProviderRegistry.all().map(async provider => {
+		try {
+			const value = await provider.provideWorkspaceSymbols(query, token);
+			if (!value) {
+				return;
 			}
-		},
-	);
+			for (const symbol of value) {
+				all.push(new WorkspaceSymbolItem(symbol, provider));
+			}
+		} catch (err) {
+			onUnexpectedExternalError(err);
+		}
+	});
 
 	await Promise.all(promises);
 
@@ -117,66 +91,40 @@ export async function getWorkspaceSymbols(
 
 	// de-duplicate entries
 
-	function compareItems(
-		a: WorkspaceSymbolItem,
-		b: WorkspaceSymbolItem,
-	): number {
+	function compareItems(a: WorkspaceSymbolItem, b: WorkspaceSymbolItem): number {
 		let res = compare(a.symbol.name, b.symbol.name);
 		if (res === 0) {
 			res = a.symbol.kind - b.symbol.kind;
 		}
 		if (res === 0) {
-			res = compare(
-				a.symbol.location.uri.toString(),
-				b.symbol.location.uri.toString(),
-			);
+			res = compare(a.symbol.location.uri.toString(), b.symbol.location.uri.toString());
 		}
 		if (res === 0) {
 			if (a.symbol.location.range && b.symbol.location.range) {
-				if (
-					!Range.areIntersecting(
-						a.symbol.location.range,
-						b.symbol.location.range,
-					)
-				) {
-					res = Range.compareRangesUsingStarts(
-						a.symbol.location.range,
-						b.symbol.location.range,
-					);
+				if (!Range.areIntersecting(a.symbol.location.range, b.symbol.location.range)) {
+					res = Range.compareRangesUsingStarts(a.symbol.location.range, b.symbol.location.range);
 				}
-			} else if (
-				a.provider.resolveWorkspaceSymbol &&
-				!b.provider.resolveWorkspaceSymbol
-			) {
+			} else if (a.provider.resolveWorkspaceSymbol && !b.provider.resolveWorkspaceSymbol) {
 				res = -1;
-			} else if (
-				!a.provider.resolveWorkspaceSymbol &&
-				b.provider.resolveWorkspaceSymbol
-			) {
+			} else if (!a.provider.resolveWorkspaceSymbol && b.provider.resolveWorkspaceSymbol) {
 				res = 1;
 			}
 		}
 		if (res === 0) {
-			res = compare(
-				a.symbol.containerName ?? "",
-				b.symbol.containerName ?? "",
-			);
+			res = compare(a.symbol.containerName ?? '', b.symbol.containerName ?? '');
 		}
 		return res;
 	}
 
-	return groupBy(all, compareItems)
-		.map((group) => group[0])
-		.flat();
+	return groupBy(all, compareItems).map(group => group[0]).flat();
 }
 
-export interface IWorkbenchSearchConfigurationProperties
-	extends ISearchConfigurationProperties {
+export interface IWorkbenchSearchConfigurationProperties extends ISearchConfigurationProperties {
 	quickOpen: {
 		includeSymbols: boolean;
 		includeHistory: boolean;
 		history: {
-			filterSortOrder: "default" | "recency";
+			filterSortOrder: 'default' | 'recency';
 		};
 	};
 }
@@ -188,25 +136,14 @@ export interface IWorkbenchSearchConfiguration extends ISearchConfiguration {
 /**
  * Helper to return all opened editors with resources not belonging to the currently opened workspace.
  */
-export function getOutOfWorkspaceEditorResources(
-	accessor: ServicesAccessor,
-): URI[] {
+export function getOutOfWorkspaceEditorResources(accessor: ServicesAccessor): URI[] {
 	const editorService = accessor.get(IEditorService);
 	const contextService = accessor.get(IWorkspaceContextService);
 	const fileService = accessor.get(IFileService);
 
 	const resources = editorService.editors
-		.map((editor) =>
-			EditorResourceAccessor.getOriginalUri(editor, {
-				supportSideBySide: SideBySideEditor.PRIMARY,
-			}),
-		)
-		.filter(
-			(resource) =>
-				!!resource &&
-				!contextService.isInsideWorkspace(resource) &&
-				fileService.hasProvider(resource),
-		);
+		.map(editor => EditorResourceAccessor.getOriginalUri(editor, { supportSideBySide: SideBySideEditor.PRIMARY }))
+		.filter(resource => !!resource && !contextService.isInsideWorkspace(resource) && fileService.hasProvider(resource));
 
 	return resources as URI[];
 }
@@ -219,24 +156,12 @@ export interface IFilterAndRange {
 	range: IRange;
 }
 
-export function extractRangeFromFilter(
-	filter: string,
-	unless?: string[],
-): IFilterAndRange | undefined {
+export function extractRangeFromFilter(filter: string, unless?: string[]): IFilterAndRange | undefined {
 	// Ignore when the unless character not the first character or is before the line colon pattern
-	if (
-		!filter ||
-		unless?.some((value) => {
-			const unlessCharPos = filter.indexOf(value);
-			return (
-				unlessCharPos === 0 ||
-				(unlessCharPos > 0 &&
-					!LINE_COLON_PATTERN.test(
-						filter.substring(unlessCharPos + 1),
-					))
-			);
-		})
-	) {
+	if (!filter || unless?.some(value => {
+		const unlessCharPos = filter.indexOf(value);
+		return unlessCharPos === 0 || unlessCharPos > 0 && !LINE_COLON_PATTERN.test(filter.substring(unlessCharPos + 1));
+	})) {
 		return undefined;
 	}
 
@@ -246,7 +171,7 @@ export function extractRangeFromFilter(
 	const patternMatch = LINE_COLON_PATTERN.exec(filter);
 
 	if (patternMatch) {
-		const startLineNumber = parseInt(patternMatch[1] ?? "", 10);
+		const startLineNumber = parseInt(patternMatch[1] ?? '', 10);
 
 		// Line Number
 		if (isNumber(startLineNumber)) {
@@ -254,28 +179,28 @@ export function extractRangeFromFilter(
 				startLineNumber: startLineNumber,
 				startColumn: 1,
 				endLineNumber: startLineNumber,
-				endColumn: 1,
+				endColumn: 1
 			};
 
 			// Column Number
-			const startColumn = parseInt(patternMatch[2] ?? "", 10);
+			const startColumn = parseInt(patternMatch[2] ?? '', 10);
 			if (isNumber(startColumn)) {
 				range = {
 					startLineNumber: range.startLineNumber,
 					startColumn: startColumn,
 					endLineNumber: range.endLineNumber,
-					endColumn: startColumn,
+					endColumn: startColumn
 				};
 			}
 		}
 
 		// User has typed "something:" or "something#" without a line number, in this case treat as start of file
-		else if (patternMatch[1] === "") {
+		else if (patternMatch[1] === '') {
 			range = {
 				startLineNumber: 1,
 				startColumn: 1,
 				endLineNumber: 1,
-				endColumn: 1,
+				endColumn: 1
 			};
 		}
 	}
@@ -283,7 +208,7 @@ export function extractRangeFromFilter(
 	if (patternMatch && range) {
 		return {
 			filter: filter.substr(0, patternMatch.index), // clear range suffix from search value
-			range,
+			range
 		};
 	}
 
@@ -293,13 +218,10 @@ export function extractRangeFromFilter(
 export enum SearchUIState {
 	Idle,
 	Searching,
-	SlowSearch,
+	SlowSearch
 }
 
-export const SearchStateKey = new RawContextKey<SearchUIState>(
-	"searchState",
-	SearchUIState.Idle,
-);
+export const SearchStateKey = new RawContextKey<SearchUIState>('searchState', SearchUIState.Idle);
 
 export interface NotebookPriorityInfo {
 	isFromSettings: boolean;

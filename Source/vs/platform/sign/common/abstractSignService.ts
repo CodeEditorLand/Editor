@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IMessage, ISignService } from "./sign.js";
+import { IMessage, ISignService } from './sign.js';
 
 export interface IVsdaSigner {
 	sign(arg: string): string;
@@ -11,7 +11,7 @@ export interface IVsdaSigner {
 
 export interface IVsdaValidator {
 	createNewMessage(arg: string): string;
-	validate(arg: string): "ok" | "error";
+	validate(arg: string): 'ok' | 'error';
 	dispose?(): void;
 }
 
@@ -32,13 +32,13 @@ export abstract class AbstractSignService implements ISignService {
 				this.validators.set(id, validator);
 				return {
 					id: id,
-					data: validator.createNewMessage(value),
+					data: validator.createNewMessage(value)
 				};
 			}
 		} catch (e) {
 			// ignore errors silently
 		}
-		return { id: "", data: value };
+		return { id: '', data: value };
 	}
 
 	async validate(message: IMessage, value: string): Promise<boolean> {
@@ -52,7 +52,7 @@ export abstract class AbstractSignService implements ISignService {
 		}
 		this.validators.delete(message.id);
 		try {
-			return validator.validate(value) === "ok";
+			return (validator.validate(value) === 'ok');
 		} catch (e) {
 			// ignore errors silently
 			return false;

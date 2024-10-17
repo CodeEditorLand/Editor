@@ -3,24 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter } from "../../../../../base/common/event.js";
-import { Disposable } from "../../../../../base/common/lifecycle.js";
-import { generateUuid } from "../../../../../base/common/uuid.js";
-import { PrefixSumComputer } from "../../../../../editor/common/model/prefixSumComputer.js";
-import { NotebookCellTextModel } from "../../common/model/notebookCellTextModel.js";
-import { INotebookService } from "../../common/notebookService.js";
-import {
-	ICellOutputViewModel,
-	IGenericCellViewModel,
-} from "../notebookBrowser.js";
-import { CellViewModelStateChangeEvent } from "../notebookViewEvents.js";
-import { CellOutputViewModel } from "../viewModel/cellOutputViewModel.js";
-import { IDiffNestedCellViewModel } from "./notebookDiffEditorBrowser.js";
+import { Emitter } from '../../../../../base/common/event.js';
+import { Disposable } from '../../../../../base/common/lifecycle.js';
+import { generateUuid } from '../../../../../base/common/uuid.js';
+import { PrefixSumComputer } from '../../../../../editor/common/model/prefixSumComputer.js';
+import { IDiffNestedCellViewModel } from './notebookDiffEditorBrowser.js';
+import { ICellOutputViewModel, IGenericCellViewModel } from '../notebookBrowser.js';
+import { CellViewModelStateChangeEvent } from '../notebookViewEvents.js';
+import { CellOutputViewModel } from '../viewModel/cellOutputViewModel.js';
+import { NotebookCellTextModel } from '../../common/model/notebookCellTextModel.js';
+import { INotebookService } from '../../common/notebookService.js';
 
-export class DiffNestedCellViewModel
-	extends Disposable
-	implements IDiffNestedCellViewModel, IGenericCellViewModel
-{
+export class DiffNestedCellViewModel extends Disposable implements IDiffNestedCellViewModel, IGenericCellViewModel {
 	private _id: string;
 	get id() {
 		return this._id;
@@ -46,8 +40,7 @@ export class DiffNestedCellViewModel
 		return this.textModel.handle;
 	}
 
-	protected readonly _onDidChangeState: Emitter<CellViewModelStateChangeEvent> =
-		this._register(new Emitter<CellViewModelStateChangeEvent>());
+	protected readonly _onDidChangeState: Emitter<CellViewModelStateChangeEvent> = this._register(new Emitter<CellViewModelStateChangeEvent>());
 
 	private _hoveringOutput: boolean = false;
 	public get outputIsHovered(): boolean {
@@ -87,47 +80,25 @@ export class DiffNestedCellViewModel
 	protected _outputCollection: number[] = [];
 	protected _outputsTop: PrefixSumComputer | null = null;
 
-	protected readonly _onDidChangeOutputLayout = this._register(
-		new Emitter<void>(),
-	);
+	protected readonly _onDidChangeOutputLayout = this._register(new Emitter<void>());
 	readonly onDidChangeOutputLayout = this._onDidChangeOutputLayout.event;
 
 	constructor(
 		readonly textModel: NotebookCellTextModel,
-		@INotebookService private _notebookService: INotebookService,
+		@INotebookService private _notebookService: INotebookService
 	) {
 		super();
 		this._id = generateUuid();
 
-		this._outputViewModels = this.textModel.outputs.map(
-			(output) =>
-				new CellOutputViewModel(this, output, this._notebookService),
-		);
-		this._register(
-			this.textModel.onDidChangeOutputs((splice) => {
-				this._outputCollection.splice(
-					splice.start,
-					splice.deleteCount,
-					...splice.newOutputs.map(() => 0),
-				);
-				const removed = this._outputViewModels.splice(
-					splice.start,
-					splice.deleteCount,
-					...splice.newOutputs.map(
-						(output) =>
-							new CellOutputViewModel(
-								this,
-								output,
-								this._notebookService,
-							),
-					),
-				);
-				removed.forEach((vm) => vm.dispose());
+		this._outputViewModels = this.textModel.outputs.map(output => new CellOutputViewModel(this, output, this._notebookService));
+		this._register(this.textModel.onDidChangeOutputs((splice) => {
+			this._outputCollection.splice(splice.start, splice.deleteCount, ...splice.newOutputs.map(() => 0));
+			const removed = this._outputViewModels.splice(splice.start, splice.deleteCount, ...splice.newOutputs.map(output => new CellOutputViewModel(this, output, this._notebookService)));
+			removed.forEach(vm => vm.dispose());
 
-				this._outputsTop = null;
-				this._onDidChangeOutputLayout.fire();
-			}),
-		);
+			this._outputsTop = null;
+			this._onDidChangeOutputLayout.fire();
+		}));
 		this._outputCollection = new Array(this.textModel.outputs.length);
 	}
 
@@ -146,7 +117,7 @@ export class DiffNestedCellViewModel
 		this._ensureOutputsTop();
 
 		if (index >= this._outputCollection.length) {
-			throw new Error("Output index out of range!");
+			throw new Error('Output index out of range!');
 		}
 
 		return this._outputsTop!.getPrefixSum(index - 1);
@@ -154,7 +125,7 @@ export class DiffNestedCellViewModel
 
 	updateOutputHeight(index: number, height: number): void {
 		if (index >= this._outputCollection.length) {
-			throw new Error("Output index out of range!");
+			throw new Error('Output index out of range!');
 		}
 
 		this._ensureOutputsTop();
@@ -173,7 +144,7 @@ export class DiffNestedCellViewModel
 	public override dispose(): void {
 		super.dispose();
 
-		this._outputViewModels.forEach((output) => {
+		this._outputViewModels.forEach(output => {
 			output.dispose();
 		});
 	}

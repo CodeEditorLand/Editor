@@ -3,17 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from "../../../../base/common/event.js";
-import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
-import {
-	IOpenEmptyWindowOptions,
-	IOpenWindowOptions,
-	IPoint,
-	IRectangle,
-	IWindowOpenable,
-} from "../../../../platform/window/common/window.js";
+import { Event } from '../../../../base/common/event.js';
+import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { IWindowOpenable, IOpenWindowOptions, IOpenEmptyWindowOptions, IPoint, IRectangle } from '../../../../platform/window/common/window.js';
 
-export const IHostService = createDecorator<IHostService>("hostService");
+export const IHostService = createDecorator<IHostService>('hostService');
 
 /**
  * A set of methods supported in both web and native environments.
@@ -22,6 +16,7 @@ export const IHostService = createDecorator<IHostService>("hostService");
  * environments.
  */
 export interface IHostService {
+
 	readonly _serviceBrand: undefined;
 
 	//#region Focus
@@ -72,10 +67,7 @@ export interface IHostService {
 	 * Emitted when the window with the given identifier changes
 	 * its fullscreen state.
 	 */
-	readonly onDidChangeFullScreen: Event<{
-		windowId: number;
-		fullscreen: boolean;
-	}>;
+	readonly onDidChangeFullScreen: Event<{ windowId: number; fullscreen: boolean }>;
 
 	/**
 	 * Opens an empty window. The optional parameter allows to define if
@@ -86,10 +78,7 @@ export interface IHostService {
 	/**
 	 * Opens the provided array of openables in a window with the provided options.
 	 */
-	openWindow(
-		toOpen: IWindowOpenable[],
-		options?: IOpenWindowOptions,
-	): Promise<void>;
+	openWindow(toOpen: IWindowOpenable[], options?: IOpenWindowOptions): Promise<void>;
 
 	/**
 	 * Switch between fullscreen and normal window.
@@ -104,9 +93,7 @@ export interface IHostService {
 	/**
 	 * Get the location of the mouse cursor and its display bounds or `undefined` if unavailable.
 	 */
-	getCursorScreenPoint(): Promise<
-		{ readonly point: IPoint; readonly display: IRectangle } | undefined
-	>;
+	getCursorScreenPoint(): Promise<{ readonly point: IPoint; readonly display: IRectangle } | undefined>;
 
 	//#endregion
 
@@ -132,6 +119,15 @@ export interface IHostService {
 	 * in progress, attempts to quit the application will not be vetoed with a dialog.
 	 */
 	withExpectedShutdown<T>(expectedShutdownTask: () => Promise<T>): Promise<T>;
+
+	//#endregion
+
+	//#region Screenshots
+
+	/**
+	 * Captures a screenshot.
+	 */
+	getScreenshot(): Promise<ArrayBufferLike | undefined>;
 
 	//#endregion
 }

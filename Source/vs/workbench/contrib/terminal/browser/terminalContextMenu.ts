@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { StandardMouseEvent } from "../../../../base/browser/mouseEvent.js";
-import { ActionRunner, IAction } from "../../../../base/common/actions.js";
-import { asArray } from "../../../../base/common/arrays.js";
-import { MarshalledId } from "../../../../base/common/marshallingIds.js";
-import { SingleOrMany } from "../../../../base/common/types.js";
-import { createAndFillInContextMenuActions } from "../../../../platform/actions/browser/menuEntryActionViewItem.js";
-import { IMenu } from "../../../../platform/actions/common/actions.js";
-import { IContextMenuService } from "../../../../platform/contextview/browser/contextView.js";
-import { ISerializedTerminalInstanceContext } from "../common/terminal.js";
-import { ITerminalInstance } from "./terminal.js";
+import { StandardMouseEvent } from '../../../../base/browser/mouseEvent.js';
+import { ActionRunner, IAction } from '../../../../base/common/actions.js';
+import { asArray } from '../../../../base/common/arrays.js';
+import { MarshalledId } from '../../../../base/common/marshallingIds.js';
+import { SingleOrMany } from '../../../../base/common/types.js';
+import { createAndFillInContextMenuActions } from '../../../../platform/actions/browser/menuEntryActionViewItem.js';
+import { IMenu } from '../../../../platform/actions/common/actions.js';
+import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
+import { ITerminalInstance } from './terminal.js';
+import { ISerializedTerminalInstanceContext } from '../common/terminal.js';
 
 /**
  * A context that is passed to actions as arguments to represent the terminal instance(s) being
@@ -29,21 +29,16 @@ export class InstanceContext {
 	toJSON(): ISerializedTerminalInstanceContext {
 		return {
 			$mid: MarshalledId.TerminalContext,
-			instanceId: this.instanceId,
+			instanceId: this.instanceId
 		};
 	}
 }
 
 export class TerminalContextActionRunner extends ActionRunner {
+
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	protected override async runAction(
-		action: IAction,
-		context?: InstanceContext | InstanceContext[],
-	): Promise<void> {
-		if (
-			Array.isArray(context) &&
-			context.every((e) => e instanceof InstanceContext)
-		) {
+	protected override async runAction(action: IAction, context?: InstanceContext | InstanceContext[]): Promise<void> {
+		if (Array.isArray(context) && context.every(e => e instanceof InstanceContext)) {
 			// arg1: The (first) focused instance
 			// arg2: All selected instances
 			await action.run(context?.[0], context);
@@ -53,31 +48,18 @@ export class TerminalContextActionRunner extends ActionRunner {
 	}
 }
 
-export function openContextMenu(
-	targetWindow: Window,
-	event: MouseEvent,
-	contextInstances: SingleOrMany<ITerminalInstance> | undefined,
-	menu: IMenu,
-	contextMenuService: IContextMenuService,
-	extraActions?: IAction[],
-): void {
+export function openContextMenu(targetWindow: Window, event: MouseEvent, contextInstances: SingleOrMany<ITerminalInstance> | undefined, menu: IMenu, contextMenuService: IContextMenuService, extraActions?: IAction[]): void {
 	const standardEvent = new StandardMouseEvent(targetWindow, event);
 
 	const actions: IAction[] = [];
 
-	createAndFillInContextMenuActions(
-		menu,
-		{ shouldForwardArgs: true },
-		actions,
-	);
+	createAndFillInContextMenuActions(menu, { shouldForwardArgs: true }, actions);
 
 	if (extraActions) {
 		actions.push(...extraActions);
 	}
 
-	const context: InstanceContext[] = contextInstances
-		? asArray(contextInstances).map((e) => new InstanceContext(e))
-		: [];
+	const context: InstanceContext[] = contextInstances ? asArray(contextInstances).map(e => new InstanceContext(e)) : [];
 
 	contextMenuService.showContextMenu({
 		actionRunner: new TerminalContextActionRunner(),

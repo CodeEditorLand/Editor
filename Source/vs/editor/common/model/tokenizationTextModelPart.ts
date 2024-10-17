@@ -3,100 +3,50 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CharCode } from "../../../base/common/charCode.js";
-import {
-	BugIndicatingError,
-	onUnexpectedError,
-} from "../../../base/common/errors.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import {
-	DisposableMap,
-	DisposableStore,
-	MutableDisposable,
-} from "../../../base/common/lifecycle.js";
-import { countEOL } from "../core/eolCounter.js";
-import { LineRange } from "../core/lineRange.js";
-import { IPosition, Position } from "../core/position.js";
-import { Range } from "../core/range.js";
-import { getWordAtText, IWordAtPosition } from "../core/wordHelper.js";
-import { StandardTokenType } from "../encodedTokenAttributes.js";
-import {
-	IBackgroundTokenizationStore,
-	IBackgroundTokenizer,
-	ILanguageIdCodec,
-	IState,
-	ITokenizationSupport,
-	TokenizationRegistry,
-	TreeSitterTokenizationRegistry,
-} from "../languages.js";
-import { ILanguageService } from "../languages/language.js";
-import {
-	ILanguageConfigurationService,
-	LanguageConfigurationServiceChangeEvent,
-	ResolvedLanguageConfiguration,
-} from "../languages/languageConfigurationRegistry.js";
-import { IAttachedView } from "../model.js";
-import { ITreeSitterParserService } from "../services/treeSitterParserService.js";
-import {
-	IModelContentChangedEvent,
-	IModelLanguageChangedEvent,
-	IModelLanguageConfigurationChangedEvent,
-	IModelTokensChangedEvent,
-} from "../textModelEvents.js";
-import {
-	BackgroundTokenizationState,
-	ITokenizationTextModelPart,
-	ITokenizeLineWithEditResult,
-	LineEditWithAdditionalLines,
-} from "../tokenizationTextModelPart.js";
-import { ContiguousMultilineTokens } from "../tokens/contiguousMultilineTokens.js";
-import { ContiguousMultilineTokensBuilder } from "../tokens/contiguousMultilineTokensBuilder.js";
-import { ContiguousTokensStore } from "../tokens/contiguousTokensStore.js";
-import { LineTokens } from "../tokens/lineTokens.js";
-import { SparseMultilineTokens } from "../tokens/sparseMultilineTokens.js";
-import { SparseTokensStore } from "../tokens/sparseTokensStore.js";
-import { BracketPairsTextModelPart } from "./bracketPairsTextModelPart/bracketPairsImpl.js";
-import { TextModel } from "./textModel.js";
-import { TextModelPart } from "./textModelPart.js";
-import {
-	DefaultBackgroundTokenizer,
-	TokenizerWithStateStoreAndTextModel,
-	TrackingTokenizationStateStore,
-} from "./textModelTokens.js";
-import {
-	AbstractTokens,
-	AttachedViewHandler,
-	AttachedViews,
-} from "./tokens.js";
-import { TreeSitterTokens } from "./treeSitterTokens.js";
+import { CharCode } from '../../../base/common/charCode.js';
+import { BugIndicatingError, onUnexpectedError } from '../../../base/common/errors.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { DisposableMap, DisposableStore, MutableDisposable } from '../../../base/common/lifecycle.js';
+import { countEOL } from '../core/eolCounter.js';
+import { LineRange } from '../core/lineRange.js';
+import { IPosition, Position } from '../core/position.js';
+import { Range } from '../core/range.js';
+import { IWordAtPosition, getWordAtText } from '../core/wordHelper.js';
+import { StandardTokenType } from '../encodedTokenAttributes.js';
+import { IBackgroundTokenizationStore, IBackgroundTokenizer, ILanguageIdCodec, IState, ITokenizationSupport, TokenizationRegistry, TreeSitterTokenizationRegistry } from '../languages.js';
+import { ILanguageService } from '../languages/language.js';
+import { ILanguageConfigurationService, LanguageConfigurationServiceChangeEvent, ResolvedLanguageConfiguration } from '../languages/languageConfigurationRegistry.js';
+import { IAttachedView } from '../model.js';
+import { BracketPairsTextModelPart } from './bracketPairsTextModelPart/bracketPairsImpl.js';
+import { TextModel } from './textModel.js';
+import { TextModelPart } from './textModelPart.js';
+import { DefaultBackgroundTokenizer, TokenizerWithStateStoreAndTextModel, TrackingTokenizationStateStore } from './textModelTokens.js';
+import { AbstractTokens, AttachedViewHandler, AttachedViews } from './tokens.js';
+import { TreeSitterTokens } from './treeSitterTokens.js';
+import { ITreeSitterParserService } from '../services/treeSitterParserService.js';
+import { IModelContentChangedEvent, IModelLanguageChangedEvent, IModelLanguageConfigurationChangedEvent, IModelTokensChangedEvent } from '../textModelEvents.js';
+import { BackgroundTokenizationState, ITokenizationTextModelPart, ITokenizeLineWithEditResult, LineEditWithAdditionalLines } from '../tokenizationTextModelPart.js';
+import { ContiguousMultilineTokens } from '../tokens/contiguousMultilineTokens.js';
+import { ContiguousMultilineTokensBuilder } from '../tokens/contiguousMultilineTokensBuilder.js';
+import { ContiguousTokensStore } from '../tokens/contiguousTokensStore.js';
+import { LineTokens } from '../tokens/lineTokens.js';
+import { SparseMultilineTokens } from '../tokens/sparseMultilineTokens.js';
+import { SparseTokensStore } from '../tokens/sparseTokensStore.js';
 
-export class TokenizationTextModelPart
-	extends TextModelPart
-	implements ITokenizationTextModelPart
-{
-	private readonly _semanticTokens: SparseTokensStore = new SparseTokensStore(
-		this._languageService.languageIdCodec,
-	);
+export class TokenizationTextModelPart extends TextModelPart implements ITokenizationTextModelPart {
+	private readonly _semanticTokens: SparseTokensStore = new SparseTokensStore(this._languageService.languageIdCodec);
 
-	private readonly _onDidChangeLanguage: Emitter<IModelLanguageChangedEvent> =
-		this._register(new Emitter<IModelLanguageChangedEvent>());
-	public readonly onDidChangeLanguage: Event<IModelLanguageChangedEvent> =
-		this._onDidChangeLanguage.event;
+	private readonly _onDidChangeLanguage: Emitter<IModelLanguageChangedEvent> = this._register(new Emitter<IModelLanguageChangedEvent>());
+	public readonly onDidChangeLanguage: Event<IModelLanguageChangedEvent> = this._onDidChangeLanguage.event;
 
-	private readonly _onDidChangeLanguageConfiguration: Emitter<IModelLanguageConfigurationChangedEvent> =
-		this._register(new Emitter<IModelLanguageConfigurationChangedEvent>());
-	public readonly onDidChangeLanguageConfiguration: Event<IModelLanguageConfigurationChangedEvent> =
-		this._onDidChangeLanguageConfiguration.event;
+	private readonly _onDidChangeLanguageConfiguration: Emitter<IModelLanguageConfigurationChangedEvent> = this._register(new Emitter<IModelLanguageConfigurationChangedEvent>());
+	public readonly onDidChangeLanguageConfiguration: Event<IModelLanguageConfigurationChangedEvent> = this._onDidChangeLanguageConfiguration.event;
 
-	private readonly _onDidChangeTokens: Emitter<IModelTokensChangedEvent> =
-		this._register(new Emitter<IModelTokensChangedEvent>());
-	public readonly onDidChangeTokens: Event<IModelTokensChangedEvent> =
-		this._onDidChangeTokens.event;
+	private readonly _onDidChangeTokens: Emitter<IModelTokensChangedEvent> = this._register(new Emitter<IModelTokensChangedEvent>());
+	public readonly onDidChangeTokens: Event<IModelTokensChangedEvent> = this._onDidChangeTokens.event;
 
 	private _tokens!: AbstractTokens;
-	private readonly _tokensDisposables: DisposableStore = this._register(
-		new DisposableStore(),
-	);
+	private readonly _tokensDisposables: DisposableStore = this._register(new DisposableStore());
 
 	constructor(
 		private readonly _textModel: TextModel,
@@ -104,74 +54,46 @@ export class TokenizationTextModelPart
 		private _languageId: string,
 		private readonly _attachedViews: AttachedViews,
 		@ILanguageService private readonly _languageService: ILanguageService,
-		@ILanguageConfigurationService
-		private readonly _languageConfigurationService: ILanguageConfigurationService,
-		@ITreeSitterParserService
-		private readonly _treeSitterService: ITreeSitterParserService,
+		@ILanguageConfigurationService private readonly _languageConfigurationService: ILanguageConfigurationService,
+		@ITreeSitterParserService private readonly _treeSitterService: ITreeSitterParserService,
 	) {
 		super();
 
-		this._register(
-			this._languageConfigurationService.onDidChange((e) => {
-				if (e.affects(this._languageId)) {
-					this._onDidChangeLanguageConfiguration.fire({});
-				}
-			}),
-		);
+		this._register(this._languageConfigurationService.onDidChange(e => {
+			if (e.affects(this._languageId)) {
+				this._onDidChangeLanguageConfiguration.fire({});
+			}
+		}));
 
 		// We just look at registry changes to determine whether to use tree sitter.
 		// This means that removing a language from the setting will not cause a switch to textmate and will require a reload.
 		// Adding a language to the setting will not need a reload, however.
-		this._register(
-			Event.filter(TreeSitterTokenizationRegistry.onDidChange, (e) =>
-				e.changedLanguages.includes(this._languageId),
-			)(() => {
-				this.createPreferredTokenProvider();
-			}),
-		);
+		this._register(Event.filter(TreeSitterTokenizationRegistry.onDidChange, (e) => e.changedLanguages.includes(this._languageId))(() => {
+			this.createPreferredTokenProvider();
+		}));
 		this.createPreferredTokenProvider();
 	}
 
 	private createGrammarTokens() {
-		return this._register(
-			new GrammarTokens(
-				this._languageService.languageIdCodec,
-				this._textModel,
-				() => this._languageId,
-				this._attachedViews,
-			),
-		);
+		return this._register(new GrammarTokens(this._languageService.languageIdCodec, this._textModel, () => this._languageId, this._attachedViews));
 	}
 
 	private createTreeSitterTokens(): AbstractTokens {
-		return this._register(
-			new TreeSitterTokens(
-				this._treeSitterService,
-				this._languageService.languageIdCodec,
-				this._textModel,
-				() => this._languageId,
-			),
-		);
+		return this._register(new TreeSitterTokens(this._treeSitterService, this._languageService.languageIdCodec, this._textModel, () => this._languageId));
 	}
 
 	private createTokens(useTreeSitter: boolean): void {
 		const needsReset = this._tokens !== undefined;
 		this._tokens?.dispose();
-		this._tokens = useTreeSitter
-			? this.createTreeSitterTokens()
-			: this.createGrammarTokens();
+		this._tokens = useTreeSitter ? this.createTreeSitterTokens() : this.createGrammarTokens();
 		this._tokensDisposables.clear();
-		this._tokensDisposables.add(
-			this._tokens.onDidChangeTokens((e) => {
-				this._emitModelTokensChangedEvent(e);
-			}),
-		);
+		this._tokensDisposables.add(this._tokens.onDidChangeTokens(e => {
+			this._emitModelTokensChangedEvent(e);
+		}));
 
-		this._tokensDisposables.add(
-			this._tokens.onDidChangeBackgroundTokenizationState((e) => {
-				this._bracketPairsTextModelPart.handleDidChangeBackgroundTokenizationState();
-			}),
-		);
+		this._tokensDisposables.add(this._tokens.onDidChangeBackgroundTokenizationState(e => {
+			this._bracketPairsTextModelPart.handleDidChangeBackgroundTokenizationState();
+		}));
 		if (needsReset) {
 			// We need to reset the tokenization, as the new token provider otherwise won't have a chance to provide tokens until some action happens in the editor.
 			this._tokens.resetTokenization();
@@ -191,16 +113,12 @@ export class TokenizationTextModelPart
 	}
 
 	_hasListeners(): boolean {
-		return (
-			this._onDidChangeLanguage.hasListeners() ||
-			this._onDidChangeLanguageConfiguration.hasListeners() ||
-			this._onDidChangeTokens.hasListeners()
-		);
+		return (this._onDidChangeLanguage.hasListeners()
+			|| this._onDidChangeLanguageConfiguration.hasListeners()
+			|| this._onDidChangeTokens.hasListeners());
 	}
 
-	public handleLanguageConfigurationServiceChange(
-		e: LanguageConfigurationServiceChangeEvent,
-	): void {
+	public handleLanguageConfigurationServiceChange(e: LanguageConfigurationServiceChangeEvent): void {
 		if (e.affects(this._languageId)) {
 			this._onDidChangeLanguageConfiguration.fire({});
 		}
@@ -209,19 +127,16 @@ export class TokenizationTextModelPart
 	public handleDidChangeContent(e: IModelContentChangedEvent): void {
 		if (e.isFlush) {
 			this._semanticTokens.flush();
-		} else if (!e.isEolChange) {
-			// We don't have to do anything on an EOL change
+		} else if (!e.isEolChange) { // We don't have to do anything on an EOL change
 			for (const c of e.changes) {
-				const [eolCount, firstLineLength, lastLineLength] = countEOL(
-					c.text,
-				);
+				const [eolCount, firstLineLength, lastLineLength] = countEOL(c.text);
 
 				this._semanticTokens.acceptEdit(
 					c.range,
 					eolCount,
 					firstLineLength,
 					lastLineLength,
-					c.text.length > 0 ? c.text.charCodeAt(0) : CharCode.Null,
+					c.text.length > 0 ? c.text.charCodeAt(0) : CharCode.Null
 				);
 			}
 		}
@@ -239,10 +154,7 @@ export class TokenizationTextModelPart
 	public getLineTokens(lineNumber: number): LineTokens {
 		this.validateLineNumber(lineNumber);
 		const syntacticTokens = this._tokens.getLineTokens(lineNumber);
-		return this._semanticTokens.addSparseTokens(
-			lineNumber,
-			syntacticTokens,
-		);
+		return this._semanticTokens.addSparseTokens(lineNumber, syntacticTokens);
 	}
 
 	private _emitModelTokensChangedEvent(e: IModelTokensChangedEvent): void {
@@ -256,7 +168,7 @@ export class TokenizationTextModelPart
 
 	private validateLineNumber(lineNumber: number): void {
 		if (lineNumber < 1 || lineNumber > this._textModel.getLineCount()) {
-			throw new BugIndicatingError("Illegal value for lineNumber");
+			throw new BugIndicatingError('Illegal value for lineNumber');
 		}
 	}
 
@@ -292,22 +204,11 @@ export class TokenizationTextModelPart
 		this._tokens.tokenizeIfCheap(lineNumber);
 	}
 
-	public getTokenTypeIfInsertingCharacter(
-		lineNumber: number,
-		column: number,
-		character: string,
-	): StandardTokenType {
-		return this._tokens.getTokenTypeIfInsertingCharacter(
-			lineNumber,
-			column,
-			character,
-		);
+	public getTokenTypeIfInsertingCharacter(lineNumber: number, column: number, character: string): StandardTokenType {
+		return this._tokens.getTokenTypeIfInsertingCharacter(lineNumber, column, character);
 	}
 
-	public tokenizeLineWithEdit(
-		lineNumber: number,
-		edit: LineEditWithAdditionalLines,
-	): ITokenizeLineWithEditResult {
+	public tokenizeLineWithEdit(lineNumber: number, edit: LineEditWithAdditionalLines): ITokenizeLineWithEditResult {
 		return this._tokens.tokenizeLineWithEdit(lineNumber, edit);
 	}
 
@@ -315,20 +216,12 @@ export class TokenizationTextModelPart
 
 	// #region Semantic Tokens
 
-	public setSemanticTokens(
-		tokens: SparseMultilineTokens[] | null,
-		isComplete: boolean,
-	): void {
+	public setSemanticTokens(tokens: SparseMultilineTokens[] | null, isComplete: boolean): void {
 		this._semanticTokens.set(tokens, isComplete);
 
 		this._emitModelTokensChangedEvent({
 			semanticTokensApplied: tokens !== null,
-			ranges: [
-				{
-					fromLineNumber: 1,
-					toLineNumber: this._textModel.getLineCount(),
-				},
-			],
+			ranges: [{ fromLineNumber: 1, toLineNumber: this._textModel.getLineCount() }],
 		});
 	}
 
@@ -340,15 +233,12 @@ export class TokenizationTextModelPart
 		return !this._semanticTokens.isEmpty();
 	}
 
-	public setPartialSemanticTokens(
-		range: Range,
-		tokens: SparseMultilineTokens[],
-	): void {
+	public setPartialSemanticTokens(range: Range, tokens: SparseMultilineTokens[]): void {
 		if (this.hasCompleteSemanticTokens()) {
 			return;
 		}
 		const changedRange = this._textModel.validateRange(
-			this._semanticTokens.setPartial(range, tokens),
+			this._semanticTokens.setPartial(range, tokens)
 		);
 
 		this._emitModelTokensChangedEvent({
@@ -372,23 +262,15 @@ export class TokenizationTextModelPart
 		const position = this._textModel.validatePosition(_position);
 		const lineContent = this._textModel.getLineContent(position.lineNumber);
 		const lineTokens = this.getLineTokens(position.lineNumber);
-		const tokenIndex = lineTokens.findTokenIndexAtOffset(
-			position.column - 1,
-		);
+		const tokenIndex = lineTokens.findTokenIndexAtOffset(position.column - 1);
 
 		// (1). First try checking right biased word
-		const [rbStartOffset, rbEndOffset] =
-			TokenizationTextModelPart._findLanguageBoundaries(
-				lineTokens,
-				tokenIndex,
-			);
+		const [rbStartOffset, rbEndOffset] = TokenizationTextModelPart._findLanguageBoundaries(lineTokens, tokenIndex);
 		const rightBiasedWord = getWordAtText(
 			position.column,
-			this.getLanguageConfiguration(
-				lineTokens.getLanguageId(tokenIndex),
-			).getWordDefinition(),
+			this.getLanguageConfiguration(lineTokens.getLanguageId(tokenIndex)).getWordDefinition(),
 			lineContent.substring(rbStartOffset, rbEndOffset),
-			rbStartOffset,
+			rbStartOffset
 		);
 		// Make sure the result touches the original passed in position
 		if (
@@ -402,18 +284,15 @@ export class TokenizationTextModelPart
 		// (2). Else, if we were at a language boundary, check the left biased word
 		if (tokenIndex > 0 && rbStartOffset === position.column - 1) {
 			// edge case, where `position` sits between two tokens belonging to two different languages
-			const [lbStartOffset, lbEndOffset] =
-				TokenizationTextModelPart._findLanguageBoundaries(
-					lineTokens,
-					tokenIndex - 1,
-				);
+			const [lbStartOffset, lbEndOffset] = TokenizationTextModelPart._findLanguageBoundaries(
+				lineTokens,
+				tokenIndex - 1
+			);
 			const leftBiasedWord = getWordAtText(
 				position.column,
-				this.getLanguageConfiguration(
-					lineTokens.getLanguageId(tokenIndex - 1),
-				).getWordDefinition(),
+				this.getLanguageConfiguration(lineTokens.getLanguageId(tokenIndex - 1)).getWordDefinition(),
 				lineContent.substring(lbStartOffset, lbEndOffset),
-				lbStartOffset,
+				lbStartOffset
 			);
 			// Make sure the result touches the original passed in position
 			if (
@@ -428,27 +307,16 @@ export class TokenizationTextModelPart
 		return null;
 	}
 
-	private getLanguageConfiguration(
-		languageId: string,
-	): ResolvedLanguageConfiguration {
-		return this._languageConfigurationService.getLanguageConfiguration(
-			languageId,
-		);
+	private getLanguageConfiguration(languageId: string): ResolvedLanguageConfiguration {
+		return this._languageConfigurationService.getLanguageConfiguration(languageId);
 	}
 
-	private static _findLanguageBoundaries(
-		lineTokens: LineTokens,
-		tokenIndex: number,
-	): [number, number] {
+	private static _findLanguageBoundaries(lineTokens: LineTokens, tokenIndex: number): [number, number] {
 		const languageId = lineTokens.getLanguageId(tokenIndex);
 
 		// go left until a different language is hit
 		let startOffset = 0;
-		for (
-			let i = tokenIndex;
-			i >= 0 && lineTokens.getLanguageId(i) === languageId;
-			i--
-		) {
+		for (let i = tokenIndex; i >= 0 && lineTokens.getLanguageId(i) === languageId; i--) {
 			startOffset = lineTokens.getStartOffset(i);
 		}
 
@@ -468,17 +336,10 @@ export class TokenizationTextModelPart
 	public getWordUntilPosition(position: IPosition): IWordAtPosition {
 		const wordAtPosition = this.getWordAtPosition(position);
 		if (!wordAtPosition) {
-			return {
-				word: "",
-				startColumn: position.column,
-				endColumn: position.column,
-			};
+			return { word: '', startColumn: position.column, endColumn: position.column, };
 		}
 		return {
-			word: wordAtPosition.word.substr(
-				0,
-				position.column - wordAtPosition.startColumn,
-			),
+			word: wordAtPosition.word.substr(0, position.column - wordAtPosition.startColumn),
 			startColumn: wordAtPosition.startColumn,
 			endColumn: position.column,
 		};
@@ -493,16 +354,12 @@ export class TokenizationTextModelPart
 	}
 
 	public getLanguageIdAtPosition(lineNumber: number, column: number): string {
-		const position = this._textModel.validatePosition(
-			new Position(lineNumber, column),
-		);
+		const position = this._textModel.validatePosition(new Position(lineNumber, column));
 		const lineTokens = this.getLineTokens(position.lineNumber);
-		return lineTokens.getLanguageId(
-			lineTokens.findTokenIndexAtOffset(position.column - 1),
-		);
+		return lineTokens.getLanguageId(lineTokens.findTokenIndexAtOffset(position.column - 1));
 	}
 
-	public setLanguageId(languageId: string, source: string = "api"): void {
+	public setLanguageId(languageId: string, source: string = 'api'): void {
 		if (this._languageId === languageId) {
 			// There's nothing to do
 			return;
@@ -511,7 +368,7 @@ export class TokenizationTextModelPart
 		const e: IModelLanguageChangedEvent = {
 			oldLanguage: this._languageId,
 			newLanguage: languageId,
-			source,
+			source
 		};
 
 		this._languageId = languageId;
@@ -528,25 +385,16 @@ export class TokenizationTextModelPart
 
 class GrammarTokens extends AbstractTokens {
 	private _tokenizer: TokenizerWithStateStoreAndTextModel | null = null;
-	private _defaultBackgroundTokenizer: DefaultBackgroundTokenizer | null =
-		null;
-	private readonly _backgroundTokenizer = this._register(
-		new MutableDisposable<IBackgroundTokenizer>(),
-	);
+	private _defaultBackgroundTokenizer: DefaultBackgroundTokenizer | null = null;
+	private readonly _backgroundTokenizer = this._register(new MutableDisposable<IBackgroundTokenizer>());
 
 	private readonly _tokens = new ContiguousTokensStore(this._languageIdCodec);
 	private _debugBackgroundTokens: ContiguousTokensStore | undefined;
-	private _debugBackgroundStates:
-		| TrackingTokenizationStateStore<IState>
-		| undefined;
+	private _debugBackgroundStates: TrackingTokenizationStateStore<IState> | undefined;
 
-	private readonly _debugBackgroundTokenizer = this._register(
-		new MutableDisposable<IBackgroundTokenizer>(),
-	);
+	private readonly _debugBackgroundTokenizer = this._register(new MutableDisposable<IBackgroundTokenizer>());
 
-	private readonly _attachedViewStates = this._register(
-		new DisposableMap<IAttachedView, AttachedViewHandler>(),
-	);
+	private readonly _attachedViewStates = this._register(new DisposableMap<IAttachedView, AttachedViewHandler>());
 
 	constructor(
 		languageIdCodec: ILanguageIdCodec,
@@ -556,43 +404,35 @@ class GrammarTokens extends AbstractTokens {
 	) {
 		super(languageIdCodec, textModel, getLanguageId);
 
-		this._register(
-			TokenizationRegistry.onDidChange((e) => {
-				const languageId = this.getLanguageId();
-				if (e.changedLanguages.indexOf(languageId) === -1) {
-					return;
-				}
-				this.resetTokenization();
-			}),
-		);
+		this._register(TokenizationRegistry.onDidChange((e) => {
+			const languageId = this.getLanguageId();
+			if (e.changedLanguages.indexOf(languageId) === -1) {
+				return;
+			}
+			this.resetTokenization();
+		}));
 
 		this.resetTokenization();
 
-		this._register(
-			attachedViews.onDidChangeVisibleRanges(({ view, state }) => {
-				if (state) {
-					let existing = this._attachedViewStates.get(view);
-					if (!existing) {
-						existing = new AttachedViewHandler(() =>
-							this.refreshRanges(existing!.lineRanges),
-						);
-						this._attachedViewStates.set(view, existing);
-					}
-					existing.handleStateChange(state);
-				} else {
-					this._attachedViewStates.deleteAndDispose(view);
+		this._register(attachedViews.onDidChangeVisibleRanges(({ view, state }) => {
+			if (state) {
+				let existing = this._attachedViewStates.get(view);
+				if (!existing) {
+					existing = new AttachedViewHandler(() => this.refreshRanges(existing!.lineRanges));
+					this._attachedViewStates.set(view, existing);
 				}
-			}),
-		);
+				existing.handleStateChange(state);
+			} else {
+				this._attachedViewStates.deleteAndDispose(view);
+			}
+		}));
 	}
 
 	public resetTokenization(fireTokenChangeEvent: boolean = true): void {
 		this._tokens.flush();
 		this._debugBackgroundTokens?.flush();
 		if (this._debugBackgroundStates) {
-			this._debugBackgroundStates = new TrackingTokenizationStateStore(
-				this._textModel.getLineCount(),
-			);
+			this._debugBackgroundStates = new TrackingTokenizationStateStore(this._textModel.getLineCount());
 		}
 		if (fireTokenChangeEvent) {
 			this._onDidChangeTokens.fire({
@@ -606,15 +446,11 @@ class GrammarTokens extends AbstractTokens {
 			});
 		}
 
-		const initializeTokenization = ():
-			| [ITokenizationSupport, IState]
-			| [null, null] => {
+		const initializeTokenization = (): [ITokenizationSupport, IState] | [null, null] => {
 			if (this._textModel.isTooLargeForTokenization()) {
 				return [null, null];
 			}
-			const tokenizationSupport = TokenizationRegistry.get(
-				this.getLanguageId(),
-			);
+			const tokenizationSupport = TokenizationRegistry.get(this.getLanguageId());
 			if (!tokenizationSupport) {
 				return [null, null];
 			}
@@ -630,12 +466,7 @@ class GrammarTokens extends AbstractTokens {
 
 		const [tokenizationSupport, initialState] = initializeTokenization();
 		if (tokenizationSupport && initialState) {
-			this._tokenizer = new TokenizerWithStateStoreAndTextModel(
-				this._textModel.getLineCount(),
-				tokenizationSupport,
-				this._textModel,
-				this._languageIdCodec,
-			);
+			this._tokenizer = new TokenizerWithStateStoreAndTextModel(this._textModel.getLineCount(), tokenizationSupport, this._textModel, this._languageIdCodec);
 		} else {
 			this._tokenizer = null;
 		}
@@ -649,10 +480,7 @@ class GrammarTokens extends AbstractTokens {
 					this.setTokens(tokens);
 				},
 				backgroundTokenizationFinished: () => {
-					if (
-						this._backgroundTokenizationState ===
-						BackgroundTokenizationState.Completed
-					) {
+					if (this._backgroundTokenizationState === BackgroundTokenizationState.Completed) {
 						// We already did a full tokenization and don't go back to progressing.
 						return;
 					}
@@ -661,75 +489,39 @@ class GrammarTokens extends AbstractTokens {
 					this._onDidChangeBackgroundTokenizationState.fire();
 				},
 				setEndState: (lineNumber, state) => {
-					if (!this._tokenizer) {
-						return;
-					}
-					const firstInvalidEndStateLineNumber =
-						this._tokenizer.store.getFirstInvalidEndStateLineNumber();
+					if (!this._tokenizer) { return; }
+					const firstInvalidEndStateLineNumber = this._tokenizer.store.getFirstInvalidEndStateLineNumber();
 					// Don't accept states for definitely valid states, the renderer is ahead of the worker!
-					if (
-						firstInvalidEndStateLineNumber !== null &&
-						lineNumber >= firstInvalidEndStateLineNumber
-					) {
+					if (firstInvalidEndStateLineNumber !== null && lineNumber >= firstInvalidEndStateLineNumber) {
 						this._tokenizer?.store.setEndState(lineNumber, state);
 					}
 				},
 			};
 
-			if (
-				tokenizationSupport &&
-				tokenizationSupport.createBackgroundTokenizer &&
-				!tokenizationSupport.backgroundTokenizerShouldOnlyVerifyTokens
-			) {
-				this._backgroundTokenizer.value =
-					tokenizationSupport.createBackgroundTokenizer(
-						this._textModel,
-						b,
-					);
+			if (tokenizationSupport && tokenizationSupport.createBackgroundTokenizer && !tokenizationSupport.backgroundTokenizerShouldOnlyVerifyTokens) {
+				this._backgroundTokenizer.value = tokenizationSupport.createBackgroundTokenizer(this._textModel, b);
 			}
-			if (
-				!this._backgroundTokenizer.value &&
-				!this._textModel.isTooLargeForTokenization()
-			) {
-				this._backgroundTokenizer.value =
-					this._defaultBackgroundTokenizer =
-						new DefaultBackgroundTokenizer(this._tokenizer, b);
+			if (!this._backgroundTokenizer.value && !this._textModel.isTooLargeForTokenization()) {
+				this._backgroundTokenizer.value = this._defaultBackgroundTokenizer =
+					new DefaultBackgroundTokenizer(this._tokenizer, b);
 				this._defaultBackgroundTokenizer.handleChanges();
 			}
 
-			if (
-				tokenizationSupport?.backgroundTokenizerShouldOnlyVerifyTokens &&
-				tokenizationSupport.createBackgroundTokenizer
-			) {
-				this._debugBackgroundTokens = new ContiguousTokensStore(
-					this._languageIdCodec,
-				);
-				this._debugBackgroundStates =
-					new TrackingTokenizationStateStore(
-						this._textModel.getLineCount(),
-					);
+			if (tokenizationSupport?.backgroundTokenizerShouldOnlyVerifyTokens && tokenizationSupport.createBackgroundTokenizer) {
+				this._debugBackgroundTokens = new ContiguousTokensStore(this._languageIdCodec);
+				this._debugBackgroundStates = new TrackingTokenizationStateStore(this._textModel.getLineCount());
 				this._debugBackgroundTokenizer.clear();
-				this._debugBackgroundTokenizer.value =
-					tokenizationSupport.createBackgroundTokenizer(
-						this._textModel,
-						{
-							setTokens: (tokens) => {
-								this._debugBackgroundTokens?.setMultilineTokens(
-									tokens,
-									this._textModel,
-								);
-							},
-							backgroundTokenizationFinished() {
-								// NO OP
-							},
-							setEndState: (lineNumber, state) => {
-								this._debugBackgroundStates?.setEndState(
-									lineNumber,
-									state,
-								);
-							},
-						},
-					);
+				this._debugBackgroundTokenizer.value = tokenizationSupport.createBackgroundTokenizer(this._textModel, {
+					setTokens: (tokens) => {
+						this._debugBackgroundTokens?.setMultilineTokens(tokens, this._textModel);
+					},
+					backgroundTokenizationFinished() {
+						// NO OP
+					},
+					setEndState: (lineNumber, state) => {
+						this._debugBackgroundStates?.setEndState(lineNumber, state);
+					},
+				});
 			} else {
 				this._debugBackgroundTokens = undefined;
 				this._debugBackgroundStates = undefined;
@@ -748,17 +540,12 @@ class GrammarTokens extends AbstractTokens {
 		if (e.isFlush) {
 			// Don't fire the event, as the view might not have got the text change event yet
 			this.resetTokenization(false);
-		} else if (!e.isEolChange) {
-			// We don't have to do anything on an EOL change
+		} else if (!e.isEolChange) { // We don't have to do anything on an EOL change
 			for (const c of e.changes) {
 				const [eolCount, firstLineLength] = countEOL(c.text);
 
 				this._tokens.acceptEdit(c.range, eolCount, firstLineLength);
-				this._debugBackgroundTokens?.acceptEdit(
-					c.range,
-					eolCount,
-					firstLineLength,
-				);
+				this._debugBackgroundTokens?.acceptEdit(c.range, eolCount, firstLineLength);
 			}
 			this._debugBackgroundStates?.acceptChanges(e.changes);
 
@@ -769,37 +556,24 @@ class GrammarTokens extends AbstractTokens {
 		}
 	}
 
-	private setTokens(tokens: ContiguousMultilineTokens[]): {
-		changes: { fromLineNumber: number; toLineNumber: number }[];
-	} {
-		const { changes } = this._tokens.setMultilineTokens(
-			tokens,
-			this._textModel,
-		);
+	private setTokens(tokens: ContiguousMultilineTokens[]): { changes: { fromLineNumber: number; toLineNumber: number }[] } {
+		const { changes } = this._tokens.setMultilineTokens(tokens, this._textModel);
 
 		if (changes.length > 0) {
-			this._onDidChangeTokens.fire({
-				semanticTokensApplied: false,
-				ranges: changes,
-			});
+			this._onDidChangeTokens.fire({ semanticTokensApplied: false, ranges: changes, });
 		}
 
 		return { changes: changes };
 	}
 
 	private refreshAllVisibleLineTokens(): void {
-		const ranges = LineRange.joinMany(
-			[...this._attachedViewStates].map(([_, s]) => s.lineRanges),
-		);
+		const ranges = LineRange.joinMany([...this._attachedViewStates].map(([_, s]) => s.lineRanges));
 		this.refreshRanges(ranges);
 	}
 
 	private refreshRanges(ranges: readonly LineRange[]): void {
 		for (const range of ranges) {
-			this.refreshRange(
-				range.startLineNumber,
-				range.endLineNumberExclusive - 1,
-			);
+			this.refreshRange(range.startLineNumber, range.endLineNumberExclusive - 1);
 		}
 	}
 
@@ -808,18 +582,11 @@ class GrammarTokens extends AbstractTokens {
 			return;
 		}
 
-		startLineNumber = Math.max(
-			1,
-			Math.min(this._textModel.getLineCount(), startLineNumber),
-		);
+		startLineNumber = Math.max(1, Math.min(this._textModel.getLineCount(), startLineNumber));
 		endLineNumber = Math.min(this._textModel.getLineCount(), endLineNumber);
 
 		const builder = new ContiguousMultilineTokensBuilder();
-		const { heuristicTokens } = this._tokenizer.tokenizeHeuristically(
-			builder,
-			startLineNumber,
-			endLineNumber,
-		);
+		const { heuristicTokens } = this._tokenizer.tokenizeHeuristically(builder, startLineNumber, endLineNumber);
 		const changedTokens = this.setTokens(builder.finalize());
 
 		if (heuristicTokens) {
@@ -827,10 +594,7 @@ class GrammarTokens extends AbstractTokens {
 			// Because old states might get reused (thus stopping invalidation),
 			// we have to explicitly request the tokens for the changed ranges again.
 			for (const c of changedTokens.changes) {
-				this._backgroundTokenizer.value?.requestTokens(
-					c.fromLineNumber,
-					c.toLineNumber + 1,
-				);
+				this._backgroundTokenizer.value?.requestTokens(c.fromLineNumber, c.toLineNumber + 1);
 			}
 		}
 
@@ -863,61 +627,34 @@ class GrammarTokens extends AbstractTokens {
 		const result = this._tokens.getTokens(
 			this._textModel.getLanguageId(),
 			lineNumber - 1,
-			lineText,
+			lineText
 		);
-		if (
-			this._debugBackgroundTokens &&
-			this._debugBackgroundStates &&
-			this._tokenizer
-		) {
-			if (
-				this._debugBackgroundStates.getFirstInvalidEndStateLineNumberOrMax() >
-					lineNumber &&
-				this._tokenizer.store.getFirstInvalidEndStateLineNumberOrMax() >
-					lineNumber
-			) {
+		if (this._debugBackgroundTokens && this._debugBackgroundStates && this._tokenizer) {
+			if (this._debugBackgroundStates.getFirstInvalidEndStateLineNumberOrMax() > lineNumber && this._tokenizer.store.getFirstInvalidEndStateLineNumberOrMax() > lineNumber) {
 				const backgroundResult = this._debugBackgroundTokens.getTokens(
 					this._textModel.getLanguageId(),
 					lineNumber - 1,
-					lineText,
+					lineText
 				);
-				if (
-					!result.equals(backgroundResult) &&
-					this._debugBackgroundTokenizer.value
-						?.reportMismatchingTokens
-				) {
-					this._debugBackgroundTokenizer.value.reportMismatchingTokens(
-						lineNumber,
-					);
+				if (!result.equals(backgroundResult) && this._debugBackgroundTokenizer.value?.reportMismatchingTokens) {
+					this._debugBackgroundTokenizer.value.reportMismatchingTokens(lineNumber);
 				}
 			}
 		}
 		return result;
 	}
 
-	public getTokenTypeIfInsertingCharacter(
-		lineNumber: number,
-		column: number,
-		character: string,
-	): StandardTokenType {
+	public getTokenTypeIfInsertingCharacter(lineNumber: number, column: number, character: string): StandardTokenType {
 		if (!this._tokenizer) {
 			return StandardTokenType.Other;
 		}
 
-		const position = this._textModel.validatePosition(
-			new Position(lineNumber, column),
-		);
+		const position = this._textModel.validatePosition(new Position(lineNumber, column));
 		this.forceTokenization(position.lineNumber);
-		return this._tokenizer.getTokenTypeIfInsertingCharacter(
-			position,
-			character,
-		);
+		return this._tokenizer.getTokenTypeIfInsertingCharacter(position, character);
 	}
 
-	public tokenizeLineWithEdit(
-		lineNumber: number,
-		edit: LineEditWithAdditionalLines,
-	): ITokenizeLineWithEditResult {
+	public tokenizeLineWithEdit(lineNumber: number, edit: LineEditWithAdditionalLines): ITokenizeLineWithEditResult {
 		if (!this._tokenizer) {
 			return { mainLineTokens: null, additionalLines: null };
 		}

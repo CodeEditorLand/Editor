@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	// https://github.com/microsoft/vscode/issues/145307 @alexdima
 
 	export interface Extension<T> {
+
 		/**
 		 * `true` when the extension is associated to another extension host.
 		 *
@@ -17,6 +19,7 @@ declare module "vscode" {
 	}
 
 	export namespace extensions {
+
 		/**
 		 * Get an extension by its full identifier in the form of: `publisher.name`.
 		 *
@@ -24,14 +27,8 @@ declare module "vscode" {
 		 * @param includeDifferentExtensionHosts Include extensions from different extension host
 		 * @return An extension or `undefined`.
 		 */
-		export function getExtension<T = any>(
-			extensionId: string,
-			includeDifferentExtensionHosts: boolean,
-		): Extension<T> | undefined;
-		export function getExtension<T = any>(
-			extensionId: string,
-			includeDifferentExtensionHosts: true,
-		): Extension<T | undefined> | undefined;
+		export function getExtension<T = any>(extensionId: string, includeDifferentExtensionHosts: boolean): Extension<T> | undefined;
+		export function getExtension<T = any>(extensionId: string, includeDifferentExtensionHosts: true): Extension<T | undefined> | undefined;
 
 		/**
 		 * All extensions across all extension hosts.
@@ -39,5 +36,6 @@ declare module "vscode" {
 		 * @see {@link Extension.isFromDifferentExtensionHost}
 		 */
 		export const allAcrossExtensionHosts: readonly Extension<void>[];
+
 	}
 }

@@ -3,12 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	IRelativePattern,
-	match as matchGlobPattern,
-} from "../../base/common/glob.js";
-import { normalize } from "../../base/common/path.js";
-import { URI } from "../../base/common/uri.js";
+import { IRelativePattern, match as matchGlobPattern } from '../../base/common/glob.js';
+import { URI } from '../../base/common/uri.js';
+import { normalize } from '../../base/common/path.js';
 
 export interface LanguageFilter {
 	readonly language?: string;
@@ -27,31 +24,15 @@ export interface LanguageFilter {
 	readonly isBuiltin?: boolean;
 }
 
-export type LanguageSelector =
-	| string
-	| LanguageFilter
-	| ReadonlyArray<string | LanguageFilter>;
+export type LanguageSelector = string | LanguageFilter | ReadonlyArray<string | LanguageFilter>;
 
-export function score(
-	selector: LanguageSelector | undefined,
-	candidateUri: URI,
-	candidateLanguage: string,
-	candidateIsSynchronized: boolean,
-	candidateNotebookUri: URI | undefined,
-	candidateNotebookType: string | undefined,
-): number {
+export function score(selector: LanguageSelector | undefined, candidateUri: URI, candidateLanguage: string, candidateIsSynchronized: boolean, candidateNotebookUri: URI | undefined, candidateNotebookType: string | undefined): number {
+
 	if (Array.isArray(selector)) {
 		// array -> take max individual value
 		let ret = 0;
 		for (const filter of selector) {
-			const value = score(
-				filter,
-				candidateUri,
-				candidateLanguage,
-				candidateIsSynchronized,
-				candidateNotebookUri,
-				candidateNotebookType,
-			);
+			const value = score(filter, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType);
 			if (value === 10) {
 				return value; // already at the highest
 			}
@@ -60,7 +41,9 @@ export function score(
 			}
 		}
 		return ret;
-	} else if (typeof selector === "string") {
+
+	} else if (typeof selector === 'string') {
+
 		if (!candidateIsSynchronized) {
 			return 0;
 		}
@@ -68,22 +51,17 @@ export function score(
 		// short-hand notion, desugars to
 		// 'fooLang' -> { language: 'fooLang'}
 		// '*' -> { language: '*' }
-		if (selector === "*") {
+		if (selector === '*') {
 			return 5;
 		} else if (selector === candidateLanguage) {
 			return 10;
 		} else {
 			return 0;
 		}
+
 	} else if (selector) {
 		// filter -> select accordingly, use defaults for scheme
-		const {
-			language,
-			pattern,
-			scheme,
-			hasAccessToAllModels,
-			notebookType,
-		} = selector as LanguageFilter; // TODO: microsoft/TypeScript#42768
+		const { language, pattern, scheme, hasAccessToAllModels, notebookType } = selector as LanguageFilter; // TODO: microsoft/TypeScript#42768
 
 		if (!candidateIsSynchronized && !hasAccessToAllModels) {
 			return 0;
@@ -100,7 +78,7 @@ export function score(
 		if (scheme) {
 			if (scheme === candidateUri.scheme) {
 				ret = 10;
-			} else if (scheme === "*") {
+			} else if (scheme === '*') {
 				ret = 5;
 			} else {
 				return 0;
@@ -110,7 +88,7 @@ export function score(
 		if (language) {
 			if (language === candidateLanguage) {
 				ret = 10;
-			} else if (language === "*") {
+			} else if (language === '*') {
 				ret = Math.max(ret, 5);
 			} else {
 				return 0;
@@ -120,10 +98,7 @@ export function score(
 		if (notebookType) {
 			if (notebookType === candidateNotebookType) {
 				ret = 10;
-			} else if (
-				notebookType === "*" &&
-				candidateNotebookType !== undefined
-			) {
+			} else if (notebookType === '*' && candidateNotebookType !== undefined) {
 				ret = Math.max(ret, 5);
 			} else {
 				return 0;
@@ -132,7 +107,7 @@ export function score(
 
 		if (pattern) {
 			let normalizedPattern: string | IRelativePattern;
-			if (typeof pattern === "string") {
+			if (typeof pattern === 'string') {
 				normalizedPattern = pattern;
 			} else {
 				// Since this pattern has a `base` property, we need
@@ -140,16 +115,10 @@ export function score(
 				// because we will compare it against `Uri.fsPath`
 				// which uses platform specific separators.
 				// Refs: https://github.com/microsoft/vscode/issues/99938
-				normalizedPattern = {
-					...pattern,
-					base: normalize(pattern.base),
-				};
+				normalizedPattern = { ...pattern, base: normalize(pattern.base) };
 			}
 
-			if (
-				normalizedPattern === candidateUri.fsPath ||
-				matchGlobPattern(normalizedPattern, candidateUri.fsPath)
-			) {
+			if (normalizedPattern === candidateUri.fsPath || matchGlobPattern(normalizedPattern, candidateUri.fsPath)) {
 				ret = 10;
 			} else {
 				return 0;
@@ -157,13 +126,15 @@ export function score(
 		}
 
 		return ret;
+
 	} else {
 		return 0;
 	}
 }
 
+
 export function targetsNotebooks(selector: LanguageSelector): boolean {
-	if (typeof selector === "string") {
+	if (typeof selector === 'string') {
 		return false;
 	} else if (Array.isArray(selector)) {
 		return selector.some(targetsNotebooks);

@@ -3,21 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { URI } from "../../../../base/common/uri.js";
-import { IEnvironmentService } from "../../../../platform/environment/common/environment.js";
-import { refineServiceDecorator } from "../../../../platform/instantiation/common/instantiation.js";
-import { IPath } from "../../../../platform/window/common/window.js";
+import { refineServiceDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { IPath } from '../../../../platform/window/common/window.js';
+import { IEnvironmentService } from '../../../../platform/environment/common/environment.js';
+import { URI } from '../../../../base/common/uri.js';
 
-export const IWorkbenchEnvironmentService = refineServiceDecorator<
-	IEnvironmentService,
-	IWorkbenchEnvironmentService
->(IEnvironmentService);
+export const IWorkbenchEnvironmentService = refineServiceDecorator<IEnvironmentService, IWorkbenchEnvironmentService>(IEnvironmentService);
 
 /**
  * A workbench specific environment service that is only present in workbench
  * layer.
  */
 export interface IWorkbenchEnvironmentService extends IEnvironmentService {
+
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// NOTE: KEEP THIS INTERFACE AS SMALL AS POSSIBLE. AS SUCH:
 	//       PUT NON-WEB PROPERTIES INTO THE NATIVE WORKBENCH

@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CharCode } from "../../../base/common/charCode.js";
-import { CursorColumns } from "../core/cursorColumns.js";
+import { CharCode } from '../../../base/common/charCode.js';
+import { CursorColumns } from '../core/cursorColumns.js';
 
 export const enum Direction {
 	Left,
@@ -19,22 +19,14 @@ export class AtomicTabMoveOperations {
 	 *
 	 * **Note** `position` and the return value are 0-based.
 	 */
-	public static whitespaceVisibleColumn(
-		lineContent: string,
-		position: number,
-		tabSize: number,
-	): [number, number, number] {
+	public static whitespaceVisibleColumn(lineContent: string, position: number, tabSize: number): [number, number, number] {
 		const lineLength = lineContent.length;
 		let visibleColumn = 0;
 		let prevTabStopPosition = -1;
 		let prevTabStopVisibleColumn = -1;
 		for (let i = 0; i < lineLength; i++) {
 			if (i === position) {
-				return [
-					prevTabStopPosition,
-					prevTabStopVisibleColumn,
-					visibleColumn,
-				];
+				return [prevTabStopPosition, prevTabStopVisibleColumn, visibleColumn];
 			}
 			if (visibleColumn % tabSize === 0) {
 				prevTabStopPosition = i;
@@ -47,21 +39,14 @@ export class AtomicTabMoveOperations {
 					break;
 				case CharCode.Tab:
 					// Skip to the next multiple of tabSize.
-					visibleColumn = CursorColumns.nextRenderTabStop(
-						visibleColumn,
-						tabSize,
-					);
+					visibleColumn = CursorColumns.nextRenderTabStop(visibleColumn, tabSize);
 					break;
 				default:
 					return [-1, -1, -1];
 			}
 		}
 		if (position === lineLength) {
-			return [
-				prevTabStopPosition,
-				prevTabStopVisibleColumn,
-				visibleColumn,
-			];
+			return [prevTabStopPosition, prevTabStopVisibleColumn, visibleColumn];
 		}
 		return [-1, -1, -1];
 	}
@@ -75,22 +60,12 @@ export class AtomicTabMoveOperations {
 	 *
 	 * **Note**: `position` and the return value are 0-based.
 	 */
-	public static atomicPosition(
-		lineContent: string,
-		position: number,
-		tabSize: number,
-		direction: Direction,
-	): number {
+	public static atomicPosition(lineContent: string, position: number, tabSize: number, direction: Direction): number {
 		const lineLength = lineContent.length;
 
 		// Get the 0-based visible column corresponding to the position, or return
 		// -1 if it is not in the initial whitespace.
-		const [prevTabStopPosition, prevTabStopVisibleColumn, visibleColumn] =
-			AtomicTabMoveOperations.whitespaceVisibleColumn(
-				lineContent,
-				position,
-				tabSize,
-			);
+		const [prevTabStopPosition, prevTabStopVisibleColumn, visibleColumn] = AtomicTabMoveOperations.whitespaceVisibleColumn(lineContent, position, tabSize);
 
 		if (visibleColumn === -1) {
 			return -1;
@@ -113,7 +88,7 @@ export class AtomicTabMoveOperations {
 					return position;
 				}
 				// Go to the nearest indentation.
-				left = visibleColumn % tabSize <= tabSize / 2;
+				left = visibleColumn % tabSize <= (tabSize / 2);
 				break;
 		}
 
@@ -130,10 +105,7 @@ export class AtomicTabMoveOperations {
 			// tabSize 4, should jump from position 6 to position 5, not 4.
 			let currentVisibleColumn = prevTabStopVisibleColumn;
 			for (let i = prevTabStopPosition; i < lineLength; ++i) {
-				if (
-					currentVisibleColumn ===
-					prevTabStopVisibleColumn + tabSize
-				) {
+				if (currentVisibleColumn === prevTabStopVisibleColumn + tabSize) {
 					// It is a full indentation.
 					return prevTabStopPosition;
 				}
@@ -144,10 +116,7 @@ export class AtomicTabMoveOperations {
 						currentVisibleColumn += 1;
 						break;
 					case CharCode.Tab:
-						currentVisibleColumn = CursorColumns.nextRenderTabStop(
-							currentVisibleColumn,
-							tabSize,
-						);
+						currentVisibleColumn = CursorColumns.nextRenderTabStop(currentVisibleColumn, tabSize);
 						break;
 					default:
 						return -1;
@@ -161,10 +130,7 @@ export class AtomicTabMoveOperations {
 		}
 
 		// We are going right.
-		const targetVisibleColumn = CursorColumns.nextRenderTabStop(
-			visibleColumn,
-			tabSize,
-		);
+		const targetVisibleColumn = CursorColumns.nextRenderTabStop(visibleColumn, tabSize);
 
 		// We can just continue from where whitespaceVisibleColumn got to.
 		let currentVisibleColumn = visibleColumn;
@@ -179,10 +145,7 @@ export class AtomicTabMoveOperations {
 					currentVisibleColumn += 1;
 					break;
 				case CharCode.Tab:
-					currentVisibleColumn = CursorColumns.nextRenderTabStop(
-						currentVisibleColumn,
-						tabSize,
-					);
+					currentVisibleColumn = CursorColumns.nextRenderTabStop(currentVisibleColumn, tabSize);
 					break;
 				default:
 					return -1;

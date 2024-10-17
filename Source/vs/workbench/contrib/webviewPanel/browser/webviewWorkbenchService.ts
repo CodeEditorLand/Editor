@@ -3,62 +3,31 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	CancelablePromise,
-	createCancelablePromise,
-	DeferredPromise,
-} from "../../../../base/common/async.js";
-import {
-	CancellationToken,
-	CancellationTokenSource,
-} from "../../../../base/common/cancellation.js";
-import { memoize } from "../../../../base/common/decorators.js";
-import { isCancellationError } from "../../../../base/common/errors.js";
-import { Emitter, Event } from "../../../../base/common/event.js";
-import { Iterable } from "../../../../base/common/iterator.js";
-import {
-	combinedDisposable,
-	Disposable,
-	IDisposable,
-	toDisposable,
-} from "../../../../base/common/lifecycle.js";
-import { EditorActivation } from "../../../../platform/editor/common/editor.js";
-import {
-	createDecorator,
-	IInstantiationService,
-} from "../../../../platform/instantiation/common/instantiation.js";
-import { GroupIdentifier } from "../../../common/editor.js";
-import { DiffEditorInput } from "../../../common/editor/diffEditorInput.js";
-import { EditorInput } from "../../../common/editor/editorInput.js";
-import {
-	IEditorGroup,
-	IEditorGroupsService,
-} from "../../../services/editor/common/editorGroupsService.js";
-import {
-	ACTIVE_GROUP_TYPE,
-	IEditorService,
-	SIDE_GROUP_TYPE,
-} from "../../../services/editor/common/editorService.js";
-import {
-	IOverlayWebview,
-	IWebviewService,
-	WebviewInitInfo,
-} from "../../webview/browser/webview.js";
-import { CONTEXT_ACTIVE_WEBVIEW_PANEL_ID } from "./webviewEditor.js";
-import { WebviewInput, WebviewInputInitInfo } from "./webviewEditorInput.js";
-import { WebviewIconManager, WebviewIcons } from "./webviewIconManager.js";
+import { CancelablePromise, createCancelablePromise, DeferredPromise } from '../../../../base/common/async.js';
+import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { memoize } from '../../../../base/common/decorators.js';
+import { isCancellationError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
+import { Iterable } from '../../../../base/common/iterator.js';
+import { combinedDisposable, Disposable, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { EditorActivation } from '../../../../platform/editor/common/editor.js';
+import { createDecorator, IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { GroupIdentifier } from '../../../common/editor.js';
+import { DiffEditorInput } from '../../../common/editor/diffEditorInput.js';
+import { EditorInput } from '../../../common/editor/editorInput.js';
+import { IOverlayWebview, IWebviewService, WebviewInitInfo } from '../../webview/browser/webview.js';
+import { CONTEXT_ACTIVE_WEBVIEW_PANEL_ID } from './webviewEditor.js';
+import { WebviewIconManager, WebviewIcons } from './webviewIconManager.js';
+import { IEditorGroup, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { ACTIVE_GROUP_TYPE, IEditorService, SIDE_GROUP_TYPE } from '../../../services/editor/common/editorService.js';
+import { WebviewInput, WebviewInputInitInfo } from './webviewEditorInput.js';
 
 export interface IWebViewShowOptions {
-	readonly group?:
-		| IEditorGroup
-		| GroupIdentifier
-		| ACTIVE_GROUP_TYPE
-		| SIDE_GROUP_TYPE;
+	readonly group?: IEditorGroup | GroupIdentifier | ACTIVE_GROUP_TYPE | SIDE_GROUP_TYPE;
 	readonly preserveFocus?: boolean;
 }
 
-export const IWebviewWorkbenchService =
-	createDecorator<IWebviewWorkbenchService>("webviewEditorService");
+export const IWebviewWorkbenchService = createDecorator<IWebviewWorkbenchService>('webviewEditorService');
 
 /**
  * Service responsible for showing and managing webview editors in the workbench.
@@ -105,12 +74,8 @@ export interface IWebviewWorkbenchService {
 	 */
 	revealWebview(
 		webview: WebviewInput,
-		group:
-			| IEditorGroup
-			| GroupIdentifier
-			| ACTIVE_GROUP_TYPE
-			| SIDE_GROUP_TYPE,
-		preserveFocus: boolean,
+		group: IEditorGroup | GroupIdentifier | ACTIVE_GROUP_TYPE | SIDE_GROUP_TYPE,
+		preserveFocus: boolean
 	): void;
 
 	/**
@@ -128,10 +93,7 @@ export interface IWebviewWorkbenchService {
 	/**
 	 * Try to resolve a webview. This will block until a resolver is registered for the webview.
 	 */
-	resolveWebview(
-		webview: WebviewInput,
-		token: CancellationToken,
-	): Promise<void>;
+	resolveWebview(webview: WebviewInput, token: CancellationToken): Promise<void>;
 }
 
 /**
@@ -146,10 +108,7 @@ interface WebviewResolver {
 	/**
 	 * Resolves the webview.
 	 */
-	resolveWebview(
-		webview: WebviewInput,
-		token: CancellationToken,
-	): Promise<void>;
+	resolveWebview(webview: WebviewInput, token: CancellationToken): Promise<void>;
 }
 
 function canRevive(reviver: WebviewResolver, webview: WebviewInput): boolean {
@@ -157,14 +116,14 @@ function canRevive(reviver: WebviewResolver, webview: WebviewInput): boolean {
 }
 
 export class LazilyResolvedWebviewEditorInput extends WebviewInput {
+
 	private _resolved = false;
 	private _resolvePromise?: CancelablePromise<void>;
 
 	constructor(
 		init: WebviewInputInitInfo,
 		webview: IOverlayWebview,
-		@IWebviewWorkbenchService
-		private readonly _webviewWorkbenchService: IWebviewWorkbenchService,
+		@IWebviewWorkbenchService private readonly _webviewWorkbenchService: IWebviewWorkbenchService,
 	) {
 		super(init, webview, _webviewWorkbenchService.iconManager);
 	}
@@ -179,9 +138,7 @@ export class LazilyResolvedWebviewEditorInput extends WebviewInput {
 	public override async resolve() {
 		if (!this._resolved) {
 			this._resolved = true;
-			this._resolvePromise = createCancelablePromise((token) =>
-				this._webviewWorkbenchService.resolveWebview(this, token),
-			);
+			this._resolvePromise = createCancelablePromise(token => this._webviewWorkbenchService.resolveWebview(this, token));
 			try {
 				await this._resolvePromise;
 			} catch (e) {
@@ -193,9 +150,7 @@ export class LazilyResolvedWebviewEditorInput extends WebviewInput {
 		return super.resolve();
 	}
 
-	protected override transfer(
-		other: LazilyResolvedWebviewEditorInput,
-	): WebviewInput | undefined {
+	protected override transfer(other: LazilyResolvedWebviewEditorInput): WebviewInput | undefined {
 		if (!super.transfer(other)) {
 			return;
 		}
@@ -205,6 +160,7 @@ export class LazilyResolvedWebviewEditorInput extends WebviewInput {
 	}
 }
 
+
 class RevivalPool {
 	private _awaitingRevival: Array<{
 		readonly input: WebviewInput;
@@ -212,16 +168,11 @@ class RevivalPool {
 		readonly disposable: IDisposable;
 	}> = [];
 
-	public enqueueForRestoration(
-		input: WebviewInput,
-		token: CancellationToken,
-	): Promise<void> {
+	public enqueueForRestoration(input: WebviewInput, token: CancellationToken): Promise<void> {
 		const promise = new DeferredPromise<void>();
 
 		const remove = () => {
-			const index = this._awaitingRevival.findIndex(
-				(entry) => input === entry.input,
-			);
+			const index = this._awaitingRevival.findIndex(entry => input === entry.input);
 			if (index >= 0) {
 				this._awaitingRevival.splice(index, 1);
 			}
@@ -241,31 +192,19 @@ class RevivalPool {
 	}
 
 	public reviveFor(reviver: WebviewResolver, token: CancellationToken) {
-		const toRevive = this._awaitingRevival.filter(({ input }) =>
-			canRevive(reviver, input),
-		);
-		this._awaitingRevival = this._awaitingRevival.filter(
-			({ input }) => !canRevive(reviver, input),
-		);
+		const toRevive = this._awaitingRevival.filter(({ input }) => canRevive(reviver, input));
+		this._awaitingRevival = this._awaitingRevival.filter(({ input }) => !canRevive(reviver, input));
 
 		for (const { input, promise: resolve, disposable } of toRevive) {
-			reviver
-				.resolveWebview(input, token)
-				.then(
-					(x) => resolve.complete(x),
-					(err) => resolve.error(err),
-				)
-				.finally(() => {
-					disposable.dispose();
-				});
+			reviver.resolveWebview(input, token).then(x => resolve.complete(x), err => resolve.error(err)).finally(() => {
+				disposable.dispose();
+			});
 		}
 	}
 }
 
-export class WebviewEditorService
-	extends Disposable
-	implements IWebviewWorkbenchService
-{
+
+export class WebviewEditorService extends Disposable implements IWebviewWorkbenchService {
 	declare readonly _serviceBrand: undefined;
 
 	private readonly _revivers = new Set<WebviewResolver>();
@@ -276,36 +215,26 @@ export class WebviewEditorService
 	constructor(
 		@IEditorGroupsService editorGroupsService: IEditorGroupsService,
 		@IEditorService private readonly _editorService: IEditorService,
-		@IInstantiationService
-		private readonly _instantiationService: IInstantiationService,
+		@IInstantiationService private readonly _instantiationService: IInstantiationService,
 		@IWebviewService private readonly _webviewService: IWebviewService,
 	) {
 		super();
 
-		this._iconManager = this._register(
-			this._instantiationService.createInstance(WebviewIconManager),
-		);
+		this._iconManager = this._register(this._instantiationService.createInstance(WebviewIconManager));
 
-		this._register(
-			editorGroupsService.registerContextKeyProvider({
-				contextKey: CONTEXT_ACTIVE_WEBVIEW_PANEL_ID,
-				getGroupContextKeyValue: (group) =>
-					this.getWebviewId(group.activeEditor),
-			}),
-		);
+		this._register(editorGroupsService.registerContextKeyProvider({
+			contextKey: CONTEXT_ACTIVE_WEBVIEW_PANEL_ID,
+			getGroupContextKeyValue: (group) => this.getWebviewId(group.activeEditor),
+		}));
 
-		this._register(
-			_editorService.onDidActiveEditorChange(() => {
-				this.updateActiveWebview();
-			}),
-		);
+		this._register(_editorService.onDidActiveEditorChange(() => {
+			this.updateActiveWebview();
+		}));
 
 		// The user may have switched focus between two sides of a diff editor
-		this._register(
-			_webviewService.onDidChangeActiveWebview(() => {
-				this.updateActiveWebview();
-			}),
-		);
+		this._register(_webviewService.onDidChangeActiveWebview(() => {
+			this.updateActiveWebview();
+		}));
 
 		this.updateActiveWebview();
 	}
@@ -316,11 +245,8 @@ export class WebviewEditorService
 
 	private _activeWebview: WebviewInput | undefined;
 
-	private readonly _onDidChangeActiveWebviewEditor = this._register(
-		new Emitter<WebviewInput | undefined>(),
-	);
-	public readonly onDidChangeActiveWebviewEditor =
-		this._onDidChangeActiveWebviewEditor.event;
+	private readonly _onDidChangeActiveWebviewEditor = this._register(new Emitter<WebviewInput | undefined>());
+	public readonly onDidChangeActiveWebviewEditor = this._onDidChangeActiveWebviewEditor.event;
 
 	private getWebviewId(input: EditorInput | null): string {
 		let webviewInput: WebviewInput | undefined;
@@ -334,7 +260,7 @@ export class WebviewEditorService
 			}
 		}
 
-		return webviewInput?.webview.providedViewType ?? "";
+		return webviewInput?.webview.providedViewType ?? '';
 	}
 
 	private updateActiveWebview() {
@@ -344,17 +270,9 @@ export class WebviewEditorService
 		if (activeInput instanceof WebviewInput) {
 			newActiveWebview = activeInput;
 		} else if (activeInput instanceof DiffEditorInput) {
-			if (
-				activeInput.primary instanceof WebviewInput &&
-				activeInput.primary.webview ===
-					this._webviewService.activeWebview
-			) {
+			if (activeInput.primary instanceof WebviewInput && activeInput.primary.webview === this._webviewService.activeWebview) {
 				newActiveWebview = activeInput.primary;
-			} else if (
-				activeInput.secondary instanceof WebviewInput &&
-				activeInput.secondary.webview ===
-					this._webviewService.activeWebview
-			) {
+			} else if (activeInput.secondary instanceof WebviewInput && activeInput.secondary.webview === this._webviewService.activeWebview) {
 				newActiveWebview = activeInput.secondary;
 			}
 		}
@@ -370,57 +288,31 @@ export class WebviewEditorService
 		title: string,
 		showOptions: IWebViewShowOptions,
 	): WebviewInput {
-		const webview =
-			this._webviewService.createWebviewOverlay(webviewInitInfo);
-		const webviewInput = this._instantiationService.createInstance(
-			WebviewInput,
-			{
-				viewType,
-				name: title,
-				providedId: webviewInitInfo.providedViewType,
-			},
-			webview,
-			this.iconManager,
-		);
-		this._editorService.openEditor(
-			webviewInput,
-			{
-				pinned: true,
-				preserveFocus: showOptions.preserveFocus,
-				// preserve pre 1.38 behaviour to not make group active when preserveFocus: true
-				// but make sure to restore the editor to fix https://github.com/microsoft/vscode/issues/79633
-				activation: showOptions.preserveFocus
-					? EditorActivation.RESTORE
-					: undefined,
-			},
-			showOptions.group,
-		);
+		const webview = this._webviewService.createWebviewOverlay(webviewInitInfo);
+		const webviewInput = this._instantiationService.createInstance(WebviewInput, { viewType, name: title, providedId: webviewInitInfo.providedViewType }, webview, this.iconManager);
+		this._editorService.openEditor(webviewInput, {
+			pinned: true,
+			preserveFocus: showOptions.preserveFocus,
+			// preserve pre 1.38 behaviour to not make group active when preserveFocus: true
+			// but make sure to restore the editor to fix https://github.com/microsoft/vscode/issues/79633
+			activation: showOptions.preserveFocus ? EditorActivation.RESTORE : undefined
+		}, showOptions.group);
 		return webviewInput;
 	}
 
 	public revealWebview(
 		webview: WebviewInput,
-		group:
-			| IEditorGroup
-			| GroupIdentifier
-			| ACTIVE_GROUP_TYPE
-			| SIDE_GROUP_TYPE,
-		preserveFocus: boolean,
+		group: IEditorGroup | GroupIdentifier | ACTIVE_GROUP_TYPE | SIDE_GROUP_TYPE,
+		preserveFocus: boolean
 	): void {
 		const topLevelEditor = this.findTopLevelEditorForWebview(webview);
 
-		this._editorService.openEditor(
-			topLevelEditor,
-			{
-				preserveFocus,
-				// preserve pre 1.38 behaviour to not make group active when preserveFocus: true
-				// but make sure to restore the editor to fix https://github.com/microsoft/vscode/issues/79633
-				activation: preserveFocus
-					? EditorActivation.RESTORE
-					: undefined,
-			},
-			group,
-		);
+		this._editorService.openEditor(topLevelEditor, {
+			preserveFocus,
+			// preserve pre 1.38 behaviour to not make group active when preserveFocus: true
+			// but make sure to restore the editor to fix https://github.com/microsoft/vscode/issues/79633
+			activation: preserveFocus ? EditorActivation.RESTORE : undefined
+		}, group);
 	}
 
 	private findTopLevelEditorForWebview(webview: WebviewInput): EditorInput {
@@ -429,10 +321,7 @@ export class WebviewEditorService
 				return editor;
 			}
 			if (editor instanceof DiffEditorInput) {
-				if (
-					webview === editor.primary ||
-					webview === editor.secondary
-				) {
+				if (webview === editor.primary || webview === editor.secondary) {
 					return editor;
 				}
 			}
@@ -448,23 +337,13 @@ export class WebviewEditorService
 		state: any;
 		group: number | undefined;
 	}): WebviewInput {
-		const webview = this._webviewService.createWebviewOverlay(
-			options.webviewInitInfo,
-		);
+		const webview = this._webviewService.createWebviewOverlay(options.webviewInitInfo);
 		webview.state = options.state;
 
-		const webviewInput = this._instantiationService.createInstance(
-			LazilyResolvedWebviewEditorInput,
-			{
-				viewType: options.viewType,
-				providedId: options.webviewInitInfo.providedViewType,
-				name: options.title,
-			},
-			webview,
-		);
+		const webviewInput = this._instantiationService.createInstance(LazilyResolvedWebviewEditorInput, { viewType: options.viewType, providedId: options.webviewInitInfo.providedViewType, name: options.title }, webview);
 		webviewInput.iconPath = options.iconPath;
 
-		if (typeof options.group === "number") {
+		if (typeof options.group === 'number') {
 			webviewInput.updateGroup(options.group);
 		}
 		return webviewInput;
@@ -489,15 +368,10 @@ export class WebviewEditorService
 			return true;
 		}
 
-		return Iterable.some(this._revivers.values(), (reviver) =>
-			canRevive(reviver, webview),
-		);
+		return Iterable.some(this._revivers.values(), reviver => canRevive(reviver, webview));
 	}
 
-	private async tryRevive(
-		webview: WebviewInput,
-		token: CancellationToken,
-	): Promise<boolean> {
+	private async tryRevive(webview: WebviewInput, token: CancellationToken): Promise<boolean> {
 		for (const reviver of this._revivers.values()) {
 			if (canRevive(reviver, webview)) {
 				await reviver.resolveWebview(webview, token);
@@ -507,10 +381,7 @@ export class WebviewEditorService
 		return false;
 	}
 
-	public async resolveWebview(
-		webview: WebviewInput,
-		token: CancellationToken,
-	): Promise<void> {
+	public async resolveWebview(webview: WebviewInput, token: CancellationToken): Promise<void> {
 		const didRevive = await this.tryRevive(webview, token);
 		if (!didRevive && !token.isCancellationRequested) {
 			// A reviver may not be registered yet. Put into pool and resolve promise when we can revive

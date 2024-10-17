@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SingleTextEdit } from "../../../../common/core/textEdit.js";
+import { SingleTextEdit } from '../../../../common/core/textEdit.js';
 
 export class InlineEdit {
 	constructor(
 		public readonly edit: SingleTextEdit,
 		public readonly isCollapsed: boolean,
-	) {}
+	) { }
 
 	public get range() {
 		return this.edit.range;
@@ -20,9 +20,6 @@ export class InlineEdit {
 	}
 
 	public equals(other: InlineEdit): boolean {
-		return (
-			this.edit.equals(other.edit) &&
-			this.isCollapsed === other.isCollapsed
-		);
+		return this.edit.equals(other.edit) && this.isCollapsed === other.isCollapsed;
 	}
 }

@@ -3,17 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CharCode } from "../../../../base/common/charCode.js";
-import { LineRange } from "../../core/lineRange.js";
-import { DetailedLineRangeMapping } from "../rangeMapping.js";
+import { CharCode } from '../../../../base/common/charCode.js';
+import { LineRange } from '../../core/lineRange.js';
+import { DetailedLineRangeMapping } from '../rangeMapping.js';
 
 export class Array2D<T> {
 	private readonly array: T[] = [];
 
-	constructor(
-		public readonly width: number,
-		public readonly height: number,
-	) {
+	constructor(public readonly width: number, public readonly height: number) {
 		this.array = new Array<T>(width * height);
 	}
 
@@ -50,11 +47,7 @@ export class LineRangeFragment {
 		public readonly source: DetailedLineRangeMapping,
 	) {
 		let counter = 0;
-		for (
-			let i = range.startLineNumber - 1;
-			i < range.endLineNumberExclusive - 1;
-			i++
-		) {
+		for (let i = range.startLineNumber - 1; i < range.endLineNumberExclusive - 1; i++) {
 			const line = lines[i];
 			for (let j = 0; j < line.length; j++) {
 				counter++;
@@ -63,7 +56,7 @@ export class LineRangeFragment {
 				this.histogram[key] = (this.histogram[key] || 0) + 1;
 			}
 			counter++;
-			const key = LineRangeFragment.getKey("\n");
+			const key = LineRangeFragment.getKey('\n');
 			this.histogram[key] = (this.histogram[key] || 0) + 1;
 		}
 
@@ -72,15 +65,10 @@ export class LineRangeFragment {
 
 	public computeSimilarity(other: LineRangeFragment): number {
 		let sumDifferences = 0;
-		const maxLength = Math.max(
-			this.histogram.length,
-			other.histogram.length,
-		);
+		const maxLength = Math.max(this.histogram.length, other.histogram.length);
 		for (let i = 0; i < maxLength; i++) {
-			sumDifferences += Math.abs(
-				(this.histogram[i] ?? 0) - (other.histogram[i] ?? 0),
-			);
+			sumDifferences += Math.abs((this.histogram[i] ?? 0) - (other.histogram[i] ?? 0));
 		}
-		return 1 - sumDifferences / (this.totalCount + other.totalCount);
+		return 1 - (sumDifferences / (this.totalCount + other.totalCount));
 	}
 }

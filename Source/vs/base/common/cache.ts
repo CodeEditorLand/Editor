@@ -3,16 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken, CancellationTokenSource } from "./cancellation.js";
-import { IDisposable } from "./lifecycle.js";
+import { CancellationToken, CancellationTokenSource } from './cancellation.js';
+import { IDisposable } from './lifecycle.js';
 
 export interface CacheResult<T> extends IDisposable {
 	promise: Promise<T>;
 }
 
 export class Cache<T> {
+
 	private result: CacheResult<T> | null = null;
-	constructor(private task: (ct: CancellationToken) => Promise<T>) {}
+	constructor(private task: (ct: CancellationToken) => Promise<T>) { }
 
 	get(): CacheResult<T> {
 		if (this.result) {
@@ -28,7 +29,7 @@ export class Cache<T> {
 				this.result = null;
 				cts.cancel();
 				cts.dispose();
-			},
+			}
 		};
 
 		return this.result;
@@ -43,14 +44,14 @@ interface ICacheOptions<TArg> {
 	/**
 	 * The cache key is used to identify the cache entry.
 	 * Strict equality is used to compare cache keys.
-	 */
+	*/
 	getCacheKey: (arg: TArg) => unknown;
 }
 
 /**
  * Uses a LRU cache to make a given parametrized function cached.
  * Caches just the last key/value.
- */
+*/
 export class LRUCachedFunction<TArg, TComputed> {
 	private lastCache: TComputed | undefined = undefined;
 	private lastArgKey: unknown | undefined = undefined;
@@ -60,11 +61,8 @@ export class LRUCachedFunction<TArg, TComputed> {
 
 	constructor(fn: (arg: TArg) => TComputed);
 	constructor(options: ICacheOptions<TArg>, fn: (arg: TArg) => TComputed);
-	constructor(
-		arg1: ICacheOptions<TArg> | ((arg: TArg) => TComputed),
-		arg2?: (arg: TArg) => TComputed,
-	) {
-		if (typeof arg1 === "function") {
+	constructor(arg1: ICacheOptions<TArg> | ((arg: TArg) => TComputed), arg2?: (arg: TArg) => TComputed) {
+		if (typeof arg1 === 'function') {
 			this._fn = arg1;
 			this._computeKey = identity;
 		} else {
@@ -85,7 +83,7 @@ export class LRUCachedFunction<TArg, TComputed> {
 
 /**
  * Uses an unbounded cache to memoize the results of the given function.
- */
+*/
 export class CachedFunction<TArg, TComputed> {
 	private readonly _map = new Map<TArg, TComputed>();
 	private readonly _map2 = new Map<unknown, TComputed>();
@@ -98,11 +96,8 @@ export class CachedFunction<TArg, TComputed> {
 
 	constructor(fn: (arg: TArg) => TComputed);
 	constructor(options: ICacheOptions<TArg>, fn: (arg: TArg) => TComputed);
-	constructor(
-		arg1: ICacheOptions<TArg> | ((arg: TArg) => TComputed),
-		arg2?: (arg: TArg) => TComputed,
-	) {
-		if (typeof arg1 === "function") {
+	constructor(arg1: ICacheOptions<TArg> | ((arg: TArg) => TComputed), arg2?: (arg: TArg) => TComputed) {
+		if (typeof arg1 === 'function') {
 			this._fn = arg1;
 			this._computeKey = identity;
 		} else {

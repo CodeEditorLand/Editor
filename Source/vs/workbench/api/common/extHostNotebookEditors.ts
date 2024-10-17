@@ -3,70 +3,50 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type * as vscode from "vscode";
+import { Emitter } from '../../../base/common/event.js';
+import { ILogService } from '../../../platform/log/common/log.js';
+import { ExtHostNotebookEditorsShape, INotebookEditorPropertiesChangeData, INotebookEditorViewColumnInfo } from './extHost.protocol.js';
+import { ExtHostNotebookController } from './extHostNotebook.js';
+import * as typeConverters from './extHostTypeConverters.js';
+import type * as vscode from 'vscode';
 
-import { Emitter } from "../../../base/common/event.js";
-import { ILogService } from "../../../platform/log/common/log.js";
-import {
-	ExtHostNotebookEditorsShape,
-	INotebookEditorPropertiesChangeData,
-	INotebookEditorViewColumnInfo,
-} from "./extHost.protocol.js";
-import { ExtHostNotebookController } from "./extHostNotebook.js";
-import * as typeConverters from "./extHostTypeConverters.js";
 
 export class ExtHostNotebookEditors implements ExtHostNotebookEditorsShape {
-	private readonly _onDidChangeNotebookEditorSelection =
-		new Emitter<vscode.NotebookEditorSelectionChangeEvent>();
-	private readonly _onDidChangeNotebookEditorVisibleRanges =
-		new Emitter<vscode.NotebookEditorVisibleRangesChangeEvent>();
 
-	readonly onDidChangeNotebookEditorSelection =
-		this._onDidChangeNotebookEditorSelection.event;
-	readonly onDidChangeNotebookEditorVisibleRanges =
-		this._onDidChangeNotebookEditorVisibleRanges.event;
+	private readonly _onDidChangeNotebookEditorSelection = new Emitter<vscode.NotebookEditorSelectionChangeEvent>();
+	private readonly _onDidChangeNotebookEditorVisibleRanges = new Emitter<vscode.NotebookEditorVisibleRangesChangeEvent>();
+
+	readonly onDidChangeNotebookEditorSelection = this._onDidChangeNotebookEditorSelection.event;
+	readonly onDidChangeNotebookEditorVisibleRanges = this._onDidChangeNotebookEditorVisibleRanges.event;
 
 	constructor(
 		@ILogService private readonly _logService: ILogService,
 		private readonly _notebooksAndEditors: ExtHostNotebookController,
-	) {}
+	) { }
 
-	$acceptEditorPropertiesChanged(
-		id: string,
-		data: INotebookEditorPropertiesChangeData,
-	): void {
-		this._logService.debug(
-			"ExtHostNotebook#$acceptEditorPropertiesChanged",
-			id,
-			data,
-		);
+	$acceptEditorPropertiesChanged(id: string, data: INotebookEditorPropertiesChangeData): void {
+		this._logService.debug('ExtHostNotebook#$acceptEditorPropertiesChanged', id, data);
 		const editor = this._notebooksAndEditors.getEditorById(id);
 		// ONE: make all state updates
 		if (data.visibleRanges) {
-			editor._acceptVisibleRanges(
-				data.visibleRanges.ranges.map(typeConverters.NotebookRange.to),
-			);
+			editor._acceptVisibleRanges(data.visibleRanges.ranges.map(typeConverters.NotebookRange.to));
 		}
 		if (data.selections) {
-			editor._acceptSelections(
-				data.selections.selections.map(typeConverters.NotebookRange.to),
-			);
+			editor._acceptSelections(data.selections.selections.map(typeConverters.NotebookRange.to));
 		}
 
 		// TWO: send all events after states have been updated
 		if (data.visibleRanges) {
 			this._onDidChangeNotebookEditorVisibleRanges.fire({
 				notebookEditor: editor.apiEditor,
-				visibleRanges: editor.apiEditor.visibleRanges,
+				visibleRanges: editor.apiEditor.visibleRanges
 			});
 		}
 		if (data.selections) {
-			this._onDidChangeNotebookEditorSelection.fire(
-				Object.freeze({
-					notebookEditor: editor.apiEditor,
-					selections: editor.apiEditor.selections,
-				}),
-			);
+			this._onDidChangeNotebookEditorSelection.fire(Object.freeze({
+				notebookEditor: editor.apiEditor,
+				selections: editor.apiEditor.selections
+			}));
 		}
 	}
 

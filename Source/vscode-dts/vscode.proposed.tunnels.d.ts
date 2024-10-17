@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	// tunnels @alexr00
 
 	export interface TunnelOptions {
@@ -47,9 +48,7 @@ declare module "vscode" {
 		 *
 		 * @param tunnelOptions The `localPort` is a suggestion only. If that port is not available another will be chosen.
 		 */
-		export function openTunnel(
-			tunnelOptions: TunnelOptions,
-		): Thenable<Tunnel>;
+		export function openTunnel(tunnelOptions: TunnelOptions): Thenable<Tunnel>;
 
 		/**
 		 * Gets an array of the currently available tunnels. This does not include environment tunnels, only tunnels that have been created by the user.

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TestId } from "../../common/testId.js";
+import { TestId } from '../../common/testId.js';
 
 export interface ISerializedTestTreeCollapseState {
 	collapsed?: boolean;
@@ -13,10 +13,7 @@ export interface ISerializedTestTreeCollapseState {
 /**
  * Gets whether the given test ID is collapsed.
  */
-export function isCollapsedInSerializedTestTree(
-	serialized: ISerializedTestTreeCollapseState,
-	id: TestId | string,
-): boolean | undefined {
+export function isCollapsedInSerializedTestTree(serialized: ISerializedTestTreeCollapseState, id: TestId | string): boolean | undefined {
 	if (!(id instanceof TestId)) {
 		id = TestId.fromString(id);
 	}

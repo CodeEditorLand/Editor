@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IAction } from "../../../../base/common/actions.js";
-import { binarySearch } from "../../../../base/common/arrays.js";
-import { Event } from "../../../../base/common/event.js";
-import { URI } from "../../../../base/common/uri.js";
-import { Position } from "../../../../editor/common/core/position.js";
-import { IModelDeltaDecoration } from "../../../../editor/common/model.js";
-import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
-import { ITestMessage } from "./testTypes.js";
+import { IAction } from '../../../../base/common/actions.js';
+import { binarySearch } from '../../../../base/common/arrays.js';
+import { Event } from '../../../../base/common/event.js';
+import { URI } from '../../../../base/common/uri.js';
+import { Position } from '../../../../editor/common/core/position.js';
+import { IModelDeltaDecoration } from '../../../../editor/common/model.js';
+import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { ITestMessage } from './testTypes.js';
 
 export interface ITestingDecorationsService {
 	_serviceBrand: undefined;
@@ -40,10 +40,7 @@ export interface ITestingDecorationsService {
 	 * Gets the range where a test ID is displayed, in the given URI.
 	 * Returns undefined if there's no such decoration.
 	 */
-	getDecoratedTestPosition(
-		resource: URI,
-		testId: string,
-	): Position | undefined;
+	getDecoratedTestPosition(resource: URI, testId: string): Position | undefined;
 
 	/**
 	 * Sets that alternative actions are displayed on the model.
@@ -71,24 +68,14 @@ export interface ITestDecoration {
 	getContextMenuActions(): { object: IAction[]; dispose(): void };
 }
 
-export class TestDecorations<
-	T extends { id: string; line: number } = ITestDecoration,
-> {
+export class TestDecorations<T extends { id: string; line: number } = ITestDecoration> {
 	public value: T[] = [];
 	/**
 	 * Adds a new value to the decorations.
 	 */
 	public push(value: T) {
-		const searchIndex = binarySearch(
-			this.value,
-			value,
-			(a, b) => a.line - b.line,
-		);
-		this.value.splice(
-			searchIndex < 0 ? ~searchIndex : searchIndex,
-			0,
-			value,
-		);
+		const searchIndex = binarySearch(this.value, value, (a, b) => a.line - b.line);
+		this.value.splice(searchIndex < 0 ? ~searchIndex : searchIndex, 0, value);
 	}
 
 	/**
@@ -114,5 +101,5 @@ export class TestDecorations<
 	}
 }
 
-export const ITestingDecorationsService =
-	createDecorator<ITestingDecorationsService>("testingDecorationService");
+export const ITestingDecorationsService = createDecorator<ITestingDecorationsService>('testingDecorationService');
+

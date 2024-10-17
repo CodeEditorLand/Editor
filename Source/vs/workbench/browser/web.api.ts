@@ -3,33 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { Event } from "../../base/common/event.js";
-import type { PerformanceMark } from "../../base/common/performance.js";
-import type { IProductConfiguration } from "../../base/common/product.js";
-import type { URI, UriComponents } from "../../base/common/uri.js";
-import type { ITextEditorOptions } from "../../platform/editor/common/editor.js";
-import type { LogLevel } from "../../platform/log/common/log.js";
-import type {
-	IProgress,
-	IProgressCompositeOptions,
-	IProgressDialogOptions,
-	IProgressNotificationOptions,
-	IProgressOptions,
-	IProgressStep,
-	IProgressWindowOptions,
-} from "../../platform/progress/common/progress.js";
-import type { IWebSocketFactory } from "../../platform/remote/browser/browserSocketFactory.js";
-import type { ISecretStorageProvider } from "../../platform/secrets/common/secrets.js";
-import type { TunnelProviderFeatures } from "../../platform/tunnel/common/tunnel.js";
-import type {
-	IFolderToOpen,
-	IWorkspaceToOpen,
-} from "../../platform/window/common/window.js";
-import type { IAuthenticationProvider } from "../services/authentication/common/authentication.js";
-import type { EditorGroupLayout } from "../services/editor/common/editorGroupsService.js";
-import type { IEmbedderTerminalOptions } from "../services/terminal/common/embedderTerminalService.js";
-import type { IUpdateProvider } from "../services/update/browser/updateService.js";
-import type { IURLCallbackProvider } from "../services/url/browser/urlService.js";
+import type { PerformanceMark } from '../../base/common/performance.js';
+import type { UriComponents, URI } from '../../base/common/uri.js';
+import type { IWebSocketFactory } from '../../platform/remote/browser/browserSocketFactory.js';
+import type { IURLCallbackProvider } from '../services/url/browser/urlService.js';
+import type { LogLevel } from '../../platform/log/common/log.js';
+import type { IUpdateProvider } from '../services/update/browser/updateService.js';
+import type { Event } from '../../base/common/event.js';
+import type { IProductConfiguration } from '../../base/common/product.js';
+import type { ISecretStorageProvider } from '../../platform/secrets/common/secrets.js';
+import type { TunnelProviderFeatures } from '../../platform/tunnel/common/tunnel.js';
+import type { IProgress, IProgressCompositeOptions, IProgressDialogOptions, IProgressNotificationOptions, IProgressOptions, IProgressStep, IProgressWindowOptions } from '../../platform/progress/common/progress.js';
+import type { ITextEditorOptions } from '../../platform/editor/common/editor.js';
+import type { IFolderToOpen, IWorkspaceToOpen } from '../../platform/window/common/window.js';
+import type { EditorGroupLayout } from '../services/editor/common/editorGroupsService.js';
+import type { IEmbedderTerminalOptions } from '../services/terminal/common/embedderTerminalService.js';
+import type { IAuthenticationProvider } from '../services/authentication/common/authentication.js';
 
 /**
  * The `IWorkbench` interface is the API facade for web embedders
@@ -38,7 +27,9 @@ import type { IURLCallbackProvider } from "../services/url/browser/urlService.js
  * Note: Changes to this interface need to be announced and adopted.
  */
 export interface IWorkbench {
+
 	commands: {
+
 		/**
 		 * Allows to execute any command if known with the provided arguments.
 		 *
@@ -50,6 +41,7 @@ export interface IWorkbench {
 	};
 
 	logger: {
+
 		/**
 		 * Logging for embedder.
 		 *
@@ -60,6 +52,7 @@ export interface IWorkbench {
 	};
 
 	env: {
+
 		/**
 		 * @returns the scheme to use for opening the associated desktop
 		 * experience via protocol handler.
@@ -77,9 +70,7 @@ export interface IWorkbench {
 		 *
 		 * @returns A promise that resolves to tuples of source and marks.
 		 */
-		retrievePerformanceMarks(): Promise<
-			[string, readonly PerformanceMark[]][]
-		>;
+		retrievePerformanceMarks(): Promise<[string, readonly PerformanceMark[]][]>;
 
 		/**
 		 * Allows to open a `URI` with the standard opener service of the
@@ -89,6 +80,7 @@ export interface IWorkbench {
 	};
 
 	window: {
+
 		/**
 		 * Show progress in the editor. Progress is shown while running the given callback
 		 * and while the promise it returned isn't resolved nor rejected.
@@ -97,13 +89,8 @@ export interface IWorkbench {
 		 * @return A promise that resolves to the returned value of the given task result.
 		 */
 		withProgress<R>(
-			options:
-				| IProgressOptions
-				| IProgressDialogOptions
-				| IProgressNotificationOptions
-				| IProgressWindowOptions
-				| IProgressCompositeOptions,
-			task: (progress: IProgress<IProgressStep>) => Promise<R>,
+			options: IProgressOptions | IProgressDialogOptions | IProgressNotificationOptions | IProgressWindowOptions | IProgressCompositeOptions,
+			task: (progress: IProgress<IProgressStep>) => Promise<R>
 		): Promise<R>;
 
 		/**
@@ -125,10 +112,7 @@ export interface IWorkbench {
 		 * @param items A set of items that will be rendered as actions in the message.
 		 * @returns A thenable that resolves to the selected item or `undefined` when being dismissed.
 		 */
-		showInformationMessage<T extends string>(
-			message: string,
-			...items: T[]
-		): Promise<T | undefined>;
+		showInformationMessage<T extends string>(message: string, ...items: T[]): Promise<T | undefined>;
 	};
 
 	workspace: {
@@ -163,6 +147,7 @@ export interface IWorkbench {
 }
 
 export interface IWorkbenchConstructionOptions {
+
 	//#region Connection related configuration
 
 	/**
@@ -233,6 +218,7 @@ export interface IWorkbenchConstructionOptions {
 
 	//#endregion
 
+
 	//#region Workbench configuration
 
 	/**
@@ -256,10 +242,7 @@ export interface IWorkbenchConstructionOptions {
 	 * 	- an extension in the Marketplace
 	 * 	- location of the extension where it is hosted.
 	 */
-	readonly additionalBuiltinExtensions?: readonly (
-		| MarketplaceExtension
-		| UriComponents
-	)[];
+	readonly additionalBuiltinExtensions?: readonly (MarketplaceExtension | UriComponents)[];
 
 	/**
 	 * List of extensions to be enabled if they are installed.
@@ -322,10 +305,7 @@ export interface IWorkbenchConstructionOptions {
 	/**
 	 * Profile to use for the workbench.
 	 */
-	readonly profile?: {
-		readonly name: string;
-		readonly contents?: string | UriComponents;
-	};
+	readonly profile?: { readonly name: string; readonly contents?: string | UriComponents };
 
 	/**
 	 * URI of the profile to preview.
@@ -333,6 +313,7 @@ export interface IWorkbenchConstructionOptions {
 	readonly profileToPreview?: UriComponents;
 
 	//#endregion
+
 
 	//#region Update/Quality related
 
@@ -347,6 +328,7 @@ export interface IWorkbenchConstructionOptions {
 	readonly productQualityChangeHandler?: IProductQualityChangeHandler;
 
 	//#endregion
+
 
 	//#region Branding
 
@@ -387,6 +369,7 @@ export interface IWorkbenchConstructionOptions {
 
 	//#endregion
 
+
 	//#region IPC
 
 	readonly messagePorts?: ReadonlyMap<ExtensionId, MessagePort>;
@@ -408,7 +391,9 @@ export interface IWorkbenchConstructionOptions {
 	readonly developmentOptions?: IDevelopmentOptions;
 
 	//#endregion
+
 }
+
 
 /**
  * A workspace to open in the workbench can either be:
@@ -419,6 +404,7 @@ export interface IWorkbenchConstructionOptions {
 export type IWorkspace = IWorkspaceToOpen | IFolderToOpen | undefined;
 
 export interface IWorkspaceProvider {
+
 	/**
 	 * The initial workspace to open.
 	 */
@@ -446,10 +432,7 @@ export interface IWorkspaceProvider {
 	 *
 	 * @returns true if successfully opened, false otherwise.
 	 */
-	open(
-		workspace: IWorkspace,
-		options?: { reuse?: boolean; payload?: object },
-	): Promise<boolean>;
+	open(workspace: IWorkspace, options?: { reuse?: boolean; payload?: object }): Promise<boolean>;
 }
 
 export interface IResourceUriProvider {
@@ -461,13 +444,7 @@ export interface IResourceUriProvider {
  */
 export type ExtensionId = string;
 
-export type MarketplaceExtension =
-	| ExtensionId
-	| {
-			readonly id: ExtensionId;
-			preRelease?: boolean;
-			migrateStorageFrom?: ExtensionId;
-	  };
+export type MarketplaceExtension = ExtensionId | { readonly id: ExtensionId; preRelease?: boolean; migrateStorageFrom?: ExtensionId };
 
 export interface ICommonTelemetryPropertiesResolver {
 	(): { [key: string]: any };
@@ -478,6 +455,7 @@ export interface IExternalUriResolver {
 }
 
 export interface IExternalURLOpener {
+
 	/**
 	 * Overrides the behavior when an external URL is about to be opened.
 	 * Returning false means that the URL wasn't handled, and the default
@@ -489,6 +467,7 @@ export interface IExternalURLOpener {
 }
 
 export interface ITunnelProvider {
+
 	/**
 	 * Support for creating tunnels.
 	 */
@@ -506,13 +485,11 @@ export interface ITunnelProvider {
 }
 
 export interface ITunnelFactory {
-	(
-		tunnelOptions: ITunnelOptions,
-		tunnelCreationOptions: TunnelCreationOptions,
-	): Promise<ITunnel> | undefined;
+	(tunnelOptions: ITunnelOptions, tunnelCreationOptions: TunnelCreationOptions): Promise<ITunnel> | undefined;
 }
 
 export interface ITunnelOptions {
+
 	remoteAddress: { port: number; host: string };
 
 	/**
@@ -528,6 +505,7 @@ export interface ITunnelOptions {
 }
 
 export interface TunnelCreationOptions {
+
 	/**
 	 * True when the local operating system will require elevation to use the requested local port.
 	 */
@@ -535,6 +513,7 @@ export interface TunnelCreationOptions {
 }
 
 export interface ITunnel {
+
 	remoteAddress: { port: number; host: string };
 
 	/**
@@ -567,6 +546,7 @@ export enum Menu {
 }
 
 export interface ICommand {
+
 	/**
 	 * An identifier for the command. Commands can be executed from extensions
 	 * using the `vscode.commands.executeCommand` API using that command ID.
@@ -597,6 +577,7 @@ export interface ICommand {
 }
 
 export interface IHomeIndicator {
+
 	/**
 	 * The link to open when clicking the home indicator.
 	 */
@@ -615,6 +596,7 @@ export interface IHomeIndicator {
 }
 
 export interface IWelcomeBanner {
+
 	/**
 	 * Welcome banner message to appear as text.
 	 */
@@ -635,6 +617,7 @@ export interface IWelcomeBanner {
 }
 
 export interface IWelcomeLinkAction {
+
 	/**
 	 * The link to open when clicking. Supports command invocation when
 	 * using the `command:<commandId>` value.
@@ -653,6 +636,7 @@ export interface IWelcomeLinkAction {
 }
 
 export interface IWindowIndicator {
+
 	/**
 	 * Triggering this event will cause the window indicator to update.
 	 */
@@ -678,13 +662,14 @@ export interface IWindowIndicator {
 }
 
 export enum ColorScheme {
-	DARK = "dark",
-	LIGHT = "light",
-	HIGH_CONTRAST_LIGHT = "hcLight",
-	HIGH_CONTRAST_DARK = "hcDark",
+	DARK = 'dark',
+	LIGHT = 'light',
+	HIGH_CONTRAST_LIGHT = 'hcLight',
+	HIGH_CONTRAST_DARK = 'hcDark'
 }
 
 export interface IInitialColorTheme {
+
 	/**
 	 * Initial color theme type.
 	 */
@@ -697,6 +682,7 @@ export interface IInitialColorTheme {
 }
 
 export interface IWelcomeDialog {
+
 	/**
 	 * Unique identifier of the welcome dialog. The identifier will be used to determine
 	 * if the dialog has been previously displayed.
@@ -730,6 +716,7 @@ export interface IWelcomeDialog {
 }
 
 export interface IDefaultView {
+
 	/**
 	 * The identifier of the view to show by default.
 	 */
@@ -737,6 +724,7 @@ export interface IDefaultView {
 }
 
 export interface IDefaultEditor {
+
 	/**
 	 * The location of the editor in the editor grid layout.
 	 * Editors are layed out in editor groups and the view
@@ -767,6 +755,7 @@ export interface IDefaultEditor {
 }
 
 export interface IDefaultLayout {
+
 	/**
 	 * A list of views to show by default.
 	 */
@@ -781,6 +770,7 @@ export interface IDefaultLayout {
 	 * The layout to use for the workbench.
 	 */
 	readonly layout?: {
+
 		/**
 		 * The layout of the editor area.
 		 */
@@ -795,17 +785,19 @@ export interface IDefaultLayout {
 }
 
 export interface IProductQualityChangeHandler {
+
 	/**
 	 * Handler is being called when the user wants to switch between
 	 * `insider` or `stable` product qualities.
 	 */
-	(newQuality: "insider" | "stable"): void;
+	(newQuality: 'insider' | 'stable'): void;
 }
 
 /**
  * Settings sync options
  */
 export interface ISettingsSyncOptions {
+
 	/**
 	 * Is settings sync enabled
 	 */
@@ -820,10 +812,7 @@ export interface ISettingsSyncOptions {
 	/**
 	 * Handler is being called when the user changes Settings Sync enablement.
 	 */
-	enablementHandler?(
-		enablement: boolean,
-		authenticationProvider: string,
-	): void;
+	enablementHandler?(enablement: boolean, authenticationProvider: string): void;
 
 	/**
 	 * Authentication provider
@@ -843,6 +832,7 @@ export interface ISettingsSyncOptions {
 }
 
 export interface IDevelopmentOptions {
+
 	/**
 	 * Current logging level. Default is `LogLevel.Info`.
 	 */
@@ -901,9 +891,5 @@ export interface IRemoteResourceRequest {
 	/**
 	 * A method called by the editor to issue a response to the request.
 	 */
-	respondWith(
-		statusCode: number,
-		body: Uint8Array,
-		headers: Record<string, string>,
-	): void;
+	respondWith(statusCode: number, body: Uint8Array, headers: Record<string, string>): void;
 }

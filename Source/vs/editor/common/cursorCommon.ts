@@ -3,27 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IEditorConfiguration } from "./config/editorConfiguration.js";
-import {
-	ConfigurationChangedEvent,
-	EditorAutoClosingEditStrategy,
-	EditorAutoClosingStrategy,
-	EditorAutoIndentStrategy,
-	EditorAutoSurroundStrategy,
-	EditorOption,
-} from "./config/editorOptions.js";
-import { CursorColumns } from "./core/cursorColumns.js";
-import { normalizeIndentation } from "./core/indentation.js";
-import { Position } from "./core/position.js";
-import { Range } from "./core/range.js";
-import { ISelection, Selection } from "./core/selection.js";
-import { ICommand } from "./editorCommon.js";
-import { AutoClosingPairs } from "./languages/languageConfiguration.js";
-import { ILanguageConfigurationService } from "./languages/languageConfigurationRegistry.js";
-import { createScopedLineTokens } from "./languages/supports.js";
-import { IElectricAction } from "./languages/supports/electricCharacter.js";
-import { PositionAffinity, TextModelResolvedOptions } from "./model.js";
-import { LineTokens } from "./tokens/lineTokens.js";
+import { ConfigurationChangedEvent, EditorAutoClosingEditStrategy, EditorAutoClosingStrategy, EditorAutoIndentStrategy, EditorAutoSurroundStrategy, EditorOption } from './config/editorOptions.js';
+import { LineTokens } from './tokens/lineTokens.js';
+import { Position } from './core/position.js';
+import { Range } from './core/range.js';
+import { ISelection, Selection } from './core/selection.js';
+import { ICommand } from './editorCommon.js';
+import { IEditorConfiguration } from './config/editorConfiguration.js';
+import { PositionAffinity, TextModelResolvedOptions } from './model.js';
+import { AutoClosingPairs } from './languages/languageConfiguration.js';
+import { ILanguageConfigurationService } from './languages/languageConfigurationRegistry.js';
+import { createScopedLineTokens } from './languages/supports.js';
+import { IElectricAction } from './languages/supports/electricCharacter.js';
+import { CursorColumns } from './core/cursorColumns.js';
+import { normalizeIndentation } from './core/indentation.js';
 
 export interface IColumnSelectData {
 	isReal: boolean;
@@ -52,7 +45,7 @@ export interface CharacterMap {
 
 const autoCloseAlways = () => true;
 const autoCloseNever = () => false;
-const autoCloseBeforeWhitespace = (chr: string) => chr === " " || chr === "\t";
+const autoCloseBeforeWhitespace = (chr: string) => (chr === ' ' || chr === '\t');
 
 export class CursorConfiguration {
 	_cursorMoveConfigurationBrand: void = undefined;
@@ -70,7 +63,7 @@ export class CursorConfiguration {
 	public readonly emptySelectionClipboard: boolean;
 	public readonly copyWithSyntaxHighlighting: boolean;
 	public readonly multiCursorMergeOverlapping: boolean;
-	public readonly multiCursorPaste: "spread" | "full";
+	public readonly multiCursorPaste: 'spread' | 'full';
 	public readonly multiCursorLimit: number;
 	public readonly autoClosingBrackets: EditorAutoClosingStrategy;
 	public readonly autoClosingComments: EditorAutoClosingStrategy;
@@ -82,11 +75,7 @@ export class CursorConfiguration {
 	public readonly autoClosingPairs: AutoClosingPairs;
 	public readonly surroundingPairs: CharacterMap;
 	public readonly blockCommentStartToken: string | null;
-	public readonly shouldAutoCloseBefore: {
-		quote: (ch: string) => boolean;
-		bracket: (ch: string) => boolean;
-		comment: (ch: string) => boolean;
-	};
+	public readonly shouldAutoCloseBefore: { quote: (ch: string) => boolean; bracket: (ch: string) => boolean; comment: (ch: string) => boolean };
 	public readonly wordSegmenterLocales: string[];
 
 	private readonly _languageId: string;
@@ -94,22 +83,22 @@ export class CursorConfiguration {
 
 	public static shouldRecreate(e: ConfigurationChangedEvent): boolean {
 		return (
-			e.hasChanged(EditorOption.layoutInfo) ||
-			e.hasChanged(EditorOption.wordSeparators) ||
-			e.hasChanged(EditorOption.emptySelectionClipboard) ||
-			e.hasChanged(EditorOption.multiCursorMergeOverlapping) ||
-			e.hasChanged(EditorOption.multiCursorPaste) ||
-			e.hasChanged(EditorOption.multiCursorLimit) ||
-			e.hasChanged(EditorOption.autoClosingBrackets) ||
-			e.hasChanged(EditorOption.autoClosingComments) ||
-			e.hasChanged(EditorOption.autoClosingQuotes) ||
-			e.hasChanged(EditorOption.autoClosingDelete) ||
-			e.hasChanged(EditorOption.autoClosingOvertype) ||
-			e.hasChanged(EditorOption.autoSurround) ||
-			e.hasChanged(EditorOption.useTabStops) ||
-			e.hasChanged(EditorOption.fontInfo) ||
-			e.hasChanged(EditorOption.readOnly) ||
-			e.hasChanged(EditorOption.wordSegmenterLocales)
+			e.hasChanged(EditorOption.layoutInfo)
+			|| e.hasChanged(EditorOption.wordSeparators)
+			|| e.hasChanged(EditorOption.emptySelectionClipboard)
+			|| e.hasChanged(EditorOption.multiCursorMergeOverlapping)
+			|| e.hasChanged(EditorOption.multiCursorPaste)
+			|| e.hasChanged(EditorOption.multiCursorLimit)
+			|| e.hasChanged(EditorOption.autoClosingBrackets)
+			|| e.hasChanged(EditorOption.autoClosingComments)
+			|| e.hasChanged(EditorOption.autoClosingQuotes)
+			|| e.hasChanged(EditorOption.autoClosingDelete)
+			|| e.hasChanged(EditorOption.autoClosingOvertype)
+			|| e.hasChanged(EditorOption.autoSurround)
+			|| e.hasChanged(EditorOption.useTabStops)
+			|| e.hasChanged(EditorOption.fontInfo)
+			|| e.hasChanged(EditorOption.readOnly)
+			|| e.hasChanged(EditorOption.wordSegmenterLocales)
 		);
 	}
 
@@ -117,7 +106,7 @@ export class CursorConfiguration {
 		languageId: string,
 		modelOptions: TextModelResolvedOptions,
 		configuration: IEditorConfiguration,
-		public readonly languageConfigurationService: ILanguageConfigurationService,
+		public readonly languageConfigurationService: ILanguageConfigurationService
 	) {
 		this._languageId = languageId;
 
@@ -131,90 +120,50 @@ export class CursorConfiguration {
 		this.insertSpaces = modelOptions.insertSpaces;
 		this.stickyTabStops = options.get(EditorOption.stickyTabStops);
 		this.lineHeight = fontInfo.lineHeight;
-		this.typicalHalfwidthCharacterWidth =
-			fontInfo.typicalHalfwidthCharacterWidth;
-		this.pageSize = Math.max(
-			1,
-			Math.floor(layoutInfo.height / this.lineHeight) - 2,
-		);
+		this.typicalHalfwidthCharacterWidth = fontInfo.typicalHalfwidthCharacterWidth;
+		this.pageSize = Math.max(1, Math.floor(layoutInfo.height / this.lineHeight) - 2);
 		this.useTabStops = options.get(EditorOption.useTabStops);
 		this.wordSeparators = options.get(EditorOption.wordSeparators);
-		this.emptySelectionClipboard = options.get(
-			EditorOption.emptySelectionClipboard,
-		);
-		this.copyWithSyntaxHighlighting = options.get(
-			EditorOption.copyWithSyntaxHighlighting,
-		);
-		this.multiCursorMergeOverlapping = options.get(
-			EditorOption.multiCursorMergeOverlapping,
-		);
+		this.emptySelectionClipboard = options.get(EditorOption.emptySelectionClipboard);
+		this.copyWithSyntaxHighlighting = options.get(EditorOption.copyWithSyntaxHighlighting);
+		this.multiCursorMergeOverlapping = options.get(EditorOption.multiCursorMergeOverlapping);
 		this.multiCursorPaste = options.get(EditorOption.multiCursorPaste);
 		this.multiCursorLimit = options.get(EditorOption.multiCursorLimit);
-		this.autoClosingBrackets = options.get(
-			EditorOption.autoClosingBrackets,
-		);
-		this.autoClosingComments = options.get(
-			EditorOption.autoClosingComments,
-		);
+		this.autoClosingBrackets = options.get(EditorOption.autoClosingBrackets);
+		this.autoClosingComments = options.get(EditorOption.autoClosingComments);
 		this.autoClosingQuotes = options.get(EditorOption.autoClosingQuotes);
 		this.autoClosingDelete = options.get(EditorOption.autoClosingDelete);
-		this.autoClosingOvertype = options.get(
-			EditorOption.autoClosingOvertype,
-		);
+		this.autoClosingOvertype = options.get(EditorOption.autoClosingOvertype);
 		this.autoSurround = options.get(EditorOption.autoSurround);
 		this.autoIndent = options.get(EditorOption.autoIndent);
-		this.wordSegmenterLocales = options.get(
-			EditorOption.wordSegmenterLocales,
-		);
+		this.wordSegmenterLocales = options.get(EditorOption.wordSegmenterLocales);
 
 		this.surroundingPairs = {};
 		this._electricChars = null;
 
 		this.shouldAutoCloseBefore = {
-			quote: this._getShouldAutoClose(
-				languageId,
-				this.autoClosingQuotes,
-				true,
-			),
-			comment: this._getShouldAutoClose(
-				languageId,
-				this.autoClosingComments,
-				false,
-			),
-			bracket: this._getShouldAutoClose(
-				languageId,
-				this.autoClosingBrackets,
-				false,
-			),
+			quote: this._getShouldAutoClose(languageId, this.autoClosingQuotes, true),
+			comment: this._getShouldAutoClose(languageId, this.autoClosingComments, false),
+			bracket: this._getShouldAutoClose(languageId, this.autoClosingBrackets, false),
 		};
 
-		this.autoClosingPairs = this.languageConfigurationService
-			.getLanguageConfiguration(languageId)
-			.getAutoClosingPairs();
+		this.autoClosingPairs = this.languageConfigurationService.getLanguageConfiguration(languageId).getAutoClosingPairs();
 
-		const surroundingPairs = this.languageConfigurationService
-			.getLanguageConfiguration(languageId)
-			.getSurroundingPairs();
+		const surroundingPairs = this.languageConfigurationService.getLanguageConfiguration(languageId).getSurroundingPairs();
 		if (surroundingPairs) {
 			for (const pair of surroundingPairs) {
 				this.surroundingPairs[pair.open] = pair.close;
 			}
 		}
 
-		const commentsConfiguration =
-			this.languageConfigurationService.getLanguageConfiguration(
-				languageId,
-			).comments;
-		this.blockCommentStartToken =
-			commentsConfiguration?.blockCommentStartToken ?? null;
+		const commentsConfiguration = this.languageConfigurationService.getLanguageConfiguration(languageId).comments;
+		this.blockCommentStartToken = commentsConfiguration?.blockCommentStartToken ?? null;
 	}
 
 	public get electricChars() {
 		if (!this._electricChars) {
 			this._electricChars = {};
-			const electricChars = this.languageConfigurationService
-				.getLanguageConfiguration(this._languageId)
-				.electricCharacter?.getElectricCharacters();
+			const electricChars = this.languageConfigurationService.getLanguageConfiguration(this._languageId).electricCharacter?.getElectricCharacters();
 			if (electricChars) {
 				for (const char of electricChars) {
 					this._electricChars[char] = true;
@@ -227,89 +176,51 @@ export class CursorConfiguration {
 	/**
 	 * Should return opening bracket type to match indentation with
 	 */
-	public onElectricCharacter(
-		character: string,
-		context: LineTokens,
-		column: number,
-	): IElectricAction | null {
+	public onElectricCharacter(character: string, context: LineTokens, column: number): IElectricAction | null {
 		const scopedLineTokens = createScopedLineTokens(context, column - 1);
-		const electricCharacterSupport =
-			this.languageConfigurationService.getLanguageConfiguration(
-				scopedLineTokens.languageId,
-			).electricCharacter;
+		const electricCharacterSupport = this.languageConfigurationService.getLanguageConfiguration(scopedLineTokens.languageId).electricCharacter;
 		if (!electricCharacterSupport) {
 			return null;
 		}
-		return electricCharacterSupport.onElectricCharacter(
-			character,
-			scopedLineTokens,
-			column - scopedLineTokens.firstCharOffset,
-		);
+		return electricCharacterSupport.onElectricCharacter(character, scopedLineTokens, column - scopedLineTokens.firstCharOffset);
 	}
 
 	public normalizeIndentation(str: string): string {
 		return normalizeIndentation(str, this.indentSize, this.insertSpaces);
 	}
 
-	private _getShouldAutoClose(
-		languageId: string,
-		autoCloseConfig: EditorAutoClosingStrategy,
-		forQuotes: boolean,
-	): (ch: string) => boolean {
+	private _getShouldAutoClose(languageId: string, autoCloseConfig: EditorAutoClosingStrategy, forQuotes: boolean): (ch: string) => boolean {
 		switch (autoCloseConfig) {
-			case "beforeWhitespace":
+			case 'beforeWhitespace':
 				return autoCloseBeforeWhitespace;
-			case "languageDefined":
-				return this._getLanguageDefinedShouldAutoClose(
-					languageId,
-					forQuotes,
-				);
-			case "always":
+			case 'languageDefined':
+				return this._getLanguageDefinedShouldAutoClose(languageId, forQuotes);
+			case 'always':
 				return autoCloseAlways;
-			case "never":
+			case 'never':
 				return autoCloseNever;
 		}
 	}
 
-	private _getLanguageDefinedShouldAutoClose(
-		languageId: string,
-		forQuotes: boolean,
-	): (ch: string) => boolean {
-		const autoCloseBeforeSet = this.languageConfigurationService
-			.getLanguageConfiguration(languageId)
-			.getAutoCloseBeforeSet(forQuotes);
-		return (c) => autoCloseBeforeSet.indexOf(c) !== -1;
+	private _getLanguageDefinedShouldAutoClose(languageId: string, forQuotes: boolean): (ch: string) => boolean {
+		const autoCloseBeforeSet = this.languageConfigurationService.getLanguageConfiguration(languageId).getAutoCloseBeforeSet(forQuotes);
+		return c => autoCloseBeforeSet.indexOf(c) !== -1;
 	}
 
 	/**
 	 * Returns a visible column from a column.
 	 * @see {@link CursorColumns}
 	 */
-	public visibleColumnFromColumn(
-		model: ICursorSimpleModel,
-		position: Position,
-	): number {
-		return CursorColumns.visibleColumnFromColumn(
-			model.getLineContent(position.lineNumber),
-			position.column,
-			this.tabSize,
-		);
+	public visibleColumnFromColumn(model: ICursorSimpleModel, position: Position): number {
+		return CursorColumns.visibleColumnFromColumn(model.getLineContent(position.lineNumber), position.column, this.tabSize);
 	}
 
 	/**
 	 * Returns a visible column from a column.
 	 * @see {@link CursorColumns}
 	 */
-	public columnFromVisibleColumn(
-		model: ICursorSimpleModel,
-		lineNumber: number,
-		visibleColumn: number,
-	): number {
-		const result = CursorColumns.columnFromVisibleColumn(
-			model.getLineContent(lineNumber),
-			visibleColumn,
-			this.tabSize,
-		);
+	public columnFromVisibleColumn(model: ICursorSimpleModel, lineNumber: number, visibleColumn: number): number {
+		const result = CursorColumns.columnFromVisibleColumn(model.getLineContent(lineNumber), visibleColumn, this.tabSize);
 
 		const minColumn = model.getLineMinColumn(lineNumber);
 		if (result < minColumn) {
@@ -344,43 +255,30 @@ export interface ICursorSimpleModel {
 	getLineIndentColumn(lineNumber: number): number;
 }
 
-export type PartialCursorState =
-	| CursorState
-	| PartialModelCursorState
-	| PartialViewCursorState;
+export type PartialCursorState = CursorState | PartialModelCursorState | PartialViewCursorState;
 
 export class CursorState {
 	_cursorStateBrand: void = undefined;
 
-	public static fromModelState(
-		modelState: SingleCursorState,
-	): PartialModelCursorState {
+	public static fromModelState(modelState: SingleCursorState): PartialModelCursorState {
 		return new PartialModelCursorState(modelState);
 	}
 
-	public static fromViewState(
-		viewState: SingleCursorState,
-	): PartialViewCursorState {
+	public static fromViewState(viewState: SingleCursorState): PartialViewCursorState {
 		return new PartialViewCursorState(viewState);
 	}
 
-	public static fromModelSelection(
-		modelSelection: ISelection,
-	): PartialModelCursorState {
+	public static fromModelSelection(modelSelection: ISelection): PartialModelCursorState {
 		const selection = Selection.liftSelection(modelSelection);
 		const modelState = new SingleCursorState(
 			Range.fromPositions(selection.getSelectionStart()),
-			SelectionStartKind.Simple,
-			0,
-			selection.getPosition(),
-			0,
+			SelectionStartKind.Simple, 0,
+			selection.getPosition(), 0
 		);
 		return CursorState.fromModelState(modelState);
 	}
 
-	public static fromModelSelections(
-		modelSelections: readonly ISelection[],
-	): PartialModelCursorState[] {
+	public static fromModelSelections(modelSelections: readonly ISelection[]): PartialModelCursorState[] {
 		const states: PartialModelCursorState[] = [];
 		for (let i = 0, len = modelSelections.length; i < len; i++) {
 			states[i] = this.fromModelSelection(modelSelections[i]);
@@ -397,10 +295,7 @@ export class CursorState {
 	}
 
 	public equals(other: CursorState): boolean {
-		return (
-			this.viewState.equals(other.viewState) &&
-			this.modelState.equals(other.modelState)
-		);
+		return (this.viewState.equals(other.viewState) && this.modelState.equals(other.modelState));
 	}
 }
 
@@ -427,7 +322,7 @@ export class PartialViewCursorState {
 export const enum SelectionStartKind {
 	Simple,
 	Word,
-	Line,
+	Line
 }
 
 /**
@@ -445,33 +340,24 @@ export class SingleCursorState {
 		public readonly position: Position,
 		public readonly leftoverVisibleColumns: number,
 	) {
-		this.selection = SingleCursorState._computeSelection(
-			this.selectionStart,
-			this.position,
-		);
+		this.selection = SingleCursorState._computeSelection(this.selectionStart, this.position);
 	}
 
 	public equals(other: SingleCursorState) {
 		return (
-			this.selectionStartLeftoverVisibleColumns ===
-				other.selectionStartLeftoverVisibleColumns &&
-			this.leftoverVisibleColumns === other.leftoverVisibleColumns &&
-			this.selectionStartKind === other.selectionStartKind &&
-			this.position.equals(other.position) &&
-			this.selectionStart.equalsRange(other.selectionStart)
+			this.selectionStartLeftoverVisibleColumns === other.selectionStartLeftoverVisibleColumns
+			&& this.leftoverVisibleColumns === other.leftoverVisibleColumns
+			&& this.selectionStartKind === other.selectionStartKind
+			&& this.position.equals(other.position)
+			&& this.selectionStart.equalsRange(other.selectionStart)
 		);
 	}
 
 	public hasSelection(): boolean {
-		return !this.selection.isEmpty() || !this.selectionStart.isEmpty();
+		return (!this.selection.isEmpty() || !this.selectionStart.isEmpty());
 	}
 
-	public move(
-		inSelectionMode: boolean,
-		lineNumber: number,
-		column: number,
-		leftoverVisibleColumns: number,
-	): SingleCursorState {
+	public move(inSelectionMode: boolean, lineNumber: number, column: number, leftoverVisibleColumns: number): SingleCursorState {
 		if (inSelectionMode) {
 			// move just position
 			return new SingleCursorState(
@@ -479,7 +365,7 @@ export class SingleCursorState {
 				this.selectionStartKind,
 				this.selectionStartLeftoverVisibleColumns,
 				new Position(lineNumber, column),
-				leftoverVisibleColumns,
+				leftoverVisibleColumns
 			);
 		} else {
 			// move everything
@@ -488,28 +374,16 @@ export class SingleCursorState {
 				SelectionStartKind.Simple,
 				leftoverVisibleColumns,
 				new Position(lineNumber, column),
-				leftoverVisibleColumns,
+				leftoverVisibleColumns
 			);
 		}
 	}
 
-	private static _computeSelection(
-		selectionStart: Range,
-		position: Position,
-	): Selection {
-		if (
-			selectionStart.isEmpty() ||
-			!position.isBeforeOrEqual(selectionStart.getStartPosition())
-		) {
-			return Selection.fromPositions(
-				selectionStart.getStartPosition(),
-				position,
-			);
+	private static _computeSelection(selectionStart: Range, position: Position): Selection {
+		if (selectionStart.isEmpty() || !position.isBeforeOrEqual(selectionStart.getStartPosition())) {
+			return Selection.fromPositions(selectionStart.getStartPosition(), position);
 		} else {
-			return Selection.fromPositions(
-				selectionStart.getEndPosition(),
-				position,
-			);
+			return Selection.fromPositions(selectionStart.getEndPosition(), position);
 		}
 	}
 }
@@ -528,7 +402,7 @@ export class EditOperationResult {
 		opts: {
 			shouldPushStackElementBefore: boolean;
 			shouldPushStackElementAfter: boolean;
-		},
+		}
 	) {
 		this.type = type;
 		this.commands = commands;
@@ -538,5 +412,5 @@ export class EditOperationResult {
 }
 
 export function isQuote(ch: string): boolean {
-	return ch === "'" || ch === '"' || ch === "`";
+	return (ch === '\'' || ch === '"' || ch === '`');
 }

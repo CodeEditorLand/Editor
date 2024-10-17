@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { VSBuffer } from "./buffer.js";
-import { MarshalledObject } from "./marshalling.js";
-import { MarshalledId } from "./marshallingIds.js";
-import { URI, UriComponents } from "./uri.js";
+import { VSBuffer } from './buffer.js';
+import { MarshalledObject } from './marshalling.js';
+import { MarshalledId } from './marshallingIds.js';
+import { URI, UriComponents } from './uri.js';
 
 export interface IURITransformer {
 	transformIncoming(uri: UriComponents): UriComponents;
@@ -30,10 +30,11 @@ export interface IRawURITransformer {
 }
 
 function toJSON(uri: URI): UriComponents {
-	return <UriComponents>(<any>uri.toJSON());
+	return <UriComponents><any>uri.toJSON();
 }
 
 export class URITransformer implements IURITransformer {
+
 	private readonly _uriTransformer: IRawURITransformer;
 
 	constructor(uriTransformer: IRawURITransformer) {
@@ -42,17 +43,17 @@ export class URITransformer implements IURITransformer {
 
 	public transformIncoming(uri: UriComponents): UriComponents {
 		const result = this._uriTransformer.transformIncoming(uri);
-		return result === uri ? uri : toJSON(URI.from(result));
+		return (result === uri ? uri : toJSON(URI.from(result)));
 	}
 
 	public transformOutgoing(uri: UriComponents): UriComponents {
 		const result = this._uriTransformer.transformOutgoing(uri);
-		return result === uri ? uri : toJSON(URI.from(result));
+		return (result === uri ? uri : toJSON(URI.from(result)));
 	}
 
 	public transformOutgoingURI(uri: URI): URI {
 		const result = this._uriTransformer.transformOutgoing(uri);
-		return result === uri ? uri : URI.from(result);
+		return (result === uri ? uri : URI.from(result));
 	}
 
 	public transformOutgoingScheme(scheme: string): string {
@@ -60,7 +61,7 @@ export class URITransformer implements IURITransformer {
 	}
 }
 
-export const DefaultURITransformer: IURITransformer = new (class {
+export const DefaultURITransformer: IURITransformer = new class {
 	transformIncoming(uri: UriComponents) {
 		return uri;
 	}
@@ -76,18 +77,15 @@ export const DefaultURITransformer: IURITransformer = new (class {
 	transformOutgoingScheme(scheme: string): string {
 		return scheme;
 	}
-})();
+};
 
-function _transformOutgoingURIs(
-	obj: any,
-	transformer: IURITransformer,
-	depth: number,
-): any {
+function _transformOutgoingURIs(obj: any, transformer: IURITransformer, depth: number): any {
+
 	if (!obj || depth > 200) {
 		return null;
 	}
 
-	if (typeof obj === "object") {
+	if (typeof obj === 'object') {
 		if (obj instanceof URI) {
 			return transformer.transformOutgoing(obj);
 		}
@@ -95,11 +93,7 @@ function _transformOutgoingURIs(
 		// walk object (or array)
 		for (const key in obj) {
 			if (Object.hasOwnProperty.call(obj, key)) {
-				const r = _transformOutgoingURIs(
-					obj[key],
-					transformer,
-					depth + 1,
-				);
+				const r = _transformOutgoingURIs(obj[key], transformer, depth + 1);
 				if (r !== null) {
 					obj[key] = r;
 				}
@@ -110,10 +104,7 @@ function _transformOutgoingURIs(
 	return null;
 }
 
-export function transformOutgoingURIs<T>(
-	obj: T,
-	transformer: IURITransformer,
-): T {
+export function transformOutgoingURIs<T>(obj: T, transformer: IURITransformer): T {
 	const result = _transformOutgoingURIs(obj, transformer, 0);
 	if (result === null) {
 		// no change
@@ -122,21 +113,17 @@ export function transformOutgoingURIs<T>(
 	return result;
 }
 
-function _transformIncomingURIs(
-	obj: any,
-	transformer: IURITransformer,
-	revive: boolean,
-	depth: number,
-): any {
+
+function _transformIncomingURIs(obj: any, transformer: IURITransformer, revive: boolean, depth: number): any {
+
 	if (!obj || depth > 200) {
 		return null;
 	}
 
-	if (typeof obj === "object") {
+	if (typeof obj === 'object') {
+
 		if ((<MarshalledObject>obj).$mid === MarshalledId.Uri) {
-			return revive
-				? URI.revive(transformer.transformIncoming(obj))
-				: transformer.transformIncoming(obj);
+			return revive ? URI.revive(transformer.transformIncoming(obj)) : transformer.transformIncoming(obj);
 		}
 
 		if (obj instanceof VSBuffer) {
@@ -146,12 +133,7 @@ function _transformIncomingURIs(
 		// walk object (or array)
 		for (const key in obj) {
 			if (Object.hasOwnProperty.call(obj, key)) {
-				const r = _transformIncomingURIs(
-					obj[key],
-					transformer,
-					revive,
-					depth + 1,
-				);
+				const r = _transformIncomingURIs(obj[key], transformer, revive, depth + 1);
 				if (r !== null) {
 					obj[key] = r;
 				}
@@ -162,10 +144,7 @@ function _transformIncomingURIs(
 	return null;
 }
 
-export function transformIncomingURIs<T>(
-	obj: T,
-	transformer: IURITransformer,
-): T {
+export function transformIncomingURIs<T>(obj: T, transformer: IURITransformer): T {
 	const result = _transformIncomingURIs(obj, transformer, false, 0);
 	if (result === null) {
 		// no change
@@ -174,10 +153,7 @@ export function transformIncomingURIs<T>(
 	return result;
 }
 
-export function transformAndReviveIncomingURIs<T>(
-	obj: T,
-	transformer: IURITransformer,
-): T {
+export function transformAndReviveIncomingURIs<T>(obj: T, transformer: IURITransformer): T {
 	const result = _transformIncomingURIs(obj, transformer, true, 0);
 	if (result === null) {
 		// no change

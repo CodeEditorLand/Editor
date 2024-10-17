@@ -3,25 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ErrorNoTelemetry } from "../../../base/common/errors.js";
-import { Event } from "../../../base/common/event.js";
-import { URI } from "../../../base/common/uri.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { ErrorNoTelemetry } from '../../../base/common/errors.js';
+import { Event } from '../../../base/common/event.js';
+import { URI } from '../../../base/common/uri.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
 
-export const IRemoteAuthorityResolverService =
-	createDecorator<IRemoteAuthorityResolverService>(
-		"remoteAuthorityResolverService",
-	);
+export const IRemoteAuthorityResolverService = createDecorator<IRemoteAuthorityResolverService>('remoteAuthorityResolverService');
 
 export const enum RemoteConnectionType {
 	WebSocket,
-	Managed,
+	Managed
 }
 
 export class ManagedRemoteConnection {
 	public readonly type = RemoteConnectionType.Managed;
 
-	constructor(public readonly id: number) {}
+	constructor(
+		public readonly id: number
+	) { }
 
 	public toString(): string {
 		return `Managed(${this.id})`;
@@ -34,19 +33,16 @@ export class WebSocketRemoteConnection {
 	constructor(
 		public readonly host: string,
 		public readonly port: number,
-	) {}
+	) { }
 
 	public toString(): string {
 		return `WebSocket(${this.host}:${this.port})`;
 	}
 }
 
-export type RemoteConnection =
-	| WebSocketRemoteConnection
-	| ManagedRemoteConnection;
+export type RemoteConnection = WebSocketRemoteConnection | ManagedRemoteConnection;
 
-export type RemoteConnectionOfType<T extends RemoteConnectionType> =
-	RemoteConnection & { type: T };
+export type RemoteConnectionOfType<T extends RemoteConnectionType> = RemoteConnection & { type: T };
 
 export interface ResolvedAuthority {
 	readonly authority: string;
@@ -93,47 +89,33 @@ export interface IRemoteConnectionData {
 }
 
 export enum RemoteAuthorityResolverErrorCode {
-	Unknown = "Unknown",
-	NotAvailable = "NotAvailable",
-	TemporarilyNotAvailable = "TemporarilyNotAvailable",
-	NoResolverFound = "NoResolverFound",
-	InvalidAuthority = "InvalidAuthority",
+	Unknown = 'Unknown',
+	NotAvailable = 'NotAvailable',
+	TemporarilyNotAvailable = 'TemporarilyNotAvailable',
+	NoResolverFound = 'NoResolverFound',
+	InvalidAuthority = 'InvalidAuthority'
 }
 
 export class RemoteAuthorityResolverError extends ErrorNoTelemetry {
+
 	public static isNotAvailable(err: any): boolean {
-		return (
-			err instanceof RemoteAuthorityResolverError &&
-			err._code === RemoteAuthorityResolverErrorCode.NotAvailable
-		);
+		return (err instanceof RemoteAuthorityResolverError) && err._code === RemoteAuthorityResolverErrorCode.NotAvailable;
 	}
 
 	public static isTemporarilyNotAvailable(err: any): boolean {
-		return (
-			err instanceof RemoteAuthorityResolverError &&
-			err._code ===
-				RemoteAuthorityResolverErrorCode.TemporarilyNotAvailable
-		);
+		return (err instanceof RemoteAuthorityResolverError) && err._code === RemoteAuthorityResolverErrorCode.TemporarilyNotAvailable;
 	}
 
-	public static isNoResolverFound(
-		err: any,
-	): err is RemoteAuthorityResolverError {
-		return (
-			err instanceof RemoteAuthorityResolverError &&
-			err._code === RemoteAuthorityResolverErrorCode.NoResolverFound
-		);
+	public static isNoResolverFound(err: any): err is RemoteAuthorityResolverError {
+		return (err instanceof RemoteAuthorityResolverError) && err._code === RemoteAuthorityResolverErrorCode.NoResolverFound;
 	}
 
 	public static isInvalidAuthority(err: any): boolean {
-		return (
-			err instanceof RemoteAuthorityResolverError &&
-			err._code === RemoteAuthorityResolverErrorCode.InvalidAuthority
-		);
+		return (err instanceof RemoteAuthorityResolverError) && err._code === RemoteAuthorityResolverErrorCode.InvalidAuthority;
 	}
 
 	public static isHandled(err: any): boolean {
-		return err instanceof RemoteAuthorityResolverError && err.isHandled;
+		return (err instanceof RemoteAuthorityResolverError) && err.isHandled;
 	}
 
 	public readonly _message: string | undefined;
@@ -142,20 +124,14 @@ export class RemoteAuthorityResolverError extends ErrorNoTelemetry {
 
 	public isHandled: boolean;
 
-	constructor(
-		message?: string,
-		code: RemoteAuthorityResolverErrorCode = RemoteAuthorityResolverErrorCode.Unknown,
-		detail?: any,
-	) {
+	constructor(message?: string, code: RemoteAuthorityResolverErrorCode = RemoteAuthorityResolverErrorCode.Unknown, detail?: any) {
 		super(message);
 
 		this._message = message;
 		this._code = code;
 		this._detail = detail;
 
-		this.isHandled =
-			code === RemoteAuthorityResolverErrorCode.NotAvailable &&
-			detail === true;
+		this.isHandled = (code === RemoteAuthorityResolverErrorCode.NotAvailable) && detail === true;
 
 		// workaround when extending builtin objects and when compiling to ES5, see:
 		// https://github.com/microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
@@ -164,6 +140,7 @@ export class RemoteAuthorityResolverError extends ErrorNoTelemetry {
 }
 
 export interface IRemoteAuthorityResolverService {
+
 	readonly _serviceBrand: undefined;
 
 	readonly onDidChangeConnectionData: Event<void>;
@@ -180,20 +157,14 @@ export interface IRemoteAuthorityResolverService {
 	getCanonicalURI(uri: URI): Promise<URI>;
 
 	_clearResolvedAuthority(authority: string): void;
-	_setResolvedAuthority(
-		resolvedAuthority: ResolvedAuthority,
-		resolvedOptions?: ResolvedOptions,
-	): void;
+	_setResolvedAuthority(resolvedAuthority: ResolvedAuthority, resolvedOptions?: ResolvedOptions): void;
 	_setResolvedAuthorityError(authority: string, err: any): void;
-	_setAuthorityConnectionToken(
-		authority: string,
-		connectionToken: string,
-	): void;
+	_setAuthorityConnectionToken(authority: string, connectionToken: string): void;
 	_setCanonicalURIProvider(provider: (uri: URI) => Promise<URI>): void;
 }
 
 export function getRemoteAuthorityPrefix(remoteAuthority: string): string {
-	const plusIndex = remoteAuthority.indexOf("+");
+	const plusIndex = remoteAuthority.indexOf('+');
 	if (plusIndex === -1) {
 		return remoteAuthority;
 	}

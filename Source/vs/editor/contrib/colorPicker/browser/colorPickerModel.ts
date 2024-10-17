@@ -3,11 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Color } from "../../../../base/common/color.js";
-import { Emitter, Event } from "../../../../base/common/event.js";
-import { IColorPresentation } from "../../../common/languages.js";
+import { Color } from '../../../../base/common/color.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
+import { IColorPresentation } from '../../../common/languages.js';
 
 export class ColorPickerModel {
+
 	readonly originalColor: Color;
 	private _color: Color;
 
@@ -24,9 +25,7 @@ export class ColorPickerModel {
 		this._onDidChangeColor.fire(color);
 	}
 
-	get presentation(): IColorPresentation {
-		return this.colorPresentations[this.presentationIndex];
-	}
+	get presentation(): IColorPresentation { return this.colorPresentations[this.presentationIndex]; }
 
 	private _colorPresentations: IColorPresentation[];
 
@@ -48,24 +47,17 @@ export class ColorPickerModel {
 	private readonly _onDidChangeColor = new Emitter<Color>();
 	readonly onDidChangeColor: Event<Color> = this._onDidChangeColor.event;
 
-	private readonly _onDidChangePresentation =
-		new Emitter<IColorPresentation>();
-	readonly onDidChangePresentation: Event<IColorPresentation> =
-		this._onDidChangePresentation.event;
+	private readonly _onDidChangePresentation = new Emitter<IColorPresentation>();
+	readonly onDidChangePresentation: Event<IColorPresentation> = this._onDidChangePresentation.event;
 
-	constructor(
-		color: Color,
-		availableColorPresentations: IColorPresentation[],
-		private presentationIndex: number,
-	) {
+	constructor(color: Color, availableColorPresentations: IColorPresentation[], private presentationIndex: number) {
 		this.originalColor = color;
 		this._color = color;
 		this._colorPresentations = availableColorPresentations;
 	}
 
 	selectNextColorPresentation(): void {
-		this.presentationIndex =
-			(this.presentationIndex + 1) % this.colorPresentations.length;
+		this.presentationIndex = (this.presentationIndex + 1) % this.colorPresentations.length;
 		this.flushColor();
 		this._onDidChangePresentation.fire(this.presentation);
 	}
@@ -73,9 +65,7 @@ export class ColorPickerModel {
 	guessColorPresentation(color: Color, originalText: string): void {
 		let presentationIndex = -1;
 		for (let i = 0; i < this.colorPresentations.length; i++) {
-			if (
-				originalText.toLowerCase() === this.colorPresentations[i].label
-			) {
+			if (originalText.toLowerCase() === this.colorPresentations[i].label) {
 				presentationIndex = i;
 				break;
 			}
@@ -83,23 +73,16 @@ export class ColorPickerModel {
 
 		if (presentationIndex === -1) {
 			// check which color presentation text has same prefix as original text's prefix
-			const originalTextPrefix = originalText.split("(")[0].toLowerCase();
+			const originalTextPrefix = originalText.split('(')[0].toLowerCase();
 			for (let i = 0; i < this.colorPresentations.length; i++) {
-				if (
-					this.colorPresentations[i].label
-						.toLowerCase()
-						.startsWith(originalTextPrefix)
-				) {
+				if (this.colorPresentations[i].label.toLowerCase().startsWith(originalTextPrefix)) {
 					presentationIndex = i;
 					break;
 				}
 			}
 		}
 
-		if (
-			presentationIndex !== -1 &&
-			presentationIndex !== this.presentationIndex
-		) {
+		if (presentationIndex !== -1 && presentationIndex !== this.presentationIndex) {
 			this.presentationIndex = presentationIndex;
 			this._onDidChangePresentation.fire(this.presentation);
 		}

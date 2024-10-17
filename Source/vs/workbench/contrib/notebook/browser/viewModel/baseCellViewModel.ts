@@ -3,67 +3,37 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from "../../../../../base/common/event.js";
-import {
-	Disposable,
-	dispose,
-	IDisposable,
-	IReference,
-	MutableDisposable,
-} from "../../../../../base/common/lifecycle.js";
-import { Mimes } from "../../../../../base/common/mime.js";
-import { ICodeEditor } from "../../../../../editor/browser/editorBrowser.js";
-import { ICodeEditorService } from "../../../../../editor/browser/services/codeEditorService.js";
-import { IEditorCommentsOptions } from "../../../../../editor/common/config/editorOptions.js";
-import { IPosition } from "../../../../../editor/common/core/position.js";
-import { IRange, Range } from "../../../../../editor/common/core/range.js";
-import { Selection } from "../../../../../editor/common/core/selection.js";
-import * as editorCommon from "../../../../../editor/common/editorCommon.js";
-import * as model from "../../../../../editor/common/model.js";
-import { SearchParams } from "../../../../../editor/common/model/textModelSearch.js";
-import {
-	IResolvedTextEditorModel,
-	ITextModelService,
-} from "../../../../../editor/common/services/resolverService.js";
-import { IConfigurationService } from "../../../../../platform/configuration/common/configuration.js";
-import { IUndoRedoService } from "../../../../../platform/undoRedo/common/undoRedo.js";
-import {
-	IWordWrapTransientState,
-	readTransientState,
-	writeTransientState,
-} from "../../../codeEditor/browser/toggleWordWrap.js";
-import { InlineChatController } from "../../../inlineChat/browser/inlineChatController.js";
-import { NotebookCellTextModel } from "../../common/model/notebookCellTextModel.js";
-import {
-	CellKind,
-	INotebookCellStatusBarItem,
-	INotebookFindOptions,
-} from "../../common/notebookCommon.js";
-import {
-	CellEditState,
-	CellFocusMode,
-	CellLayoutChangeEvent,
-	CursorAtBoundary,
-	CursorAtLineBoundary,
-	IEditableCellViewModel,
-	INotebookCellDecorationOptions,
-} from "../notebookBrowser.js";
-import { NotebookOptionsChangeEvent } from "../notebookOptions.js";
-import { CellViewModelStateChangeEvent } from "../notebookViewEvents.js";
-import { ViewContext } from "./viewContext.js";
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { Disposable, IDisposable, IReference, MutableDisposable, dispose } from '../../../../../base/common/lifecycle.js';
+import { Mimes } from '../../../../../base/common/mime.js';
+import { ICodeEditor } from '../../../../../editor/browser/editorBrowser.js';
+import { ICodeEditorService } from '../../../../../editor/browser/services/codeEditorService.js';
+import { IEditorCommentsOptions } from '../../../../../editor/common/config/editorOptions.js';
+import { IPosition } from '../../../../../editor/common/core/position.js';
+import { IRange, Range } from '../../../../../editor/common/core/range.js';
+import { Selection } from '../../../../../editor/common/core/selection.js';
+import * as editorCommon from '../../../../../editor/common/editorCommon.js';
+import * as model from '../../../../../editor/common/model.js';
+import { SearchParams } from '../../../../../editor/common/model/textModelSearch.js';
+import { IResolvedTextEditorModel, ITextModelService } from '../../../../../editor/common/services/resolverService.js';
+import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { IUndoRedoService } from '../../../../../platform/undoRedo/common/undoRedo.js';
+import { IWordWrapTransientState, readTransientState, writeTransientState } from '../../../codeEditor/browser/toggleWordWrap.js';
+import { InlineChatController } from '../../../inlineChat/browser/inlineChatController.js';
+import { CellEditState, CellFocusMode, CellLayoutChangeEvent, CursorAtBoundary, CursorAtLineBoundary, IEditableCellViewModel, INotebookCellDecorationOptions } from '../notebookBrowser.js';
+import { NotebookOptionsChangeEvent } from '../notebookOptions.js';
+import { CellViewModelStateChangeEvent } from '../notebookViewEvents.js';
+import { ViewContext } from './viewContext.js';
+import { NotebookCellTextModel } from '../../common/model/notebookCellTextModel.js';
+import { CellKind, INotebookCellStatusBarItem, INotebookFindOptions } from '../../common/notebookCommon.js';
 
 export abstract class BaseCellViewModel extends Disposable {
-	protected readonly _onDidChangeEditorAttachState = this._register(
-		new Emitter<void>(),
-	);
+
+	protected readonly _onDidChangeEditorAttachState = this._register(new Emitter<void>());
 	// Do not merge this event with `onDidChangeState` as we are using `Event.once(onDidChangeEditorAttachState)` elsewhere.
-	readonly onDidChangeEditorAttachState =
-		this._onDidChangeEditorAttachState.event;
-	protected readonly _onDidChangeState = this._register(
-		new Emitter<CellViewModelStateChangeEvent>(),
-	);
-	public readonly onDidChangeState: Event<CellViewModelStateChangeEvent> =
-		this._onDidChangeState.event;
+	readonly onDidChangeEditorAttachState = this._onDidChangeEditorAttachState.event;
+	protected readonly _onDidChangeState = this._register(new Emitter<CellViewModelStateChangeEvent>());
+	public readonly onDidChangeState: Event<CellViewModelStateChangeEvent> = this._onDidChangeState.event;
 
 	get handle() {
 		return this.model.handle;
@@ -85,12 +55,12 @@ export abstract class BaseCellViewModel extends Disposable {
 	}
 
 	get mime(): string {
-		if (typeof this.model.mime === "string") {
+		if (typeof this.model.mime === 'string') {
 			return this.model.mime;
 		}
 
 		switch (this.language) {
-			case "markdown":
+			case 'markdown':
 				return Mimes.markdown;
 
 			default:
@@ -102,12 +72,12 @@ export abstract class BaseCellViewModel extends Disposable {
 
 	private _editState: CellEditState = CellEditState.Preview;
 
-	private _lineNumbers: "on" | "off" | "inherit" = "inherit";
-	get lineNumbers(): "on" | "off" | "inherit" {
+	private _lineNumbers: 'on' | 'off' | 'inherit' = 'inherit';
+	get lineNumbers(): 'on' | 'off' | 'inherit' {
 		return this._lineNumbers;
 	}
 
-	set lineNumbers(lineNumbers: "on" | "off" | "inherit") {
+	set lineNumbers(lineNumbers: 'on' | 'off' | 'inherit') {
 		if (lineNumbers === this._lineNumbers) {
 			return;
 		}
@@ -143,40 +113,21 @@ export abstract class BaseCellViewModel extends Disposable {
 	private _editorListeners: IDisposable[] = [];
 	private _editorViewStates: editorCommon.ICodeEditorViewState | null = null;
 	private _editorTransientState: IWordWrapTransientState | null = null;
-	private _resolvedCellDecorations = new Map<
-		string,
-		INotebookCellDecorationOptions
-	>();
-	private readonly _textModelRefChangeDisposable = this._register(
-		new MutableDisposable(),
-	);
+	private _resolvedCellDecorations = new Map<string, INotebookCellDecorationOptions>();
+	private readonly _textModelRefChangeDisposable = this._register(new MutableDisposable());
 
-	private readonly _cellDecorationsChanged = this._register(
-		new Emitter<{
-			added: INotebookCellDecorationOptions[];
-			removed: INotebookCellDecorationOptions[];
-		}>(),
-	);
-	onCellDecorationsChanged: Event<{
-		added: INotebookCellDecorationOptions[];
-		removed: INotebookCellDecorationOptions[];
-	}> = this._cellDecorationsChanged.event;
+	private readonly _cellDecorationsChanged = this._register(new Emitter<{ added: INotebookCellDecorationOptions[]; removed: INotebookCellDecorationOptions[] }>());
+	onCellDecorationsChanged: Event<{ added: INotebookCellDecorationOptions[]; removed: INotebookCellDecorationOptions[] }> = this._cellDecorationsChanged.event;
 
-	private _resolvedDecorations = new Map<
-		string,
-		{
-			id?: string;
-			options: model.IModelDeltaDecoration;
-		}
-	>();
+	private _resolvedDecorations = new Map<string, {
+		id?: string;
+		options: model.IModelDeltaDecoration;
+	}>();
 	private _lastDecorationId: number = 0;
 
 	private _cellStatusBarItems = new Map<string, INotebookCellStatusBarItem>();
-	private readonly _onDidChangeCellStatusBarItems = this._register(
-		new Emitter<void>(),
-	);
-	readonly onDidChangeCellStatusBarItems: Event<void> =
-		this._onDidChangeCellStatusBarItems.event;
+	private readonly _onDidChangeCellStatusBarItems = this._register(new Emitter<void>());
+	readonly onDidChangeCellStatusBarItems: Event<void> = this._onDidChangeCellStatusBarItems.event;
 	private _lastStatusBarId: number = 0;
 
 	get textModel(): model.ITextModel | undefined {
@@ -224,10 +175,7 @@ export abstract class BaseCellViewModel extends Disposable {
 			return;
 		}
 		this._commentHeight = height;
-		this.layoutChange(
-			{ commentHeight: true },
-			"BaseCellViewModel#commentHeight",
-		);
+		this.layoutChange({ commentHeight: true }, 'BaseCellViewModel#commentHeight');
 	}
 
 	private _isDisposed = false;
@@ -246,29 +194,23 @@ export abstract class BaseCellViewModel extends Disposable {
 	) {
 		super();
 
-		this._register(
-			model.onDidChangeMetadata(() => {
-				this._onDidChangeState.fire({ metadataChanged: true });
-			}),
-		);
+		this._register(model.onDidChangeMetadata(() => {
+			this._onDidChangeState.fire({ metadataChanged: true });
+		}));
 
-		this._register(
-			model.onDidChangeInternalMetadata((e) => {
-				this._onDidChangeState.fire({ internalMetadataChanged: true });
-				if (e.lastRunSuccessChanged) {
-					// Statusbar visibility may change
-					this.layoutChange({});
-				}
-			}),
-		);
+		this._register(model.onDidChangeInternalMetadata(e => {
+			this._onDidChangeState.fire({ internalMetadataChanged: true });
+			if (e.lastRunSuccessChanged) {
+				// Statusbar visibility may change
+				this.layoutChange({});
+			}
+		}));
 
-		this._register(
-			this._configurationService.onDidChangeConfiguration((e) => {
-				if (e.affectsConfiguration("notebook.lineNumbers")) {
-					this.lineNumbers = "inherit";
-				}
-			}),
-		);
+		this._register(this._configurationService.onDidChangeConfiguration(e => {
+			if (e.affectsConfiguration('notebook.lineNumbers')) {
+				this.lineNumbers = 'inherit';
+			}
+		}));
 
 		if (this.model.collapseState?.inputCollapsed) {
 			this._inputCollapsed = true;
@@ -278,29 +220,20 @@ export abstract class BaseCellViewModel extends Disposable {
 			this._outputCollapsed = true;
 		}
 
-		this._commentOptions =
-			this._configurationService.getValue<IEditorCommentsOptions>(
-				"editor.comments",
-				{ overrideIdentifier: this.language },
-			);
-		this._register(
-			this._configurationService.onDidChangeConfiguration((e) => {
-				if (e.affectsConfiguration("editor.comments")) {
-					this._commentOptions =
-						this._configurationService.getValue<IEditorCommentsOptions>(
-							"editor.comments",
-							{ overrideIdentifier: this.language },
-						);
-				}
-			}),
-		);
+		this._commentOptions = this._configurationService.getValue<IEditorCommentsOptions>('editor.comments', { overrideIdentifier: this.language });
+		this._register(this._configurationService.onDidChangeConfiguration(e => {
+			if (e.affectsConfiguration('editor.comments')) {
+				this._commentOptions = this._configurationService.getValue<IEditorCommentsOptions>('editor.comments', { overrideIdentifier: this.language });
+			}
+		}));
 	}
 
+
 	updateOptions(e: NotebookOptionsChangeEvent): void {
-		if (this._textEditor && typeof e.readonly === "boolean") {
+		if (this._textEditor && typeof e.readonly === 'boolean') {
 			this._textEditor.updateOptions({ readOnly: e.readonly });
 		}
-		if (typeof e.readonly === "boolean") {
+		if (typeof e.readonly === 'boolean') {
 			this._isReadonly = e.readonly;
 		}
 	}
@@ -309,11 +242,7 @@ export abstract class BaseCellViewModel extends Disposable {
 	abstract layoutChange(change: CellLayoutChangeEvent, source?: string): void;
 
 	assertTextModelAttached(): boolean {
-		if (
-			this.textModel &&
-			this._textEditor &&
-			this._textEditor.getModel() === this.textModel
-		) {
+		if (this.textModel && this._textEditor && this._textEditor.getModel() === this.textModel) {
 			return true;
 		}
 
@@ -326,21 +255,14 @@ export abstract class BaseCellViewModel extends Disposable {
 	// 	}
 	// }
 
-	attachTextEditor(
-		editor: ICodeEditor,
-		estimatedHasHorizontalScrolling?: boolean,
-	) {
+	attachTextEditor(editor: ICodeEditor, estimatedHasHorizontalScrolling?: boolean) {
 		if (!editor.hasModel()) {
-			throw new Error("Invalid editor: model is missing");
+			throw new Error('Invalid editor: model is missing');
 		}
 
 		if (this._textEditor === editor) {
 			if (this._editorListeners.length === 0) {
-				this._editorListeners.push(
-					this._textEditor.onDidChangeCursorSelection(() => {
-						this._onDidChangeState.fire({ selectionChanged: true });
-					}),
-				);
+				this._editorListeners.push(this._textEditor.onDidChangeCursorSelection(() => { this._onDidChangeState.fire({ selectionChanged: true }); }));
 				// this._editorListeners.push(this._textEditor.onKeyDown(e => this.handleKeyDown(e)));
 				this._onDidChangeState.fire({ selectionChanged: true });
 			}
@@ -363,20 +285,14 @@ export abstract class BaseCellViewModel extends Disposable {
 					viewState: {
 						scrollLeft: 0,
 						firstPosition: { lineNumber: 1, column: 1 },
-						firstPositionDeltaTop:
-							this._viewContext.notebookOptions.getLayoutConfiguration()
-								.editorTopPadding,
-					},
+						firstPositionDeltaTop: this._viewContext.notebookOptions.getLayoutConfiguration().editorTopPadding
+					}
 				});
 			}
 		}
 
 		if (this._editorTransientState) {
-			writeTransientState(
-				editor.getModel(),
-				this._editorTransientState,
-				this._codeEditorService,
-			);
+			writeTransientState(editor.getModel(), this._editorTransientState, this._codeEditorService);
 		}
 
 		if (this._isDisposed) {
@@ -386,37 +302,26 @@ export abstract class BaseCellViewModel extends Disposable {
 
 		editor.changeDecorations((accessor) => {
 			this._resolvedDecorations.forEach((value, key) => {
-				if (key.startsWith("_lazy_")) {
+				if (key.startsWith('_lazy_')) {
 					// lazy ones
-					const ret = accessor.addDecoration(
-						value.options.range,
-						value.options.options,
-					);
+					const ret = accessor.addDecoration(value.options.range, value.options.options);
 					this._resolvedDecorations.get(key)!.id = ret;
-				} else {
-					const ret = accessor.addDecoration(
-						value.options.range,
-						value.options.options,
-					);
+				}
+				else {
+					const ret = accessor.addDecoration(value.options.range, value.options.options);
 					this._resolvedDecorations.get(key)!.id = ret;
 				}
 			});
 		});
 
-		this._editorListeners.push(
-			editor.onDidChangeCursorSelection(() => {
-				this._onDidChangeState.fire({ selectionChanged: true });
-			}),
-		);
+		this._editorListeners.push(editor.onDidChangeCursorSelection(() => { this._onDidChangeState.fire({ selectionChanged: true }); }));
 		const inlineChatController = InlineChatController.get(this._textEditor);
 		if (inlineChatController) {
-			this._editorListeners.push(
-				inlineChatController.onWillStartSession(() => {
-					if (this.textBuffer.getLength() === 0) {
-						this.enableAutoLanguageDetection();
-					}
-				}),
-			);
+			this._editorListeners.push(inlineChatController.onWillStartSession(() => {
+				if (this.textBuffer.getLength() === 0) {
+					this.enableAutoLanguageDetection();
+				}
+			}));
 		}
 
 		this._onDidChangeState.fire({ selectionChanged: true });
@@ -428,7 +333,7 @@ export abstract class BaseCellViewModel extends Disposable {
 		this.saveTransientState();
 		// decorations need to be cleared first as editors can be resued.
 		this._textEditor?.changeDecorations((accessor) => {
-			this._resolvedDecorations.forEach((value) => {
+			this._resolvedDecorations.forEach(value => {
 				const resolvedid = value.id;
 
 				if (resolvedid) {
@@ -478,10 +383,7 @@ export abstract class BaseCellViewModel extends Disposable {
 			return;
 		}
 
-		this._editorTransientState = readTransientState(
-			this._textEditor.getModel(),
-			this._codeEditorService,
-		);
+		this._editorTransientState = readTransientState(this._textEditor.getModel(), this._codeEditorService);
 	}
 
 	saveEditorViewState() {
@@ -492,16 +394,11 @@ export abstract class BaseCellViewModel extends Disposable {
 		return this._editorViewStates;
 	}
 
-	restoreEditorViewState(
-		editorViewStates: editorCommon.ICodeEditorViewState | null,
-		totalHeight?: number,
-	) {
+	restoreEditorViewState(editorViewStates: editorCommon.ICodeEditorViewState | null, totalHeight?: number) {
 		this._editorViewStates = editorViewStates;
 	}
 
-	private _restoreViewState(
-		state: editorCommon.ICodeEditorViewState | null,
-	): void {
+	private _restoreViewState(state: editorCommon.ICodeEditorViewState | null): void {
 		if (state) {
 			this._textEditor?.restoreViewState(state);
 		}
@@ -511,9 +408,7 @@ export abstract class BaseCellViewModel extends Disposable {
 		if (!this._textEditor) {
 			const id = ++this._lastDecorationId;
 			const decorationId = `_lazy_${this.id};${id}`;
-			this._resolvedDecorations.set(decorationId, {
-				options: decoration,
-			});
+			this._resolvedDecorations.set(decorationId, { options: decoration });
 			return decorationId;
 		}
 
@@ -528,11 +423,7 @@ export abstract class BaseCellViewModel extends Disposable {
 	removeModelDecoration(decorationId: string) {
 		const realDecorationId = this._resolvedDecorations.get(decorationId);
 
-		if (
-			this._textEditor &&
-			realDecorationId &&
-			realDecorationId.id !== undefined
-		) {
+		if (this._textEditor && realDecorationId && realDecorationId.id !== undefined) {
 			this._textEditor.changeDecorations((accessor) => {
 				accessor.removeDecoration(realDecorationId.id!);
 			});
@@ -542,15 +433,12 @@ export abstract class BaseCellViewModel extends Disposable {
 		this._resolvedDecorations.delete(decorationId);
 	}
 
-	deltaModelDecorations(
-		oldDecorations: readonly string[],
-		newDecorations: readonly model.IModelDeltaDecoration[],
-	): string[] {
-		oldDecorations.forEach((id) => {
+	deltaModelDecorations(oldDecorations: readonly string[], newDecorations: readonly model.IModelDeltaDecoration[]): string[] {
+		oldDecorations.forEach(id => {
 			this.removeModelDecoration(id);
 		});
 
-		const ret = newDecorations.map((option) => {
+		const ret = newDecorations.map(option => {
 			return this.addModelDecoration(option);
 		});
 
@@ -567,14 +455,10 @@ export abstract class BaseCellViewModel extends Disposable {
 				if (options.className === existingOptions.className) {
 					options.className = undefined;
 				}
-				if (
-					options.outputClassName === existingOptions.outputClassName
-				) {
+				if (options.outputClassName === existingOptions.outputClassName) {
 					options.outputClassName = undefined;
 				}
-				if (
-					options.gutterClassName === existingOptions.gutterClassName
-				) {
+				if (options.gutterClassName === existingOptions.gutterClassName) {
 					options.gutterClassName = undefined;
 				}
 				if (options.topClassName === existingOptions.topClassName) {
@@ -582,16 +466,11 @@ export abstract class BaseCellViewModel extends Disposable {
 				}
 			}
 
-			this._cellDecorationsChanged.fire({
-				added: [],
-				removed: [options],
-			});
+			this._cellDecorationsChanged.fire({ added: [], removed: [options] });
 		}
 	}
 
-	private _addCellDecoration(
-		options: INotebookCellDecorationOptions,
-	): string {
+	private _addCellDecoration(options: INotebookCellDecorationOptions): string {
 		const id = ++this._lastDecorationId;
 		const decorationId = `_cell_${this.id};${id}`;
 		this._resolvedCellDecorations.set(decorationId, options);
@@ -606,42 +485,33 @@ export abstract class BaseCellViewModel extends Disposable {
 	getCellDecorationRange(decorationId: string): Range | null {
 		if (this._textEditor) {
 			// (this._textEditor as CodeEditorWidget).decora
-			return (
-				this._textEditor.getModel()?.getDecorationRange(decorationId) ??
-				null
-			);
+			return this._textEditor.getModel()?.getDecorationRange(decorationId) ?? null;
 		}
 
 		return null;
 	}
 
-	deltaCellDecorations(
-		oldDecorations: string[],
-		newDecorations: INotebookCellDecorationOptions[],
-	): string[] {
-		oldDecorations.forEach((id) => {
+	deltaCellDecorations(oldDecorations: string[], newDecorations: INotebookCellDecorationOptions[]): string[] {
+		oldDecorations.forEach(id => {
 			this._removeCellDecoration(id);
 		});
 
-		const ret = newDecorations.map((option) => {
+		const ret = newDecorations.map(option => {
 			return this._addCellDecoration(option);
 		});
 
 		return ret;
 	}
 
-	deltaCellStatusBarItems(
-		oldItems: readonly string[],
-		newItems: readonly INotebookCellStatusBarItem[],
-	): string[] {
-		oldItems.forEach((id) => {
+	deltaCellStatusBarItems(oldItems: readonly string[], newItems: readonly INotebookCellStatusBarItem[]): string[] {
+		oldItems.forEach(id => {
 			const item = this._cellStatusBarItems.get(id);
 			if (item) {
 				this._cellStatusBarItems.delete(id);
 			}
 		});
 
-		const newIds = newItems.map((item) => {
+		const newIds = newItems.map(item => {
 			const id = ++this._lastStatusBarId;
 			const itemId = `_cell_${this.id};${id}`;
 			this._cellStatusBarItems.set(itemId, item);
@@ -658,10 +528,7 @@ export abstract class BaseCellViewModel extends Disposable {
 	}
 
 	revealRangeInCenter(range: Range) {
-		this._textEditor?.revealRangeInCenter(
-			range,
-			editorCommon.ScrollType.Immediate,
-		);
+		this._textEditor?.revealRangeInCenter(range, editorCommon.ScrollType.Immediate);
 	}
 
 	setSelection(range: Range) {
@@ -673,42 +540,30 @@ export abstract class BaseCellViewModel extends Disposable {
 			if (this._textEditor) {
 				this._textEditor?.setSelections(selections);
 			} else if (this._editorViewStates) {
-				this._editorViewStates.cursorState = selections.map(
-					(selection) => {
-						return {
-							inSelectionMode: !selection.isEmpty(),
-							selectionStart: selection.getStartPosition(),
-							position: selection.getEndPosition(),
-						};
-					},
-				);
+				this._editorViewStates.cursorState = selections.map(selection => {
+					return {
+						inSelectionMode: !selection.isEmpty(),
+						selectionStart: selection.getStartPosition(),
+						position: selection.getEndPosition(),
+					};
+				});
 			}
 		}
 	}
 
 	getSelections() {
-		return (
-			this._textEditor?.getSelections() ??
-			this._editorViewStates?.cursorState.map(
-				(state) =>
-					new Selection(
-						state.selectionStart.lineNumber,
-						state.selectionStart.column,
-						state.position.lineNumber,
-						state.position.column,
-					),
-			) ??
-			[]
-		);
+		return this._textEditor?.getSelections()
+			?? this._editorViewStates?.cursorState.map(state => new Selection(state.selectionStart.lineNumber, state.selectionStart.column, state.position.lineNumber, state.position.column))
+			?? [];
 	}
 
 	getSelectionsStartPosition(): IPosition[] | undefined {
 		if (this._textEditor) {
 			const selections = this._textEditor.getSelections();
-			return selections?.map((s) => s.getStartPosition());
+			return selections?.map(s => s.getStartPosition());
 		} else {
 			const selections = this._editorViewStates?.cursorState;
-			return selections?.map((s) => s.selectionStart);
+			return selections?.map(s => s.selectionStart);
 		}
 	}
 
@@ -717,11 +572,7 @@ export abstract class BaseCellViewModel extends Disposable {
 			return 0;
 		}
 
-		const editorPadding =
-			this._viewContext.notebookOptions.computeEditorPadding(
-				this.internalMetadata,
-				this.uri,
-			);
+		const editorPadding = this._viewContext.notebookOptions.computeEditorPadding(this.internalMetadata, this.uri);
 		return this._textEditor.getTopForLineNumber(line) + editorPadding.top;
 	}
 
@@ -730,30 +581,15 @@ export abstract class BaseCellViewModel extends Disposable {
 			return 0;
 		}
 
-		const position =
-			range instanceof Selection
-				? range.getPosition()
-				: range.getStartPosition();
 
-		const editorPadding =
-			this._viewContext.notebookOptions.computeEditorPadding(
-				this.internalMetadata,
-				this.uri,
-			);
-		return (
-			this._textEditor.getTopForPosition(
-				position.lineNumber,
-				position.column,
-			) + editorPadding.top
-		);
+		const position = range instanceof Selection ? range.getPosition() : range.getStartPosition();
+
+		const editorPadding = this._viewContext.notebookOptions.computeEditorPadding(this.internalMetadata, this.uri);
+		return this._textEditor.getTopForPosition(position.lineNumber, position.column) + editorPadding.top;
 	}
 
 	cursorAtLineBoundary(): CursorAtLineBoundary {
-		if (
-			!this._textEditor ||
-			!this.textModel ||
-			!this._textEditor.hasTextFocus()
-		) {
+		if (!this._textEditor || !this.textModel || !this._textEditor.hasTextFocus()) {
 			return CursorAtLineBoundary.None;
 		}
 
@@ -763,9 +599,7 @@ export abstract class BaseCellViewModel extends Disposable {
 			return CursorAtLineBoundary.None;
 		}
 
-		const currentLineLength = this.textModel.getLineLength(
-			selection.startLineNumber,
-		);
+		const currentLineLength = this.textModel.getLineLength(selection.startLineNumber);
 
 		if (currentLineLength === 0) {
 			return CursorAtLineBoundary.Both;
@@ -799,14 +633,8 @@ export abstract class BaseCellViewModel extends Disposable {
 		}
 
 		const firstViewLineTop = this._textEditor.getTopForPosition(1, 1);
-		const lastViewLineTop = this._textEditor.getTopForPosition(
-			this.textModel.getLineCount(),
-			this.textModel.getLineLength(this.textModel.getLineCount()),
-		);
-		const selectionTop = this._textEditor.getTopForPosition(
-			selection.startLineNumber,
-			selection.startColumn,
-		);
+		const lastViewLineTop = this._textEditor.getTopForPosition(this.textModel.getLineCount(), this.textModel.getLineLength(this.textModel.getLineCount()));
+		const selectionTop = this._textEditor.getTopForPosition(selection.startLineNumber, selection.startColumn);
 
 		if (selectionTop === lastViewLineTop) {
 			if (selectionTop === firstViewLineTop) {
@@ -823,7 +651,7 @@ export abstract class BaseCellViewModel extends Disposable {
 		}
 	}
 
-	private _editStateSource: string = "";
+	private _editStateSource: string = '';
 
 	get editStateSource(): string {
 		return this._editStateSource;
@@ -855,9 +683,7 @@ export abstract class BaseCellViewModel extends Disposable {
 	 */
 	async resolveTextModel(): Promise<model.ITextModel> {
 		if (!this._textModelRef || !this.textModel) {
-			this._textModelRef = await this._modelService.createModelReference(
-				this.uri,
-			);
+			this._textModelRef = await this._modelService.createModelReference(this.uri);
 			if (this._isDisposed) {
 				return this.textModel!;
 			}
@@ -865,10 +691,7 @@ export abstract class BaseCellViewModel extends Disposable {
 			if (!this._textModelRef) {
 				throw new Error(`Cannot resolve text model for ${this.uri}`);
 			}
-			this._textModelRefChangeDisposable.value =
-				this.textModel!.onDidChangeContent(() =>
-					this.onDidChangeTextModelContent(),
-				);
+			this._textModelRefChangeDisposable.value = this.textModel!.onDidChangeContent(() => this.onDidChangeTextModelContent());
 		}
 
 		return this.textModel!;
@@ -876,21 +699,11 @@ export abstract class BaseCellViewModel extends Disposable {
 
 	protected abstract onDidChangeTextModelContent(): void;
 
-	protected cellStartFind(
-		value: string,
-		options: INotebookFindOptions,
-	): model.FindMatch[] | null {
+	protected cellStartFind(value: string, options: INotebookFindOptions): model.FindMatch[] | null {
 		let cellMatches: model.FindMatch[] = [];
 
 		const lineCount = this.textBuffer.getLineCount();
-		const findRange: IRange[] = options.findScope?.selectedTextRanges ?? [
-			new Range(
-				1,
-				1,
-				lineCount,
-				this.textBuffer.getLineLength(lineCount) + 1,
-			),
-		];
+		const findRange: IRange[] = options.findScope?.selectedTextRanges ?? [new Range(1, 1, lineCount, this.textBuffer.getLineLength(lineCount) + 1)];
 
 		if (this.assertTextModelAttached()) {
 			cellMatches = this.textModel!.findMatches(
@@ -899,35 +712,17 @@ export abstract class BaseCellViewModel extends Disposable {
 				options.regex || false,
 				options.caseSensitive || false,
 				options.wholeWord ? options.wordSeparators || null : null,
-				options.regex || false,
-			);
+				options.regex || false);
 		} else {
-			const searchParams = new SearchParams(
-				value,
-				options.regex || false,
-				options.caseSensitive || false,
-				options.wholeWord ? options.wordSeparators || null : null,
-			);
+			const searchParams = new SearchParams(value, options.regex || false, options.caseSensitive || false, options.wholeWord ? options.wordSeparators || null : null,);
 			const searchData = searchParams.parseSearchRequest();
 
 			if (!searchData) {
 				return null;
 			}
 
-			findRange.forEach((range) => {
-				cellMatches.push(
-					...this.textBuffer.findMatchesLineByLine(
-						new Range(
-							range.startLineNumber,
-							range.startColumn,
-							range.endLineNumber,
-							range.endColumn,
-						),
-						searchData,
-						options.regex || false,
-						1000,
-					),
-				);
+			findRange.forEach(range => {
+				cellMatches.push(...this.textBuffer.findMatchesLineByLine(new Range(range.startLineNumber, range.startColumn, range.endLineNumber, range.endColumn), searchData, options.regex || false, 1000));
 			});
 		}
 
@@ -943,10 +738,7 @@ export abstract class BaseCellViewModel extends Disposable {
 		// Only remove the undo redo stack if we map this cell uri to itself
 		// If we are not in perCell mode, it will map to the full NotebookDocument and
 		// we don't want to remove that entire document undo / redo stack when a cell is deleted
-		if (
-			this._undoRedoService.getUriComparisonKey(this.uri) ===
-			this.uri.toString()
-		) {
+		if (this._undoRedoService.getUriComparisonKey(this.uri) === this.uri.toString()) {
 			this._undoRedoService.removeElements(this.uri);
 		}
 
@@ -955,7 +747,7 @@ export abstract class BaseCellViewModel extends Disposable {
 
 	toJSON(): object {
 		return {
-			handle: this.handle,
+			handle: this.handle
 		};
 	}
 }

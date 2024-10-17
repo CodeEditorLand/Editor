@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CharCode } from "../../../base/common/charCode.js";
+import { CharCode } from '../../../base/common/charCode.js';
 
 /**
  * Returns:
@@ -20,7 +20,7 @@ export function computeIndentLevel(line: string, tabSize: number): number {
 		if (chCode === CharCode.Space) {
 			indent++;
 		} else if (chCode === CharCode.Tab) {
-			indent = indent - (indent % tabSize) + tabSize;
+			indent = indent - indent % tabSize + tabSize;
 		} else {
 			break;
 		}

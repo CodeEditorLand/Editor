@@ -3,12 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	DisposableStore,
-	IDisposable,
-	toDisposable,
-} from "../common/lifecycle.js";
-import * as dom from "./dom.js";
+import * as dom from './dom.js';
+import { DisposableStore, IDisposable, toDisposable } from '../common/lifecycle.js';
 
 export interface IPointerMoveCallback {
 	(event: PointerEvent): void;
@@ -19,6 +15,7 @@ export interface IOnStopCallback {
 }
 
 export class GlobalPointerMoveMonitor implements IDisposable {
+
 	private readonly _hooks = new DisposableStore();
 	private _pointerMoveCallback: IPointerMoveCallback | null = null;
 	private _onStopCallback: IOnStopCallback | null = null;
@@ -28,10 +25,7 @@ export class GlobalPointerMoveMonitor implements IDisposable {
 		this._hooks.dispose();
 	}
 
-	public stopMonitoring(
-		invokeStopCallback: boolean,
-		browserEvent?: PointerEvent | KeyboardEvent,
-	): void {
+	public stopMonitoring(invokeStopCallback: boolean, browserEvent?: PointerEvent | KeyboardEvent): void {
 		if (!this.isMonitoring()) {
 			// Not monitoring
 			return;
@@ -57,7 +51,7 @@ export class GlobalPointerMoveMonitor implements IDisposable {
 		pointerId: number,
 		initialButtons: number,
 		pointerMoveCallback: IPointerMoveCallback,
-		onStopCallback: IOnStopCallback,
+		onStopCallback: IOnStopCallback
 	): void {
 		if (this.isMonitoring()) {
 			this.stopMonitoring(false);
@@ -69,21 +63,19 @@ export class GlobalPointerMoveMonitor implements IDisposable {
 
 		try {
 			initialElement.setPointerCapture(pointerId);
-			this._hooks.add(
-				toDisposable(() => {
-					try {
-						initialElement.releasePointerCapture(pointerId);
-					} catch (err) {
-						// See https://github.com/microsoft/vscode/issues/161731
-						//
-						// `releasePointerCapture` sometimes fails when being invoked with the exception:
-						//     DOMException: Failed to execute 'releasePointerCapture' on 'Element':
-						//     No active pointer with the given id is found.
-						//
-						// There's no need to do anything in case of failure
-					}
-				}),
-			);
+			this._hooks.add(toDisposable(() => {
+				try {
+					initialElement.releasePointerCapture(pointerId);
+				} catch (err) {
+					// See https://github.com/microsoft/vscode/issues/161731
+					//
+					// `releasePointerCapture` sometimes fails when being invoked with the exception:
+					//     DOMException: Failed to execute 'releasePointerCapture' on 'Element':
+					//     No active pointer with the given id is found.
+					//
+					// There's no need to do anything in case of failure
+				}
+			}));
 		} catch (err) {
 			// See https://github.com/microsoft/vscode/issues/144584
 			// See https://github.com/microsoft/vscode/issues/146947
@@ -96,29 +88,25 @@ export class GlobalPointerMoveMonitor implements IDisposable {
 			eventSource = dom.getWindow(initialElement);
 		}
 
-		this._hooks.add(
-			dom.addDisposableListener(
-				eventSource,
-				dom.EventType.POINTER_MOVE,
-				(e) => {
-					if (e.buttons !== initialButtons) {
-						// Buttons state has changed in the meantime
-						this.stopMonitoring(true);
-						return;
-					}
+		this._hooks.add(dom.addDisposableListener(
+			eventSource,
+			dom.EventType.POINTER_MOVE,
+			(e) => {
+				if (e.buttons !== initialButtons) {
+					// Buttons state has changed in the meantime
+					this.stopMonitoring(true);
+					return;
+				}
 
-					e.preventDefault();
-					this._pointerMoveCallback!(e);
-				},
-			),
-		);
+				e.preventDefault();
+				this._pointerMoveCallback!(e);
+			}
+		));
 
-		this._hooks.add(
-			dom.addDisposableListener(
-				eventSource,
-				dom.EventType.POINTER_UP,
-				(e: PointerEvent) => this.stopMonitoring(true),
-			),
-		);
+		this._hooks.add(dom.addDisposableListener(
+			eventSource,
+			dom.EventType.POINTER_UP,
+			(e: PointerEvent) => this.stopMonitoring(true)
+		));
 	}
 }

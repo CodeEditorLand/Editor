@@ -3,17 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from "../../../../base/common/cancellation.js";
-import { FoldingMarkers } from "../../../common/languages/languageConfiguration.js";
-import { ILanguageConfigurationService } from "../../../common/languages/languageConfigurationRegistry.js";
-import { ITextModel } from "../../../common/model.js";
-import { computeIndentLevel } from "../../../common/model/utils.js";
-import { FoldingLimitReporter, RangeProvider } from "./folding.js";
-import { FoldingRegions, MAX_LINE_NUMBER } from "./foldingRanges.js";
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { ITextModel } from '../../../common/model.js';
+import { computeIndentLevel } from '../../../common/model/utils.js';
+import { FoldingMarkers } from '../../../common/languages/languageConfiguration.js';
+import { ILanguageConfigurationService } from '../../../common/languages/languageConfigurationRegistry.js';
+import { FoldingRegions, MAX_LINE_NUMBER } from './foldingRanges.js';
+import { FoldingLimitReporter, RangeProvider } from './folding.js';
 
 const MAX_FOLDING_REGIONS_FOR_INDENT_DEFAULT = 5000;
 
-const ID_INDENT_PROVIDER = "indent";
+const ID_INDENT_PROVIDER = 'indent';
 
 export class IndentRangeProvider implements RangeProvider {
 	readonly id = ID_INDENT_PROVIDER;
@@ -21,26 +21,16 @@ export class IndentRangeProvider implements RangeProvider {
 	constructor(
 		private readonly editorModel: ITextModel,
 		private readonly languageConfigurationService: ILanguageConfigurationService,
-		private readonly foldingRangesLimit: FoldingLimitReporter,
-	) {}
+		private readonly foldingRangesLimit: FoldingLimitReporter
+	) { }
 
-	dispose() {}
+	dispose() { }
 
-	compute(cancelationToken: CancellationToken): Promise<FoldingRegions> {
-		const foldingRules =
-			this.languageConfigurationService.getLanguageConfiguration(
-				this.editorModel.getLanguageId(),
-			).foldingRules;
+	compute(cancelationToken: CancellationToken,): Promise<FoldingRegions> {
+		const foldingRules = this.languageConfigurationService.getLanguageConfiguration(this.editorModel.getLanguageId()).foldingRules;
 		const offSide = foldingRules && !!foldingRules.offSide;
 		const markers = foldingRules && foldingRules.markers;
-		return Promise.resolve(
-			computeRanges(
-				this.editorModel,
-				offSide,
-				markers,
-				this.foldingRangesLimit,
-			),
-		);
+		return Promise.resolve(computeRanges(this.editorModel, offSide, markers, this.foldingRangesLimit));
 	}
 }
 
@@ -60,15 +50,8 @@ export class RangesCollector {
 		this._foldingRangesLimit = foldingRangesLimit;
 	}
 
-	public insertFirst(
-		startLineNumber: number,
-		endLineNumber: number,
-		indent: number,
-	) {
-		if (
-			startLineNumber > MAX_LINE_NUMBER ||
-			endLineNumber > MAX_LINE_NUMBER
-		) {
+	public insertFirst(startLineNumber: number, endLineNumber: number, indent: number) {
+		if (startLineNumber > MAX_LINE_NUMBER || endLineNumber > MAX_LINE_NUMBER) {
 			return;
 		}
 		const index = this._length;
@@ -76,8 +59,7 @@ export class RangesCollector {
 		this._endIndexes[index] = endLineNumber;
 		this._length++;
 		if (indent < 1000) {
-			this._indentOccurrences[indent] =
-				(this._indentOccurrences[indent] || 0) + 1;
+			this._indentOccurrences[indent] = (this._indentOccurrences[indent] || 0) + 1;
 		}
 	}
 
@@ -117,10 +99,7 @@ export class RangesCollector {
 				const startIndex = this._startIndexes[i];
 				const lineContent = model.getLineContent(startIndex);
 				const indent = computeIndentLevel(lineContent, tabSize);
-				if (
-					indent < maxIndent ||
-					(indent === maxIndent && entries++ < limit)
-				) {
+				if (indent < maxIndent || (indent === maxIndent && entries++ < limit)) {
 					startIndexes[k] = startIndex;
 					endIndexes[k] = this._endIndexes[i];
 					k++;
@@ -128,8 +107,10 @@ export class RangesCollector {
 			}
 			return new FoldingRegions(startIndexes, endIndexes);
 		}
+
 	}
 }
+
 
 interface PreviousRegion {
 	indent: number; // indent or -2 if a marker
@@ -139,23 +120,16 @@ interface PreviousRegion {
 
 const foldingRangesLimitDefault: FoldingLimitReporter = {
 	limit: MAX_FOLDING_REGIONS_FOR_INDENT_DEFAULT,
-	update: () => {},
+	update: () => { }
 };
 
-export function computeRanges(
-	model: ITextModel,
-	offSide: boolean,
-	markers?: FoldingMarkers,
-	foldingRangesLimit: FoldingLimitReporter = foldingRangesLimitDefault,
-): FoldingRegions {
+export function computeRanges(model: ITextModel, offSide: boolean, markers?: FoldingMarkers, foldingRangesLimit: FoldingLimitReporter = foldingRangesLimitDefault): FoldingRegions {
 	const tabSize = model.getOptions().tabSize;
 	const result = new RangesCollector(foldingRangesLimit);
 
 	let pattern: RegExp | undefined = undefined;
 	if (markers) {
-		pattern = new RegExp(
-			`(${markers.start.source})|(?:${markers.end.source})`,
-		);
+		pattern = new RegExp(`(${markers.start.source})|(?:${markers.end.source})`);
 	}
 
 	const previousRegions: PreviousRegion[] = [];
@@ -178,8 +152,7 @@ export function computeRanges(
 		let m;
 		if (pattern && (m = lineContent.match(pattern))) {
 			// folding pattern match
-			if (m[1]) {
-				// start pattern match
+			if (m[1]) { // start pattern match
 				// discard all regions until the folding pattern
 				let i = previousRegions.length - 1;
 				while (i > 0 && previousRegions[i].indent !== -2) {
@@ -198,8 +171,7 @@ export function computeRanges(
 				} else {
 					// no end marker found, treat line as a regular line
 				}
-			} else {
-				// end pattern match
+			} else { // end pattern match
 				previousRegions.push({ indent: -2, endAbove: line, line });
 				continue;
 			}
@@ -213,15 +185,13 @@ export function computeRanges(
 
 			// new folding range
 			const endLineNumber = previous.endAbove - 1;
-			if (endLineNumber - line >= 1) {
-				// needs at east size 1
+			if (endLineNumber - line >= 1) { // needs at east size 1
 				result.insertFirst(line, endLineNumber, indent);
 			}
 		}
 		if (previous.indent === indent) {
 			previous.endAbove = line;
-		} else {
-			// previous.indent < indent
+		} else { // previous.indent < indent
 			// new region with a bigger indent
 			previousRegions.push({ indent, endAbove: line, line });
 		}

@@ -3,23 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createSingleCallFunction } from "../../../../base/common/functional.js";
-import { IReference } from "../../../../base/common/lifecycle.js";
-import { URI } from "../../../../base/common/uri.js";
-import {
-	ICustomEditorModel,
-	ICustomEditorModelManager,
-} from "./customEditor.js";
+import { createSingleCallFunction } from '../../../../base/common/functional.js';
+import { IReference } from '../../../../base/common/lifecycle.js';
+import { URI } from '../../../../base/common/uri.js';
+import { ICustomEditorModel, ICustomEditorModelManager } from './customEditor.js';
 
 export class CustomEditorModelManager implements ICustomEditorModelManager {
-	private readonly _references = new Map<
-		string,
-		{
-			readonly viewType: string;
-			readonly model: Promise<ICustomEditorModel>;
-			counter: number;
-		}
-	>();
+
+	private readonly _references = new Map<string, {
+		readonly viewType: string;
+		readonly model: Promise<ICustomEditorModel>;
+		counter: number;
+	}>();
 
 	public async getAllModels(resource: URI): Promise<ICustomEditorModel[]> {
 		const keyStart = `${resource.toString()}@@@`;
@@ -31,19 +26,13 @@ export class CustomEditorModelManager implements ICustomEditorModelManager {
 		}
 		return models;
 	}
-	public async get(
-		resource: URI,
-		viewType: string,
-	): Promise<ICustomEditorModel | undefined> {
+	public async get(resource: URI, viewType: string): Promise<ICustomEditorModel | undefined> {
 		const key = this.key(resource, viewType);
 		const entry = this._references.get(key);
 		return entry?.model;
 	}
 
-	public tryRetain(
-		resource: URI,
-		viewType: string,
-	): Promise<IReference<ICustomEditorModel>> | undefined {
+	public tryRetain(resource: URI, viewType: string): Promise<IReference<ICustomEditorModel>> | undefined {
 		const key = this.key(resource, viewType);
 
 		const entry = this._references.get(key);
@@ -53,12 +42,12 @@ export class CustomEditorModelManager implements ICustomEditorModelManager {
 
 		entry.counter++;
 
-		return entry.model.then((model) => {
+		return entry.model.then(model => {
 			return {
 				object: model,
 				dispose: createSingleCallFunction(() => {
 					if (--entry.counter <= 0) {
-						entry.model.then((x) => x.dispose());
+						entry.model.then(x => x.dispose());
 						this._references.delete(key);
 					}
 				}),
@@ -66,15 +55,11 @@ export class CustomEditorModelManager implements ICustomEditorModelManager {
 		});
 	}
 
-	public add(
-		resource: URI,
-		viewType: string,
-		model: Promise<ICustomEditorModel>,
-	): Promise<IReference<ICustomEditorModel>> {
+	public add(resource: URI, viewType: string, model: Promise<ICustomEditorModel>): Promise<IReference<ICustomEditorModel>> {
 		const key = this.key(resource, viewType);
 		const existing = this._references.get(key);
 		if (existing) {
-			throw new Error("Model already exists");
+			throw new Error('Model already exists');
 		}
 
 		this._references.set(key, { viewType, model, counter: 0 });
@@ -84,7 +69,7 @@ export class CustomEditorModelManager implements ICustomEditorModelManager {
 	public disposeAllModelsForView(viewType: string): void {
 		for (const [key, value] of this._references) {
 			if (value.viewType === viewType) {
-				value.model.then((x) => x.dispose());
+				value.model.then(x => x.dispose());
 				this._references.delete(key);
 			}
 		}

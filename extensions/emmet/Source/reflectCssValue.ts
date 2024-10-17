@@ -3,21 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Property, Rule } from "EmmetFlatNode";
-import { TextEditor, window } from "vscode";
+import { window, TextEditor } from 'vscode';
+import { getCssPropertyFromRule, getCssPropertyFromDocument, offsetRangeToVsRange } from './util';
+import { Property, Rule } from 'EmmetFlatNode';
 
-import {
-	getCssPropertyFromDocument,
-	getCssPropertyFromRule,
-	offsetRangeToVsRange,
-} from "./util";
-
-const vendorPrefixes = ["-webkit-", "-moz-", "-ms-", "-o-", ""];
+const vendorPrefixes = ['-webkit-', '-moz-', '-ms-', '-o-', ''];
 
 export function reflectCssValue(): Thenable<boolean> | undefined {
 	const editor = window.activeTextEditor;
 	if (!editor) {
-		window.showInformationMessage("No editor is active.");
+		window.showInformationMessage('No editor is active.');
 		return;
 	}
 
@@ -29,12 +24,9 @@ export function reflectCssValue(): Thenable<boolean> | undefined {
 	return updateCSSNode(editor, node);
 }
 
-function updateCSSNode(
-	editor: TextEditor,
-	property: Property,
-): Thenable<boolean> {
+function updateCSSNode(editor: TextEditor, property: Property): Thenable<boolean> {
 	const rule: Rule = property.parent;
-	let currentPrefix = "";
+	let currentPrefix = '';
 
 	// Find vendor prefix of given property node
 	for (const prefix of vendorPrefixes) {
@@ -47,22 +39,15 @@ function updateCSSNode(
 	const propertyName = property.name.substr(currentPrefix.length);
 	const propertyValue = property.value;
 
-	return editor.edit((builder) => {
+	return editor.edit(builder => {
 		// Find properties with vendor prefixes, update each
-		vendorPrefixes.forEach((prefix) => {
+		vendorPrefixes.forEach(prefix => {
 			if (prefix === currentPrefix) {
 				return;
 			}
-			const vendorProperty = getCssPropertyFromRule(
-				rule,
-				prefix + propertyName,
-			);
+			const vendorProperty = getCssPropertyFromRule(rule, prefix + propertyName);
 			if (vendorProperty) {
-				const rangeToReplace = offsetRangeToVsRange(
-					editor.document,
-					vendorProperty.valueToken.start,
-					vendorProperty.valueToken.end,
-				);
+				const rangeToReplace = offsetRangeToVsRange(editor.document, vendorProperty.valueToken.start, vendorProperty.valueToken.end);
 				builder.replace(rangeToReplace, propertyValue);
 			}
 		});

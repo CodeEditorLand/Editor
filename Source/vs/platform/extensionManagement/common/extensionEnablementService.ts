@@ -3,93 +3,46 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable, DisposableStore } from "../../../base/common/lifecycle.js";
-import { isUndefinedOrNull } from "../../../base/common/types.js";
-import {
-	IProfileStorageValueChangeEvent,
-	IStorageService,
-	StorageScope,
-	StorageTarget,
-} from "../../storage/common/storage.js";
-import {
-	DISABLED_EXTENSIONS_STORAGE_PATH,
-	IExtensionIdentifier,
-	IExtensionManagementService,
-	IGlobalExtensionEnablementService,
-	InstallOperation,
-} from "./extensionManagement.js";
-import { areSameExtensions } from "./extensionManagementUtil.js";
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
+import { isUndefinedOrNull } from '../../../base/common/types.js';
+import { DISABLED_EXTENSIONS_STORAGE_PATH, IExtensionIdentifier, IExtensionManagementService, IGlobalExtensionEnablementService, InstallOperation } from './extensionManagement.js';
+import { areSameExtensions } from './extensionManagementUtil.js';
+import { IProfileStorageValueChangeEvent, IStorageService, StorageScope, StorageTarget } from '../../storage/common/storage.js';
 
-export class GlobalExtensionEnablementService
-	extends Disposable
-	implements IGlobalExtensionEnablementService
-{
+export class GlobalExtensionEnablementService extends Disposable implements IGlobalExtensionEnablementService {
+
 	declare readonly _serviceBrand: undefined;
 
-	private _onDidChangeEnablement = new Emitter<{
-		readonly extensions: IExtensionIdentifier[];
-		readonly source?: string;
-	}>();
-	readonly onDidChangeEnablement: Event<{
-		readonly extensions: IExtensionIdentifier[];
-		readonly source?: string;
-	}> = this._onDidChangeEnablement.event;
+	private _onDidChangeEnablement = new Emitter<{ readonly extensions: IExtensionIdentifier[]; readonly source?: string }>();
+	readonly onDidChangeEnablement: Event<{ readonly extensions: IExtensionIdentifier[]; readonly source?: string }> = this._onDidChangeEnablement.event;
 	private readonly storageManager: StorageManager;
 
 	constructor(
 		@IStorageService storageService: IStorageService,
-		@IExtensionManagementService
-		extensionManagementService: IExtensionManagementService,
+		@IExtensionManagementService extensionManagementService: IExtensionManagementService,
 	) {
 		super();
-		this.storageManager = this._register(
-			new StorageManager(storageService),
-		);
-		this._register(
-			this.storageManager.onDidChange((extensions) =>
-				this._onDidChangeEnablement.fire({
-					extensions,
-					source: "storage",
-				}),
-			),
-		);
-		this._register(
-			extensionManagementService.onDidInstallExtensions((e) =>
-				e.forEach(({ local, operation }) => {
-					if (local && operation === InstallOperation.Migrate) {
-						this._removeFromDisabledExtensions(
-							local.identifier,
-						); /* Reset migrated extensions */
-					}
-				}),
-			),
-		);
+		this.storageManager = this._register(new StorageManager(storageService));
+		this._register(this.storageManager.onDidChange(extensions => this._onDidChangeEnablement.fire({ extensions, source: 'storage' })));
+		this._register(extensionManagementService.onDidInstallExtensions(e => e.forEach(({ local, operation }) => {
+			if (local && operation === InstallOperation.Migrate) {
+				this._removeFromDisabledExtensions(local.identifier); /* Reset migrated extensions */
+			}
+		})));
 	}
 
-	async enableExtension(
-		extension: IExtensionIdentifier,
-		source?: string,
-	): Promise<boolean> {
+	async enableExtension(extension: IExtensionIdentifier, source?: string): Promise<boolean> {
 		if (this._removeFromDisabledExtensions(extension)) {
-			this._onDidChangeEnablement.fire({
-				extensions: [extension],
-				source,
-			});
+			this._onDidChangeEnablement.fire({ extensions: [extension], source });
 			return true;
 		}
 		return false;
 	}
 
-	async disableExtension(
-		extension: IExtensionIdentifier,
-		source?: string,
-	): Promise<boolean> {
+	async disableExtension(extension: IExtensionIdentifier, source?: string): Promise<boolean> {
 		if (this._addToDisabledExtensions(extension)) {
-			this._onDidChangeEnablement.fire({
-				extensions: [extension],
-				source,
-			});
+			this._onDidChangeEnablement.fire({ extensions: [extension], source });
 			return true;
 		}
 		return false;
@@ -103,13 +56,9 @@ export class GlobalExtensionEnablementService
 		return this.getDisabledExtensions();
 	}
 
-	private _addToDisabledExtensions(
-		identifier: IExtensionIdentifier,
-	): boolean {
+	private _addToDisabledExtensions(identifier: IExtensionIdentifier): boolean {
 		const disabledExtensions = this.getDisabledExtensions();
-		if (
-			disabledExtensions.every((e) => !areSameExtensions(e, identifier))
-		) {
+		if (disabledExtensions.every(e => !areSameExtensions(e, identifier))) {
 			disabledExtensions.push(identifier);
 			this._setDisabledExtensions(disabledExtensions);
 			return true;
@@ -117,9 +66,7 @@ export class GlobalExtensionEnablementService
 		return false;
 	}
 
-	private _removeFromDisabledExtensions(
-		identifier: IExtensionIdentifier,
-	): boolean {
+	private _removeFromDisabledExtensions(identifier: IExtensionIdentifier): boolean {
 		const disabledExtensions = this.getDisabledExtensions();
 		for (let index = 0; index < disabledExtensions.length; index++) {
 			const disabledExtension = disabledExtensions[index];
@@ -132,45 +79,30 @@ export class GlobalExtensionEnablementService
 		return false;
 	}
 
-	private _setDisabledExtensions(
-		disabledExtensions: IExtensionIdentifier[],
-	): void {
-		this._setExtensions(
-			DISABLED_EXTENSIONS_STORAGE_PATH,
-			disabledExtensions,
-		);
+	private _setDisabledExtensions(disabledExtensions: IExtensionIdentifier[]): void {
+		this._setExtensions(DISABLED_EXTENSIONS_STORAGE_PATH, disabledExtensions);
 	}
 
 	private _getExtensions(storageId: string): IExtensionIdentifier[] {
 		return this.storageManager.get(storageId, StorageScope.PROFILE);
 	}
 
-	private _setExtensions(
-		storageId: string,
-		extensions: IExtensionIdentifier[],
-	): void {
+	private _setExtensions(storageId: string, extensions: IExtensionIdentifier[]): void {
 		this.storageManager.set(storageId, extensions, StorageScope.PROFILE);
 	}
+
 }
 
 export class StorageManager extends Disposable {
+
 	private storage: { [key: string]: string } = Object.create(null);
 
-	private _onDidChange: Emitter<IExtensionIdentifier[]> = this._register(
-		new Emitter<IExtensionIdentifier[]>(),
-	);
-	readonly onDidChange: Event<IExtensionIdentifier[]> =
-		this._onDidChange.event;
+	private _onDidChange: Emitter<IExtensionIdentifier[]> = this._register(new Emitter<IExtensionIdentifier[]>());
+	readonly onDidChange: Event<IExtensionIdentifier[]> = this._onDidChange.event;
 
 	constructor(private storageService: IStorageService) {
 		super();
-		this._register(
-			storageService.onDidChangeValue(
-				StorageScope.PROFILE,
-				undefined,
-				this._register(new DisposableStore()),
-			)((e) => this.onDidStorageChange(e)),
-		);
+		this._register(storageService.onDidChangeValue(StorageScope.PROFILE, undefined, this._register(new DisposableStore()))(e => this.onDidStorageChange(e)));
 	}
 
 	get(key: string, scope: StorageScope): IExtensionIdentifier[] {
@@ -187,9 +119,7 @@ export class StorageManager extends Disposable {
 	}
 
 	set(key: string, value: IExtensionIdentifier[], scope: StorageScope): void {
-		const newValue: string = JSON.stringify(
-			value.map(({ id, uuid }): IExtensionIdentifier => ({ id, uuid })),
-		);
+		const newValue: string = JSON.stringify(value.map(({ id, uuid }): IExtensionIdentifier => ({ id, uuid })));
 		const oldValue = this._get(key, scope);
 		if (oldValue !== newValue) {
 			if (scope === StorageScope.PROFILE) {
@@ -203,36 +133,15 @@ export class StorageManager extends Disposable {
 		}
 	}
 
-	private onDidStorageChange(
-		storageChangeEvent: IProfileStorageValueChangeEvent,
-	): void {
+	private onDidStorageChange(storageChangeEvent: IProfileStorageValueChangeEvent): void {
 		if (!isUndefinedOrNull(this.storage[storageChangeEvent.key])) {
-			const newValue = this._get(
-				storageChangeEvent.key,
-				storageChangeEvent.scope,
-			);
+			const newValue = this._get(storageChangeEvent.key, storageChangeEvent.scope);
 			if (newValue !== this.storage[storageChangeEvent.key]) {
-				const oldValues = this.get(
-					storageChangeEvent.key,
-					storageChangeEvent.scope,
-				);
+				const oldValues = this.get(storageChangeEvent.key, storageChangeEvent.scope);
 				delete this.storage[storageChangeEvent.key];
-				const newValues = this.get(
-					storageChangeEvent.key,
-					storageChangeEvent.scope,
-				);
-				const added = oldValues.filter(
-					(oldValue) =>
-						!newValues.some((newValue) =>
-							areSameExtensions(oldValue, newValue),
-						),
-				);
-				const removed = newValues.filter(
-					(newValue) =>
-						!oldValues.some((oldValue) =>
-							areSameExtensions(oldValue, newValue),
-						),
-				);
+				const newValues = this.get(storageChangeEvent.key, storageChangeEvent.scope);
+				const added = oldValues.filter(oldValue => !newValues.some(newValue => areSameExtensions(oldValue, newValue)));
+				const removed = newValues.filter(newValue => !oldValues.some(oldValue => areSameExtensions(oldValue, newValue)));
 				if (added.length || removed.length) {
 					this._onDidChange.fire([...added, ...removed]);
 				}
@@ -241,14 +150,10 @@ export class StorageManager extends Disposable {
 	}
 
 	private _get(key: string, scope: StorageScope): string {
-		return this.storageService.get(key, scope, "[]");
+		return this.storageService.get(key, scope, '[]');
 	}
 
-	private _set(
-		key: string,
-		value: string | undefined,
-		scope: StorageScope,
-	): void {
+	private _set(key: string, value: string | undefined, scope: StorageScope): void {
 		if (value) {
 			// Enablement state is synced separately through extensions
 			this.storageService.store(key, value, scope, StorageTarget.MACHINE);

@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { memoize } from "./decorators.js";
-import * as paths from "./path.js";
-import { extUri as defaultExtUri, IExtUri } from "./resources.js";
-import { PathIterator } from "./ternarySearchTree.js";
-import { URI } from "./uri.js";
+import { memoize } from './decorators.js';
+import { PathIterator } from './ternarySearchTree.js';
+import * as paths from './path.js';
+import { extUri as defaultExtUri, IExtUri } from './resources.js';
+import { URI } from './uri.js';
 
 export interface IResourceNode<T, C = void> {
 	readonly uri: URI;
@@ -22,6 +22,7 @@ export interface IResourceNode<T, C = void> {
 }
 
 class Node<T, C> implements IResourceNode<T, C> {
+
 	private _children = new Map<string, Node<T, C>>();
 
 	get childrenCount(): number {
@@ -42,8 +43,8 @@ class Node<T, C> implements IResourceNode<T, C> {
 		readonly relativePath: string,
 		readonly context: C,
 		public element: T | undefined = undefined,
-		readonly parent: IResourceNode<T, C> | undefined = undefined,
-	) {}
+		readonly parent: IResourceNode<T, C> | undefined = undefined
+	) { }
 
 	get(path: string): Node<T, C> | undefined {
 		return this._children.get(path);
@@ -63,7 +64,7 @@ class Node<T, C> implements IResourceNode<T, C> {
 }
 
 function collect<T, C>(node: IResourceNode<T, C>, result: T[]): T[] {
-	if (typeof node.element !== "undefined") {
+	if (typeof node.element !== 'undefined') {
 		result.push(node.element);
 	}
 
@@ -75,6 +76,7 @@ function collect<T, C>(node: IResourceNode<T, C>, result: T[]): T[] {
 }
 
 export class ResourceTree<T extends NonNullable<any>, C> {
+
 	readonly root: Node<T, C>;
 
 	static getRoot<T, C>(node: IResourceNode<T, C>): IResourceNode<T, C> {
@@ -93,23 +95,19 @@ export class ResourceTree<T extends NonNullable<any>, C> {
 		return obj instanceof Node;
 	}
 
-	constructor(
-		context: C,
-		rootURI: URI = URI.file("/"),
-		private extUri: IExtUri = defaultExtUri,
-	) {
-		this.root = new Node(rootURI, "", context);
+	constructor(context: C, rootURI: URI = URI.file('/'), private extUri: IExtUri = defaultExtUri) {
+		this.root = new Node(rootURI, '', context);
 	}
 
 	add(uri: URI, element: T): void {
 		const key = this.extUri.relativePath(this.root.uri, uri) || uri.path;
 		const iterator = new PathIterator(false).reset(key);
 		let node = this.root;
-		let path = "";
+		let path = '';
 
 		while (true) {
 			const name = iterator.value();
-			path = path + "/" + name;
+			path = path + '/' + name;
 
 			let child = node.get(name);
 
@@ -119,7 +117,7 @@ export class ResourceTree<T extends NonNullable<any>, C> {
 					path,
 					this.root.context,
 					iterator.hasNext() ? undefined : element,
-					node,
+					node
 				);
 
 				node.set(name, child);
@@ -154,7 +152,7 @@ export class ResourceTree<T extends NonNullable<any>, C> {
 		if (iterator.hasNext()) {
 			const result = this._delete(child, iterator.next());
 
-			if (typeof result !== "undefined" && child.childrenCount === 0) {
+			if (typeof result !== 'undefined' && child.childrenCount === 0) {
 				node.delete(name);
 			}
 

@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const DEFAULT_CLIENT_ID = "aebc6443-996d-45c2-90f0-388ff96faa56";
-const DEFAULT_TENANT = "organizations";
+const DEFAULT_CLIENT_ID = 'aebc6443-996d-45c2-90f0-388ff96faa56';
+const DEFAULT_TENANT = 'organizations';
 
-const OIDC_SCOPES = ["openid", "email", "profile", "offline_access"];
-const GRAPH_TACK_ON_SCOPE = "User.Read";
+const OIDC_SCOPES = ['openid', 'email', 'profile', 'offline_access'];
+const GRAPH_TACK_ON_SCOPE = 'User.Read';
 
 export class ScopeData {
+
 	/**
 	 * The full list of scopes including:
 	 * * the original scopes passed to the constructor
@@ -42,36 +43,32 @@ export class ScopeData {
 		const modifiedScopes = [...originalScopes];
 		modifiedScopes.sort();
 		this.allScopes = modifiedScopes;
-		this.scopeStr = modifiedScopes.join(" ");
+		this.scopeStr = modifiedScopes.join(' ');
 		this.scopesToSend = this.getScopesToSend(modifiedScopes);
 		this.clientId = this.getClientId(this.allScopes);
 		this.tenant = this.getTenantId(this.allScopes);
 	}
 
 	private getClientId(scopes: string[]) {
-		return (
-			scopes.reduce<string | undefined>((prev, current) => {
-				if (current.startsWith("VSCODE_CLIENT_ID:")) {
-					return current.split("VSCODE_CLIENT_ID:")[1];
-				}
-				return prev;
-			}, undefined) ?? DEFAULT_CLIENT_ID
-		);
+		return scopes.reduce<string | undefined>((prev, current) => {
+			if (current.startsWith('VSCODE_CLIENT_ID:')) {
+				return current.split('VSCODE_CLIENT_ID:')[1];
+			}
+			return prev;
+		}, undefined) ?? DEFAULT_CLIENT_ID;
 	}
 
 	private getTenantId(scopes: string[]) {
-		return (
-			scopes.reduce<string | undefined>((prev, current) => {
-				if (current.startsWith("VSCODE_TENANT:")) {
-					return current.split("VSCODE_TENANT:")[1];
-				}
-				return prev;
-			}, undefined) ?? DEFAULT_TENANT
-		);
+		return scopes.reduce<string | undefined>((prev, current) => {
+			if (current.startsWith('VSCODE_TENANT:')) {
+				return current.split('VSCODE_TENANT:')[1];
+			}
+			return prev;
+		}, undefined) ?? DEFAULT_TENANT;
 	}
 
 	private getScopesToSend(scopes: string[]) {
-		const scopesToSend = scopes.filter((s) => !s.startsWith("VSCODE_"));
+		const scopesToSend = scopes.filter(s => !s.startsWith('VSCODE_'));
 
 		const set = new Set(scopesToSend);
 		for (const scope of OIDC_SCOPES) {

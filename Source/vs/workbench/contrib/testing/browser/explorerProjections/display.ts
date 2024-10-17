@@ -3,4 +3,4 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const flatTestItemDelimiter = " \u203A ";
+export const flatTestItemDelimiter = ' \u203A ';

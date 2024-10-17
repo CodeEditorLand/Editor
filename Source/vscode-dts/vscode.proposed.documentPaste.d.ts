@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	// https://github.com/microsoft/vscode/issues/30066/
 
 	/**
@@ -81,9 +82,8 @@ declare module "vscode" {
 	/**
 	 * Provider invoked when the user copies or pastes in a {@linkcode TextDocument}.
 	 */
-	interface DocumentPasteEditProvider<
-		T extends DocumentPasteEdit = DocumentPasteEdit,
-	> {
+	interface DocumentPasteEditProvider<T extends DocumentPasteEdit = DocumentPasteEdit> {
+
 		/**
 		 * Optional method invoked after the user copies from a {@link TextEditor text editor}.
 		 *
@@ -101,12 +101,7 @@ declare module "vscode" {
 		 *
 		 * @return Optional thenable that resolves when all changes to the `dataTransfer` are complete.
 		 */
-		prepareDocumentPaste?(
-			document: TextDocument,
-			ranges: readonly Range[],
-			dataTransfer: DataTransfer,
-			token: CancellationToken,
-		): void | Thenable<void>;
+		prepareDocumentPaste?(document: TextDocument, ranges: readonly Range[], dataTransfer: DataTransfer, token: CancellationToken): void | Thenable<void>;
 
 		/**
 		 * Invoked before the user pastes into a {@link TextEditor text editor}.
@@ -124,13 +119,7 @@ declare module "vscode" {
 		 * {@linkcode DocumentPasteEdit} is applied at a time. If multiple edits are returned from all providers, then
 		 * the first is automatically applied and a widget is shown that lets the user switch to the other edits.
 		 */
-		provideDocumentPasteEdits?(
-			document: TextDocument,
-			ranges: readonly Range[],
-			dataTransfer: DataTransfer,
-			context: DocumentPasteEditContext,
-			token: CancellationToken,
-		): ProviderResult<T[]>;
+		provideDocumentPasteEdits?(document: TextDocument, ranges: readonly Range[], dataTransfer: DataTransfer, context: DocumentPasteEditContext, token: CancellationToken): ProviderResult<T[]>;
 
 		/**
 		 * Optional method which fills in the {@linkcode DocumentPasteEdit.additionalEdit} before the edit is applied.
@@ -144,16 +133,14 @@ declare module "vscode" {
 		 * @returns The resolved paste edit or a thenable that resolves to such. It is OK to return the given
 		 * `pasteEdit`. If no result is returned, the given `pasteEdit` is used.
 		 */
-		resolveDocumentPasteEdit?(
-			pasteEdit: T,
-			token: CancellationToken,
-		): ProviderResult<T>;
+		resolveDocumentPasteEdit?(pasteEdit: T, token: CancellationToken): ProviderResult<T>;
 	}
 
 	/**
 	 * An edit the applies a paste operation.
 	 */
 	class DocumentPasteEdit {
+
 		/**
 		 * Human readable label that describes the edit.
 		 */
@@ -190,11 +177,7 @@ declare module "vscode" {
 		 * @param title Human readable label that describes the edit.
 		 * @param kind {@link DocumentDropOrPasteEditKind Kind} of the edit.
 		 */
-		constructor(
-			insertText: string | SnippetString,
-			title: string,
-			kind: DocumentDropOrPasteEditKind,
-		);
+		constructor(insertText: string | SnippetString, title: string, kind: DocumentDropOrPasteEditKind);
 	}
 
 	/**
@@ -249,17 +232,10 @@ declare module "vscode" {
 		yieldTo?: readonly DocumentDropOrPasteEditKind[];
 	}
 
-	export interface DocumentDropEditProvider<
-		T extends DocumentDropEdit = DocumentDropEdit,
-	> {
+	export interface DocumentDropEditProvider<T extends DocumentDropEdit = DocumentDropEdit> {
 		// Overload that allows returning multiple edits
 		// Will be merged in on finalization
-		provideDocumentDropEdits(
-			document: TextDocument,
-			position: Position,
-			dataTransfer: DataTransfer,
-			token: CancellationToken,
-		): ProviderResult<DocumentDropEdit | DocumentDropEdit[]>;
+		provideDocumentDropEdits(document: TextDocument, position: Position, dataTransfer: DataTransfer, token: CancellationToken): ProviderResult<DocumentDropEdit | DocumentDropEdit[]>;
 
 		/**
 		 * Optional method which fills in the {@linkcode DocumentDropEdit.additionalEdit} before the edit is applied.
@@ -273,10 +249,7 @@ declare module "vscode" {
 		 * @returns The resolved edit or a thenable that resolves to such. It is OK to return the given
 		 * `edit`. If no result is returned, the given `edit` is used.
 		 */
-		resolveDocumentDropEdit?(
-			edit: T,
-			token: CancellationToken,
-		): ProviderResult<T>;
+		resolveDocumentDropEdit?(edit: T, token: CancellationToken): ProviderResult<T>;
 	}
 
 	/**
@@ -314,19 +287,11 @@ declare module "vscode" {
 		 *
 		 * @returns A {@link Disposable} that unregisters this provider when disposed of.
 		 */
-		export function registerDocumentPasteEditProvider(
-			selector: DocumentSelector,
-			provider: DocumentPasteEditProvider,
-			metadata: DocumentPasteProviderMetadata,
-		): Disposable;
+		export function registerDocumentPasteEditProvider(selector: DocumentSelector, provider: DocumentPasteEditProvider, metadata: DocumentPasteProviderMetadata): Disposable;
 
 		/**
 		 * Overload which adds extra metadata. Will be removed on finalization.
 		 */
-		export function registerDocumentDropEditProvider(
-			selector: DocumentSelector,
-			provider: DocumentDropEditProvider,
-			metadata?: DocumentDropEditProviderMetadata,
-		): Disposable;
+		export function registerDocumentDropEditProvider(selector: DocumentSelector, provider: DocumentDropEditProvider, metadata?: DocumentDropEditProviderMetadata): Disposable;
 	}
 }

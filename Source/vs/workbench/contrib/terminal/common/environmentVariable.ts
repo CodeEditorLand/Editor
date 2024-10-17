@@ -3,17 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from "../../../../base/common/event.js";
-import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
-import {
-	EnvironmentVariableScope,
-	IEnvironmentVariableCollection,
-	IMergedEnvironmentVariableCollection,
-} from "../../../../platform/terminal/common/environmentVariable.js";
-import { ITerminalStatus } from "./terminal.js";
+import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { Event } from '../../../../base/common/event.js';
+import { EnvironmentVariableScope, IEnvironmentVariableCollection, IMergedEnvironmentVariableCollection } from '../../../../platform/terminal/common/environmentVariable.js';
+import { ITerminalStatus } from './terminal.js';
 
-export const IEnvironmentVariableService =
-	createDecorator<IEnvironmentVariableService>("environmentVariableService");
+export const IEnvironmentVariableService = createDecorator<IEnvironmentVariableService>('environmentVariableService');
 
 /**
  * Tracks and persists environment variable collections as defined by extensions.
@@ -42,10 +37,7 @@ export interface IEnvironmentVariableService {
 	/**
 	 * Sets an extension's environment variable collection.
 	 */
-	set(
-		extensionIdentifier: string,
-		collection: IEnvironmentVariableCollection,
-	): void;
+	set(extensionIdentifier: string, collection: IEnvironmentVariableCollection): void;
 
 	/**
 	 * Deletes an extension's environment variable collection.
@@ -53,8 +45,7 @@ export interface IEnvironmentVariableService {
 	delete(extensionIdentifier: string): void;
 }
 
-export interface IEnvironmentVariableCollectionWithPersistence
-	extends IEnvironmentVariableCollection {
+export interface IEnvironmentVariableCollectionWithPersistence extends IEnvironmentVariableCollection {
 	readonly persistent: boolean;
 }
 

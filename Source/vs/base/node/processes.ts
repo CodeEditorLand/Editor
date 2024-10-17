@@ -3,40 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as cp from "child_process";
-import { promises, Stats } from "fs";
-
-import * as path from "../common/path.js";
-import * as Platform from "../common/platform.js";
-import * as process from "../common/process.js";
-import {
-	CommandOptions,
-	ForkOptions,
-	Source,
-	SuccessData,
-	TerminateResponse,
-	TerminateResponseCode,
-} from "../common/processes.js";
-import * as Types from "../common/types.js";
-import * as pfs from "./pfs.js";
-
-export {
-	type CommandOptions,
-	type ForkOptions,
-	type SuccessData,
-	Source,
-	type TerminateResponse,
-	TerminateResponseCode,
-};
+import * as cp from 'child_process';
+import { Stats, promises } from 'fs';
+import * as path from '../common/path.js';
+import * as Platform from '../common/platform.js';
+import * as process from '../common/process.js';
+import { CommandOptions, ForkOptions, Source, SuccessData, TerminateResponse, TerminateResponseCode } from '../common/processes.js';
+import * as Types from '../common/types.js';
+import * as pfs from './pfs.js';
+export { type CommandOptions, type ForkOptions, type SuccessData, Source, type TerminateResponse, TerminateResponseCode };
 
 export type ValueCallback<T> = (value: T | Promise<T>) => void;
 export type ErrorCallback = (error?: any) => void;
 export type ProgressCallback<T> = (progress: T) => void;
 
-export function getWindowsShell(
-	env = process.env as Platform.IProcessEnvironment,
-): string {
-	return env["comspec"] || "cmd.exe";
+
+export function getWindowsShell(env = process.env as Platform.IProcessEnvironment): string {
+	return env['comspec'] || 'cmd.exe';
 }
 
 export interface IQueuedSender {
@@ -48,9 +31,7 @@ export interface IQueuedSender {
 // queue is free again to consume messages.
 // On Windows we always wait for the send() method to return before sending the next message
 // to workaround https://github.com/nodejs/node/issues/7657 (IPC can freeze process)
-export function createQueuedSender(
-	childProcess: cp.ChildProcess,
-): IQueuedSender {
+export function createQueuedSender(childProcess: cp.ChildProcess): IQueuedSender {
 	let msgQueue: string[] = [];
 	let useQueue = false;
 
@@ -71,14 +52,11 @@ export function createQueuedSender(
 			if (msgQueue.length > 0) {
 				const msgQueueCopy = msgQueue.slice(0);
 				msgQueue = [];
-				msgQueueCopy.forEach((entry) => send(entry));
+				msgQueueCopy.forEach(entry => send(entry));
 			}
 		});
 
-		if (
-			!result ||
-			Platform.isWindows /* workaround https://github.com/nodejs/node/issues/7657 */
-		) {
+		if (!result || Platform.isWindows /* workaround https://github.com/nodejs/node/issues/7657 */) {
 			useQueue = true;
 		}
 	};
@@ -87,11 +65,7 @@ export function createQueuedSender(
 }
 
 export namespace win32 {
-	export async function findExecutable(
-		command: string,
-		cwd?: string,
-		paths?: string[],
-	): Promise<string> {
+	export async function findExecutable(command: string, cwd?: string, paths?: string[]): Promise<string> {
 		// If we have an absolute path then we take it.
 		if (path.isAbsolute(command)) {
 			return command;
@@ -100,13 +74,13 @@ export namespace win32 {
 			cwd = process.cwd();
 		}
 		const dir = path.dirname(command);
-		if (dir !== ".") {
+		if (dir !== '.') {
 			// We have a directory and the directory is relative (see above). Make the path absolute
 			// to the current working directory.
 			return path.join(cwd, command);
 		}
-		if (paths === undefined && Types.isString(process.env["PATH"])) {
-			paths = process.env["PATH"].split(path.delimiter);
+		if (paths === undefined && Types.isString(process.env['PATH'])) {
+			paths = process.env['PATH'].split(path.delimiter);
 		}
 		// No PATH environment. Make path absolute to the cwd.
 		if (paths === undefined || paths.length === 0) {
@@ -119,7 +93,7 @@ export namespace win32 {
 				try {
 					statValue = await promises.stat(path);
 				} catch (e) {
-					if (e.message.startsWith("EACCES")) {
+					if (e.message.startsWith('EACCES')) {
 						// it might be symlink
 						statValue = await promises.lstat(path);
 					}
@@ -142,11 +116,11 @@ export namespace win32 {
 			if (await fileExists(fullPath)) {
 				return fullPath;
 			}
-			let withExtension = fullPath + ".com";
+			let withExtension = fullPath + '.com';
 			if (await fileExists(withExtension)) {
 				return withExtension;
 			}
-			withExtension = fullPath + ".exe";
+			withExtension = fullPath + '.exe';
 			if (await fileExists(withExtension)) {
 				return withExtension;
 			}

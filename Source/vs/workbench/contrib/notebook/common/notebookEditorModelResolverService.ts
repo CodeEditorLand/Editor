@@ -3,20 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event, IWaitUntil } from "../../../../base/common/event.js";
-import { IReference } from "../../../../base/common/lifecycle.js";
-import { URI } from "../../../../base/common/uri.js";
-import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
-import { NotebookTextModel } from "./model/notebookTextModel.js";
-import {
-	IResolvedNotebookEditorModel,
-	NotebookEditorModelCreationOptions,
-} from "./notebookCommon.js";
+import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { URI } from '../../../../base/common/uri.js';
+import { IResolvedNotebookEditorModel, NotebookEditorModelCreationOptions } from './notebookCommon.js';
+import { IReference } from '../../../../base/common/lifecycle.js';
+import { Event, IWaitUntil } from '../../../../base/common/event.js';
+import { NotebookTextModel } from './model/notebookTextModel.js';
 
-export const INotebookEditorModelResolverService =
-	createDecorator<INotebookEditorModelResolverService>(
-		"INotebookModelResolverService",
-	);
+export const INotebookEditorModelResolverService = createDecorator<INotebookEditorModelResolverService>('INotebookModelResolverService');
 
 /**
  * A notebook file can only be opened ONCE per notebook type.
@@ -56,18 +50,8 @@ export interface INotebookEditorModelResolverService {
 
 	isDirty(resource: URI): boolean;
 
-	createUntitledNotebookTextModel(
-		viewType: string,
-	): Promise<NotebookTextModel>;
+	createUntitledNotebookTextModel(viewType: string): Promise<NotebookTextModel>;
 
-	resolve(
-		resource: URI,
-		viewType?: string,
-		creationOptions?: NotebookEditorModelCreationOptions,
-	): Promise<IReference<IResolvedNotebookEditorModel>>;
-	resolve(
-		resource: IUntitledNotebookResource,
-		viewType: string,
-		creationOtions?: NotebookEditorModelCreationOptions,
-	): Promise<IReference<IResolvedNotebookEditorModel>>;
+	resolve(resource: URI, viewType?: string, creationOptions?: NotebookEditorModelCreationOptions): Promise<IReference<IResolvedNotebookEditorModel>>;
+	resolve(resource: IUntitledNotebookResource, viewType: string, creationOtions?: NotebookEditorModelCreationOptions): Promise<IReference<IResolvedNotebookEditorModel>>;
 }

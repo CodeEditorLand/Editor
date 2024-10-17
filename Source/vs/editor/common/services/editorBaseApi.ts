@@ -3,18 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationTokenSource } from "../../../base/common/cancellation.js";
-import { Emitter } from "../../../base/common/event.js";
-import {
-	KeyMod as ConstKeyMod,
-	KeyChord,
-} from "../../../base/common/keyCodes.js";
-import { URI } from "../../../base/common/uri.js";
-import { Position } from "../core/position.js";
-import { Range } from "../core/range.js";
-import { Selection } from "../core/selection.js";
-import { Token } from "../languages.js";
-import * as standaloneEnums from "../standalone/standaloneEnums.js";
+import { CancellationTokenSource } from '../../../base/common/cancellation.js';
+import { Emitter } from '../../../base/common/event.js';
+import { KeyChord, KeyMod as ConstKeyMod } from '../../../base/common/keyCodes.js';
+import { URI } from '../../../base/common/uri.js';
+import { Position } from '../core/position.js';
+import { Range } from '../core/range.js';
+import { Selection } from '../core/selection.js';
+import { Token } from '../languages.js';
+import * as standaloneEnums from '../standalone/standaloneEnums.js';
 
 export class KeyMod {
 	public static readonly CtrlCmd: number = ConstKeyMod.CtrlCmd;
@@ -42,6 +39,6 @@ export function createMonacoBaseAPI(): typeof monaco {
 		MarkerSeverity: standaloneEnums.MarkerSeverity,
 		MarkerTag: standaloneEnums.MarkerTag,
 		Uri: <any>URI,
-		Token: Token,
+		Token: Token
 	};
 }

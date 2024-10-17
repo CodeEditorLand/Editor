@@ -3,13 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export type PerfName =
-	| "startTime"
-	| "extensionActivated"
-	| "inputLoaded"
-	| "webviewCommLoaded"
-	| "customMarkdownLoaded"
-	| "editorLoaded";
+export type PerfName = 'startTime' | 'extensionActivated' | 'inputLoaded' | 'webviewCommLoaded' | 'customMarkdownLoaded' | 'editorLoaded';
 
 type PerformanceMark = { [key in PerfName]?: number };
 

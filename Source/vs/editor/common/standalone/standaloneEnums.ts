@@ -5,18 +5,19 @@
 
 // THIS IS A GENERATED FILE. DO NOT EDIT DIRECTLY.
 
+
 export enum AccessibilitySupport {
 	/**
 	 * This should be the browser case where it is not known if a screen reader is attached or no.
 	 */
 	Unknown = 0,
 	Disabled = 1,
-	Enabled = 2,
+	Enabled = 2
 }
 
 export enum CodeActionTriggerType {
 	Invoke = 1,
-	Auto = 2,
+	Auto = 2
 }
 
 export enum CompletionItemInsertTextRule {
@@ -29,7 +30,7 @@ export enum CompletionItemInsertTextRule {
 	/**
 	 * `insertText` is a snippet.
 	 */
-	InsertAsSnippet = 4,
+	InsertAsSnippet = 4
 }
 
 export enum CompletionItemKind {
@@ -60,11 +61,11 @@ export enum CompletionItemKind {
 	TypeParameter = 24,
 	User = 25,
 	Issue = 26,
-	Snippet = 27,
+	Snippet = 27
 }
 
 export enum CompletionItemTag {
-	Deprecated = 1,
+	Deprecated = 1
 }
 
 /**
@@ -73,7 +74,7 @@ export enum CompletionItemTag {
 export enum CompletionTriggerKind {
 	Invoke = 0,
 	TriggerCharacter = 1,
-	TriggerForIncompleteCompletions = 2,
+	TriggerForIncompleteCompletions = 2
 }
 
 /**
@@ -91,7 +92,7 @@ export enum ContentWidgetPositionPreference {
 	/**
 	 * Place the content widget below a position
 	 */
-	BELOW = 2,
+	BELOW = 2
 }
 
 /**
@@ -125,7 +126,7 @@ export enum CursorChangeReason {
 	/**
 	 * There was a Redo.
 	 */
-	Redo = 6,
+	Redo = 6
 }
 
 /**
@@ -139,7 +140,7 @@ export enum DefaultEndOfLine {
 	/**
 	 * Use carriage return and line feed (\r\n) as the end of line character.
 	 */
-	CRLF = 2,
+	CRLF = 2
 }
 
 /**
@@ -157,7 +158,7 @@ export enum DocumentHighlightKind {
 	/**
 	 * Write-access of a symbol, like writing to a variable.
 	 */
-	Write = 2,
+	Write = 2
 }
 
 /**
@@ -168,7 +169,7 @@ export enum EditorAutoIndentStrategy {
 	Keep = 1,
 	Brackets = 2,
 	Advanced = 3,
-	Full = 4,
+	Full = 4
 }
 
 export enum EditorOption {
@@ -325,7 +326,7 @@ export enum EditorOption {
 	wrappingInfo = 150,
 	defaultColorDecorators = 151,
 	colorDecoratorsActivatedOn = 152,
-	inlineCompletionsAccessibilityVerbose = 153,
+	inlineCompletionsAccessibilityVerbose = 153
 }
 
 /**
@@ -343,7 +344,7 @@ export enum EndOfLinePreference {
 	/**
 	 * Use carriage return and line feed (\r\n) as the end of line character.
 	 */
-	CRLF = 2,
+	CRLF = 2
 }
 
 /**
@@ -357,7 +358,7 @@ export enum EndOfLineSequence {
 	/**
 	 * Use carriage return and line feed (\r\n) as the end of line character.
 	 */
-	CRLF = 1,
+	CRLF = 1
 }
 
 /**
@@ -366,7 +367,7 @@ export enum EndOfLineSequence {
 export enum GlyphMarginLane {
 	Left = 1,
 	Center = 2,
-	Right = 3,
+	Right = 3
 }
 
 export enum HoverVerbosityAction {
@@ -377,7 +378,7 @@ export enum HoverVerbosityAction {
 	/**
 	 * Decrease the verbosity of the hover
 	 */
-	Decrease = 1,
+	Decrease = 1
 }
 
 /**
@@ -401,19 +402,19 @@ export enum IndentAction {
 	/**
 	 * Insert new line and outdent once (relative to the previous line's indentation).
 	 */
-	Outdent = 3,
+	Outdent = 3
 }
 
 export enum InjectedTextCursorStops {
 	Both = 0,
 	Right = 1,
 	Left = 2,
-	None = 3,
+	None = 3
 }
 
 export enum InlayHintKind {
 	Type = 1,
-	Parameter = 2,
+	Parameter = 2
 }
 
 /**
@@ -429,12 +430,12 @@ export enum InlineCompletionTriggerKind {
 	 * Completion was triggered explicitly by a user gesture.
 	 * Return multiple completion items to enable cycling through them.
 	 */
-	Explicit = 1,
+	Explicit = 1
 }
 
 export enum InlineEditTriggerKind {
 	Invoke = 0,
-	Automatic = 1,
+	Automatic = 1
 }
 /**
  * Virtual Key Codes, the value does not hold any inherent meaning.
@@ -594,28 +595,28 @@ export enum KeyCode {
 	 * Either the angle bracket key or the backslash key on the RT 102-key keyboard.
 	 */
 	IntlBackslash = 97,
-	Numpad0 = 98, // VK_NUMPAD0, 0x60, Numeric keypad 0 key
-	Numpad1 = 99, // VK_NUMPAD1, 0x61, Numeric keypad 1 key
-	Numpad2 = 100, // VK_NUMPAD2, 0x62, Numeric keypad 2 key
-	Numpad3 = 101, // VK_NUMPAD3, 0x63, Numeric keypad 3 key
-	Numpad4 = 102, // VK_NUMPAD4, 0x64, Numeric keypad 4 key
-	Numpad5 = 103, // VK_NUMPAD5, 0x65, Numeric keypad 5 key
-	Numpad6 = 104, // VK_NUMPAD6, 0x66, Numeric keypad 6 key
-	Numpad7 = 105, // VK_NUMPAD7, 0x67, Numeric keypad 7 key
-	Numpad8 = 106, // VK_NUMPAD8, 0x68, Numeric keypad 8 key
-	Numpad9 = 107, // VK_NUMPAD9, 0x69, Numeric keypad 9 key
-	NumpadMultiply = 108, // VK_MULTIPLY, 0x6A, Multiply key
-	NumpadAdd = 109, // VK_ADD, 0x6B, Add key
-	NUMPAD_SEPARATOR = 110, // VK_SEPARATOR, 0x6C, Separator key
-	NumpadSubtract = 111, // VK_SUBTRACT, 0x6D, Subtract key
-	NumpadDecimal = 112, // VK_DECIMAL, 0x6E, Decimal key
-	NumpadDivide = 113, // VK_DIVIDE, 0x6F,
+	Numpad0 = 98,// VK_NUMPAD0, 0x60, Numeric keypad 0 key
+	Numpad1 = 99,// VK_NUMPAD1, 0x61, Numeric keypad 1 key
+	Numpad2 = 100,// VK_NUMPAD2, 0x62, Numeric keypad 2 key
+	Numpad3 = 101,// VK_NUMPAD3, 0x63, Numeric keypad 3 key
+	Numpad4 = 102,// VK_NUMPAD4, 0x64, Numeric keypad 4 key
+	Numpad5 = 103,// VK_NUMPAD5, 0x65, Numeric keypad 5 key
+	Numpad6 = 104,// VK_NUMPAD6, 0x66, Numeric keypad 6 key
+	Numpad7 = 105,// VK_NUMPAD7, 0x67, Numeric keypad 7 key
+	Numpad8 = 106,// VK_NUMPAD8, 0x68, Numeric keypad 8 key
+	Numpad9 = 107,// VK_NUMPAD9, 0x69, Numeric keypad 9 key
+	NumpadMultiply = 108,// VK_MULTIPLY, 0x6A, Multiply key
+	NumpadAdd = 109,// VK_ADD, 0x6B, Add key
+	NUMPAD_SEPARATOR = 110,// VK_SEPARATOR, 0x6C, Separator key
+	NumpadSubtract = 111,// VK_SUBTRACT, 0x6D, Subtract key
+	NumpadDecimal = 112,// VK_DECIMAL, 0x6E, Decimal key
+	NumpadDivide = 113,// VK_DIVIDE, 0x6F,
 	/**
 	 * Cover all key codes when IME is processing input.
 	 */
 	KEY_IN_COMPOSITION = 114,
-	ABNT_C1 = 115, // Brazilian (ABNT) Keyboard
-	ABNT_C2 = 116, // Brazilian (ABNT) Keyboard
+	ABNT_C1 = 115,// Brazilian (ABNT) Keyboard
+	ABNT_C2 = 116,// Brazilian (ABNT) Keyboard
 	AudioVolumeMute = 117,
 	AudioVolumeUp = 118,
 	AudioVolumeDown = 119,
@@ -638,19 +639,19 @@ export enum KeyCode {
 	 * Placed last to cover the length of the enum.
 	 * Please do not depend on this value!
 	 */
-	MAX_VALUE = 132,
+	MAX_VALUE = 132
 }
 
 export enum MarkerSeverity {
 	Hint = 1,
 	Info = 2,
 	Warning = 4,
-	Error = 8,
+	Error = 8
 }
 
 export enum MarkerTag {
 	Unnecessary = 1,
-	Deprecated = 2,
+	Deprecated = 2
 }
 
 /**
@@ -658,7 +659,7 @@ export enum MarkerTag {
  */
 export enum MinimapPosition {
 	Inline = 1,
-	Gutter = 2,
+	Gutter = 2
 }
 
 /**
@@ -666,7 +667,7 @@ export enum MinimapPosition {
  */
 export enum MinimapSectionHeaderStyle {
 	Normal = 1,
-	Underlined = 2,
+	Underlined = 2
 }
 
 /**
@@ -728,16 +729,16 @@ export enum MouseTargetType {
 	/**
 	 * Mouse is outside of the editor.
 	 */
-	OUTSIDE_EDITOR = 13,
+	OUTSIDE_EDITOR = 13
 }
 
 export enum NewSymbolNameTag {
-	AIGenerated = 1,
+	AIGenerated = 1
 }
 
 export enum NewSymbolNameTriggerKind {
 	Invoke = 0,
-	Automatic = 1,
+	Automatic = 1
 }
 
 /**
@@ -755,7 +756,7 @@ export enum OverlayWidgetPositionPreference {
 	/**
 	 * Position the overlay widget in the top center
 	 */
-	TOP_CENTER = 2,
+	TOP_CENTER = 2
 }
 
 /**
@@ -765,7 +766,7 @@ export enum OverviewRulerLane {
 	Left = 1,
 	Center = 2,
 	Right = 4,
-	Full = 7,
+	Full = 7
 }
 
 /**
@@ -774,30 +775,30 @@ export enum OverviewRulerLane {
 export enum PartialAcceptTriggerKind {
 	Word = 0,
 	Line = 1,
-	Suggest = 2,
+	Suggest = 2
 }
 
 export enum PositionAffinity {
 	/**
 	 * Prefers the left most position.
-	 */
+	*/
 	Left = 0,
 	/**
 	 * Prefers the right most position.
-	 */
+	*/
 	Right = 1,
 	/**
 	 * No preference.
-	 */
+	*/
 	None = 2,
 	/**
 	 * If the given position is on injected text, prefers the position left of it.
-	 */
+	*/
 	LeftOfInjectedText = 3,
 	/**
 	 * If the given position is on injected text, prefers the position right of it.
-	 */
-	RightOfInjectedText = 4,
+	*/
+	RightOfInjectedText = 4
 }
 
 export enum RenderLineNumbersType {
@@ -805,24 +806,24 @@ export enum RenderLineNumbersType {
 	On = 1,
 	Relative = 2,
 	Interval = 3,
-	Custom = 4,
+	Custom = 4
 }
 
 export enum RenderMinimap {
 	None = 0,
 	Text = 1,
-	Blocks = 2,
+	Blocks = 2
 }
 
 export enum ScrollType {
 	Smooth = 0,
-	Immediate = 1,
+	Immediate = 1
 }
 
 export enum ScrollbarVisibility {
 	Auto = 1,
 	Hidden = 2,
-	Visible = 3,
+	Visible = 3
 }
 
 /**
@@ -836,19 +837,19 @@ export enum SelectionDirection {
 	/**
 	 * The selection starts below where it ends.
 	 */
-	RTL = 1,
+	RTL = 1
 }
 
 export enum ShowLightbulbIconMode {
-	Off = "off",
-	OnCode = "onCode",
-	On = "on",
+	Off = 'off',
+	OnCode = 'onCode',
+	On = 'on'
 }
 
 export enum SignatureHelpTriggerKind {
 	Invoke = 1,
 	TriggerCharacter = 2,
-	ContentChange = 3,
+	ContentChange = 3
 }
 
 /**
@@ -880,11 +881,11 @@ export enum SymbolKind {
 	Struct = 22,
 	Event = 23,
 	Operator = 24,
-	TypeParameter = 25,
+	TypeParameter = 25
 }
 
 export enum SymbolTag {
-	Deprecated = 1,
+	Deprecated = 1
 }
 
 /**
@@ -914,7 +915,7 @@ export enum TextEditorCursorBlinkingStyle {
 	/**
 	 * No-Blinking
 	 */
-	Solid = 5,
+	Solid = 5
 }
 
 /**
@@ -944,7 +945,7 @@ export enum TextEditorCursorStyle {
 	/**
 	 * As a thin horizontal line (sitting under a character).
 	 */
-	UnderlineThin = 6,
+	UnderlineThin = 6
 }
 
 /**
@@ -955,7 +956,7 @@ export enum TrackedRangeStickiness {
 	AlwaysGrowsWhenTypingAtEdges = 0,
 	NeverGrowsWhenTypingAtEdges = 1,
 	GrowsOnlyWhenTypingBefore = 2,
-	GrowsOnlyWhenTypingAfter = 3,
+	GrowsOnlyWhenTypingAfter = 3
 }
 
 /**
@@ -977,5 +978,5 @@ export enum WrappingIndent {
 	/**
 	 * DeepIndent => wrapped lines get +2 indentation toward the parent.
 	 */
-	DeepIndent = 3,
+	DeepIndent = 3
 }

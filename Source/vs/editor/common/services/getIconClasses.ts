@@ -3,26 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Schemas } from "../../../base/common/network.js";
-import { DataUri } from "../../../base/common/resources.js";
-import { ThemeIcon } from "../../../base/common/themables.js";
-import { URI, URI as uri } from "../../../base/common/uri.js";
-import { FileKind } from "../../../platform/files/common/files.js";
-import { ILanguageService } from "../languages/language.js";
-import { PLAINTEXT_LANGUAGE_ID } from "../languages/modesRegistry.js";
-import { IModelService } from "./model.js";
+import { Schemas } from '../../../base/common/network.js';
+import { DataUri } from '../../../base/common/resources.js';
+import { URI, URI as uri } from '../../../base/common/uri.js';
+import { PLAINTEXT_LANGUAGE_ID } from '../languages/modesRegistry.js';
+import { ILanguageService } from '../languages/language.js';
+import { IModelService } from './model.js';
+import { FileKind } from '../../../platform/files/common/files.js';
+import { ThemeIcon } from '../../../base/common/themables.js';
 
 const fileIconDirectoryRegex = /(?:\/|^)(?:([^\/]+)\/)?([^\/]+)$/;
 
-export function getIconClasses(
-	modelService: IModelService,
-	languageService: ILanguageService,
-	resource: uri | undefined,
-	fileKind?: FileKind,
-	icon?: ThemeIcon | URI,
-): string[] {
+export function getIconClasses(modelService: IModelService, languageService: ILanguageService, resource: uri | undefined, fileKind?: FileKind, icon?: ThemeIcon | URI): string[] {
 	if (ThemeIcon.isThemeIcon(icon)) {
-		return [`codicon-${icon.id}`, "predefined-file-icon"];
+		return [`codicon-${icon.id}`, 'predefined-file-icon'];
 	}
 
 	if (URI.isUri(icon)) {
@@ -30,13 +24,9 @@ export function getIconClasses(
 	}
 
 	// we always set these base classes even if we do not have a path
-	const classes =
-		fileKind === FileKind.ROOT_FOLDER
-			? ["rootfolder-icon"]
-			: fileKind === FileKind.FOLDER
-				? ["folder-icon"]
-				: ["file-icon"];
+	const classes = fileKind === FileKind.ROOT_FOLDER ? ['rootfolder-icon'] : fileKind === FileKind.FOLDER ? ['folder-icon'] : ['file-icon'];
 	if (resource) {
+
 		// Get the path and name of the resource. For data-URIs, we need to parse specially
 		let name: string | undefined;
 		if (resource.scheme === Schemas.data) {
@@ -47,10 +37,9 @@ export function getIconClasses(
 			if (match) {
 				name = cssEscape(match[2].toLowerCase());
 				if (match[1]) {
-					classes.push(
-						`${cssEscape(match[1].toLowerCase())}-name-dir-icon`,
-					); // parent directory
+					classes.push(`${cssEscape(match[1].toLowerCase())}-name-dir-icon`); // parent directory
 				}
+
 			} else {
 				name = cssEscape(resource.authority.toLowerCase());
 			}
@@ -68,6 +57,7 @@ export function getIconClasses(
 
 		// Files
 		else {
+
 			// Name & Extension(s)
 			if (name) {
 				classes.push(`${name}-name-file-icon`);
@@ -76,22 +66,16 @@ export function getIconClasses(
 				// (most file systems do not allow files > 255 length) with lots of `.` characters
 				// https://github.com/microsoft/vscode/issues/116199
 				if (name.length <= 255) {
-					const dotSegments = name.split(".");
+					const dotSegments = name.split('.');
 					for (let i = 1; i < dotSegments.length; i++) {
-						classes.push(
-							`${dotSegments.slice(i).join(".")}-ext-file-icon`,
-						); // add each combination of all found extensions if more than one
+						classes.push(`${dotSegments.slice(i).join('.')}-ext-file-icon`); // add each combination of all found extensions if more than one
 					}
 				}
 				classes.push(`ext-file-icon`); // extra segment to increase file-ext score
 			}
 
 			// Detected Mode
-			const detectedLanguageId = detectLanguageId(
-				modelService,
-				languageService,
-				resource,
-			);
+			const detectedLanguageId = detectLanguageId(modelService, languageService, resource);
 			if (detectedLanguageId) {
 				classes.push(`${cssEscape(detectedLanguageId)}-lang-file-icon`);
 			}
@@ -101,14 +85,10 @@ export function getIconClasses(
 }
 
 export function getIconClassesForLanguageId(languageId: string): string[] {
-	return ["file-icon", `${cssEscape(languageId)}-lang-file-icon`];
+	return ['file-icon', `${cssEscape(languageId)}-lang-file-icon`];
 }
 
-function detectLanguageId(
-	modelService: IModelService,
-	languageService: ILanguageService,
-	resource: uri,
-): string | null {
+function detectLanguageId(modelService: IModelService, languageService: ILanguageService, resource: uri): string | null {
 	if (!resource) {
 		return null; // we need a resource at least
 	}
@@ -143,5 +123,5 @@ function detectLanguageId(
 }
 
 function cssEscape(str: string): string {
-	return str.replace(/[\s]/g, "/"); // HTML class names can not contain certain whitespace characters (https://dom.spec.whatwg.org/#interface-domtokenlist), use / instead, which doesn't exist in file names.
+	return str.replace(/[\s]/g, '/'); // HTML class names can not contain certain whitespace characters (https://dom.spec.whatwg.org/#interface-domtokenlist), use / instead, which doesn't exist in file names.
 }

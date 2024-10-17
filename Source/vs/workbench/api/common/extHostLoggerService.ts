@@ -3,27 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { revive } from "../../../base/common/marshalling.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import {
-	AbstractLoggerService,
-	AbstractMessageLogger,
-	ILogger,
-	ILoggerOptions,
-	LogLevel,
-} from "../../../platform/log/common/log.js";
-import {
-	ExtHostLogLevelServiceShape,
-	MainContext,
-	MainThreadLoggerShape,
-} from "./extHost.protocol.js";
-import { IExtHostInitDataService } from "./extHostInitDataService.js";
-import { IExtHostRpcService } from "./extHostRpcService.js";
+import { ILogger, ILoggerOptions, AbstractMessageLogger, LogLevel, AbstractLoggerService } from '../../../platform/log/common/log.js';
+import { MainThreadLoggerShape, MainContext, ExtHostLogLevelServiceShape as ExtHostLogLevelServiceShape } from './extHost.protocol.js';
+import { IExtHostInitDataService } from './extHostInitDataService.js';
+import { IExtHostRpcService } from './extHostRpcService.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { revive } from '../../../base/common/marshalling.js';
 
-export class ExtHostLoggerService
-	extends AbstractLoggerService
-	implements ExtHostLogLevelServiceShape
-{
+export class ExtHostLoggerService extends AbstractLoggerService implements ExtHostLogLevelServiceShape {
+
 	declare readonly _serviceBrand: undefined;
 	protected readonly _proxy: MainThreadLoggerShape;
 
@@ -31,11 +19,7 @@ export class ExtHostLoggerService
 		@IExtHostRpcService rpc: IExtHostRpcService,
 		@IExtHostInitDataService initData: IExtHostInitDataService,
 	) {
-		super(
-			initData.logLevel,
-			initData.logsLocation,
-			initData.loggers.map((logger) => revive(logger)),
-		);
+		super(initData.logLevel, initData.logsLocation, initData.loggers.map(logger => revive(logger)));
 		this._proxy = rpc.getProxy(MainContext.MainThreadLogger);
 	}
 
@@ -52,16 +36,13 @@ export class ExtHostLoggerService
 		this._proxy.$setVisibility(resource, visibility);
 	}
 
-	protected doCreateLogger(
-		resource: URI,
-		logLevel: LogLevel,
-		options?: ILoggerOptions,
-	): ILogger {
+	protected doCreateLogger(resource: URI, logLevel: LogLevel, options?: ILoggerOptions): ILogger {
 		return new Logger(this._proxy, resource, logLevel, options);
 	}
 }
 
 class Logger extends AbstractMessageLogger {
+
 	private isLoggerCreated: boolean = false;
 	private buffer: [LogLevel, string][] = [];
 
@@ -71,12 +52,13 @@ class Logger extends AbstractMessageLogger {
 		logLevel: LogLevel,
 		loggerOptions?: ILoggerOptions,
 	) {
-		super(loggerOptions?.logLevel === "always");
+		super(loggerOptions?.logLevel === 'always');
 		this.setLevel(logLevel);
-		this.proxy.$createLogger(file, loggerOptions).then(() => {
-			this.doLog(this.buffer);
-			this.isLoggerCreated = true;
-		});
+		this.proxy.$createLogger(file, loggerOptions)
+			.then(() => {
+				this.doLog(this.buffer);
+				this.isLoggerCreated = true;
+			});
 	}
 
 	protected log(level: LogLevel, message: string) {

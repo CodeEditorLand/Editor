@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ThemeIcon } from "../../../base/common/themables.js";
-import { URI, UriDto } from "../../../base/common/uri.js";
-import { ICommandMetadata } from "../../commands/common/commands.js";
-import { ContextKeyExpression } from "../../contextkey/common/contextkey.js";
-import { Categories } from "./actionCommonCategories.js";
+import { URI, UriDto } from '../../../base/common/uri.js';
+import { ContextKeyExpression } from '../../contextkey/common/contextkey.js';
+import { ThemeIcon } from '../../../base/common/themables.js';
+import { Categories } from './actionCommonCategories.js';
+import { ICommandMetadata } from '../../commands/common/commands.js';
 
 export interface ILocalizedString {
+
 	/**
 	 * The localized value of the string.
 	 */
@@ -22,15 +23,14 @@ export interface ILocalizedString {
 }
 
 export function isLocalizedString(thing: any): thing is ILocalizedString {
-	return (
-		thing &&
-		typeof thing === "object" &&
-		typeof thing.original === "string" &&
-		typeof thing.value === "string"
-	);
+	return thing
+		&& typeof thing === 'object'
+		&& typeof thing.original === 'string'
+		&& typeof thing.value === 'string';
 }
 
 export interface ICommandActionTitle extends ILocalizedString {
+
 	/**
 	 * The title with a mnemonic designation. && precedes the mnemonic.
 	 */
@@ -40,6 +40,7 @@ export interface ICommandActionTitle extends ILocalizedString {
 export type Icon = { dark?: URI; light?: URI } | ThemeIcon;
 
 export interface ICommandActionToggleInfo {
+
 	/**
 	 * The condition that marks the action as toggled.
 	 */
@@ -60,12 +61,8 @@ export interface ICommandActionToggleInfo {
 	mnemonicTitle?: string;
 }
 
-export function isICommandActionToggleInfo(
-	thing: ContextKeyExpression | ICommandActionToggleInfo | undefined,
-): thing is ICommandActionToggleInfo {
-	return thing
-		? (<ICommandActionToggleInfo>thing).condition !== undefined
-		: false;
+export function isICommandActionToggleInfo(thing: ContextKeyExpression | ICommandActionToggleInfo | undefined): thing is ICommandActionToggleInfo {
+	return thing ? (<ICommandActionToggleInfo>thing).condition !== undefined : false;
 }
 
 export interface ICommandActionSource {

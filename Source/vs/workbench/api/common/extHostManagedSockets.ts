@@ -3,33 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
-
-import { VSBuffer } from "../../../base/common/buffer.js";
-import {
-	Disposable,
-	DisposableStore,
-	toDisposable,
-} from "../../../base/common/lifecycle.js";
-import { createDecorator } from "../../../platform/instantiation/common/instantiation.js";
-import {
-	ExtHostManagedSocketsShape,
-	MainContext,
-	MainThreadManagedSocketsShape,
-} from "./extHost.protocol.js";
-import { IExtHostRpcService } from "./extHostRpcService.js";
+import { ExtHostManagedSocketsShape, MainContext, MainThreadManagedSocketsShape } from './extHost.protocol.js';
+import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
+import * as vscode from 'vscode';
+import { Disposable, DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
+import { IExtHostRpcService } from './extHostRpcService.js';
+import { VSBuffer } from '../../../base/common/buffer.js';
 
 export interface IExtHostManagedSockets extends ExtHostManagedSocketsShape {
-	setFactory(
-		socketFactoryId: number,
-		makeConnection: () => Thenable<vscode.ManagedMessagePassing>,
-	): void;
+	setFactory(socketFactoryId: number, makeConnection: () => Thenable<vscode.ManagedMessagePassing>): void;
 	readonly _serviceBrand: undefined;
 }
 
-export const IExtHostManagedSockets = createDecorator<IExtHostManagedSockets>(
-	"IExtHostManagedSockets",
-);
+export const IExtHostManagedSockets = createDecorator<IExtHostManagedSockets>('IExtHostManagedSockets');
 
 export class ExtHostManagedSockets implements IExtHostManagedSockets {
 	declare readonly _serviceBrand: undefined;
@@ -37,17 +23,15 @@ export class ExtHostManagedSockets implements IExtHostManagedSockets {
 	private readonly _proxy: MainThreadManagedSocketsShape;
 	private _remoteSocketIdCounter = 0;
 	private _factory: ManagedSocketFactory | null = null;
-	private readonly _managedRemoteSockets: Map<number, ManagedSocket> =
-		new Map();
+	private readonly _managedRemoteSockets: Map<number, ManagedSocket> = new Map();
 
-	constructor(@IExtHostRpcService extHostRpc: IExtHostRpcService) {
+	constructor(
+		@IExtHostRpcService extHostRpc: IExtHostRpcService,
+	) {
 		this._proxy = extHostRpc.getProxy(MainContext.MainThreadManagedSockets);
 	}
 
-	setFactory(
-		socketFactoryId: number,
-		makeConnection: () => Thenable<vscode.ManagedMessagePassing>,
-	): void {
+	setFactory(socketFactoryId: number, makeConnection: () => Thenable<vscode.ManagedMessagePassing>): void {
 		// Terminate all previous sockets
 		for (const socket of this._managedRemoteSockets.values()) {
 			// calling dispose() will lead to it removing itself from the map
@@ -58,52 +42,30 @@ export class ExtHostManagedSockets implements IExtHostManagedSockets {
 			this._proxy.$unregisterSocketFactory(this._factory.socketFactoryId);
 		}
 
-		this._factory = new ManagedSocketFactory(
-			socketFactoryId,
-			makeConnection,
-		);
+		this._factory = new ManagedSocketFactory(socketFactoryId, makeConnection);
 		this._proxy.$registerSocketFactory(this._factory.socketFactoryId);
 	}
 
 	async $openRemoteSocket(socketFactoryId: number): Promise<number> {
-		if (
-			!this._factory ||
-			this._factory.socketFactoryId !== socketFactoryId
-		) {
+		if (!this._factory || this._factory.socketFactoryId !== socketFactoryId) {
 			throw new Error(`No socket factory with id ${socketFactoryId}`);
 		}
 
-		const id = ++this._remoteSocketIdCounter;
+		const id = (++this._remoteSocketIdCounter);
 		const socket = await this._factory.makeConnection();
 		const disposable = new DisposableStore();
-		this._managedRemoteSockets.set(
-			id,
-			new ManagedSocket(id, socket, disposable),
-		);
+		this._managedRemoteSockets.set(id, new ManagedSocket(id, socket, disposable));
 
-		disposable.add(
-			toDisposable(() => this._managedRemoteSockets.delete(id)),
-		);
-		disposable.add(
-			socket.onDidEnd(() => {
-				this._proxy.$onDidManagedSocketEnd(id);
-				disposable.dispose();
-			}),
-		);
-		disposable.add(
-			socket.onDidClose((e) => {
-				this._proxy.$onDidManagedSocketClose(
-					id,
-					e?.stack ?? e?.message,
-				);
-				disposable.dispose();
-			}),
-		);
-		disposable.add(
-			socket.onDidReceiveMessage((e) =>
-				this._proxy.$onDidManagedSocketHaveData(id, VSBuffer.wrap(e)),
-			),
-		);
+		disposable.add(toDisposable(() => this._managedRemoteSockets.delete(id)));
+		disposable.add(socket.onDidEnd(() => {
+			this._proxy.$onDidManagedSocketEnd(id);
+			disposable.dispose();
+		}));
+		disposable.add(socket.onDidClose(e => {
+			this._proxy.$onDidManagedSocketClose(id, e?.stack ?? e?.message);
+			disposable.dispose();
+		}));
+		disposable.add(socket.onDidReceiveMessage(e => this._proxy.$onDidManagedSocketHaveData(id, VSBuffer.wrap(e))));
 
 		return id;
 	}
@@ -129,7 +91,7 @@ class ManagedSocketFactory {
 	constructor(
 		public readonly socketFactoryId: number,
 		public readonly makeConnection: () => Thenable<vscode.ManagedMessagePassing>,
-	) {}
+	) { }
 }
 
 class ManagedSocket extends Disposable {

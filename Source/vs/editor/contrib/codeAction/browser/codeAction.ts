@@ -3,71 +3,45 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	coalesce,
-	equals,
-	isNonEmptyArray,
-} from "../../../../base/common/arrays.js";
-import { raceTimeout } from "../../../../base/common/async.js";
-import { CancellationToken } from "../../../../base/common/cancellation.js";
-import {
-	illegalArgument,
-	isCancellationError,
-	onUnexpectedExternalError,
-} from "../../../../base/common/errors.js";
-import { HierarchicalKind } from "../../../../base/common/hierarchicalKind.js";
-import {
-	Disposable,
-	DisposableStore,
-} from "../../../../base/common/lifecycle.js";
-import { URI } from "../../../../base/common/uri.js";
-import * as nls from "../../../../nls.js";
-import {
-	CommandsRegistry,
-	ICommandService,
-} from "../../../../platform/commands/common/commands.js";
-import { ServicesAccessor } from "../../../../platform/instantiation/common/instantiation.js";
-import { INotificationService } from "../../../../platform/notification/common/notification.js";
-import {
-	IProgress,
-	Progress,
-} from "../../../../platform/progress/common/progress.js";
-import { ITelemetryService } from "../../../../platform/telemetry/common/telemetry.js";
-import { ICodeEditor } from "../../../browser/editorBrowser.js";
-import { IBulkEditService } from "../../../browser/services/bulkEditService.js";
-import { Range } from "../../../common/core/range.js";
-import { Selection } from "../../../common/core/selection.js";
-import { LanguageFeatureRegistry } from "../../../common/languageFeatureRegistry.js";
-import * as languages from "../../../common/languages.js";
-import { ITextModel } from "../../../common/model.js";
-import { ILanguageFeaturesService } from "../../../common/services/languageFeatures.js";
-import { IModelService } from "../../../common/services/model.js";
-import { TextModelCancellationTokenSource } from "../../editorState/browser/editorState.js";
-import {
-	CodeActionFilter,
-	CodeActionItem,
-	CodeActionKind,
-	CodeActionSet,
-	CodeActionTrigger,
-	CodeActionTriggerSource,
-	filtersAction,
-	mayIncludeActionsOfKind,
-} from "../common/types.js";
+import { coalesce, equals, isNonEmptyArray } from '../../../../base/common/arrays.js';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { illegalArgument, isCancellationError, onUnexpectedExternalError } from '../../../../base/common/errors.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { URI } from '../../../../base/common/uri.js';
+import { ICodeEditor } from '../../../browser/editorBrowser.js';
+import { IBulkEditService } from '../../../browser/services/bulkEditService.js';
+import { Range } from '../../../common/core/range.js';
+import { Selection } from '../../../common/core/selection.js';
+import { LanguageFeatureRegistry } from '../../../common/languageFeatureRegistry.js';
+import * as languages from '../../../common/languages.js';
+import { ITextModel } from '../../../common/model.js';
+import { ILanguageFeaturesService } from '../../../common/services/languageFeatures.js';
+import { IModelService } from '../../../common/services/model.js';
+import { TextModelCancellationTokenSource } from '../../editorState/browser/editorState.js';
+import * as nls from '../../../../nls.js';
+import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
+import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { IProgress, Progress } from '../../../../platform/progress/common/progress.js';
+import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
+import { CodeActionFilter, CodeActionItem, CodeActionKind, CodeActionSet, CodeActionTrigger, CodeActionTriggerSource, filtersAction, mayIncludeActionsOfKind } from '../common/types.js';
+import { HierarchicalKind } from '../../../../base/common/hierarchicalKind.js';
+import { raceTimeout } from '../../../../base/common/async.js';
 
-export const codeActionCommandId = "editor.action.codeAction";
-export const quickFixCommandId = "editor.action.quickFix";
-export const autoFixCommandId = "editor.action.autoFix";
-export const refactorCommandId = "editor.action.refactor";
-export const refactorPreviewCommandId = "editor.action.refactor.preview";
-export const sourceActionCommandId = "editor.action.sourceAction";
-export const organizeImportsCommandId = "editor.action.organizeImports";
-export const fixAllCommandId = "editor.action.fixAll";
+
+
+export const codeActionCommandId = 'editor.action.codeAction';
+export const quickFixCommandId = 'editor.action.quickFix';
+export const autoFixCommandId = 'editor.action.autoFix';
+export const refactorCommandId = 'editor.action.refactor';
+export const refactorPreviewCommandId = 'editor.action.refactor.preview';
+export const sourceActionCommandId = 'editor.action.sourceAction';
+export const organizeImportsCommandId = 'editor.action.organizeImports';
+export const fixAllCommandId = 'editor.action.fixAll';
 
 class ManagedCodeActionSet extends Disposable implements CodeActionSet {
-	private static codeActionsPreferredComparator(
-		a: languages.CodeAction,
-		b: languages.CodeAction,
-	): number {
+
+	private static codeActionsPreferredComparator(a: languages.CodeAction, b: languages.CodeAction): number {
 		if (a.isPreferred && !b.isPreferred) {
 			return -1;
 		} else if (!a.isPreferred && b.isPreferred) {
@@ -77,19 +51,14 @@ class ManagedCodeActionSet extends Disposable implements CodeActionSet {
 		}
 	}
 
-	private static codeActionsComparator(
-		{ action: a }: CodeActionItem,
-		{ action: b }: CodeActionItem,
-	): number {
+	private static codeActionsComparator({ action: a }: CodeActionItem, { action: b }: CodeActionItem): number {
 		if (a.isAI && !b.isAI) {
 			return 1;
 		} else if (!a.isAI && b.isAI) {
 			return -1;
 		}
 		if (isNonEmptyArray(a.diagnostics)) {
-			return isNonEmptyArray(b.diagnostics)
-				? ManagedCodeActionSet.codeActionsPreferredComparator(a, b)
-				: -1;
+			return isNonEmptyArray(b.diagnostics) ? ManagedCodeActionSet.codeActionsPreferredComparator(a, b) : -1;
 		} else if (isNonEmptyArray(b.diagnostics)) {
 			return 1;
 		} else {
@@ -109,23 +78,12 @@ class ManagedCodeActionSet extends Disposable implements CodeActionSet {
 
 		this._register(disposables);
 
-		this.allActions = [...actions].sort(
-			ManagedCodeActionSet.codeActionsComparator,
-		);
-		this.validActions = this.allActions.filter(
-			({ action }) => !action.disabled,
-		);
+		this.allActions = [...actions].sort(ManagedCodeActionSet.codeActionsComparator);
+		this.validActions = this.allActions.filter(({ action }) => !action.disabled);
 	}
 
 	public get hasAutoFix() {
-		return this.validActions.some(
-			({ action: fix }) =>
-				!!fix.kind &&
-				CodeActionKind.QuickFix.contains(
-					new HierarchicalKind(fix.kind),
-				) &&
-				!!fix.isPreferred,
-		);
+		return this.validActions.some(({ action: fix }) => !!fix.kind && CodeActionKind.QuickFix.contains(new HierarchicalKind(fix.kind)) && !!fix.isPreferred);
 	}
 
 	public get hasAIFix() {
@@ -137,10 +95,7 @@ class ManagedCodeActionSet extends Disposable implements CodeActionSet {
 	}
 }
 
-const emptyCodeActionsResponse = {
-	actions: [] as CodeActionItem[],
-	documentation: undefined,
-};
+const emptyCodeActionsResponse = { actions: [] as CodeActionItem[], documentation: undefined };
 
 export async function getCodeActions(
 	registry: LanguageFeatureRegistry<languages.CodeActionProvider>,
@@ -163,31 +118,15 @@ export async function getCodeActions(
 
 	const cts = new TextModelCancellationTokenSource(model, token);
 	// if the trigger is auto (autosave, lightbulb, etc), we should exclude notebook codeActions
-	const excludeNotebookCodeActions =
-		trigger.type === languages.CodeActionTriggerType.Auto;
-	const providers = getCodeActionProviders(
-		registry,
-		model,
-		excludeNotebookCodeActions ? notebookFilter : filter,
-	);
+	const excludeNotebookCodeActions = (trigger.type === languages.CodeActionTriggerType.Auto);
+	const providers = getCodeActionProviders(registry, model, (excludeNotebookCodeActions) ? notebookFilter : filter);
 
 	const disposables = new DisposableStore();
-	const promises = providers.map(async (provider) => {
+	const promises = providers.map(async provider => {
 		try {
-			const codeActionsPromise = Promise.resolve(
-				provider.provideCodeActions(
-					model,
-					rangeOrSelection,
-					codeActionContext,
-					cts.token,
-				),
-			);
+			const codeActionsPromise = Promise.resolve(provider.provideCodeActions(model, rangeOrSelection, codeActionContext, cts.token));
 
-			const providedCodeActions = await raceTimeout(
-				codeActionsPromise,
-				1250,
-				() => progress.report(provider),
-			);
+			const providedCodeActions = await raceTimeout(codeActionsPromise, 1250, () => progress.report(provider));
 
 			if (providedCodeActions) {
 				disposables.add(providedCodeActions);
@@ -197,19 +136,11 @@ export async function getCodeActions(
 				return emptyCodeActionsResponse;
 			}
 
-			const filteredActions = (providedCodeActions?.actions || []).filter(
-				(action) => action && filtersAction(filter, action),
-			);
-			const documentation = getDocumentationFromProvider(
-				provider,
-				filteredActions,
-				filter.include,
-			);
+			const filteredActions = (providedCodeActions?.actions || []).filter(action => action && filtersAction(filter, action));
+			const documentation = getDocumentationFromProvider(provider, filteredActions, filter.include);
 			return {
-				actions: filteredActions.map(
-					(action) => new CodeActionItem(action, provider),
-				),
-				documentation,
+				actions: filteredActions.map(action => new CodeActionItem(action, provider)),
+				documentation
 			};
 		} catch (err) {
 			if (isCancellationError(err)) {
@@ -229,21 +160,12 @@ export async function getCodeActions(
 
 	try {
 		const actions = await Promise.all(promises);
-		const allActions = actions.map((x) => x.actions).flat();
+		const allActions = actions.map(x => x.actions).flat();
 		const allDocumentation = [
-			...coalesce(actions.map((x) => x.documentation)),
-			...getAdditionalDocumentationForShowingActions(
-				registry,
-				model,
-				trigger,
-				allActions,
-			),
+			...coalesce(actions.map(x => x.documentation)),
+			...getAdditionalDocumentationForShowingActions(registry, model, trigger, allActions)
 		];
-		return new ManagedCodeActionSet(
-			allActions,
-			allDocumentation,
-			disposables,
-		);
+		return new ManagedCodeActionSet(allActions, allDocumentation, disposables);
 	} finally {
 		listener.dispose();
 		cts.dispose();
@@ -253,22 +175,17 @@ export async function getCodeActions(
 function getCodeActionProviders(
 	registry: LanguageFeatureRegistry<languages.CodeActionProvider>,
 	model: ITextModel,
-	filter: CodeActionFilter,
+	filter: CodeActionFilter
 ) {
-	return (
-		registry
-			.all(model)
-			// Don't include providers that we know will not return code actions of interest
-			.filter((provider) => {
-				if (!provider.providedCodeActionKinds) {
-					// We don't know what type of actions this provider will return.
-					return true;
-				}
-				return provider.providedCodeActionKinds.some((kind) =>
-					mayIncludeActionsOfKind(filter, new HierarchicalKind(kind)),
-				);
-			})
-	);
+	return registry.all(model)
+		// Don't include providers that we know will not return code actions of interest
+		.filter(provider => {
+			if (!provider.providedCodeActionKinds) {
+				// We don't know what type of actions this provider will return.
+				return true;
+			}
+			return provider.providedCodeActionKinds.some(kind => mayIncludeActionsOfKind(filter, new HierarchicalKind(kind)));
+		});
 }
 
 function* getAdditionalDocumentationForShowingActions(
@@ -280,13 +197,7 @@ function* getAdditionalDocumentationForShowingActions(
 	if (model && actionsToShow.length) {
 		for (const provider of registry.all(model)) {
 			if (provider._getAdditionalMenuItems) {
-				yield* provider._getAdditionalMenuItems?.(
-					{
-						trigger: trigger.type,
-						only: trigger.filter?.include?.value,
-					},
-					actionsToShow.map((item) => item.action),
-				);
+				yield* provider._getAdditionalMenuItems?.({ trigger: trigger.type, only: trigger.filter?.include?.value }, actionsToShow.map(item => item.action));
 			}
 		}
 	}
@@ -295,24 +206,16 @@ function* getAdditionalDocumentationForShowingActions(
 function getDocumentationFromProvider(
 	provider: languages.CodeActionProvider,
 	providedCodeActions: readonly languages.CodeAction[],
-	only?: HierarchicalKind,
+	only?: HierarchicalKind
 ): languages.Command | undefined {
 	if (!provider.documentation) {
 		return undefined;
 	}
 
-	const documentation = provider.documentation.map((entry) => ({
-		kind: new HierarchicalKind(entry.kind),
-		command: entry.command,
-	}));
+	const documentation = provider.documentation.map(entry => ({ kind: new HierarchicalKind(entry.kind), command: entry.command }));
 
 	if (only) {
-		let currentBest:
-			| {
-					readonly kind: HierarchicalKind;
-					readonly command: languages.Command;
-			  }
-			| undefined;
+		let currentBest: { readonly kind: HierarchicalKind; readonly command: languages.Command } | undefined;
 		for (const entry of documentation) {
 			if (entry.kind.contains(only)) {
 				if (!currentBest) {
@@ -346,11 +249,11 @@ function getDocumentationFromProvider(
 }
 
 export enum ApplyCodeActionReason {
-	OnSave = "onSave",
-	FromProblemsView = "fromProblemsView",
-	FromCodeActions = "fromCodeActions",
-	FromAILightbulb = "fromAILightbulb", // direct invocation when clicking on the AI lightbulb
-	FromProblemsHover = "fromProblemsHover",
+	OnSave = 'onSave',
+	FromProblemsView = 'fromProblemsView',
+	FromCodeActions = 'fromCodeActions',
+	FromAILightbulb = 'fromAILightbulb', // direct invocation when clicking on the AI lightbulb
+	FromProblemsHover = 'fromProblemsHover'
 }
 
 export async function applyCodeAction(
@@ -372,34 +275,15 @@ export async function applyCodeAction(
 		reason: ApplyCodeActionReason;
 	};
 	type ApplyCodeEventClassification = {
-		codeActionTitle: {
-			classification: "SystemMetaData";
-			purpose: "FeatureInsight";
-			comment: "The display label of the applied code action";
-		};
-		codeActionKind: {
-			classification: "SystemMetaData";
-			purpose: "FeatureInsight";
-			comment: "The kind (refactor, quickfix) of the applied code action";
-		};
-		codeActionIsPreferred: {
-			classification: "SystemMetaData";
-			purpose: "FeatureInsight";
-			comment: "Was the code action marked as being a preferred action?";
-		};
-		reason: {
-			classification: "SystemMetaData";
-			purpose: "FeatureInsight";
-			comment: "The kind of action used to trigger apply code action.";
-		};
-		owner: "justschen";
-		comment: "Event used to gain insights into which code actions are being triggered";
+		codeActionTitle: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The display label of the applied code action' };
+		codeActionKind: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The kind (refactor, quickfix) of the applied code action' };
+		codeActionIsPreferred: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'Was the code action marked as being a preferred action?' };
+		reason: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The kind of action used to trigger apply code action.' };
+		owner: 'justschen';
+		comment: 'Event used to gain insights into which code actions are being triggered';
 	};
 
-	telemetryService.publicLog2<
-		ApplyCodeActionEvent,
-		ApplyCodeEventClassification
-	>("codeAction.applyCodeAction", {
+	telemetryService.publicLog2<ApplyCodeActionEvent, ApplyCodeEventClassification>('codeAction.applyCodeAction', {
 		codeActionTitle: item.action.title,
 		codeActionKind: item.action.kind,
 		codeActionIsPreferred: !!item.action.isPreferred,
@@ -416,9 +300,8 @@ export async function applyCodeAction(
 			editor: options?.editor,
 			label: item.action.title,
 			quotableLabel: item.action.title,
-			code: "undoredo.codeAction",
-			respectAutoSaveConfig:
-				codeActionReason !== ApplyCodeActionReason.OnSave,
+			code: 'undoredo.codeAction',
+			respectAutoSaveConfig: codeActionReason !== ApplyCodeActionReason.OnSave,
 			showPreview: options?.preview,
 		});
 
@@ -429,96 +312,67 @@ export async function applyCodeAction(
 
 	if (item.action.command) {
 		try {
-			await commandService.executeCommand(
-				item.action.command.id,
-				...(item.action.command.arguments || []),
-			);
+			await commandService.executeCommand(item.action.command.id, ...(item.action.command.arguments || []));
 		} catch (err) {
 			const message = asMessage(err);
 			notificationService.error(
-				typeof message === "string"
+				typeof message === 'string'
 					? message
-					: nls.localize(
-							"applyCodeActionFailed",
-							"An unknown error occurred while applying the code action",
-						),
-			);
+					: nls.localize('applyCodeActionFailed', "An unknown error occurred while applying the code action"));
 		}
 	}
 }
 
 function asMessage(err: any): string | undefined {
-	if (typeof err === "string") {
+	if (typeof err === 'string') {
 		return err;
-	} else if (err instanceof Error && typeof err.message === "string") {
+	} else if (err instanceof Error && typeof err.message === 'string') {
 		return err.message;
 	} else {
 		return undefined;
 	}
 }
 
-CommandsRegistry.registerCommand(
-	"_executeCodeActionProvider",
-	async function (
-		accessor,
-		resource: URI,
-		rangeOrSelection: Range | Selection,
-		kind?: string,
-		itemResolveCount?: number,
-	): Promise<ReadonlyArray<languages.CodeAction>> {
-		if (!(resource instanceof URI)) {
-			throw illegalArgument();
-		}
+CommandsRegistry.registerCommand('_executeCodeActionProvider', async function (accessor, resource: URI, rangeOrSelection: Range | Selection, kind?: string, itemResolveCount?: number): Promise<ReadonlyArray<languages.CodeAction>> {
+	if (!(resource instanceof URI)) {
+		throw illegalArgument();
+	}
 
-		const { codeActionProvider } = accessor.get(ILanguageFeaturesService);
-		const model = accessor.get(IModelService).getModel(resource);
-		if (!model) {
-			throw illegalArgument();
-		}
+	const { codeActionProvider } = accessor.get(ILanguageFeaturesService);
+	const model = accessor.get(IModelService).getModel(resource);
+	if (!model) {
+		throw illegalArgument();
+	}
 
-		const validatedRangeOrSelection = Selection.isISelection(
-			rangeOrSelection,
-		)
-			? Selection.liftSelection(rangeOrSelection)
-			: Range.isIRange(rangeOrSelection)
-				? model.validateRange(rangeOrSelection)
-				: undefined;
+	const validatedRangeOrSelection = Selection.isISelection(rangeOrSelection)
+		? Selection.liftSelection(rangeOrSelection)
+		: Range.isIRange(rangeOrSelection)
+			? model.validateRange(rangeOrSelection)
+			: undefined;
 
-		if (!validatedRangeOrSelection) {
-			throw illegalArgument();
-		}
+	if (!validatedRangeOrSelection) {
+		throw illegalArgument();
+	}
 
-		const include =
-			typeof kind === "string" ? new HierarchicalKind(kind) : undefined;
-		const codeActionSet = await getCodeActions(
-			codeActionProvider,
-			model,
-			validatedRangeOrSelection,
-			{
-				type: languages.CodeActionTriggerType.Invoke,
-				triggerAction: CodeActionTriggerSource.Default,
-				filter: { includeSourceActions: true, include },
-			},
-			Progress.None,
-			CancellationToken.None,
-		);
+	const include = typeof kind === 'string' ? new HierarchicalKind(kind) : undefined;
+	const codeActionSet = await getCodeActions(
+		codeActionProvider,
+		model,
+		validatedRangeOrSelection,
+		{ type: languages.CodeActionTriggerType.Invoke, triggerAction: CodeActionTriggerSource.Default, filter: { includeSourceActions: true, include } },
+		Progress.None,
+		CancellationToken.None);
 
-		const resolving: Promise<any>[] = [];
-		const resolveCount = Math.min(
-			codeActionSet.validActions.length,
-			typeof itemResolveCount === "number" ? itemResolveCount : 0,
-		);
-		for (let i = 0; i < resolveCount; i++) {
-			resolving.push(
-				codeActionSet.validActions[i].resolve(CancellationToken.None),
-			);
-		}
+	const resolving: Promise<any>[] = [];
+	const resolveCount = Math.min(codeActionSet.validActions.length, typeof itemResolveCount === 'number' ? itemResolveCount : 0);
+	for (let i = 0; i < resolveCount; i++) {
+		resolving.push(codeActionSet.validActions[i].resolve(CancellationToken.None));
+	}
 
-		try {
-			await Promise.all(resolving);
-			return codeActionSet.validActions.map((item) => item.action);
-		} finally {
-			setTimeout(() => codeActionSet.dispose(), 100);
-		}
-	},
-);
+	try {
+		await Promise.all(resolving);
+		return codeActionSet.validActions.map(item => item.action);
+	} finally {
+		setTimeout(() => codeActionSet.dispose(), 100);
+	}
+});

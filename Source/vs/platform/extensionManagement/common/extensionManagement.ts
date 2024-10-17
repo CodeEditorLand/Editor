@@ -3,37 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { IStringDictionary } from "../../../base/common/collections.js";
-import { Event } from "../../../base/common/event.js";
-import { IPager } from "../../../base/common/paging.js";
-import { Platform } from "../../../base/common/platform.js";
-import { URI } from "../../../base/common/uri.js";
-import { localize2 } from "../../../nls.js";
-import {
-	ExtensionType,
-	IExtension,
-	IExtensionManifest,
-	TargetPlatform,
-} from "../../extensions/common/extensions.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { IStringDictionary } from '../../../base/common/collections.js';
+import { Event } from '../../../base/common/event.js';
+import { IPager } from '../../../base/common/paging.js';
+import { Platform } from '../../../base/common/platform.js';
+import { URI } from '../../../base/common/uri.js';
+import { localize2 } from '../../../nls.js';
+import { ExtensionType, IExtension, IExtensionManifest, TargetPlatform } from '../../extensions/common/extensions.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
 
-export const EXTENSION_IDENTIFIER_PATTERN =
-	"^([a-z0-9A-Z][a-z0-9-A-Z]*)\\.([a-z0-9A-Z][a-z0-9-A-Z]*)$";
-export const EXTENSION_IDENTIFIER_REGEX = new RegExp(
-	EXTENSION_IDENTIFIER_PATTERN,
-);
-export const WEB_EXTENSION_TAG = "__web_extension";
-export const EXTENSION_INSTALL_SKIP_WALKTHROUGH_CONTEXT = "skipWalkthrough";
-export const EXTENSION_INSTALL_SOURCE_CONTEXT = "extensionInstallSource";
-export const EXTENSION_INSTALL_DEP_PACK_CONTEXT =
-	"dependecyOrPackExtensionInstall";
-export const EXTENSION_INSTALL_CLIENT_TARGET_PLATFORM_CONTEXT =
-	"clientTargetPlatform";
+export const EXTENSION_IDENTIFIER_PATTERN = '^([a-z0-9A-Z][a-z0-9-A-Z]*)\\.([a-z0-9A-Z][a-z0-9-A-Z]*)$';
+export const EXTENSION_IDENTIFIER_REGEX = new RegExp(EXTENSION_IDENTIFIER_PATTERN);
+export const WEB_EXTENSION_TAG = '__web_extension';
+export const EXTENSION_INSTALL_SKIP_WALKTHROUGH_CONTEXT = 'skipWalkthrough';
+export const EXTENSION_INSTALL_SOURCE_CONTEXT = 'extensionInstallSource';
+export const EXTENSION_INSTALL_DEP_PACK_CONTEXT = 'dependecyOrPackExtensionInstall';
+export const EXTENSION_INSTALL_CLIENT_TARGET_PLATFORM_CONTEXT = 'clientTargetPlatform';
 
 export const enum ExtensionInstallSource {
-	COMMAND = "command",
-	SETTINGS_SYNC = "settingsSync",
+	COMMAND = 'command',
+	SETTINGS_SYNC = 'settingsSync',
 }
 
 export interface IProductVersion {
@@ -43,146 +33,102 @@ export interface IProductVersion {
 
 export function TargetPlatformToString(targetPlatform: TargetPlatform) {
 	switch (targetPlatform) {
-		case TargetPlatform.WIN32_X64:
-			return "Windows 64 bit";
-		case TargetPlatform.WIN32_ARM64:
-			return "Windows ARM";
+		case TargetPlatform.WIN32_X64: return 'Windows 64 bit';
+		case TargetPlatform.WIN32_ARM64: return 'Windows ARM';
 
-		case TargetPlatform.LINUX_X64:
-			return "Linux 64 bit";
-		case TargetPlatform.LINUX_ARM64:
-			return "Linux ARM 64";
-		case TargetPlatform.LINUX_ARMHF:
-			return "Linux ARM";
+		case TargetPlatform.LINUX_X64: return 'Linux 64 bit';
+		case TargetPlatform.LINUX_ARM64: return 'Linux ARM 64';
+		case TargetPlatform.LINUX_ARMHF: return 'Linux ARM';
 
-		case TargetPlatform.ALPINE_X64:
-			return "Alpine Linux 64 bit";
-		case TargetPlatform.ALPINE_ARM64:
-			return "Alpine ARM 64";
+		case TargetPlatform.ALPINE_X64: return 'Alpine Linux 64 bit';
+		case TargetPlatform.ALPINE_ARM64: return 'Alpine ARM 64';
 
-		case TargetPlatform.DARWIN_X64:
-			return "Mac";
-		case TargetPlatform.DARWIN_ARM64:
-			return "Mac Silicon";
+		case TargetPlatform.DARWIN_X64: return 'Mac';
+		case TargetPlatform.DARWIN_ARM64: return 'Mac Silicon';
 
-		case TargetPlatform.WEB:
-			return "Web";
+		case TargetPlatform.WEB: return 'Web';
 
-		case TargetPlatform.UNIVERSAL:
-			return TargetPlatform.UNIVERSAL;
-		case TargetPlatform.UNKNOWN:
-			return TargetPlatform.UNKNOWN;
-		case TargetPlatform.UNDEFINED:
-			return TargetPlatform.UNDEFINED;
+		case TargetPlatform.UNIVERSAL: return TargetPlatform.UNIVERSAL;
+		case TargetPlatform.UNKNOWN: return TargetPlatform.UNKNOWN;
+		case TargetPlatform.UNDEFINED: return TargetPlatform.UNDEFINED;
 	}
 }
 
 export function toTargetPlatform(targetPlatform: string): TargetPlatform {
 	switch (targetPlatform) {
-		case TargetPlatform.WIN32_X64:
-			return TargetPlatform.WIN32_X64;
-		case TargetPlatform.WIN32_ARM64:
-			return TargetPlatform.WIN32_ARM64;
+		case TargetPlatform.WIN32_X64: return TargetPlatform.WIN32_X64;
+		case TargetPlatform.WIN32_ARM64: return TargetPlatform.WIN32_ARM64;
 
-		case TargetPlatform.LINUX_X64:
-			return TargetPlatform.LINUX_X64;
-		case TargetPlatform.LINUX_ARM64:
-			return TargetPlatform.LINUX_ARM64;
-		case TargetPlatform.LINUX_ARMHF:
-			return TargetPlatform.LINUX_ARMHF;
+		case TargetPlatform.LINUX_X64: return TargetPlatform.LINUX_X64;
+		case TargetPlatform.LINUX_ARM64: return TargetPlatform.LINUX_ARM64;
+		case TargetPlatform.LINUX_ARMHF: return TargetPlatform.LINUX_ARMHF;
 
-		case TargetPlatform.ALPINE_X64:
-			return TargetPlatform.ALPINE_X64;
-		case TargetPlatform.ALPINE_ARM64:
-			return TargetPlatform.ALPINE_ARM64;
+		case TargetPlatform.ALPINE_X64: return TargetPlatform.ALPINE_X64;
+		case TargetPlatform.ALPINE_ARM64: return TargetPlatform.ALPINE_ARM64;
 
-		case TargetPlatform.DARWIN_X64:
-			return TargetPlatform.DARWIN_X64;
-		case TargetPlatform.DARWIN_ARM64:
-			return TargetPlatform.DARWIN_ARM64;
+		case TargetPlatform.DARWIN_X64: return TargetPlatform.DARWIN_X64;
+		case TargetPlatform.DARWIN_ARM64: return TargetPlatform.DARWIN_ARM64;
 
-		case TargetPlatform.WEB:
-			return TargetPlatform.WEB;
+		case TargetPlatform.WEB: return TargetPlatform.WEB;
 
-		case TargetPlatform.UNIVERSAL:
-			return TargetPlatform.UNIVERSAL;
-		default:
-			return TargetPlatform.UNKNOWN;
+		case TargetPlatform.UNIVERSAL: return TargetPlatform.UNIVERSAL;
+		default: return TargetPlatform.UNKNOWN;
 	}
 }
 
-export function getTargetPlatform(
-	platform: Platform | "alpine",
-	arch: string | undefined,
-): TargetPlatform {
+export function getTargetPlatform(platform: Platform | 'alpine', arch: string | undefined): TargetPlatform {
 	switch (platform) {
 		case Platform.Windows:
-			if (arch === "x64") {
+			if (arch === 'x64') {
 				return TargetPlatform.WIN32_X64;
 			}
-			if (arch === "arm64") {
+			if (arch === 'arm64') {
 				return TargetPlatform.WIN32_ARM64;
 			}
 			return TargetPlatform.UNKNOWN;
 
 		case Platform.Linux:
-			if (arch === "x64") {
+			if (arch === 'x64') {
 				return TargetPlatform.LINUX_X64;
 			}
-			if (arch === "arm64") {
+			if (arch === 'arm64') {
 				return TargetPlatform.LINUX_ARM64;
 			}
-			if (arch === "arm") {
+			if (arch === 'arm') {
 				return TargetPlatform.LINUX_ARMHF;
 			}
 			return TargetPlatform.UNKNOWN;
 
-		case "alpine":
-			if (arch === "x64") {
+		case 'alpine':
+			if (arch === 'x64') {
 				return TargetPlatform.ALPINE_X64;
 			}
-			if (arch === "arm64") {
+			if (arch === 'arm64') {
 				return TargetPlatform.ALPINE_ARM64;
 			}
 			return TargetPlatform.UNKNOWN;
 
 		case Platform.Mac:
-			if (arch === "x64") {
+			if (arch === 'x64') {
 				return TargetPlatform.DARWIN_X64;
 			}
-			if (arch === "arm64") {
+			if (arch === 'arm64') {
 				return TargetPlatform.DARWIN_ARM64;
 			}
 			return TargetPlatform.UNKNOWN;
 
-		case Platform.Web:
-			return TargetPlatform.WEB;
+		case Platform.Web: return TargetPlatform.WEB;
 	}
 }
 
-export function isNotWebExtensionInWebTargetPlatform(
-	allTargetPlatforms: TargetPlatform[],
-	productTargetPlatform: TargetPlatform,
-): boolean {
+export function isNotWebExtensionInWebTargetPlatform(allTargetPlatforms: TargetPlatform[], productTargetPlatform: TargetPlatform): boolean {
 	// Not a web extension in web target platform
-	return (
-		productTargetPlatform === TargetPlatform.WEB &&
-		!allTargetPlatforms.includes(TargetPlatform.WEB)
-	);
+	return productTargetPlatform === TargetPlatform.WEB && !allTargetPlatforms.includes(TargetPlatform.WEB);
 }
 
-export function isTargetPlatformCompatible(
-	extensionTargetPlatform: TargetPlatform,
-	allTargetPlatforms: TargetPlatform[],
-	productTargetPlatform: TargetPlatform,
-): boolean {
+export function isTargetPlatformCompatible(extensionTargetPlatform: TargetPlatform, allTargetPlatforms: TargetPlatform[], productTargetPlatform: TargetPlatform): boolean {
 	// Not compatible when extension is not a web extension in web target platform
-	if (
-		isNotWebExtensionInWebTargetPlatform(
-			allTargetPlatforms,
-			productTargetPlatform,
-		)
-	) {
+	if (isNotWebExtensionInWebTargetPlatform(allTargetPlatforms, productTargetPlatform)) {
 		return false;
 	}
 
@@ -237,15 +183,11 @@ export interface IGalleryExtensionAssets {
 	coreTranslations: [string, IGalleryExtensionAsset][];
 }
 
-export function isIExtensionIdentifier(
-	thing: any,
-): thing is IExtensionIdentifier {
-	return (
-		thing &&
-		typeof thing === "object" &&
-		typeof thing.id === "string" &&
-		(!thing.uuid || typeof thing.uuid === "string")
-	);
+export function isIExtensionIdentifier(thing: any): thing is IExtensionIdentifier {
+	return thing
+		&& typeof thing === 'object'
+		&& typeof thing.id === 'string'
+		&& (!thing.uuid || typeof thing.uuid === 'string');
 }
 
 export interface IExtensionIdentifier {
@@ -264,7 +206,7 @@ export interface IGalleryExtensionVersion {
 }
 
 export interface IGalleryExtension {
-	type: "gallery";
+	type: 'gallery';
 	name: string;
 	identifier: IGalleryExtensionIdentifier;
 	version: string;
@@ -294,7 +236,7 @@ export interface IGalleryExtension {
 	supportLink?: string;
 }
 
-export type InstallSource = "gallery" | "vsix" | "resource";
+export type InstallSource = 'gallery' | 'vsix' | 'resource';
 
 export interface IGalleryMetadata {
 	id: string;
@@ -304,20 +246,18 @@ export interface IGalleryMetadata {
 	targetPlatform?: TargetPlatform;
 }
 
-export type Metadata = Partial<
-	IGalleryMetadata & {
-		isApplicationScoped: boolean;
-		isMachineScoped: boolean;
-		isBuiltin: boolean;
-		isSystem: boolean;
-		updated: boolean;
-		preRelease: boolean;
-		hasPreReleaseVersion: boolean;
-		installedTimestamp: number;
-		pinned: boolean;
-		source: InstallSource;
-	}
->;
+export type Metadata = Partial<IGalleryMetadata & {
+	isApplicationScoped: boolean;
+	isMachineScoped: boolean;
+	isBuiltin: boolean;
+	isSystem: boolean;
+	updated: boolean;
+	preRelease: boolean;
+	hasPreReleaseVersion: boolean;
+	installedTimestamp: number;
+	pinned: boolean;
+	source: InstallSource;
+}>;
 
 export interface ILocalExtension extends IExtension {
 	isWorkspaceScoped: boolean;
@@ -341,13 +281,13 @@ export const enum SortBy {
 	InstallCount = 4,
 	PublishedDate = 10,
 	AverageRating = 6,
-	WeightedRating = 12,
+	WeightedRating = 12
 }
 
 export const enum SortOrder {
 	Default = 0,
 	Ascending = 1,
-	Descending = 2,
+	Descending = 2
 }
 
 export interface IQueryOptions {
@@ -363,8 +303,8 @@ export interface IQueryOptions {
 }
 
 export const enum StatisticType {
-	Install = "install",
-	Uninstall = "uninstall",
+	Install = 'install',
+	Uninstall = 'uninstall'
 }
 
 export interface IDeprecationInfo {
@@ -416,8 +356,7 @@ export interface IExtensionQueryOptions {
 	source?: string;
 }
 
-export const IExtensionGalleryService =
-	createDecorator<IExtensionGalleryService>("extensionGalleryService");
+export const IExtensionGalleryService = createDecorator<IExtensionGalleryService>('extensionGalleryService');
 
 /**
  * Service to interact with the Visual Studio Code Marketplace to get extensions.
@@ -426,67 +365,19 @@ export const IExtensionGalleryService =
 export interface IExtensionGalleryService {
 	readonly _serviceBrand: undefined;
 	isEnabled(): boolean;
-	query(
-		options: IQueryOptions,
-		token: CancellationToken,
-	): Promise<IPager<IGalleryExtension>>;
-	getExtensions(
-		extensionInfos: ReadonlyArray<IExtensionInfo>,
-		token: CancellationToken,
-	): Promise<IGalleryExtension[]>;
-	getExtensions(
-		extensionInfos: ReadonlyArray<IExtensionInfo>,
-		options: IExtensionQueryOptions,
-		token: CancellationToken,
-	): Promise<IGalleryExtension[]>;
-	isExtensionCompatible(
-		extension: IGalleryExtension,
-		includePreRelease: boolean,
-		targetPlatform: TargetPlatform,
-		productVersion?: IProductVersion,
-	): Promise<boolean>;
-	getCompatibleExtension(
-		extension: IGalleryExtension,
-		includePreRelease: boolean,
-		targetPlatform: TargetPlatform,
-		productVersion?: IProductVersion,
-	): Promise<IGalleryExtension | null>;
-	getAllCompatibleVersions(
-		extensionIdentifier: IExtensionIdentifier,
-		includePreRelease: boolean,
-		targetPlatform: TargetPlatform,
-	): Promise<IGalleryExtensionVersion[]>;
-	download(
-		extension: IGalleryExtension,
-		location: URI,
-		operation: InstallOperation,
-	): Promise<void>;
-	downloadSignatureArchive(
-		extension: IGalleryExtension,
-		location: URI,
-	): Promise<void>;
-	reportStatistic(
-		publisher: string,
-		name: string,
-		version: string,
-		type: StatisticType,
-	): Promise<void>;
-	getReadme(
-		extension: IGalleryExtension,
-		token: CancellationToken,
-	): Promise<string>;
-	getManifest(
-		extension: IGalleryExtension,
-		token: CancellationToken,
-	): Promise<IExtensionManifest | null>;
-	getChangelog(
-		extension: IGalleryExtension,
-		token: CancellationToken,
-	): Promise<string>;
-	getCoreTranslation(
-		extension: IGalleryExtension,
-		languageId: string,
-	): Promise<ITranslation | null>;
+	query(options: IQueryOptions, token: CancellationToken): Promise<IPager<IGalleryExtension>>;
+	getExtensions(extensionInfos: ReadonlyArray<IExtensionInfo>, token: CancellationToken): Promise<IGalleryExtension[]>;
+	getExtensions(extensionInfos: ReadonlyArray<IExtensionInfo>, options: IExtensionQueryOptions, token: CancellationToken): Promise<IGalleryExtension[]>;
+	isExtensionCompatible(extension: IGalleryExtension, includePreRelease: boolean, targetPlatform: TargetPlatform, productVersion?: IProductVersion): Promise<boolean>;
+	getCompatibleExtension(extension: IGalleryExtension, includePreRelease: boolean, targetPlatform: TargetPlatform, productVersion?: IProductVersion): Promise<IGalleryExtension | null>;
+	getAllCompatibleVersions(extensionIdentifier: IExtensionIdentifier, includePreRelease: boolean, targetPlatform: TargetPlatform): Promise<IGalleryExtensionVersion[]>;
+	download(extension: IGalleryExtension, location: URI, operation: InstallOperation): Promise<void>;
+	downloadSignatureArchive(extension: IGalleryExtension, location: URI): Promise<void>;
+	reportStatistic(publisher: string, name: string, version: string, type: StatisticType): Promise<void>;
+	getReadme(extension: IGalleryExtension, token: CancellationToken): Promise<string>;
+	getManifest(extension: IGalleryExtension, token: CancellationToken): Promise<IExtensionManifest | null>;
+	getChangelog(extension: IGalleryExtension, token: CancellationToken): Promise<string>;
+	getCoreTranslation(extension: IGalleryExtension, languageId: string): Promise<ITranslation | null>;
 	getExtensionsControlManifest(): Promise<IExtensionsControlManifest>;
 }
 
@@ -531,93 +422,87 @@ export interface DidUpdateExtensionMetadata {
 }
 
 export const enum ExtensionGalleryErrorCode {
-	Timeout = "Timeout",
-	Cancelled = "Cancelled",
-	Failed = "Failed",
-	DownloadFailedWriting = "DownloadFailedWriting",
-	Offline = "Offline",
+	Timeout = 'Timeout',
+	Cancelled = 'Cancelled',
+	Failed = 'Failed',
+	DownloadFailedWriting = 'DownloadFailedWriting',
+	Offline = 'Offline',
 }
 
 export class ExtensionGalleryError extends Error {
-	constructor(
-		message: string,
-		readonly code: ExtensionGalleryErrorCode,
-	) {
+	constructor(message: string, readonly code: ExtensionGalleryErrorCode) {
 		super(message);
 		this.name = code;
 	}
 }
 
 export const enum ExtensionManagementErrorCode {
-	Unsupported = "Unsupported",
-	Deprecated = "Deprecated",
-	Malicious = "Malicious",
-	Incompatible = "Incompatible",
-	IncompatibleApi = "IncompatibleApi",
-	IncompatibleTargetPlatform = "IncompatibleTargetPlatform",
-	ReleaseVersionNotFound = "ReleaseVersionNotFound",
-	Invalid = "Invalid",
-	Download = "Download",
-	DownloadSignature = "DownloadSignature",
+	Unsupported = 'Unsupported',
+	Deprecated = 'Deprecated',
+	Malicious = 'Malicious',
+	Incompatible = 'Incompatible',
+	IncompatibleApi = 'IncompatibleApi',
+	IncompatibleTargetPlatform = 'IncompatibleTargetPlatform',
+	ReleaseVersionNotFound = 'ReleaseVersionNotFound',
+	Invalid = 'Invalid',
+	Download = 'Download',
+	DownloadSignature = 'DownloadSignature',
 	DownloadFailedWriting = ExtensionGalleryErrorCode.DownloadFailedWriting,
-	UpdateMetadata = "UpdateMetadata",
-	Extract = "Extract",
-	Scanning = "Scanning",
-	ScanningExtension = "ScanningExtension",
-	ReadUninstalled = "ReadUninstalled",
-	UnsetUninstalled = "UnsetUninstalled",
-	Delete = "Delete",
-	Rename = "Rename",
-	IntializeDefaultProfile = "IntializeDefaultProfile",
-	AddToProfile = "AddToProfile",
-	InstalledExtensionNotFound = "InstalledExtensionNotFound",
-	PostInstall = "PostInstall",
-	CorruptZip = "CorruptZip",
-	IncompleteZip = "IncompleteZip",
-	PackageNotSigned = "PackageNotSigned",
-	SignatureVerificationInternal = "SignatureVerificationInternal",
-	SignatureVerificationFailed = "SignatureVerificationFailed",
-	NotAllowed = "NotAllowed",
-	Gallery = "Gallery",
-	Cancelled = "Cancelled",
-	Unknown = "Unknown",
-	Internal = "Internal",
+	UpdateMetadata = 'UpdateMetadata',
+	Extract = 'Extract',
+	Scanning = 'Scanning',
+	ScanningExtension = 'ScanningExtension',
+	ReadUninstalled = 'ReadUninstalled',
+	UnsetUninstalled = 'UnsetUninstalled',
+	Delete = 'Delete',
+	Rename = 'Rename',
+	IntializeDefaultProfile = 'IntializeDefaultProfile',
+	AddToProfile = 'AddToProfile',
+	InstalledExtensionNotFound = 'InstalledExtensionNotFound',
+	PostInstall = 'PostInstall',
+	CorruptZip = 'CorruptZip',
+	IncompleteZip = 'IncompleteZip',
+	PackageNotSigned = 'PackageNotSigned',
+	SignatureVerificationInternal = 'SignatureVerificationInternal',
+	SignatureVerificationFailed = 'SignatureVerificationFailed',
+	NotAllowed = 'NotAllowed',
+	Gallery = 'Gallery',
+	Cancelled = 'Cancelled',
+	Unknown = 'Unknown',
+	Internal = 'Internal',
 }
 
 export enum ExtensionSignatureVerificationCode {
-	"Success" = "Success",
-	"RequiredArgumentMissing" = "RequiredArgumentMissing", // A required argument is missing.
-	"InvalidArgument" = "InvalidArgument", // An argument is invalid.
-	"PackageIsUnreadable" = "PackageIsUnreadable", // The extension package is unreadable.
-	"UnhandledException" = "UnhandledException", // An unhandled exception occurred.
-	"SignatureManifestIsMissing" = "SignatureManifestIsMissing", // The extension is missing a signature manifest file (.signature.manifest).
-	"SignatureManifestIsUnreadable" = "SignatureManifestIsUnreadable", // The signature manifest is unreadable.
-	"SignatureIsMissing" = "SignatureIsMissing", // The extension is missing a signature file (.signature.p7s).
-	"SignatureIsUnreadable" = "SignatureIsUnreadable", // The signature is unreadable.
-	"CertificateIsUnreadable" = "CertificateIsUnreadable", // The certificate is unreadable.
-	"SignatureArchiveIsUnreadable" = "SignatureArchiveIsUnreadable",
-	"FileAlreadyExists" = "FileAlreadyExists", // The output file already exists.
-	"SignatureArchiveIsInvalidZip" = "SignatureArchiveIsInvalidZip",
-	"SignatureArchiveHasSameSignatureFile" = "SignatureArchiveHasSameSignatureFile", // The signature archive has the same signature file.
-	"PackageIntegrityCheckFailed" = "PackageIntegrityCheckFailed", // The package integrity check failed.
-	"SignatureIsInvalid" = "SignatureIsInvalid", // The extension has an invalid signature file (.signature.p7s).
-	"SignatureManifestIsInvalid" = "SignatureManifestIsInvalid", // The extension has an invalid signature manifest file (.signature.manifest).
-	"SignatureIntegrityCheckFailed" = "SignatureIntegrityCheckFailed", // The extension's signature integrity check failed.  Extension integrity is suspect.
-	"EntryIsMissing" = "EntryIsMissing", // An entry referenced in the signature manifest was not found in the extension.
-	"EntryIsTampered" = "EntryIsTampered", // The integrity check for an entry referenced in the signature manifest failed.
-	"Untrusted" = "Untrusted", // An X.509 certificate in the extension signature is untrusted.
-	"CertificateRevoked" = "CertificateRevoked", // An X.509 certificate in the extension signature has been revoked.
-	"SignatureIsNotValid" = "SignatureIsNotValid", // The extension signature is invalid.
-	"UnknownError" = "UnknownError", // An unknown error occurred.
-	"PackageIsInvalidZip" = "PackageIsInvalidZip", // The extension package is not valid ZIP format.
-	"SignatureArchiveHasTooManyEntries" = "SignatureArchiveHasTooManyEntries", // The signature archive has too many entries.
+	'Success' = 'Success',
+	'RequiredArgumentMissing' = 'RequiredArgumentMissing', // A required argument is missing.
+	'InvalidArgument' = 'InvalidArgument', // An argument is invalid.
+	'PackageIsUnreadable' = 'PackageIsUnreadable', // The extension package is unreadable.
+	'UnhandledException' = 'UnhandledException', // An unhandled exception occurred.
+	'SignatureManifestIsMissing' = 'SignatureManifestIsMissing', // The extension is missing a signature manifest file (.signature.manifest).
+	'SignatureManifestIsUnreadable' = 'SignatureManifestIsUnreadable', // The signature manifest is unreadable.
+	'SignatureIsMissing' = 'SignatureIsMissing', // The extension is missing a signature file (.signature.p7s).
+	'SignatureIsUnreadable' = 'SignatureIsUnreadable', // The signature is unreadable.
+	'CertificateIsUnreadable' = 'CertificateIsUnreadable', // The certificate is unreadable.
+	'SignatureArchiveIsUnreadable' = 'SignatureArchiveIsUnreadable',
+	'FileAlreadyExists' = 'FileAlreadyExists', // The output file already exists.
+	'SignatureArchiveIsInvalidZip' = 'SignatureArchiveIsInvalidZip',
+	'SignatureArchiveHasSameSignatureFile' = 'SignatureArchiveHasSameSignatureFile', // The signature archive has the same signature file.
+	'PackageIntegrityCheckFailed' = 'PackageIntegrityCheckFailed', // The package integrity check failed.
+	'SignatureIsInvalid' = 'SignatureIsInvalid', // The extension has an invalid signature file (.signature.p7s).
+	'SignatureManifestIsInvalid' = 'SignatureManifestIsInvalid', // The extension has an invalid signature manifest file (.signature.manifest).
+	'SignatureIntegrityCheckFailed' = 'SignatureIntegrityCheckFailed', // The extension's signature integrity check failed.  Extension integrity is suspect.
+	'EntryIsMissing' = 'EntryIsMissing', // An entry referenced in the signature manifest was not found in the extension.
+	'EntryIsTampered' = 'EntryIsTampered', // The integrity check for an entry referenced in the signature manifest failed.
+	'Untrusted' = 'Untrusted', // An X.509 certificate in the extension signature is untrusted.
+	'CertificateRevoked' = 'CertificateRevoked', // An X.509 certificate in the extension signature has been revoked.
+	'SignatureIsNotValid' = 'SignatureIsNotValid', // The extension signature is invalid.
+	'UnknownError' = 'UnknownError', // An unknown error occurred.
+	'PackageIsInvalidZip' = 'PackageIsInvalidZip', // The extension package is not valid ZIP format.
+	'SignatureArchiveHasTooManyEntries' = 'SignatureArchiveHasTooManyEntries', // The signature archive has too many entries.
 }
 
 export class ExtensionManagementError extends Error {
-	constructor(
-		message: string,
-		readonly code: ExtensionManagementErrorCode,
-	) {
+	constructor(message: string, readonly code: ExtensionManagementErrorCode) {
 		super(message);
 		this.name = code;
 	}
@@ -654,30 +539,14 @@ export type UninstallOptions = {
 };
 
 export interface IExtensionManagementParticipant {
-	postInstall(
-		local: ILocalExtension,
-		source: URI | IGalleryExtension,
-		options: InstallOptions,
-		token: CancellationToken,
-	): Promise<void>;
-	postUninstall(
-		local: ILocalExtension,
-		options: UninstallOptions,
-		token: CancellationToken,
-	): Promise<void>;
+	postInstall(local: ILocalExtension, source: URI | IGalleryExtension, options: InstallOptions, token: CancellationToken): Promise<void>;
+	postUninstall(local: ILocalExtension, options: UninstallOptions, token: CancellationToken): Promise<void>;
 }
 
-export type InstallExtensionInfo = {
-	readonly extension: IGalleryExtension;
-	readonly options: InstallOptions;
-};
-export type UninstallExtensionInfo = {
-	readonly extension: ILocalExtension;
-	readonly options?: UninstallOptions;
-};
+export type InstallExtensionInfo = { readonly extension: IGalleryExtension; readonly options: InstallOptions };
+export type UninstallExtensionInfo = { readonly extension: ILocalExtension; readonly options?: UninstallOptions };
 
-export const IExtensionManagementService =
-	createDecorator<IExtensionManagementService>("extensionManagementService");
+export const IExtensionManagementService = createDecorator<IExtensionManagementService>('extensionManagementService');
 export interface IExtensionManagementService {
 	readonly _serviceBrand: undefined;
 
@@ -691,54 +560,21 @@ export interface IExtensionManagementService {
 	getManifest(vsix: URI): Promise<IExtensionManifest>;
 	install(vsix: URI, options?: InstallOptions): Promise<ILocalExtension>;
 	canInstall(extension: IGalleryExtension): Promise<boolean>;
-	installFromGallery(
-		extension: IGalleryExtension,
-		options?: InstallOptions,
-	): Promise<ILocalExtension>;
-	installGalleryExtensions(
-		extensions: InstallExtensionInfo[],
-	): Promise<InstallExtensionResult[]>;
-	installFromLocation(
-		location: URI,
-		profileLocation: URI,
-	): Promise<ILocalExtension>;
-	installExtensionsFromProfile(
-		extensions: IExtensionIdentifier[],
-		fromProfileLocation: URI,
-		toProfileLocation: URI,
-	): Promise<ILocalExtension[]>;
-	uninstall(
-		extension: ILocalExtension,
-		options?: UninstallOptions,
-	): Promise<void>;
+	installFromGallery(extension: IGalleryExtension, options?: InstallOptions): Promise<ILocalExtension>;
+	installGalleryExtensions(extensions: InstallExtensionInfo[]): Promise<InstallExtensionResult[]>;
+	installFromLocation(location: URI, profileLocation: URI): Promise<ILocalExtension>;
+	installExtensionsFromProfile(extensions: IExtensionIdentifier[], fromProfileLocation: URI, toProfileLocation: URI): Promise<ILocalExtension[]>;
+	uninstall(extension: ILocalExtension, options?: UninstallOptions): Promise<void>;
 	uninstallExtensions(extensions: UninstallExtensionInfo[]): Promise<void>;
-	toggleAppliationScope(
-		extension: ILocalExtension,
-		fromProfileLocation: URI,
-	): Promise<ILocalExtension>;
+	toggleAppliationScope(extension: ILocalExtension, fromProfileLocation: URI): Promise<ILocalExtension>;
 	reinstallFromGallery(extension: ILocalExtension): Promise<ILocalExtension>;
-	getInstalled(
-		type?: ExtensionType,
-		profileLocation?: URI,
-		productVersion?: IProductVersion,
-	): Promise<ILocalExtension[]>;
+	getInstalled(type?: ExtensionType, profileLocation?: URI, productVersion?: IProductVersion): Promise<ILocalExtension[]>;
 	getExtensionsControlManifest(): Promise<IExtensionsControlManifest>;
-	copyExtensions(
-		fromProfileLocation: URI,
-		toProfileLocation: URI,
-	): Promise<void>;
-	updateMetadata(
-		local: ILocalExtension,
-		metadata: Partial<Metadata>,
-		profileLocation: URI,
-	): Promise<ILocalExtension>;
+	copyExtensions(fromProfileLocation: URI, toProfileLocation: URI): Promise<void>;
+	updateMetadata(local: ILocalExtension, metadata: Partial<Metadata>, profileLocation: URI): Promise<ILocalExtension>;
 	resetPinnedStateForAllUserExtensions(pinned: boolean): Promise<void>;
 
-	download(
-		extension: IGalleryExtension,
-		operation: InstallOperation,
-		donotVerifySignature: boolean,
-	): Promise<URI>;
+	download(extension: IGalleryExtension, operation: InstallOperation, donotVerifySignature: boolean): Promise<URI>;
 
 	registerParticipant(pariticipant: IExtensionManagementParticipant): void;
 	getTargetPlatform(): Promise<TargetPlatform>;
@@ -746,30 +582,18 @@ export interface IExtensionManagementService {
 	cleanUp(): Promise<void>;
 }
 
-export const DISABLED_EXTENSIONS_STORAGE_PATH =
-	"extensionsIdentifiers/disabled";
-export const ENABLED_EXTENSIONS_STORAGE_PATH = "extensionsIdentifiers/enabled";
-export const IGlobalExtensionEnablementService =
-	createDecorator<IGlobalExtensionEnablementService>(
-		"IGlobalExtensionEnablementService",
-	);
+export const DISABLED_EXTENSIONS_STORAGE_PATH = 'extensionsIdentifiers/disabled';
+export const ENABLED_EXTENSIONS_STORAGE_PATH = 'extensionsIdentifiers/enabled';
+export const IGlobalExtensionEnablementService = createDecorator<IGlobalExtensionEnablementService>('IGlobalExtensionEnablementService');
 
 export interface IGlobalExtensionEnablementService {
 	readonly _serviceBrand: undefined;
-	readonly onDidChangeEnablement: Event<{
-		readonly extensions: IExtensionIdentifier[];
-		readonly source?: string;
-	}>;
+	readonly onDidChangeEnablement: Event<{ readonly extensions: IExtensionIdentifier[]; readonly source?: string }>;
 
 	getDisabledExtensions(): IExtensionIdentifier[];
-	enableExtension(
-		extension: IExtensionIdentifier,
-		source?: string,
-	): Promise<boolean>;
-	disableExtension(
-		extension: IExtensionIdentifier,
-		source?: string,
-	): Promise<boolean>;
+	enableExtension(extension: IExtensionIdentifier, source?: string): Promise<boolean>;
+	disableExtension(extension: IExtensionIdentifier, source?: string): Promise<boolean>;
+
 }
 
 export type IConfigBasedExtensionTip = {
@@ -791,9 +615,7 @@ export type IExecutableBasedExtensionTip = {
 	readonly whenNotInstalled?: string[];
 };
 
-export const IExtensionTipsService = createDecorator<IExtensionTipsService>(
-	"IExtensionTipsService",
-);
+export const IExtensionTipsService = createDecorator<IExtensionTipsService>('IExtensionTipsService');
 export interface IExtensionTipsService {
 	readonly _serviceBrand: undefined;
 
@@ -802,8 +624,5 @@ export interface IExtensionTipsService {
 	getOtherExecutableBasedTips(): Promise<IExecutableBasedExtensionTip[]>;
 }
 
-export const ExtensionsLocalizedLabel = localize2("extensions", "Extensions");
-export const PreferencesLocalizedLabel = localize2(
-	"preferences",
-	"Preferences",
-);
+export const ExtensionsLocalizedLabel = localize2('extensions', "Extensions");
+export const PreferencesLocalizedLabel = localize2('preferences', 'Preferences');

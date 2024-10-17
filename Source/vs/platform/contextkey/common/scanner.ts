@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CharCode } from "../../../base/common/charCode.js";
-import { illegalState } from "../../../base/common/errors.js";
-import { localize } from "../../../nls.js";
+import { CharCode } from '../../../base/common/charCode.js';
+import { illegalState } from '../../../base/common/errors.js';
+import { localize } from '../../../nls.js';
 
 export const enum TokenType {
 	LParen,
@@ -54,27 +54,23 @@ export type Token =
 	| { type: TokenType.Error; offset: number; lexeme: string }
 	| { type: TokenType.EOF; offset: number };
 
-type KeywordTokenType =
-	| TokenType.Not
-	| TokenType.In
-	| TokenType.False
-	| TokenType.True;
+type KeywordTokenType = TokenType.Not | TokenType.In | TokenType.False | TokenType.True;
 type TokenTypeWithoutLexeme =
-	| TokenType.LParen
-	| TokenType.RParen
-	| TokenType.Neg
-	| TokenType.Lt
-	| TokenType.LtEq
-	| TokenType.Gt
-	| TokenType.GtEq
-	| TokenType.RegexOp
-	| TokenType.True
-	| TokenType.False
-	| TokenType.In
-	| TokenType.Not
-	| TokenType.And
-	| TokenType.Or
-	| TokenType.EOF;
+	TokenType.LParen |
+	TokenType.RParen |
+	TokenType.Neg |
+	TokenType.Lt |
+	TokenType.LtEq |
+	TokenType.Gt |
+	TokenType.GtEq |
+	TokenType.RegexOp |
+	TokenType.True |
+	TokenType.False |
+	TokenType.In |
+	TokenType.Not |
+	TokenType.And |
+	TokenType.Or |
+	TokenType.EOF;
 
 /**
  * Example:
@@ -82,7 +78,7 @@ type TokenTypeWithoutLexeme =
  * so it's reported as unexpected
  */
 export type LexingError = {
-	offset: number /** note that this doesn't take into account escape characters from the original encoding of the string, e.g., within an extension manifest file's JSON encoding  */;
+	offset: number; /** note that this doesn't take into account escape characters from the original encoding of the string, e.g., within an extension manifest file's JSON encoding  */
 	lexeme: string;
 	additionalInfo?: string;
 };
@@ -90,39 +86,18 @@ export type LexingError = {
 function hintDidYouMean(...meant: string[]) {
 	switch (meant.length) {
 		case 1:
-			return localize(
-				"contextkey.scanner.hint.didYouMean1",
-				"Did you mean {0}?",
-				meant[0],
-			);
+			return localize('contextkey.scanner.hint.didYouMean1', "Did you mean {0}?", meant[0]);
 		case 2:
-			return localize(
-				"contextkey.scanner.hint.didYouMean2",
-				"Did you mean {0} or {1}?",
-				meant[0],
-				meant[1],
-			);
+			return localize('contextkey.scanner.hint.didYouMean2', "Did you mean {0} or {1}?", meant[0], meant[1]);
 		case 3:
-			return localize(
-				"contextkey.scanner.hint.didYouMean3",
-				"Did you mean {0}, {1} or {2}?",
-				meant[0],
-				meant[1],
-				meant[2],
-			);
+			return localize('contextkey.scanner.hint.didYouMean3', "Did you mean {0}, {1} or {2}?", meant[0], meant[1], meant[2]);
 		default: // we just don't expect that many
 			return undefined;
 	}
 }
 
-const hintDidYouForgetToOpenOrCloseQuote = localize(
-	"contextkey.scanner.hint.didYouForgetToOpenOrCloseQuote",
-	"Did you forget to open or close the quote?",
-);
-const hintDidYouForgetToEscapeSlash = localize(
-	"contextkey.scanner.hint.didYouForgetToEscapeSlash",
-	"Did you forget to escape the '/' (slash) character? Put two backslashes before it to escape, e.g., '\\\\/'.",
-);
+const hintDidYouForgetToOpenOrCloseQuote = localize('contextkey.scanner.hint.didYouForgetToOpenOrCloseQuote', "Did you forget to open or close the quote?");
+const hintDidYouForgetToEscapeSlash = localize('contextkey.scanner.hint.didYouForgetToEscapeSlash', "Did you forget to escape the '/' (slash) character? Put two backslashes before it to escape, e.g., '\\\\/\'.");
 
 /**
  * A simple scanner for context keys.
@@ -140,42 +115,43 @@ const hintDidYouForgetToEscapeSlash = localize(
  * ```
  */
 export class Scanner {
+
 	static getLexeme(token: Token): string {
 		switch (token.type) {
 			case TokenType.LParen:
-				return "(";
+				return '(';
 			case TokenType.RParen:
-				return ")";
+				return ')';
 			case TokenType.Neg:
-				return "!";
+				return '!';
 			case TokenType.Eq:
-				return token.isTripleEq ? "===" : "==";
+				return token.isTripleEq ? '===' : '==';
 			case TokenType.NotEq:
-				return token.isTripleEq ? "!==" : "!=";
+				return token.isTripleEq ? '!==' : '!=';
 			case TokenType.Lt:
-				return "<";
+				return '<';
 			case TokenType.LtEq:
-				return "<=";
+				return '<=';
 			case TokenType.Gt:
-				return ">=";
+				return '>=';
 			case TokenType.GtEq:
-				return ">=";
+				return '>=';
 			case TokenType.RegexOp:
-				return "=~";
+				return '=~';
 			case TokenType.RegexStr:
 				return token.lexeme;
 			case TokenType.True:
-				return "true";
+				return 'true';
 			case TokenType.False:
-				return "false";
+				return 'false';
 			case TokenType.In:
-				return "in";
+				return 'in';
 			case TokenType.Not:
-				return "not";
+				return 'not';
 			case TokenType.And:
-				return "&&";
+				return '&&';
 			case TokenType.Or:
-				return "||";
+				return '||';
 			case TokenType.Str:
 				return token.lexeme;
 			case TokenType.QuotedStr:
@@ -183,26 +159,22 @@ export class Scanner {
 			case TokenType.Error:
 				return token.lexeme;
 			case TokenType.EOF:
-				return "EOF";
+				return 'EOF';
 			default:
-				throw illegalState(
-					`unhandled token type: ${JSON.stringify(token)}; have you forgotten to add a case?`,
-				);
+				throw illegalState(`unhandled token type: ${JSON.stringify(token)}; have you forgotten to add a case?`);
 		}
 	}
 
-	private static _regexFlags = new Set(
-		["i", "g", "s", "m", "y", "u"].map((ch) => ch.charCodeAt(0)),
-	);
+	private static _regexFlags = new Set(['i', 'g', 's', 'm', 'y', 'u'].map(ch => ch.charCodeAt(0)));
 
 	private static _keywords = new Map<string, KeywordTokenType>([
-		["not", TokenType.Not],
-		["in", TokenType.In],
-		["false", TokenType.False],
-		["true", TokenType.True],
+		['not', TokenType.Not],
+		['in', TokenType.In],
+		['false', TokenType.False],
+		['true', TokenType.True],
 	]);
 
-	private _input: string = "";
+	private _input: string = '';
 	private _start: number = 0;
 	private _current: number = 0;
 	private _tokens: Token[] = [];
@@ -225,74 +197,46 @@ export class Scanner {
 
 	scan() {
 		while (!this._isAtEnd()) {
+
 			this._start = this._current;
 
 			const ch = this._advance();
 			switch (ch) {
-				case CharCode.OpenParen:
-					this._addToken(TokenType.LParen);
-					break;
-				case CharCode.CloseParen:
-					this._addToken(TokenType.RParen);
-					break;
+				case CharCode.OpenParen: this._addToken(TokenType.LParen); break;
+				case CharCode.CloseParen: this._addToken(TokenType.RParen); break;
 
 				case CharCode.ExclamationMark:
 					if (this._match(CharCode.Equals)) {
 						const isTripleEq = this._match(CharCode.Equals); // eat last `=` if `!==`
-						this._tokens.push({
-							type: TokenType.NotEq,
-							offset: this._start,
-							isTripleEq,
-						});
+						this._tokens.push({ type: TokenType.NotEq, offset: this._start, isTripleEq });
 					} else {
 						this._addToken(TokenType.Neg);
 					}
 					break;
 
-				case CharCode.SingleQuote:
-					this._quotedString();
-					break;
-				case CharCode.Slash:
-					this._regex();
-					break;
+				case CharCode.SingleQuote: this._quotedString(); break;
+				case CharCode.Slash: this._regex(); break;
 
 				case CharCode.Equals:
-					if (this._match(CharCode.Equals)) {
-						// support `==`
+					if (this._match(CharCode.Equals)) { // support `==`
 						const isTripleEq = this._match(CharCode.Equals); // eat last `=` if `===`
-						this._tokens.push({
-							type: TokenType.Eq,
-							offset: this._start,
-							isTripleEq,
-						});
+						this._tokens.push({ type: TokenType.Eq, offset: this._start, isTripleEq });
 					} else if (this._match(CharCode.Tilde)) {
 						this._addToken(TokenType.RegexOp);
 					} else {
-						this._error(hintDidYouMean("==", "=~"));
+						this._error(hintDidYouMean('==', '=~'));
 					}
 					break;
 
-				case CharCode.LessThan:
-					this._addToken(
-						this._match(CharCode.Equals)
-							? TokenType.LtEq
-							: TokenType.Lt,
-					);
-					break;
+				case CharCode.LessThan: this._addToken(this._match(CharCode.Equals) ? TokenType.LtEq : TokenType.Lt); break;
 
-				case CharCode.GreaterThan:
-					this._addToken(
-						this._match(CharCode.Equals)
-							? TokenType.GtEq
-							: TokenType.Gt,
-					);
-					break;
+				case CharCode.GreaterThan: this._addToken(this._match(CharCode.Equals) ? TokenType.GtEq : TokenType.Gt); break;
 
 				case CharCode.Ampersand:
 					if (this._match(CharCode.Ampersand)) {
 						this._addToken(TokenType.And);
 					} else {
-						this._error(hintDidYouMean("&&"));
+						this._error(hintDidYouMean('&&'));
 					}
 					break;
 
@@ -300,7 +244,7 @@ export class Scanner {
 					if (this._match(CharCode.Pipe)) {
 						this._addToken(TokenType.Or);
 					} else {
-						this._error(hintDidYouMean("||"));
+						this._error(hintDidYouMean('||'));
 					}
 					break;
 
@@ -339,9 +283,7 @@ export class Scanner {
 	}
 
 	private _peek(): number {
-		return this._isAtEnd()
-			? CharCode.Null
-			: this._input.charCodeAt(this._current);
+		return this._isAtEnd() ? CharCode.Null : this._input.charCodeAt(this._current);
 	}
 
 	private _addToken(type: TokenTypeWithoutLexeme) {
@@ -351,11 +293,7 @@ export class Scanner {
 	private _error(additional?: string) {
 		const offset = this._start;
 		const lexeme = this._input.substring(this._start, this._current);
-		const errToken: Token = {
-			type: TokenType.Error,
-			offset: this._start,
-			lexeme,
-		};
+		const errToken: Token = { type: TokenType.Error, offset: this._start, lexeme };
 		this._errors.push({ offset, lexeme, additionalInfo: additional });
 		this._tokens.push(errToken);
 	}
@@ -372,19 +310,14 @@ export class Scanner {
 			if (keyword) {
 				this._addToken(keyword);
 			} else {
-				this._tokens.push({
-					type: TokenType.Str,
-					lexeme,
-					offset: this._start,
-				});
+				this._tokens.push({ type: TokenType.Str, lexeme, offset: this._start });
 			}
 		}
 	}
 
 	// captures the lexeme without the leading and trailing '
 	private _quotedString() {
-		while (this._peek() !== CharCode.SingleQuote && !this._isAtEnd()) {
-			// TODO@ulugbekna: add support for escaping ' ?
+		while (this._peek() !== CharCode.SingleQuote && !this._isAtEnd()) { // TODO@ulugbekna: add support for escaping ' ?
 			this._advance();
 		}
 
@@ -396,11 +329,7 @@ export class Scanner {
 		// consume the closing '
 		this._advance();
 
-		this._tokens.push({
-			type: TokenType.QuotedStr,
-			lexeme: this._input.substring(this._start + 1, this._current - 1),
-			offset: this._start + 1,
-		});
+		this._tokens.push({ type: TokenType.QuotedStr, lexeme: this._input.substring(this._start + 1, this._current - 1), offset: this._start + 1 });
 	}
 
 	/*
@@ -423,11 +352,9 @@ export class Scanner {
 
 			const ch = this._input.charCodeAt(p);
 
-			if (inEscape) {
-				// parsing an escape character
+			if (inEscape) { // parsing an escape character
 				inEscape = false;
-			} else if (ch === CharCode.Slash && !inCharacterClass) {
-				// end of regex
+			} else if (ch === CharCode.Slash && !inCharacterClass) { // end of regex
 				p++;
 				break;
 			} else if (ch === CharCode.OpenSquareBracket) {
@@ -441,21 +368,14 @@ export class Scanner {
 		}
 
 		// Consume flags // TODO@ulugbekna: use regex instead
-		while (
-			p < this._input.length &&
-			Scanner._regexFlags.has(this._input.charCodeAt(p))
-		) {
+		while (p < this._input.length && Scanner._regexFlags.has(this._input.charCodeAt(p))) {
 			p++;
 		}
 
 		this._current = p;
 
 		const lexeme = this._input.substring(this._start, this._current);
-		this._tokens.push({
-			type: TokenType.RegexStr,
-			lexeme,
-			offset: this._start,
-		});
+		this._tokens.push({ type: TokenType.RegexStr, lexeme, offset: this._start });
 	}
 
 	private _isAtEnd() {

@@ -3,32 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IpcMainEvent } from "electron";
+import { IEnvironmentMainService } from '../../environment/electron-main/environmentMainService.js';
+import { parsePtyHostDebugPort } from '../../environment/node/environmentService.js';
+import { ILifecycleMainService } from '../../lifecycle/electron-main/lifecycleMainService.js';
+import { ILogService } from '../../log/common/log.js';
+import { NullTelemetryService } from '../../telemetry/common/telemetryUtils.js';
+import { IReconnectConstants, TerminalSettingId } from '../common/terminal.js';
+import { IPtyHostConnection, IPtyHostStarter } from '../node/ptyHost.js';
+import { UtilityProcess } from '../../utilityProcess/electron-main/utilityProcess.js';
+import { Client as MessagePortClient } from '../../../base/parts/ipc/electron-main/ipc.mp.js';
+import { IpcMainEvent } from 'electron';
+import { validatedIpcMain } from '../../../base/parts/ipc/electron-main/ipcMain.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
+import { Emitter } from '../../../base/common/event.js';
+import { deepClone } from '../../../base/common/objects.js';
+import { IConfigurationService } from '../../configuration/common/configuration.js';
+import { Schemas } from '../../../base/common/network.js';
 
-import { Emitter } from "../../../base/common/event.js";
-import {
-	Disposable,
-	DisposableStore,
-	toDisposable,
-} from "../../../base/common/lifecycle.js";
-import { Schemas } from "../../../base/common/network.js";
-import { deepClone } from "../../../base/common/objects.js";
-import { Client as MessagePortClient } from "../../../base/parts/ipc/electron-main/ipc.mp.js";
-import { validatedIpcMain } from "../../../base/parts/ipc/electron-main/ipcMain.js";
-import { IConfigurationService } from "../../configuration/common/configuration.js";
-import { IEnvironmentMainService } from "../../environment/electron-main/environmentMainService.js";
-import { parsePtyHostDebugPort } from "../../environment/node/environmentService.js";
-import { ILifecycleMainService } from "../../lifecycle/electron-main/lifecycleMainService.js";
-import { ILogService } from "../../log/common/log.js";
-import { NullTelemetryService } from "../../telemetry/common/telemetryUtils.js";
-import { UtilityProcess } from "../../utilityProcess/electron-main/utilityProcess.js";
-import { IReconnectConstants, TerminalSettingId } from "../common/terminal.js";
-import { IPtyHostConnection, IPtyHostStarter } from "../node/ptyHost.js";
+export class ElectronPtyHostStarter extends Disposable implements IPtyHostStarter {
 
-export class ElectronPtyHostStarter
-	extends Disposable
-	implements IPtyHostStarter
-{
 	private utilityProcess: UtilityProcess | undefined = undefined;
 
 	private readonly _onRequestConnection = new Emitter<void>();
@@ -38,82 +31,53 @@ export class ElectronPtyHostStarter
 
 	constructor(
 		private readonly _reconnectConstants: IReconnectConstants,
-		@IConfigurationService
-		private readonly _configurationService: IConfigurationService,
-		@IEnvironmentMainService
-		private readonly _environmentMainService: IEnvironmentMainService,
-		@ILifecycleMainService
-		private readonly _lifecycleMainService: ILifecycleMainService,
-		@ILogService private readonly _logService: ILogService,
+		@IConfigurationService private readonly _configurationService: IConfigurationService,
+		@IEnvironmentMainService private readonly _environmentMainService: IEnvironmentMainService,
+		@ILifecycleMainService private readonly _lifecycleMainService: ILifecycleMainService,
+		@ILogService private readonly _logService: ILogService
 	) {
 		super();
 
-		this._register(
-			this._lifecycleMainService.onWillShutdown(() =>
-				this._onWillShutdown.fire(),
-			),
-		);
+		this._register(this._lifecycleMainService.onWillShutdown(() => this._onWillShutdown.fire()));
 		// Listen for new windows to establish connection directly to pty host
-		validatedIpcMain.on("vscode:createPtyHostMessageChannel", (e, nonce) =>
-			this._onWindowConnection(e, nonce),
-		);
-		this._register(
-			toDisposable(() => {
-				validatedIpcMain.removeHandler(
-					"vscode:createPtyHostMessageChannel",
-				);
-			}),
-		);
+		validatedIpcMain.on('vscode:createPtyHostMessageChannel', (e, nonce) => this._onWindowConnection(e, nonce));
+		this._register(toDisposable(() => {
+			validatedIpcMain.removeHandler('vscode:createPtyHostMessageChannel');
+		}));
 	}
 
 	start(): IPtyHostConnection {
-		this.utilityProcess = new UtilityProcess(
-			this._logService,
-			NullTelemetryService,
-			this._lifecycleMainService,
-		);
+		this.utilityProcess = new UtilityProcess(this._logService, NullTelemetryService, this._lifecycleMainService);
 
-		const inspectParams = parsePtyHostDebugPort(
-			this._environmentMainService.args,
-			this._environmentMainService.isBuilt,
-		);
-		const execArgv = inspectParams.port
-			? [
-					"--nolazy",
-					`--inspect${inspectParams.break ? "-brk" : ""}=${inspectParams.port}`,
-				]
-			: undefined;
+		const inspectParams = parsePtyHostDebugPort(this._environmentMainService.args, this._environmentMainService.isBuilt);
+		const execArgv = inspectParams.port ? [
+			'--nolazy',
+			`--inspect${inspectParams.break ? '-brk' : ''}=${inspectParams.port}`
+		] : undefined;
 
 		this.utilityProcess.start({
-			type: "ptyHost",
-			entryPoint: "vs/platform/terminal/node/ptyHostMain",
+			type: 'ptyHost',
+			entryPoint: 'vs/platform/terminal/node/ptyHostMain',
 			execArgv,
-			args: [
-				"--logsPath",
-				this._environmentMainService.logsHome.with({
-					scheme: Schemas.file,
-				}).fsPath,
-			],
-			env: this._createPtyHostConfiguration(),
+			args: ['--logsPath', this._environmentMainService.logsHome.with({ scheme: Schemas.file }).fsPath],
+			env: this._createPtyHostConfiguration()
 		});
 
 		const port = this.utilityProcess.connect();
-		const client = new MessagePortClient(port, "ptyHost");
+		const client = new MessagePortClient(port, 'ptyHost');
 
 		const store = new DisposableStore();
 		store.add(client);
-		store.add(
-			toDisposable(() => {
-				this.utilityProcess?.kill();
-				this.utilityProcess?.dispose();
-				this.utilityProcess = undefined;
-			}),
-		);
+		store.add(toDisposable(() => {
+			this.utilityProcess?.kill();
+			this.utilityProcess?.dispose();
+			this.utilityProcess = undefined;
+		}));
 
 		return {
 			client,
 			store,
-			onDidProcessExit: this.utilityProcess.onExit,
+			onDidProcessExit: this.utilityProcess.onExit
 		};
 	}
 
@@ -121,29 +85,19 @@ export class ElectronPtyHostStarter
 		this._environmentMainService.unsetSnapExportedVariables();
 		const config: { [key: string]: string } = {
 			...deepClone(process.env),
-			VSCODE_ESM_ENTRYPOINT: "vs/platform/terminal/node/ptyHostMain",
-			VSCODE_PIPE_LOGGING: "true",
-			VSCODE_VERBOSE_LOGGING: "true", // transmit console logs from server to client,
-			VSCODE_RECONNECT_GRACE_TIME: String(
-				this._reconnectConstants.graceTime,
-			),
-			VSCODE_RECONNECT_SHORT_GRACE_TIME: String(
-				this._reconnectConstants.shortGraceTime,
-			),
-			VSCODE_RECONNECT_SCROLLBACK: String(
-				this._reconnectConstants.scrollback,
-			),
+			VSCODE_ESM_ENTRYPOINT: 'vs/platform/terminal/node/ptyHostMain',
+			VSCODE_PIPE_LOGGING: 'true',
+			VSCODE_VERBOSE_LOGGING: 'true', // transmit console logs from server to client,
+			VSCODE_RECONNECT_GRACE_TIME: String(this._reconnectConstants.graceTime),
+			VSCODE_RECONNECT_SHORT_GRACE_TIME: String(this._reconnectConstants.shortGraceTime),
+			VSCODE_RECONNECT_SCROLLBACK: String(this._reconnectConstants.scrollback),
 		};
-		const simulatedLatency = this._configurationService.getValue(
-			TerminalSettingId.DeveloperPtyHostLatency,
-		);
-		if (simulatedLatency && typeof simulatedLatency === "number") {
+		const simulatedLatency = this._configurationService.getValue(TerminalSettingId.DeveloperPtyHostLatency);
+		if (simulatedLatency && typeof simulatedLatency === 'number') {
 			config.VSCODE_LATENCY = String(simulatedLatency);
 		}
-		const startupDelay = this._configurationService.getValue(
-			TerminalSettingId.DeveloperPtyHostStartupDelay,
-		);
-		if (startupDelay && typeof startupDelay === "number") {
+		const startupDelay = this._configurationService.getValue(TerminalSettingId.DeveloperPtyHostStartupDelay);
+		if (startupDelay && typeof startupDelay === 'number') {
 			config.VSCODE_STARTUP_DELAY = String(startupDelay);
 		}
 		this._environmentMainService.restoreSnapExportedVariables();
@@ -165,10 +119,6 @@ export class ElectronPtyHostStarter
 			return;
 		}
 
-		e.sender.postMessage(
-			"vscode:createPtyHostMessageChannelResult",
-			nonce,
-			[port],
-		);
+		e.sender.postMessage('vscode:createPtyHostMessageChannelResult', nonce, [port]);
 	}
 }

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
 	// https://github.com/microsoft/vscode/issues/199291
 
 	export interface SourceControlResourceState {
@@ -29,10 +29,6 @@ declare module "vscode" {
 		 * 				Set `multiDiffEditorEnableViewChanges` to `true` to enable the "View Changes" option which opens the multi file diff editor.
 		 * @return An instance of {@link SourceControlResourceGroup resource group}.
 		 */
-		createResourceGroup(
-			id: string,
-			label: string,
-			options: { multiDiffEditorEnableViewChanges?: boolean },
-		): SourceControlResourceGroup;
+		createResourceGroup(id: string, label: string, options: { multiDiffEditorEnableViewChanges?: boolean }): SourceControlResourceGroup;
 	}
 }

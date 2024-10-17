@@ -3,14 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DetailedLineRangeMapping, LineRangeMapping } from "./rangeMapping.js";
+import { DetailedLineRangeMapping, LineRangeMapping } from './rangeMapping.js';
 
 export interface ILinesDiffComputer {
-	computeDiff(
-		originalLines: string[],
-		modifiedLines: string[],
-		options: ILinesDiffComputerOptions,
-	): LinesDiff;
+	computeDiff(originalLines: string[], modifiedLines: string[], options: ILinesDiffComputerOptions): LinesDiff;
 }
 
 export interface ILinesDiffComputerOptions {
@@ -34,7 +30,8 @@ export class LinesDiff {
 		 * In that case, the diffs might be an approximation and the user should be asked to rerun the diff with more time.
 		 */
 		readonly hitTimeout: boolean,
-	) {}
+	) {
+	}
 }
 
 export class MovedText {
@@ -56,9 +53,6 @@ export class MovedText {
 	}
 
 	public flip(): MovedText {
-		return new MovedText(
-			this.lineRangeMapping.flip(),
-			this.changes.map((c) => c.flip()),
-		);
+		return new MovedText(this.lineRangeMapping.flip(), this.changes.map(c => c.flip()));
 	}
 }

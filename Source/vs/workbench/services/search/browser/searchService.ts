@@ -3,52 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createWebWorker } from "../../../../base/browser/defaultWorkerFactory.js";
-import { CancellationToken } from "../../../../base/common/cancellation.js";
-import { memoize } from "../../../../base/common/decorators.js";
-import { Emitter, Event } from "../../../../base/common/event.js";
-import {
-	Disposable,
-	DisposableStore,
-} from "../../../../base/common/lifecycle.js";
-import { revive } from "../../../../base/common/marshalling.js";
-import { Schemas } from "../../../../base/common/network.js";
-import { URI, UriComponents } from "../../../../base/common/uri.js";
-import {
-	IWorkerClient,
-	logOnceWebWorkerWarning,
-} from "../../../../base/common/worker/simpleWorker.js";
-import { IModelService } from "../../../../editor/common/services/model.js";
-import { localize } from "../../../../nls.js";
-import { HTMLFileSystemProvider } from "../../../../platform/files/browser/htmlFileSystemProvider.js";
-import { WebFileSystemAccess } from "../../../../platform/files/browser/webFileSystemAccess.js";
-import { IFileService } from "../../../../platform/files/common/files.js";
-import {
-	InstantiationType,
-	registerSingleton,
-} from "../../../../platform/instantiation/common/extensions.js";
-import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
-import { ILogService } from "../../../../platform/log/common/log.js";
-import { ITelemetryService } from "../../../../platform/telemetry/common/telemetry.js";
-import { IUriIdentityService } from "../../../../platform/uriIdentity/common/uriIdentity.js";
-import { IEditorService } from "../../editor/common/editorService.js";
-import { IExtensionService } from "../../extensions/common/extensions.js";
-import {
-	ILocalFileSearchSimpleWorker,
-	LocalFileSearchSimpleWorkerHost,
-} from "../common/localFileSearchWorkerTypes.js";
-import {
-	IFileMatch,
-	IFileQuery,
-	ISearchComplete,
-	ISearchProgressItem,
-	ISearchResultProvider,
-	ISearchService,
-	ITextQuery,
-	SearchProviderType,
-	TextSearchCompleteMessageType,
-} from "../common/search.js";
-import { SearchService } from "../common/searchService.js";
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { IModelService } from '../../../../editor/common/services/model.js';
+import { IFileService } from '../../../../platform/files/common/files.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { ILogService } from '../../../../platform/log/common/log.js';
+import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
+import { IEditorService } from '../../editor/common/editorService.js';
+import { IExtensionService } from '../../extensions/common/extensions.js';
+import { IFileMatch, IFileQuery, ISearchComplete, ISearchProgressItem, ISearchResultProvider, ISearchService, ITextQuery, SearchProviderType, TextSearchCompleteMessageType } from '../common/search.js';
+import { SearchService } from '../common/searchService.js';
+import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
+import { IWorkerClient, logOnceWebWorkerWarning } from '../../../../base/common/worker/simpleWorker.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { createWebWorker } from '../../../../base/browser/defaultWorkerFactory.js';
+import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
+import { ILocalFileSearchSimpleWorker, LocalFileSearchSimpleWorkerHost } from '../common/localFileSearchWorkerTypes.js';
+import { memoize } from '../../../../base/common/decorators.js';
+import { HTMLFileSystemProvider } from '../../../../platform/files/browser/htmlFileSystemProvider.js';
+import { Schemas } from '../../../../base/common/network.js';
+import { URI, UriComponents } from '../../../../base/common/uri.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
+import { localize } from '../../../../nls.js';
+import { WebFileSystemAccess } from '../../../../platform/files/browser/webFileSystemAccess.js';
+import { revive } from '../../../../base/common/marshalling.js';
 
 export class RemoteSearchService extends SearchService {
 	constructor(
@@ -58,49 +36,22 @@ export class RemoteSearchService extends SearchService {
 		@ILogService logService: ILogService,
 		@IExtensionService extensionService: IExtensionService,
 		@IFileService fileService: IFileService,
-		@IInstantiationService
-		private readonly instantiationService: IInstantiationService,
+		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@IUriIdentityService uriIdentityService: IUriIdentityService,
 	) {
-		super(
-			modelService,
-			editorService,
-			telemetryService,
-			logService,
-			extensionService,
-			fileService,
-			uriIdentityService,
-		);
-		const searchProvider = this.instantiationService.createInstance(
-			LocalFileSearchWorkerClient,
-		);
-		this.registerSearchResultProvider(
-			Schemas.file,
-			SearchProviderType.file,
-			searchProvider,
-		);
-		this.registerSearchResultProvider(
-			Schemas.file,
-			SearchProviderType.text,
-			searchProvider,
-		);
+		super(modelService, editorService, telemetryService, logService, extensionService, fileService, uriIdentityService);
+		const searchProvider = this.instantiationService.createInstance(LocalFileSearchWorkerClient);
+		this.registerSearchResultProvider(Schemas.file, SearchProviderType.file, searchProvider);
+		this.registerSearchResultProvider(Schemas.file, SearchProviderType.text, searchProvider);
 	}
 }
 
-export class LocalFileSearchWorkerClient
-	extends Disposable
-	implements ISearchResultProvider
-{
+export class LocalFileSearchWorkerClient extends Disposable implements ISearchResultProvider {
+
 	protected _worker: IWorkerClient<ILocalFileSearchSimpleWorker> | null;
 
-	private readonly _onDidReceiveTextSearchMatch = new Emitter<{
-		match: IFileMatch<UriComponents>;
-		queryId: number;
-	}>();
-	readonly onDidReceiveTextSearchMatch: Event<{
-		match: IFileMatch<UriComponents>;
-		queryId: number;
-	}> = this._onDidReceiveTextSearchMatch.event;
+	private readonly _onDidReceiveTextSearchMatch = new Emitter<{ match: IFileMatch<UriComponents>; queryId: number }>();
+	readonly onDidReceiveTextSearchMatch: Event<{ match: IFileMatch<UriComponents>; queryId: number }> = this._onDidReceiveTextSearchMatch.event;
 
 	private cache: { key: string; cache: ISearchComplete } | undefined;
 
@@ -118,18 +69,13 @@ export class LocalFileSearchWorkerClient
 		return undefined;
 	}
 
-	sendTextSearchMatch(
-		match: IFileMatch<UriComponents>,
-		queryId: number,
-	): void {
+	sendTextSearchMatch(match: IFileMatch<UriComponents>, queryId: number): void {
 		this._onDidReceiveTextSearchMatch.fire({ match, queryId });
 	}
 
 	@memoize
 	private get fileSystemProvider(): HTMLFileSystemProvider {
-		return this.fileService.getProvider(
-			Schemas.file,
-		) as HTMLFileSystemProvider;
+		return this.fileService.getProvider(Schemas.file) as HTMLFileSystemProvider;
 	}
 
 	private async cancelQuery(queryId: number) {
@@ -137,11 +83,7 @@ export class LocalFileSearchWorkerClient
 		proxy.$cancelQuery(queryId);
 	}
 
-	async textSearch(
-		query: ITextQuery,
-		onProgress?: (p: ISearchProgressItem) => void,
-		token?: CancellationToken,
-	): Promise<ISearchComplete> {
+	async textSearch(query: ITextQuery, onProgress?: (p: ISearchProgressItem) => void, token?: CancellationToken): Promise<ISearchComplete> {
 		try {
 			const queryDisposables = new DisposableStore();
 
@@ -150,179 +92,109 @@ export class LocalFileSearchWorkerClient
 
 			let limitHit = false;
 
-			await Promise.all(
-				query.folderQueries.map(async (fq) => {
-					const queryId = this.queryId++;
-					queryDisposables.add(
-						token?.onCancellationRequested((e) =>
-							this.cancelQuery(queryId),
-						) || Disposable.None,
-					);
+			await Promise.all(query.folderQueries.map(async fq => {
+				const queryId = this.queryId++;
+				queryDisposables.add(token?.onCancellationRequested(e => this.cancelQuery(queryId)) || Disposable.None);
 
-					const handle: FileSystemHandle | undefined =
-						await this.fileSystemProvider.getHandle(fq.folder);
-					if (
-						!handle ||
-						!WebFileSystemAccess.isFileSystemDirectoryHandle(handle)
-					) {
-						console.error(
-							"Could not get directory handle for ",
-							fq,
-						);
-						return;
+				const handle: FileSystemHandle | undefined = await this.fileSystemProvider.getHandle(fq.folder);
+				if (!handle || !WebFileSystemAccess.isFileSystemDirectoryHandle(handle)) {
+					console.error('Could not get directory handle for ', fq);
+					return;
+				}
+
+				// force resource to revive using URI.revive.
+				// TODO @andrea see why we can't just use `revive()` below. For some reason, (<MarshalledObject>obj).$mid was undefined for result.resource
+				const reviveMatch = (result: IFileMatch<UriComponents>): IFileMatch => ({
+					resource: URI.revive(result.resource),
+					results: revive(result.results)
+				});
+
+				queryDisposables.add(this.onDidReceiveTextSearchMatch(e => {
+					if (e.queryId === queryId) {
+						onProgress?.(reviveMatch(e.match));
 					}
+				}));
 
-					// force resource to revive using URI.revive.
-					// TODO @andrea see why we can't just use `revive()` below. For some reason, (<MarshalledObject>obj).$mid was undefined for result.resource
-					const reviveMatch = (
-						result: IFileMatch<UriComponents>,
-					): IFileMatch => ({
-						resource: URI.revive(result.resource),
-						results: revive(result.results),
-					});
+				const ignorePathCasing = this.uriIdentityService.extUri.ignorePathCasing(fq.folder);
+				const folderResults = await proxy.$searchDirectory(handle, query, fq, ignorePathCasing, queryId);
+				for (const folderResult of folderResults.results) {
+					results.push(revive(folderResult));
+				}
 
-					queryDisposables.add(
-						this.onDidReceiveTextSearchMatch((e) => {
-							if (e.queryId === queryId) {
-								onProgress?.(reviveMatch(e.match));
-							}
-						}),
-					);
+				if (folderResults.limitHit) {
+					limitHit = true;
+				}
 
-					const ignorePathCasing =
-						this.uriIdentityService.extUri.ignorePathCasing(
-							fq.folder,
-						);
-					const folderResults = await proxy.$searchDirectory(
-						handle,
-						query,
-						fq,
-						ignorePathCasing,
-						queryId,
-					);
-					for (const folderResult of folderResults.results) {
-						results.push(revive(folderResult));
-					}
-
-					if (folderResults.limitHit) {
-						limitHit = true;
-					}
-				}),
-			);
+			}));
 
 			queryDisposables.dispose();
 			const result = { messages: [], results, limitHit };
 			return result;
 		} catch (e) {
-			console.error("Error performing web worker text search", e);
+			console.error('Error performing web worker text search', e);
 			return {
 				results: [],
-				messages: [
-					{
-						text: localize(
-							"errorSearchText",
-							"Unable to search with Web Worker text searcher",
-						),
-						type: TextSearchCompleteMessageType.Warning,
-					},
-				],
+				messages: [{
+					text: localize('errorSearchText', "Unable to search with Web Worker text searcher"), type: TextSearchCompleteMessageType.Warning
+				}],
 			};
 		}
 	}
 
-	async fileSearch(
-		query: IFileQuery,
-		token?: CancellationToken,
-	): Promise<ISearchComplete> {
+	async fileSearch(query: IFileQuery, token?: CancellationToken): Promise<ISearchComplete> {
 		try {
 			const queryDisposables = new DisposableStore();
 			let limitHit = false;
 
 			const proxy = this._getOrCreateWorker().proxy;
 			const results: IFileMatch[] = [];
-			await Promise.all(
-				query.folderQueries.map(async (fq) => {
-					const queryId = this.queryId++;
-					queryDisposables.add(
-						token?.onCancellationRequested((e) =>
-							this.cancelQuery(queryId),
-						) || Disposable.None,
-					);
+			await Promise.all(query.folderQueries.map(async fq => {
+				const queryId = this.queryId++;
+				queryDisposables.add(token?.onCancellationRequested(e => this.cancelQuery(queryId)) || Disposable.None);
 
-					const handle: FileSystemHandle | undefined =
-						await this.fileSystemProvider.getHandle(fq.folder);
-					if (
-						!handle ||
-						!WebFileSystemAccess.isFileSystemDirectoryHandle(handle)
-					) {
-						console.error(
-							"Could not get directory handle for ",
-							fq,
-						);
-						return;
-					}
-					const caseSensitive =
-						this.uriIdentityService.extUri.ignorePathCasing(
-							fq.folder,
-						);
-					const folderResults = await proxy.$listDirectory(
-						handle,
-						query,
-						fq,
-						caseSensitive,
-						queryId,
-					);
-					for (const folderResult of folderResults.results) {
-						results.push({
-							resource: URI.joinPath(fq.folder, folderResult),
-						});
-					}
-					if (folderResults.limitHit) {
-						limitHit = true;
-					}
-				}),
-			);
+				const handle: FileSystemHandle | undefined = await this.fileSystemProvider.getHandle(fq.folder);
+				if (!handle || !WebFileSystemAccess.isFileSystemDirectoryHandle(handle)) {
+					console.error('Could not get directory handle for ', fq);
+					return;
+				}
+				const caseSensitive = this.uriIdentityService.extUri.ignorePathCasing(fq.folder);
+				const folderResults = await proxy.$listDirectory(handle, query, fq, caseSensitive, queryId);
+				for (const folderResult of folderResults.results) {
+					results.push({ resource: URI.joinPath(fq.folder, folderResult) });
+				}
+				if (folderResults.limitHit) { limitHit = true; }
+			}));
 
 			queryDisposables.dispose();
 
 			const result = { messages: [], results, limitHit };
 			return result;
 		} catch (e) {
-			console.error("Error performing web worker file search", e);
+			console.error('Error performing web worker file search', e);
 			return {
 				results: [],
-				messages: [
-					{
-						text: localize(
-							"errorSearchFile",
-							"Unable to search with Web Worker file searcher",
-						),
-						type: TextSearchCompleteMessageType.Warning,
-					},
-				],
+				messages: [{
+					text: localize('errorSearchFile', "Unable to search with Web Worker file searcher"), type: TextSearchCompleteMessageType.Warning
+				}],
 			};
 		}
 	}
 
 	async clearCache(cacheKey: string): Promise<void> {
-		if (this.cache?.key === cacheKey) {
-			this.cache = undefined;
-		}
+		if (this.cache?.key === cacheKey) { this.cache = undefined; }
 	}
 
 	private _getOrCreateWorker(): IWorkerClient<ILocalFileSearchSimpleWorker> {
 		if (!this._worker) {
 			try {
-				this._worker = this._register(
-					createWebWorker<ILocalFileSearchSimpleWorker>(
-						"vs/workbench/services/search/worker/localFileSearch",
-						"LocalFileSearchWorker",
-					),
-				);
+				this._worker = this._register(createWebWorker<ILocalFileSearchSimpleWorker>(
+					'vs/workbench/services/search/worker/localFileSearch',
+					'LocalFileSearchWorker'
+				));
 				LocalFileSearchSimpleWorkerHost.setChannel(this._worker, {
 					$sendTextSearchMatch: (match, queryId) => {
 						return this.sendTextSearchMatch(match, queryId);
-					},
+					}
 				});
 			} catch (err) {
 				logOnceWebWorkerWarning(err);
@@ -333,8 +205,4 @@ export class LocalFileSearchWorkerClient
 	}
 }
 
-registerSingleton(
-	ISearchService,
-	RemoteSearchService,
-	InstantiationType.Delayed,
-);
+registerSingleton(ISearchService, RemoteSearchService, InstantiationType.Delayed);

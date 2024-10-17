@@ -3,25 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as objects from "../../../../base/common/objects.js";
-import { IAccessibilityService } from "../../../../platform/accessibility/common/accessibility.js";
-import { ICommandService } from "../../../../platform/commands/common/commands.js";
-import { IContextKeyService } from "../../../../platform/contextkey/common/contextkey.js";
-import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
-import { INotificationService } from "../../../../platform/notification/common/notification.js";
-import { IThemeService } from "../../../../platform/theme/common/themeService.js";
-import {
-	ConfigurationChangedEvent,
-	IEditorOptions,
-} from "../../../common/config/editorOptions.js";
-import { ILanguageConfigurationService } from "../../../common/languages/languageConfigurationRegistry.js";
-import { ILanguageFeaturesService } from "../../../common/services/languageFeatures.js";
-import { ICodeEditor } from "../../editorBrowser.js";
-import { ICodeEditorService } from "../../services/codeEditorService.js";
-import {
-	CodeEditorWidget,
-	ICodeEditorWidgetOptions,
-} from "./codeEditorWidget.js";
+import * as objects from '../../../../base/common/objects.js';
+import { ICodeEditor } from '../../editorBrowser.js';
+import { ICodeEditorService } from '../../services/codeEditorService.js';
+import { CodeEditorWidget, ICodeEditorWidgetOptions } from './codeEditorWidget.js';
+import { ConfigurationChangedEvent, IEditorOptions } from '../../../common/config/editorOptions.js';
+import { ILanguageConfigurationService } from '../../../common/languages/languageConfigurationRegistry.js';
+import { ILanguageFeaturesService } from '../../../common/services/languageFeatures.js';
+import { IAccessibilityService } from '../../../../platform/accessibility/common/accessibility.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 
 export class EmbeddedCodeEditorWidget extends CodeEditorWidget {
 	private readonly _parentEditor: ICodeEditor;
@@ -39,29 +33,10 @@ export class EmbeddedCodeEditorWidget extends CodeEditorWidget {
 		@IThemeService themeService: IThemeService,
 		@INotificationService notificationService: INotificationService,
 		@IAccessibilityService accessibilityService: IAccessibilityService,
-		@ILanguageConfigurationService
-		languageConfigurationService: ILanguageConfigurationService,
-		@ILanguageFeaturesService
-		languageFeaturesService: ILanguageFeaturesService,
+		@ILanguageConfigurationService languageConfigurationService: ILanguageConfigurationService,
+		@ILanguageFeaturesService languageFeaturesService: ILanguageFeaturesService
 	) {
-		super(
-			domElement,
-			{
-				...parentEditor.getRawOptions(),
-				overflowWidgetsDomNode:
-					parentEditor.getOverflowWidgetsDomNode(),
-			},
-			codeEditorWidgetOptions,
-			instantiationService,
-			codeEditorService,
-			commandService,
-			contextKeyService,
-			themeService,
-			notificationService,
-			accessibilityService,
-			languageConfigurationService,
-			languageFeaturesService,
-		);
+		super(domElement, { ...parentEditor.getRawOptions(), overflowWidgetsDomNode: parentEditor.getOverflowWidgetsDomNode() }, codeEditorWidgetOptions, instantiationService, codeEditorService, commandService, contextKeyService, themeService, notificationService, accessibilityService, languageConfigurationService, languageFeaturesService);
 
 		this._parentEditor = parentEditor;
 		this._overwriteOptions = options;
@@ -69,12 +44,7 @@ export class EmbeddedCodeEditorWidget extends CodeEditorWidget {
 		// Overwrite parent's options
 		super.updateOptions(this._overwriteOptions);
 
-		this._register(
-			parentEditor.onDidChangeConfiguration(
-				(e: ConfigurationChangedEvent) =>
-					this._onParentConfigurationChanged(e),
-			),
-		);
+		this._register(parentEditor.onDidChangeConfiguration((e: ConfigurationChangedEvent) => this._onParentConfigurationChanged(e)));
 	}
 
 	getParentEditor(): ICodeEditor {

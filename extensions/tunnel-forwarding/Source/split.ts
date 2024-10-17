@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Transform } from "stream";
+import { Transform } from 'stream';
 
-export const splitNewLines = () => new StreamSplitter("\n".charCodeAt(0));
+export const splitNewLines = () => new StreamSplitter('\n'.charCodeAt(0));
 
 /**
  * Copied and simplified from src\vs\base\node\nodeStreams.ts
@@ -19,11 +19,7 @@ export class StreamSplitter extends Transform {
 		super();
 	}
 
-	override _transform(
-		chunk: Buffer,
-		_encoding: string,
-		callback: (error?: Error | null, data?: any) => void,
-	): void {
+	override _transform(chunk: Buffer, _encoding: string, callback: (error?: Error | null, data?: any) => void): void {
 		if (!this.buffer) {
 			this.buffer = chunk;
 		} else {
@@ -41,16 +37,11 @@ export class StreamSplitter extends Transform {
 			offset = index + 1;
 		}
 
-		this.buffer =
-			offset === this.buffer.length
-				? undefined
-				: this.buffer.subarray(offset);
+		this.buffer = offset === this.buffer.length ? undefined : this.buffer.subarray(offset);
 		callback();
 	}
 
-	override _flush(
-		callback: (error?: Error | null, data?: any) => void,
-	): void {
+	override _flush(callback: (error?: Error | null, data?: any) => void): void {
 		if (this.buffer) {
 			this.push(this.buffer);
 		}

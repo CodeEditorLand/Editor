@@ -3,27 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IJSONSchema } from "../../../../base/common/jsonSchema.js";
-import * as nls from "../../../../nls.js";
-import {
-	Extensions,
-	IConfigurationNode,
-	IConfigurationRegistry,
-} from "../../../../platform/configuration/common/configurationRegistry.js";
-import { Registry } from "../../../../platform/registry/common/platform.js";
-import { workbenchConfigurationNodeBase } from "../../../common/configuration.js";
+import { IConfigurationNode, IConfigurationRegistry, Extensions } from '../../../../platform/configuration/common/configurationRegistry.js';
+import { workbenchConfigurationNodeBase } from '../../../common/configuration.js';
+import * as nls from '../../../../nls.js';
+import { IJSONSchema } from '../../../../base/common/jsonSchema.js';
+import { Registry } from '../../../../platform/registry/common/platform.js';
 
-export const defaultExternalUriOpenerId = "default";
+export const defaultExternalUriOpenerId = 'default';
 
-export const externalUriOpenersSettingId = "workbench.externalUriOpeners";
+export const externalUriOpenersSettingId = 'workbench.externalUriOpeners';
 
 export interface ExternalUriOpenersConfiguration {
 	readonly [uriGlob: string]: string;
 }
 
 const externalUriOpenerIdSchemaAddition: IJSONSchema = {
-	type: "string",
-	enum: [],
+	type: 'string',
+	enum: []
 };
 
 const exampleUriPatterns = `
@@ -42,58 +38,36 @@ export const externalUriOpenersConfigurationNode: IConfigurationNode = {
 	...workbenchConfigurationNodeBase,
 	properties: {
 		[externalUriOpenersSettingId]: {
-			type: "object",
-			markdownDescription: nls.localize(
-				"externalUriOpeners",
-				"Configure the opener to use for external URIs (http, https).",
-			),
-			defaultSnippets: [
-				{
-					body: {
-						"example.com": "$1",
-					},
-				},
-			],
+			type: 'object',
+			markdownDescription: nls.localize('externalUriOpeners', "Configure the opener to use for external URIs (http, https)."),
+			defaultSnippets: [{
+				body: {
+					'example.com': '$1'
+				}
+			}],
 			additionalProperties: {
 				anyOf: [
 					{
-						type: "string",
-						markdownDescription: nls.localize(
-							"externalUriOpeners.uri",
-							"Map URI pattern to an opener id.\nExample patterns: \n{0}",
-							exampleUriPatterns,
-						),
+						type: 'string',
+						markdownDescription: nls.localize('externalUriOpeners.uri', "Map URI pattern to an opener id.\nExample patterns: \n{0}", exampleUriPatterns),
 					},
 					{
-						type: "string",
-						markdownDescription: nls.localize(
-							"externalUriOpeners.uri",
-							"Map URI pattern to an opener id.\nExample patterns: \n{0}",
-							exampleUriPatterns,
-						),
+						type: 'string',
+						markdownDescription: nls.localize('externalUriOpeners.uri', "Map URI pattern to an opener id.\nExample patterns: \n{0}", exampleUriPatterns),
 						enum: [defaultExternalUriOpenerId],
-						enumDescriptions: [
-							nls.localize(
-								"externalUriOpeners.defaultId",
-								"Open using VS Code's standard opener.",
-							),
-						],
+						enumDescriptions: [nls.localize('externalUriOpeners.defaultId', "Open using VS Code's standard opener.")],
 					},
-					externalUriOpenerIdSchemaAddition,
-				],
-			},
-		},
-	},
+					externalUriOpenerIdSchemaAddition
+				]
+			}
+		}
+	}
 };
 
-export function updateContributedOpeners(
-	enumValues: string[],
-	enumDescriptions: string[],
-): void {
+export function updateContributedOpeners(enumValues: string[], enumDescriptions: string[]): void {
 	externalUriOpenerIdSchemaAddition.enum = enumValues;
 	externalUriOpenerIdSchemaAddition.enumDescriptions = enumDescriptions;
 
-	Registry.as<IConfigurationRegistry>(
-		Extensions.Configuration,
-	).notifyConfigurationSchemaUpdated(externalUriOpenersConfigurationNode);
+	Registry.as<IConfigurationRegistry>(Extensions.Configuration)
+		.notifyConfigurationSchemaUpdated(externalUriOpenersConfigurationNode);
 }

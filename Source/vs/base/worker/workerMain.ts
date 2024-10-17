@@ -4,11 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 (function () {
+
 	function loadCode(moduleId: string): Promise<SimpleWorkerModule> {
-		const moduleUrl = new URL(
-			`${moduleId}.js`,
-			globalThis._VSCODE_FILE_ROOT,
-		);
+		const moduleUrl = new URL(`${moduleId}.js`, globalThis._VSCODE_FILE_ROOT);
 		return import(moduleUrl.href);
 	}
 
@@ -18,21 +16,16 @@
 
 	// shape of vs/base/common/worker/simpleWorker.ts
 	interface SimpleWorkerModule {
-		create(
-			postMessage: (msg: any, transfer?: Transferable[]) => void,
-		): MessageHandler;
+		create(postMessage: (msg: any, transfer?: Transferable[]) => void): MessageHandler;
 	}
 
 	function setupWorkerServer(ws: SimpleWorkerModule) {
 		setTimeout(function () {
-			const messageHandler = ws.create(
-				(msg: any, transfer?: Transferable[]) => {
-					(<any>globalThis).postMessage(msg, transfer);
-				},
-			);
+			const messageHandler = ws.create((msg: any, transfer?: Transferable[]) => {
+				(<any>globalThis).postMessage(msg, transfer);
+			});
 
-			self.onmessage = (e: MessageEvent) =>
-				messageHandler.onmessage(e.data, e.ports);
+			self.onmessage = (e: MessageEvent) => messageHandler.onmessage(e.data, e.ports);
 			while (beforeReadyMessages.length > 0) {
 				self.onmessage(beforeReadyMessages.shift()!);
 			}
@@ -48,13 +41,10 @@
 		}
 
 		isFirstMessage = false;
-		loadCode(message.data).then(
-			(ws) => {
-				setupWorkerServer(ws);
-			},
-			(err) => {
-				console.error(err);
-			},
-		);
+		loadCode(message.data).then((ws) => {
+			setupWorkerServer(ws);
+		}, (err) => {
+			console.error(err);
+		});
 	};
 })();

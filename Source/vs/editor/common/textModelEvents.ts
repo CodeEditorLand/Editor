@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IRange } from "./core/range.js";
-import { Selection } from "./core/selection.js";
-import { IModelDecoration, InjectedTextOptions } from "./model.js";
+import { IRange } from './core/range.js';
+import { Selection } from './core/selection.js';
+import { IModelDecoration, InjectedTextOptions } from './model.js';
 
 /**
  * An event describing that the current language associated with a model has changed.
@@ -29,7 +29,8 @@ export interface IModelLanguageChangedEvent {
 /**
  * An event describing that the language configuration associated with a model has changed.
  */
-export interface IModelLanguageConfigurationChangedEvent {}
+export interface IModelLanguageConfigurationChangedEvent {
+}
 
 export interface IModelContentChange {
 	/**
@@ -129,7 +130,7 @@ export const enum RawContentChangedType {
 	LineChanged = 2,
 	LinesDeleted = 3,
 	LinesInserted = 4,
-	EOLChanged = 5,
+	EOLChanged = 5
 }
 
 /**
@@ -145,20 +146,14 @@ export class ModelRawFlush {
  * @internal
  */
 export class LineInjectedText {
-	public static applyInjectedText(
-		lineText: string,
-		injectedTexts: LineInjectedText[] | null,
-	): string {
+	public static applyInjectedText(lineText: string, injectedTexts: LineInjectedText[] | null): string {
 		if (!injectedTexts || injectedTexts.length === 0) {
 			return lineText;
 		}
-		let result = "";
+		let result = '';
 		let lastOriginalOffset = 0;
 		for (const injectedText of injectedTexts) {
-			result += lineText.substring(
-				lastOriginalOffset,
-				injectedText.column - 1,
-			);
+			result += lineText.substring(lastOriginalOffset, injectedText.column - 1);
 			lastOriginalOffset = injectedText.column - 1;
 			result += injectedText.options.content;
 		}
@@ -166,38 +161,26 @@ export class LineInjectedText {
 		return result;
 	}
 
-	public static fromDecorations(
-		decorations: IModelDecoration[],
-	): LineInjectedText[] {
+	public static fromDecorations(decorations: IModelDecoration[]): LineInjectedText[] {
 		const result: LineInjectedText[] = [];
 		for (const decoration of decorations) {
-			if (
-				decoration.options.before &&
-				decoration.options.before.content.length > 0
-			) {
-				result.push(
-					new LineInjectedText(
-						decoration.ownerId,
-						decoration.range.startLineNumber,
-						decoration.range.startColumn,
-						decoration.options.before,
-						0,
-					),
-				);
+			if (decoration.options.before && decoration.options.before.content.length > 0) {
+				result.push(new LineInjectedText(
+					decoration.ownerId,
+					decoration.range.startLineNumber,
+					decoration.range.startColumn,
+					decoration.options.before,
+					0,
+				));
 			}
-			if (
-				decoration.options.after &&
-				decoration.options.after.content.length > 0
-			) {
-				result.push(
-					new LineInjectedText(
-						decoration.ownerId,
-						decoration.range.endLineNumber,
-						decoration.range.endColumn,
-						decoration.options.after,
-						1,
-					),
-				);
+			if (decoration.options.after && decoration.options.after.content.length > 0) {
+				result.push(new LineInjectedText(
+					decoration.ownerId,
+					decoration.range.endLineNumber,
+					decoration.range.endColumn,
+					decoration.options.after,
+					1,
+				));
 			}
 		}
 		result.sort((a, b) => {
@@ -217,17 +200,11 @@ export class LineInjectedText {
 		public readonly lineNumber: number,
 		public readonly column: number,
 		public readonly options: InjectedTextOptions,
-		public readonly order: number,
-	) {}
+		public readonly order: number
+	) { }
 
 	public withText(text: string): LineInjectedText {
-		return new LineInjectedText(
-			this.ownerId,
-			this.lineNumber,
-			this.column,
-			{ ...this.options, content: text },
-			this.order,
-		);
+		return new LineInjectedText(this.ownerId, this.lineNumber, this.column, { ...this.options, content: text }, this.order);
 	}
 }
 
@@ -250,11 +227,7 @@ export class ModelRawLineChanged {
 	 */
 	public readonly injectedText: LineInjectedText[] | null;
 
-	constructor(
-		lineNumber: number,
-		detail: string,
-		injectedText: LineInjectedText[] | null,
-	) {
+	constructor(lineNumber: number, detail: string, injectedText: LineInjectedText[] | null) {
 		this.lineNumber = lineNumber;
 		this.detail = detail;
 		this.injectedText = injectedText;
@@ -305,12 +278,7 @@ export class ModelRawLinesInserted {
 	 */
 	public readonly injectedTexts: (LineInjectedText[] | null)[];
 
-	constructor(
-		fromLineNumber: number,
-		toLineNumber: number,
-		detail: string[],
-		injectedTexts: (LineInjectedText[] | null)[],
-	) {
+	constructor(fromLineNumber: number, toLineNumber: number, detail: string[], injectedTexts: (LineInjectedText[] | null)[]) {
 		this.injectedTexts = injectedTexts;
 		this.fromLineNumber = fromLineNumber;
 		this.toLineNumber = toLineNumber;
@@ -329,18 +297,14 @@ export class ModelRawEOLChanged {
 /**
  * @internal
  */
-export type ModelRawChange =
-	| ModelRawFlush
-	| ModelRawLineChanged
-	| ModelRawLinesDeleted
-	| ModelRawLinesInserted
-	| ModelRawEOLChanged;
+export type ModelRawChange = ModelRawFlush | ModelRawLineChanged | ModelRawLinesDeleted | ModelRawLinesInserted | ModelRawEOLChanged;
 
 /**
  * An event describing a change in the text of a model.
  * @internal
  */
 export class ModelRawContentChangedEvent {
+
 	public readonly changes: ModelRawChange[];
 	/**
 	 * The new version id the model has transitioned to.
@@ -357,12 +321,7 @@ export class ModelRawContentChangedEvent {
 
 	public resultingSelection: Selection[] | null;
 
-	constructor(
-		changes: ModelRawChange[],
-		versionId: number,
-		isUndoing: boolean,
-		isRedoing: boolean,
-	) {
+	constructor(changes: ModelRawChange[], versionId: number, isUndoing: boolean, isRedoing: boolean) {
 		this.changes = changes;
 		this.versionId = versionId;
 		this.isUndoing = isUndoing;
@@ -380,22 +339,12 @@ export class ModelRawContentChangedEvent {
 		return false;
 	}
 
-	public static merge(
-		a: ModelRawContentChangedEvent,
-		b: ModelRawContentChangedEvent,
-	): ModelRawContentChangedEvent {
-		const changes = ([] as ModelRawChange[])
-			.concat(a.changes)
-			.concat(b.changes);
+	public static merge(a: ModelRawContentChangedEvent, b: ModelRawContentChangedEvent): ModelRawContentChangedEvent {
+		const changes = ([] as ModelRawChange[]).concat(a.changes).concat(b.changes);
 		const versionId = b.versionId;
-		const isUndoing = a.isUndoing || b.isUndoing;
-		const isRedoing = a.isRedoing || b.isRedoing;
-		return new ModelRawContentChangedEvent(
-			changes,
-			versionId,
-			isUndoing,
-			isRedoing,
-		);
+		const isUndoing = (a.isUndoing || b.isUndoing);
+		const isRedoing = (a.isRedoing || b.isRedoing);
+		return new ModelRawContentChangedEvent(changes, versionId, isUndoing, isRedoing);
 	}
 }
 
@@ -404,6 +353,7 @@ export class ModelRawContentChangedEvent {
  * @internal
  */
 export class ModelInjectedTextChangedEvent {
+
 	public readonly changes: ModelRawLineChanged[];
 
 	constructor(changes: ModelRawLineChanged[]) {
@@ -418,38 +368,21 @@ export class InternalModelContentChangeEvent {
 	constructor(
 		public readonly rawContentChangedEvent: ModelRawContentChangedEvent,
 		public readonly contentChangedEvent: IModelContentChangedEvent,
-	) {}
+	) { }
 
-	public merge(
-		other: InternalModelContentChangeEvent,
-	): InternalModelContentChangeEvent {
-		const rawContentChangedEvent = ModelRawContentChangedEvent.merge(
-			this.rawContentChangedEvent,
-			other.rawContentChangedEvent,
-		);
-		const contentChangedEvent =
-			InternalModelContentChangeEvent._mergeChangeEvents(
-				this.contentChangedEvent,
-				other.contentChangedEvent,
-			);
-		return new InternalModelContentChangeEvent(
-			rawContentChangedEvent,
-			contentChangedEvent,
-		);
+	public merge(other: InternalModelContentChangeEvent): InternalModelContentChangeEvent {
+		const rawContentChangedEvent = ModelRawContentChangedEvent.merge(this.rawContentChangedEvent, other.rawContentChangedEvent);
+		const contentChangedEvent = InternalModelContentChangeEvent._mergeChangeEvents(this.contentChangedEvent, other.contentChangedEvent);
+		return new InternalModelContentChangeEvent(rawContentChangedEvent, contentChangedEvent);
 	}
 
-	private static _mergeChangeEvents(
-		a: IModelContentChangedEvent,
-		b: IModelContentChangedEvent,
-	): IModelContentChangedEvent {
-		const changes = ([] as IModelContentChange[])
-			.concat(a.changes)
-			.concat(b.changes);
+	private static _mergeChangeEvents(a: IModelContentChangedEvent, b: IModelContentChangedEvent): IModelContentChangedEvent {
+		const changes = ([] as IModelContentChange[]).concat(a.changes).concat(b.changes);
 		const eol = b.eol;
 		const versionId = b.versionId;
-		const isUndoing = a.isUndoing || b.isUndoing;
-		const isRedoing = a.isRedoing || b.isRedoing;
-		const isFlush = a.isFlush || b.isFlush;
+		const isUndoing = (a.isUndoing || b.isUndoing);
+		const isRedoing = (a.isRedoing || b.isRedoing);
+		const isFlush = (a.isFlush || b.isFlush);
 		const isEolChange = a.isEolChange && b.isEolChange; // both must be true to not confuse listeners who skip such edits
 		return {
 			changes: changes,

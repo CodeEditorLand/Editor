@@ -3,25 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { encodeBase64, VSBuffer } from "../../../base/common/buffer.js";
-import {
-	Emitter,
-	Event,
-	PauseableEmitter,
-} from "../../../base/common/event.js";
-import { Disposable, DisposableStore } from "../../../base/common/lifecycle.js";
-import {
-	ISocket,
-	SocketCloseEvent,
-	SocketDiagnostics,
-	SocketDiagnosticsEventType,
-} from "../../../base/parts/ipc/common/ipc.net.js";
+import { VSBuffer, encodeBase64 } from '../../../base/common/buffer.js';
+import { Emitter, Event, PauseableEmitter } from '../../../base/common/event.js';
+import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
+import { ISocket, SocketCloseEvent, SocketDiagnostics, SocketDiagnosticsEventType } from '../../../base/parts/ipc/common/ipc.net.js';
 
-export const makeRawSocketHeaders = (
-	path: string,
-	query: string,
-	deubgLabel: string,
-) => {
+export const makeRawSocketHeaders = (path: string, query: string, deubgLabel: string) => {
 	// https://tools.ietf.org/html/rfc6455#section-4
 	const buffer = new Uint8Array(16);
 	for (let i = 0; i < 16; i++) {
@@ -33,13 +20,13 @@ export const makeRawSocketHeaders = (
 		`GET ws://localhost${path}?${query}&skipWebSocketFrames=true HTTP/1.1`,
 		`Connection: Upgrade`,
 		`Upgrade: websocket`,
-		`Sec-WebSocket-Key: ${nonce}`,
+		`Sec-WebSocket-Key: ${nonce}`
 	];
 
-	return headers.join("\r\n") + "\r\n\r\n";
+	return headers.join('\r\n') + '\r\n\r\n';
 };
 
-export const socketRawEndHeaderSequence = VSBuffer.fromString("\r\n\r\n");
+export const socketRawEndHeaderSequence = VSBuffer.fromString('\r\n\r\n');
 
 export interface RemoteSocketHalf {
 	onData: Emitter<VSBuffer>;
@@ -50,56 +37,41 @@ export interface RemoteSocketHalf {
 /** Should be called immediately after making a ManagedSocket to make it ready for data flow. */
 export async function connectManagedSocket<T extends ManagedSocket>(
 	socket: T,
-	path: string,
-	query: string,
-	debugLabel: string,
-	half: RemoteSocketHalf,
+	path: string, query: string, debugLabel: string,
+	half: RemoteSocketHalf
 ): Promise<T> {
-	socket.write(
-		VSBuffer.fromString(makeRawSocketHeaders(path, query, debugLabel)),
-	);
+	socket.write(VSBuffer.fromString(makeRawSocketHeaders(path, query, debugLabel)));
 
 	const d = new DisposableStore();
 	try {
 		return await new Promise<T>((resolve, reject) => {
 			let dataSoFar: VSBuffer | undefined;
-			d.add(
-				socket.onData((d_1) => {
-					if (!dataSoFar) {
-						dataSoFar = d_1;
-					} else {
-						dataSoFar = VSBuffer.concat(
-							[dataSoFar, d_1],
-							dataSoFar.byteLength + d_1.byteLength,
-						);
-					}
+			d.add(socket.onData(d_1 => {
+				if (!dataSoFar) {
+					dataSoFar = d_1;
+				} else {
+					dataSoFar = VSBuffer.concat([dataSoFar, d_1], dataSoFar.byteLength + d_1.byteLength);
+				}
 
-					const index = dataSoFar.indexOf(socketRawEndHeaderSequence);
-					if (index === -1) {
-						return;
-					}
+				const index = dataSoFar.indexOf(socketRawEndHeaderSequence);
+				if (index === -1) {
+					return;
+				}
 
-					resolve(socket);
-					// pause data events until the socket consumer is hooked up. We may
-					// immediately emit remaining data, but if not there may still be
-					// microtasks queued which would fire data into the abyss.
-					socket.pauseData();
+				resolve(socket);
+				// pause data events until the socket consumer is hooked up. We may
+				// immediately emit remaining data, but if not there may still be
+				// microtasks queued which would fire data into the abyss.
+				socket.pauseData();
 
-					const rest = dataSoFar.slice(
-						index + socketRawEndHeaderSequence.byteLength,
-					);
-					if (rest.byteLength) {
-						half.onData.fire(rest);
-					}
-				}),
-			);
+				const rest = dataSoFar.slice(index + socketRawEndHeaderSequence.byteLength);
+				if (rest.byteLength) {
+					half.onData.fire(rest);
+				}
+			}));
 
-			d.add(
-				socket.onClose((err) =>
-					reject(err ?? new Error("socket closed")),
-				),
-			);
-			d.add(socket.onEnd(() => reject(new Error("socket ended"))));
+			d.add(socket.onClose(err => reject(err ?? new Error('socket closed'))));
+			d.add(socket.onEnd(() => reject(new Error('socket ended'))));
 		});
 	} catch (e) {
 		socket.dispose();
@@ -110,9 +82,7 @@ export async function connectManagedSocket<T extends ManagedSocket>(
 }
 
 export abstract class ManagedSocket extends Disposable implements ISocket {
-	private readonly pausableDataEmitter = this._register(
-		new PauseableEmitter<VSBuffer>(),
-	);
+	private readonly pausableDataEmitter = this._register(new PauseableEmitter<VSBuffer>());
 
 	public onData: Event<VSBuffer> = (...args) => {
 		if (this.pausableDataEmitter.isPaused) {
@@ -135,9 +105,7 @@ export abstract class ManagedSocket extends Disposable implements ISocket {
 		super();
 
 		this._register(half.onData);
-		this._register(
-			half.onData.event((data) => this.pausableDataEmitter.fire(data)),
-		);
+		this._register(half.onData.event(data => this.pausableDataEmitter.fire(data)));
 
 		this.onClose = this._register(half.onClose).event;
 		this.onEnd = this._register(half.onEnd).event;

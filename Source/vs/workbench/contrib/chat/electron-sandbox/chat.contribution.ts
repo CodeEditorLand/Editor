@@ -3,25 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { registerAction2 } from "../../../../platform/actions/common/actions.js";
-import {
-	registerWorkbenchContribution2,
-	WorkbenchPhase,
-} from "../../../common/contributions.js";
-import {
-	HoldToVoiceChatInChatViewAction,
-	InlineVoiceChatAction,
-	InstallSpeechProviderForVoiceChatAction,
-	KeywordActivationContribution,
-	QuickVoiceChatAction,
-	ReadChatResponseAloud,
-	StartVoiceChatAction,
-	StopListeningAction,
-	StopListeningAndSubmitAction,
-	StopReadAloud,
-	StopReadChatItemAloud,
-	VoiceChatInChatViewAction,
-} from "./actions/voiceChatActions.js";
+import { InlineVoiceChatAction, QuickVoiceChatAction, StartVoiceChatAction, VoiceChatInChatViewAction, StopListeningAction, StopListeningAndSubmitAction, KeywordActivationContribution, InstallSpeechProviderForVoiceChatAction, HoldToVoiceChatInChatViewAction, ReadChatResponseAloud, StopReadAloud, StopReadChatItemAloud } from './actions/voiceChatActions.js';
+import { registerAction2 } from '../../../../platform/actions/common/actions.js';
+import { WorkbenchPhase, registerWorkbenchContribution2 } from '../../../common/contributions.js';
 
 registerAction2(StartVoiceChatAction);
 registerAction2(InstallSpeechProviderForVoiceChatAction);
@@ -38,8 +22,4 @@ registerAction2(ReadChatResponseAloud);
 registerAction2(StopReadChatItemAloud);
 registerAction2(StopReadAloud);
 
-registerWorkbenchContribution2(
-	KeywordActivationContribution.ID,
-	KeywordActivationContribution,
-	WorkbenchPhase.AfterRestored,
-);
+registerWorkbenchContribution2(KeywordActivationContribution.ID, KeywordActivationContribution, WorkbenchPhase.AfterRestored);

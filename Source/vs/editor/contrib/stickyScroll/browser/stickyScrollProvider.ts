@@ -3,62 +3,43 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { binarySearch } from "../../../../base/common/arrays.js";
-import { RunOnceScheduler } from "../../../../base/common/async.js";
-import {
-	CancellationToken,
-	CancellationTokenSource,
-} from "../../../../base/common/cancellation.js";
-import { Emitter, Event } from "../../../../base/common/event.js";
-import {
-	Disposable,
-	DisposableStore,
-	toDisposable,
-} from "../../../../base/common/lifecycle.js";
-import { ICodeEditor } from "../../../browser/editorBrowser.js";
-import { EditorOption } from "../../../common/config/editorOptions.js";
-import { Range } from "../../../common/core/range.js";
-import { ILanguageConfigurationService } from "../../../common/languages/languageConfigurationRegistry.js";
-import { ILanguageFeaturesService } from "../../../common/services/languageFeatures.js";
-import {
-	StickyElement,
-	StickyModel,
-	StickyRange,
-} from "./stickyScrollElement.js";
-import {
-	IStickyModelProvider,
-	StickyModelProvider,
-} from "./stickyScrollModelProvider.js";
+import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
+import { ICodeEditor } from '../../../browser/editorBrowser.js';
+import { ILanguageFeaturesService } from '../../../common/services/languageFeatures.js';
+import { CancellationToken, CancellationTokenSource, } from '../../../../base/common/cancellation.js';
+import { EditorOption } from '../../../common/config/editorOptions.js';
+import { RunOnceScheduler } from '../../../../base/common/async.js';
+import { Range } from '../../../common/core/range.js';
+import { binarySearch } from '../../../../base/common/arrays.js';
+import { Event, Emitter } from '../../../../base/common/event.js';
+import { ILanguageConfigurationService } from '../../../common/languages/languageConfigurationRegistry.js';
+import { StickyModelProvider, IStickyModelProvider } from './stickyScrollModelProvider.js';
+import { StickyElement, StickyModel, StickyRange } from './stickyScrollElement.js';
 
 export class StickyLineCandidate {
 	constructor(
 		public readonly startLineNumber: number,
 		public readonly endLineNumber: number,
 		public readonly nestingDepth: number,
-	) {}
+	) { }
 }
 
 export interface IStickyLineCandidateProvider {
+
 	dispose(): void;
 	getVersionId(): number | undefined;
 	update(): Promise<void>;
-	getCandidateStickyLinesIntersecting(
-		range: StickyRange,
-	): StickyLineCandidate[];
+	getCandidateStickyLinesIntersecting(range: StickyRange): StickyLineCandidate[];
 	onDidChangeStickyScroll: Event<void>;
+
 }
 
-export class StickyLineCandidateProvider
-	extends Disposable
-	implements IStickyLineCandidateProvider
-{
-	static readonly ID = "store.contrib.stickyScrollController";
+export class StickyLineCandidateProvider extends Disposable implements IStickyLineCandidateProvider {
 
-	private readonly _onDidChangeStickyScroll = this._register(
-		new Emitter<void>(),
-	);
-	public readonly onDidChangeStickyScroll =
-		this._onDidChangeStickyScroll.event;
+	static readonly ID = 'store.contrib.stickyScrollController';
+
+	private readonly _onDidChangeStickyScroll = this._register(new Emitter<void>());
+	public readonly onDidChangeStickyScroll = this._onDidChangeStickyScroll.event;
 
 	private readonly _editor: ICodeEditor;
 	private readonly _updateSoon: RunOnceScheduler;
@@ -70,25 +51,19 @@ export class StickyLineCandidateProvider
 
 	constructor(
 		editor: ICodeEditor,
-		@ILanguageFeaturesService
-		private readonly _languageFeaturesService: ILanguageFeaturesService,
-		@ILanguageConfigurationService
-		private readonly _languageConfigurationService: ILanguageConfigurationService,
+		@ILanguageFeaturesService private readonly _languageFeaturesService: ILanguageFeaturesService,
+		@ILanguageConfigurationService private readonly _languageConfigurationService: ILanguageConfigurationService,
 	) {
 		super();
 		this._editor = editor;
 		this._sessionStore = this._register(new DisposableStore());
-		this._updateSoon = this._register(
-			new RunOnceScheduler(() => this.update(), 50),
-		);
+		this._updateSoon = this._register(new RunOnceScheduler(() => this.update(), 50));
 
-		this._register(
-			this._editor.onDidChangeConfiguration((e) => {
-				if (e.hasChanged(EditorOption.stickyScroll)) {
-					this.readConfiguration();
-				}
-			}),
-		);
+		this._register(this._editor.onDidChangeConfiguration(e => {
+			if (e.hasChanged(EditorOption.stickyScroll)) {
+				this.readConfiguration();
+			}
+		}));
 		this.readConfiguration();
 	}
 
@@ -100,36 +75,22 @@ export class StickyLineCandidateProvider
 			return;
 		}
 
-		this._sessionStore.add(
-			this._editor.onDidChangeModel(() => {
-				// We should not show an old model for a different file, it will always be wrong.
-				// So we clear the model here immediately and then trigger an update.
-				this._model = null;
-				this.updateStickyModelProvider();
-				this._onDidChangeStickyScroll.fire();
+		this._sessionStore.add(this._editor.onDidChangeModel(() => {
+			// We should not show an old model for a different file, it will always be wrong.
+			// So we clear the model here immediately and then trigger an update.
+			this._model = null;
+			this.updateStickyModelProvider();
+			this._onDidChangeStickyScroll.fire();
 
-				this.update();
-			}),
-		);
-		this._sessionStore.add(
-			this._editor.onDidChangeHiddenAreas(() => this.update()),
-		);
-		this._sessionStore.add(
-			this._editor.onDidChangeModelContent(() =>
-				this._updateSoon.schedule(),
-			),
-		);
-		this._sessionStore.add(
-			this._languageFeaturesService.documentSymbolProvider.onDidChange(
-				() => this.update(),
-			),
-		);
-		this._sessionStore.add(
-			toDisposable(() => {
-				this._stickyModelProvider?.dispose();
-				this._stickyModelProvider = null;
-			}),
-		);
+			this.update();
+		}));
+		this._sessionStore.add(this._editor.onDidChangeHiddenAreas(() => this.update()));
+		this._sessionStore.add(this._editor.onDidChangeModelContent(() => this._updateSoon.schedule()));
+		this._sessionStore.add(this._languageFeaturesService.documentSymbolProvider.onDidChange(() => this.update()));
+		this._sessionStore.add(toDisposable(() => {
+			this._stickyModelProvider?.dispose();
+			this._stickyModelProvider = null;
+		}));
 		this.updateStickyModelProvider();
 		this.update();
 	}
@@ -148,7 +109,7 @@ export class StickyLineCandidateProvider
 				editor,
 				() => this._updateSoon.schedule(),
 				this._languageConfigurationService,
-				this._languageFeaturesService,
+				this._languageFeaturesService
 			);
 		}
 	}
@@ -161,11 +122,8 @@ export class StickyLineCandidateProvider
 	}
 
 	private async updateStickyModel(token: CancellationToken): Promise<void> {
-		if (
-			!this._editor.hasModel() ||
-			!this._stickyModelProvider ||
-			this._editor.getModel().isTooLargeForTokenization()
-		) {
+
+		if (!this._editor.hasModel() || !this._stickyModelProvider || this._editor.getModel().isTooLargeForTokenization()) {
 			this._model = null;
 			return;
 		}
@@ -192,7 +150,7 @@ export class StickyLineCandidateProvider
 		outlineModel: StickyElement,
 		result: StickyLineCandidate[],
 		depth: number,
-		lastStartLineNumber: number,
+		lastStartLineNumber: number
 	): void {
 		if (outlineModel.children.length === 0) {
 			return;
@@ -206,24 +164,8 @@ export class StickyLineCandidateProvider
 				childrenStartLines.push(child.range.startLineNumber);
 			}
 		}
-		const lowerBound = this.updateIndex(
-			binarySearch(
-				childrenStartLines,
-				range.startLineNumber,
-				(a: number, b: number) => {
-					return a - b;
-				},
-			),
-		);
-		const upperBound = this.updateIndex(
-			binarySearch(
-				childrenStartLines,
-				range.startLineNumber + depth,
-				(a: number, b: number) => {
-					return a - b;
-				},
-			),
-		);
+		const lowerBound = this.updateIndex(binarySearch(childrenStartLines, range.startLineNumber, (a: number, b: number) => { return a - b; }));
+		const upperBound = this.updateIndex(binarySearch(childrenStartLines, range.startLineNumber + depth, (a: number, b: number) => { return a - b; }));
 
 		for (let i = lowerBound; i <= upperBound; i++) {
 			const child = outlineModel.children[i];
@@ -233,68 +175,28 @@ export class StickyLineCandidateProvider
 			if (child.range) {
 				const childStartLine = child.range.startLineNumber;
 				const childEndLine = child.range.endLineNumber;
-				if (
-					range.startLineNumber <= childEndLine + 1 &&
-					childStartLine - 1 <= range.endLineNumber &&
-					childStartLine !== lastLine
-				) {
+				if (range.startLineNumber <= childEndLine + 1 && childStartLine - 1 <= range.endLineNumber && childStartLine !== lastLine) {
 					lastLine = childStartLine;
-					result.push(
-						new StickyLineCandidate(
-							childStartLine,
-							childEndLine - 1,
-							depth + 1,
-						),
-					);
-					this.getCandidateStickyLinesIntersectingFromStickyModel(
-						range,
-						child,
-						result,
-						depth + 1,
-						childStartLine,
-					);
+					result.push(new StickyLineCandidate(childStartLine, childEndLine - 1, depth + 1));
+					this.getCandidateStickyLinesIntersectingFromStickyModel(range, child, result, depth + 1, childStartLine);
 				}
 			} else {
-				this.getCandidateStickyLinesIntersectingFromStickyModel(
-					range,
-					child,
-					result,
-					depth,
-					lastStartLineNumber,
-				);
+				this.getCandidateStickyLinesIntersectingFromStickyModel(range, child, result, depth, lastStartLineNumber);
 			}
 		}
 	}
 
-	public getCandidateStickyLinesIntersecting(
-		range: StickyRange,
-	): StickyLineCandidate[] {
+	public getCandidateStickyLinesIntersecting(range: StickyRange): StickyLineCandidate[] {
 		if (!this._model?.element) {
 			return [];
 		}
 		let stickyLineCandidates: StickyLineCandidate[] = [];
-		this.getCandidateStickyLinesIntersectingFromStickyModel(
-			range,
-			this._model.element,
-			stickyLineCandidates,
-			0,
-			-1,
-		);
-		const hiddenRanges: Range[] | undefined = this._editor
-			._getViewModel()
-			?.getHiddenAreas();
+		this.getCandidateStickyLinesIntersectingFromStickyModel(range, this._model.element, stickyLineCandidates, 0, -1);
+		const hiddenRanges: Range[] | undefined = this._editor._getViewModel()?.getHiddenAreas();
 
 		if (hiddenRanges) {
 			for (const hiddenRange of hiddenRanges) {
-				stickyLineCandidates = stickyLineCandidates.filter(
-					(stickyLine) =>
-						!(
-							stickyLine.startLineNumber >=
-								hiddenRange.startLineNumber &&
-							stickyLine.endLineNumber <=
-								hiddenRange.endLineNumber + 1
-						),
-				);
+				stickyLineCandidates = stickyLineCandidates.filter(stickyLine => !(stickyLine.startLineNumber >= hiddenRange.startLineNumber && stickyLine.endLineNumber <= hiddenRange.endLineNumber + 1));
 			}
 		}
 		return stickyLineCandidates;

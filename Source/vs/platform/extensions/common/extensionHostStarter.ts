@@ -3,14 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from "../../../base/common/event.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { Event } from '../../../base/common/event.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
 
-export const IExtensionHostStarter = createDecorator<IExtensionHostStarter>(
-	"extensionHostStarter",
-);
+export const IExtensionHostStarter = createDecorator<IExtensionHostStarter>('extensionHostStarter');
 
-export const ipcExtensionHostStarterChannelName = "extensionHostStarter";
+export const ipcExtensionHostStarterChannelName = 'extensionHostStarter';
 
 export interface IExtensionHostProcessOptions {
 	responseWindowId: number;
@@ -31,10 +29,8 @@ export interface IExtensionHostStarter {
 	onDynamicExit(id: string): Event<{ code: number; signal: string }>;
 
 	createExtensionHost(): Promise<{ id: string }>;
-	start(
-		id: string,
-		opts: IExtensionHostProcessOptions,
-	): Promise<{ pid: number | undefined }>;
+	start(id: string, opts: IExtensionHostProcessOptions): Promise<{ pid: number | undefined }>;
 	enableInspectPort(id: string): Promise<boolean>;
 	kill(id: string): Promise<void>;
+
 }

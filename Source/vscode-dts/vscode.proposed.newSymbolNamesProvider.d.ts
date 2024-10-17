@@ -5,9 +5,10 @@
 
 // https://github.com/microsoft/vscode/issues/204345 @ulugbekna
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	export enum NewSymbolNameTag {
-		AIGenerated = 1,
+		AIGenerated = 1
 	}
 
 	export enum NewSymbolNameTriggerKind {
@@ -23,6 +24,7 @@ declare module "vscode" {
 	}
 
 	export interface NewSymbolNamesProvider {
+
 		/**
 		 * @default false
 		 */
@@ -36,18 +38,10 @@ declare module "vscode" {
 		 * @param token A cancellation token.
 		 * @return A list of new symbol names.
 		 */
-		provideNewSymbolNames(
-			document: TextDocument,
-			range: Range,
-			triggerKind: NewSymbolNameTriggerKind,
-			token: CancellationToken,
-		): ProviderResult<NewSymbolName[]>;
+		provideNewSymbolNames(document: TextDocument, range: Range, triggerKind: NewSymbolNameTriggerKind, token: CancellationToken): ProviderResult<NewSymbolName[]>;
 	}
 
 	export namespace languages {
-		export function registerNewSymbolNamesProvider(
-			selector: DocumentSelector,
-			provider: NewSymbolNamesProvider,
-		): Disposable;
+		export function registerNewSymbolNamesProvider(selector: DocumentSelector, provider: NewSymbolNamesProvider): Disposable;
 	}
 }

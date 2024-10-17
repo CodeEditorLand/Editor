@@ -3,40 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { renderStringAsPlaintext } from "../../../../base/browser/markdownRenderer.js";
-import { IMarkdownString } from "../../../../base/common/htmlContent.js";
-import {
-	IDisposable,
-	toDisposable,
-} from "../../../../base/common/lifecycle.js";
-import {
-	forAnsiStringParts,
-	GraphemeIterator,
-	removeAnsiEscapeCodes,
-} from "../../../../base/common/strings.js";
-
-import "./media/testMessageColorizer.css";
-
-import { CodeEditorWidget } from "../../../../editor/browser/widget/codeEditor/codeEditorWidget.js";
-import { Position } from "../../../../editor/common/core/position.js";
-import { Range } from "../../../../editor/common/core/range.js";
+import { renderStringAsPlaintext } from '../../../../base/browser/markdownRenderer.js';
+import { IMarkdownString } from '../../../../base/common/htmlContent.js';
+import { IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { GraphemeIterator, forAnsiStringParts, removeAnsiEscapeCodes } from '../../../../base/common/strings.js';
+import './media/testMessageColorizer.css';
+import { CodeEditorWidget } from '../../../../editor/browser/widget/codeEditor/codeEditorWidget.js';
+import { Position } from '../../../../editor/common/core/position.js';
+import { Range } from '../../../../editor/common/core/range.js';
 
 const colorAttrRe = /^\x1b\[([0-9]+)m$/;
 
 const enum Classes {
-	Prefix = "tstm-ansidec-",
-	ForegroundPrefix = Classes.Prefix + "fg",
-	BackgroundPrefix = Classes.Prefix + "bg",
-	Bold = Classes.Prefix + "1",
-	Faint = Classes.Prefix + "2",
-	Italic = Classes.Prefix + "3",
-	Underline = Classes.Prefix + "4",
+	Prefix = 'tstm-ansidec-',
+	ForegroundPrefix = Classes.Prefix + 'fg',
+	BackgroundPrefix = Classes.Prefix + 'bg',
+	Bold = Classes.Prefix + '1',
+	Faint = Classes.Prefix + '2',
+	Italic = Classes.Prefix + '3',
+	Underline = Classes.Prefix + '4',
 }
 
 export const renderTestMessageAsText = (tm: string | IMarkdownString) =>
-	typeof tm === "string"
-		? removeAnsiEscapeCodes(tm)
-		: renderStringAsPlaintext(tm);
+	typeof tm === 'string' ? removeAnsiEscapeCodes(tm) : renderStringAsPlaintext(tm);
+
 
 /**
  * Applies decorations based on ANSI styles from the test message in the editor.
@@ -49,13 +39,10 @@ export const renderTestMessageAsText = (tm: string | IMarkdownString) =>
  *
  * Note: does not support TrueColor.
  */
-export const colorizeTestMessageInEditor = (
-	message: string,
-	editor: CodeEditorWidget,
-): IDisposable => {
+export const colorizeTestMessageInEditor = (message: string, editor: CodeEditorWidget): IDisposable => {
 	const decos: string[] = [];
 
-	editor.changeDecorations((changeAccessor) => {
+	editor.changeDecorations(changeAccessor => {
 		let start = new Position(1, 1);
 		let cls: string[] = [];
 		for (const part of forAnsiStringParts(message)) {
@@ -69,22 +56,16 @@ export const colorizeTestMessageInEditor = (
 				if (n === 0) {
 					cls.length = 0;
 				} else if (n === 22) {
-					cls = cls.filter(
-						(c) => c !== Classes.Bold && c !== Classes.Italic,
-					);
+					cls = cls.filter(c => c !== Classes.Bold && c !== Classes.Italic);
 				} else if (n === 23) {
-					cls = cls.filter((c) => c !== Classes.Italic);
+					cls = cls.filter(c => c !== Classes.Italic);
 				} else if (n === 24) {
-					cls = cls.filter((c) => c !== Classes.Underline);
+					cls = cls.filter(c => c !== Classes.Underline);
 				} else if ((n >= 30 && n <= 39) || (n >= 90 && n <= 99)) {
-					cls = cls.filter(
-						(c) => !c.startsWith(Classes.ForegroundPrefix),
-					);
+					cls = cls.filter(c => !c.startsWith(Classes.ForegroundPrefix));
 					cls.push(Classes.ForegroundPrefix + colorAttr);
 				} else if ((n >= 40 && n <= 49) || (n >= 100 && n <= 109)) {
-					cls = cls.filter(
-						(c) => !c.startsWith(Classes.BackgroundPrefix),
-					);
+					cls = cls.filter(c => !c.startsWith(Classes.BackgroundPrefix));
 					cls.push(Classes.BackgroundPrefix + colorAttr);
 				} else {
 					cls.push(Classes.Prefix + colorAttr);
@@ -94,12 +75,8 @@ export const colorizeTestMessageInEditor = (
 				let col = start.column;
 
 				const graphemes = new GraphemeIterator(part.str);
-				for (
-					let i = 0;
-					!graphemes.eol();
-					i += graphemes.nextGraphemeLength()
-				) {
-					if (part.str[i] === "\n") {
+				for (let i = 0; !graphemes.eol(); i += graphemes.nextGraphemeLength()) {
+					if (part.str[i] === '\n') {
 						line++;
 						col = 1;
 					} else {
@@ -109,15 +86,10 @@ export const colorizeTestMessageInEditor = (
 
 				const end = new Position(line, col);
 				if (cls.length) {
-					decos.push(
-						changeAccessor.addDecoration(
-							Range.fromPositions(start, end),
-							{
-								inlineClassName: cls.join(" "),
-								description: "test-message-colorized",
-							},
-						),
-					);
+					decos.push(changeAccessor.addDecoration(Range.fromPositions(start, end), {
+						inlineClassName: cls.join(' '),
+						description: 'test-message-colorized',
+					}));
 				}
 				start = end;
 			}

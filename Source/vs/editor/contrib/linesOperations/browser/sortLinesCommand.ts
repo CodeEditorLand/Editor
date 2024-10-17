@@ -3,20 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	EditOperation,
-	ISingleEditOperation,
-} from "../../../common/core/editOperation.js";
-import { Range } from "../../../common/core/range.js";
-import { Selection } from "../../../common/core/selection.js";
-import {
-	ICommand,
-	ICursorStateComputerData,
-	IEditOperationBuilder,
-} from "../../../common/editorCommon.js";
-import { ITextModel } from "../../../common/model.js";
+import { EditOperation, ISingleEditOperation } from '../../../common/core/editOperation.js';
+import { Range } from '../../../common/core/range.js';
+import { Selection } from '../../../common/core/selection.js';
+import { ICommand, ICursorStateComputerData, IEditOperationBuilder } from '../../../common/editorCommon.js';
+import { ITextModel } from '../../../common/model.js';
 
 export class SortLinesCommand implements ICommand {
+
 	private static _COLLATOR: Intl.Collator | null = null;
 	public static getCollator(): Intl.Collator {
 		if (!SortLinesCommand._COLLATOR) {
@@ -35,10 +29,7 @@ export class SortLinesCommand implements ICommand {
 		this.selectionId = null;
 	}
 
-	public getEditOperations(
-		model: ITextModel,
-		builder: IEditOperationBuilder,
-	): void {
+	public getEditOperations(model: ITextModel, builder: IEditOperationBuilder): void {
 		const op = sortLines(model, this.selection, this.descending);
 		if (op) {
 			builder.addEditOperation(op.range, op.text);
@@ -47,18 +38,11 @@ export class SortLinesCommand implements ICommand {
 		this.selectionId = builder.trackSelection(this.selection);
 	}
 
-	public computeCursorState(
-		model: ITextModel,
-		helper: ICursorStateComputerData,
-	): Selection {
+	public computeCursorState(model: ITextModel, helper: ICursorStateComputerData): Selection {
 		return helper.getTrackedSelection(this.selectionId!);
 	}
 
-	public static canRun(
-		model: ITextModel | null,
-		selection: Selection,
-		descending: boolean,
-	): boolean {
+	public static canRun(model: ITextModel | null, selection: Selection, descending: boolean): boolean {
 		if (model === null) {
 			return false;
 		}
@@ -79,11 +63,7 @@ export class SortLinesCommand implements ICommand {
 	}
 }
 
-function getSortData(
-	model: ITextModel,
-	selection: Selection,
-	descending: boolean,
-) {
+function getSortData(model: ITextModel, selection: Selection, descending: boolean) {
 	const startLineNumber = selection.startLineNumber;
 	let endLineNumber = selection.endLineNumber;
 
@@ -99,11 +79,7 @@ function getSortData(
 	const linesToSort: string[] = [];
 
 	// Get the contents of the selection to be sorted.
-	for (
-		let lineNumber = startLineNumber;
-		lineNumber <= endLineNumber;
-		lineNumber++
-	) {
+	for (let lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++) {
 		linesToSort.push(model.getLineContent(lineNumber));
 	}
 
@@ -119,18 +95,14 @@ function getSortData(
 		startLineNumber: startLineNumber,
 		endLineNumber: endLineNumber,
 		before: linesToSort,
-		after: sorted,
+		after: sorted
 	};
 }
 
 /**
  * Generate commands for sorting lines on a model.
  */
-function sortLines(
-	model: ITextModel,
-	selection: Selection,
-	descending: boolean,
-): ISingleEditOperation | null {
+function sortLines(model: ITextModel, selection: Selection, descending: boolean): ISingleEditOperation | null {
 	const data = getSortData(model, selection, descending);
 
 	if (!data) {
@@ -138,12 +110,7 @@ function sortLines(
 	}
 
 	return EditOperation.replace(
-		new Range(
-			data.startLineNumber,
-			1,
-			data.endLineNumber,
-			model.getLineMaxColumn(data.endLineNumber),
-		),
-		data.after.join("\n"),
+		new Range(data.startLineNumber, 1, data.endLineNumber, model.getLineMaxColumn(data.endLineNumber)),
+		data.after.join('\n')
 	);
 }

@@ -3,15 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from "../../../../base/common/event.js";
-import { IDisposable } from "../../../../base/common/lifecycle.js";
-import { ITerminalOutputMatch, ITerminalOutputMatcher } from "../terminal.js";
-import { ReplayEntry } from "../terminalProcess.js";
-import type {
-	IPromptInputModel,
-	ISerializedPromptInputModel,
-} from "./commandDetection/promptInputModel.js";
-import { ICurrentPartialCommand } from "./commandDetection/terminalCommand.js";
+import { Event } from '../../../../base/common/event.js';
+import { IDisposable } from '../../../../base/common/lifecycle.js';
+import type { IPromptInputModel, ISerializedPromptInputModel } from './commandDetection/promptInputModel.js';
+import { ICurrentPartialCommand } from './commandDetection/terminalCommand.js';
+import { ITerminalOutputMatch, ITerminalOutputMatcher } from '../terminal.js';
+import { ReplayEntry } from '../terminalProcess.js';
 
 interface IEvent<T, U = void> {
 	(listener: (arg1: T, arg2: U) => any): IDisposable;
@@ -41,6 +38,7 @@ export interface IMarker extends IDisposable {
 	 */
 	onDispose: IEvent<void>;
 }
+
 
 /**
  * Primarily driven by the shell integration feature, a terminal capability is the mechanism for
@@ -72,7 +70,7 @@ export const enum TerminalCapability {
 	 * the request (task, debug, etc) provides an ID, optional marker, hoverMessage, and hidden property. When
 	 * hidden is not provided, a generic decoration is added to the buffer and overview ruler.
 	 */
-	BufferMarkDetection,
+	BufferMarkDetection
 }
 
 /**
@@ -117,9 +115,7 @@ export interface ITerminalCapabilityStore {
 	/**
 	 * Gets the implementation of a capability if it has been added to the store.
 	 */
-	get<T extends TerminalCapability>(
-		capability: T,
-	): ITerminalCapabilityImplMap[T] | undefined;
+	get<T extends TerminalCapability>(capability: T): ITerminalCapabilityImplMap[T] | undefined;
 }
 
 export interface TerminalCapabilityChangeEvent<T extends TerminalCapability> {
@@ -148,8 +144,8 @@ export interface ICwdDetectionCapability {
 }
 
 export const enum CommandInvalidationReason {
-	Windows = "windows",
-	NoProblemsReported = "noProblemsReported",
+	Windows = 'windows',
+	NoProblemsReported = 'noProblemsReported'
 }
 
 export interface ICommandInvalidationRequest {
@@ -189,9 +185,7 @@ export interface ICommandDetectionCapability {
 	 * case the terminal's initial cwd should be used.
 	 */
 	getCwdForLine(line: number): string | undefined;
-	getCommandForLine(
-		line: number,
-	): ITerminalCommand | ICurrentPartialCommand | undefined;
+	getCommandForLine(line: number): ITerminalCommand | ICurrentPartialCommand | undefined;
 	handlePromptStart(options?: IHandleCommandOptions): void;
 	handleContinuationStart(): void;
 	handleContinuationEnd(): void;
@@ -199,10 +193,7 @@ export interface ICommandDetectionCapability {
 	handleRightPromptEnd(): void;
 	handleCommandStart(options?: IHandleCommandOptions): void;
 	handleCommandExecuted(options?: IHandleCommandOptions): void;
-	handleCommandFinished(
-		exitCode?: number,
-		options?: IHandleCommandOptions,
-	): void;
+	handleCommandFinished(exitCode?: number, options?: IHandleCommandOptions): void;
 	/**
 	 * Set the command line explicitly.
 	 * @param commandLine The command line being set.
@@ -248,7 +239,7 @@ export interface IPartialCommandDetectionCapability {
 interface IBaseTerminalCommand {
 	// Mandatory
 	command: string;
-	commandLineConfidence: "low" | "medium" | "high";
+	commandLineConfidence: 'low' | 'medium' | 'high';
 	isTrusted: boolean;
 	timestamp: number;
 	duration: number;
@@ -273,9 +264,7 @@ export interface ITerminalCommand extends IBaseTerminalCommand {
 
 	extractCommandLine(): string;
 	getOutput(): string | undefined;
-	getOutputMatch(
-		outputMatcher: ITerminalOutputMatcher,
-	): ITerminalOutputMatch | undefined;
+	getOutputMatch(outputMatcher: ITerminalOutputMatcher): ITerminalOutputMatch | undefined;
 	hasOutput(): boolean;
 	getPromptRowCount(): number;
 	getCommandRowCount(): number;

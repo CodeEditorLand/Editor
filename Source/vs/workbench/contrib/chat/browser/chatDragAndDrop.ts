@@ -3,46 +3,39 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DataTransfers } from "../../../../base/browser/dnd.js";
-import { $, DragAndDropObserver } from "../../../../base/browser/dom.js";
-import { renderLabelWithIcons } from "../../../../base/browser/ui/iconLabel/iconLabels.js";
-import { coalesce } from "../../../../base/common/arrays.js";
-import { Codicon } from "../../../../base/common/codicons.js";
-import { basename } from "../../../../base/common/resources.js";
-import { URI } from "../../../../base/common/uri.js";
-import { localize } from "../../../../nls.js";
-import { IConfigurationService } from "../../../../platform/configuration/common/configuration.js";
-import {
-	containsDragType,
-	extractEditorsDropData,
-	IDraggedResourceEditorInput,
-} from "../../../../platform/dnd/browser/dnd.js";
-import {
-	IThemeService,
-	Themable,
-} from "../../../../platform/theme/common/themeService.js";
-import { EditorInput } from "../../../common/editor/editorInput.js";
-import { IChatRequestVariableEntry } from "../common/chatModel.js";
-import { ChatInputPart } from "./chatInputPart.js";
-import { IChatWidgetStyles } from "./chatWidget.js";
+import { DataTransfers } from '../../../../base/browser/dnd.js';
+import { $, DragAndDropObserver } from '../../../../base/browser/dom.js';
+import { renderLabelWithIcons } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
+import { coalesce } from '../../../../base/common/arrays.js';
+import { Codicon } from '../../../../base/common/codicons.js';
+import { basename } from '../../../../base/common/resources.js';
+import { URI } from '../../../../base/common/uri.js';
+import { localize } from '../../../../nls.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { containsDragType, extractEditorsDropData, IDraggedResourceEditorInput } from '../../../../platform/dnd/browser/dnd.js';
+import { IThemeService, Themable } from '../../../../platform/theme/common/themeService.js';
+import { EditorInput } from '../../../common/editor/editorInput.js';
+import { IChatRequestVariableEntry } from '../common/chatModel.js';
+import { ChatInputPart } from './chatInputPart.js';
+import { IChatWidgetStyles } from './chatWidget.js';
 
 enum ChatDragAndDropType {
 	FILE,
-	IMAGE,
+	IMAGE
 }
 
 export class ChatDragAndDrop extends Themable {
+
 	private readonly overlay: HTMLElement;
 	private overlayText?: HTMLElement;
-	private overlayTextBackground: string = "";
+	private overlayTextBackground: string = '';
 
 	constructor(
 		private readonly contianer: HTMLElement,
 		private readonly inputPart: ChatInputPart,
 		private readonly styles: IChatWidgetStyles,
 		@IThemeService themeService: IThemeService,
-		@IConfigurationService
-		private readonly configurationService: IConfigurationService,
+		@IConfigurationService private readonly configurationService: IConfigurationService
 	) {
 		super(themeService);
 
@@ -50,30 +43,28 @@ export class ChatDragAndDrop extends Themable {
 		// the overlay may stick around due to too many drag enter events
 		// Make sure the mouse enters only once
 		let mouseInside = false;
-		this._register(
-			new DragAndDropObserver(this.contianer, {
-				onDragEnter: (e) => {
-					if (!mouseInside) {
-						mouseInside = true;
-						this.onDragEnter(e);
-					}
-				},
-				onDragOver: (e) => {
-					e.stopPropagation();
-				},
-				onDragLeave: (e) => {
-					this.onDragLeave(e);
-					mouseInside = false;
-				},
-				onDrop: (e) => {
-					this.onDrop(e);
-					mouseInside = false;
-				},
-			}),
-		);
+		this._register(new DragAndDropObserver(this.contianer, {
+			onDragEnter: (e) => {
+				if (!mouseInside) {
+					mouseInside = true;
+					this.onDragEnter(e);
+				}
+			},
+			onDragOver: (e) => {
+				e.stopPropagation();
+			},
+			onDragLeave: (e) => {
+				this.onDragLeave(e);
+				mouseInside = false;
+			},
+			onDrop: (e) => {
+				this.onDrop(e);
+				mouseInside = false;
+			},
+		}));
 
-		this.overlay = document.createElement("div");
-		this.overlay.classList.add("chat-dnd-overlay");
+		this.overlay = document.createElement('div');
+		this.overlay.classList.add('chat-dnd-overlay');
 		this.contianer.appendChild(this.overlay);
 
 		this.updateStyles();
@@ -104,8 +95,7 @@ export class ChatDragAndDrop extends Themable {
 		e.preventDefault();
 
 		// Make sure to attach only new contexts
-		const currentContextIds =
-			this.inputPart.attachmentModel.getAttachmentIDs();
+		const currentContextIds = this.inputPart.attachmentModel.getAttachmentIDs();
 		const filteredContext = [];
 		for (const context of contexts) {
 			if (!currentContextIds.has(context.id)) {
@@ -117,13 +107,10 @@ export class ChatDragAndDrop extends Themable {
 		this.inputPart.attachmentModel.addContext(...filteredContext);
 	}
 
-	private updateDropFeedback(
-		e: DragEvent,
-		dropType: ChatDragAndDropType | undefined,
-	): void {
+	private updateDropFeedback(e: DragEvent, dropType: ChatDragAndDropType | undefined): void {
 		const showOverlay = dropType !== undefined;
 		if (e.dataTransfer) {
-			e.dataTransfer.dropEffect = showOverlay ? "copy" : "none";
+			e.dataTransfer.dropEffect = showOverlay ? 'copy' : 'none';
 		}
 
 		this.setOverlay(dropType);
@@ -131,7 +118,7 @@ export class ChatDragAndDrop extends Themable {
 
 	private isImageDnd(e: DragEvent): boolean {
 		// Image detection should not have false positives, only false negatives are allowed
-		if (containsDragType(e, "image")) {
+		if (containsDragType(e, 'image')) {
 			return true;
 		}
 
@@ -139,13 +126,13 @@ export class ChatDragAndDrop extends Themable {
 			const files = e.dataTransfer?.files;
 			if (files && files.length > 0) {
 				const file = files[0];
-				return file.type.startsWith("image/");
+				return file.type.startsWith('image/');
 			}
 
 			const items = e.dataTransfer?.items;
 			if (items && items.length > 0) {
 				const item = items[0];
-				return item.type.startsWith("image/");
+				return item.type.startsWith('image/');
 			}
 		}
 
@@ -155,18 +142,9 @@ export class ChatDragAndDrop extends Themable {
 	private guessDropType(e: DragEvent): ChatDragAndDropType | undefined {
 		// This is an esstimation based on the datatransfer types/items
 		if (this.isImageDnd(e)) {
-			const imageDndSupported =
-				this.configurationService.getValue<boolean>(
-					"chat.experimental.imageAttachments",
-				);
+			const imageDndSupported = this.configurationService.getValue<boolean>('chat.experimental.imageAttachments');
 			return imageDndSupported ? ChatDragAndDropType.IMAGE : undefined;
-		} else if (
-			containsDragType(
-				e,
-				DataTransfers.FILES,
-				DataTransfers.INTERNAL_URI_LIST,
-			)
-		) {
+		} else if (containsDragType(e, DataTransfers.FILES, DataTransfers.INTERNAL_URI_LIST)) {
 			return ChatDragAndDropType.FILE;
 		}
 
@@ -181,10 +159,8 @@ export class ChatDragAndDrop extends Themable {
 
 	private getDropTypeName(type: ChatDragAndDropType): string {
 		switch (type) {
-			case ChatDragAndDropType.FILE:
-				return localize("file", "File");
-			case ChatDragAndDropType.IMAGE:
-				return localize("image", "Image");
+			case ChatDragAndDropType.FILE: return localize('file', 'File');
+			case ChatDragAndDropType.IMAGE: return localize('image', 'Image');
 		}
 	}
 
@@ -194,23 +170,16 @@ export class ChatDragAndDrop extends Themable {
 		}
 
 		const data = extractEditorsDropData(e);
-		return coalesce(
-			data.map((editorInput) => {
-				return this.resolveAttachContext(editorInput);
-			}),
-		);
+		return coalesce(data.map(editorInput => {
+			return this.resolveAttachContext(editorInput);
+		}));
 	}
 
-	private resolveAttachContext(
-		editorInput: IDraggedResourceEditorInput,
-	): IChatRequestVariableEntry | undefined {
+	private resolveAttachContext(editorInput: IDraggedResourceEditorInput): IChatRequestVariableEntry | undefined {
 		// Image
 		const imageContext = getImageAttachContext(editorInput);
 		if (imageContext) {
-			const isImageDndSupported =
-				this.configurationService.getValue<boolean>(
-					"chat.experimental.imageAttachments",
-				);
+			const isImageDndSupported = this.configurationService.getValue<boolean>('chat.experimental.imageAttachments');
 			return isImageDndSupported ? imageContext : undefined;
 		}
 
@@ -227,41 +196,30 @@ export class ChatDragAndDrop extends Themable {
 			// Render the overlay text
 			const typeName = this.getDropTypeName(type);
 
-			const iconAndtextElements = renderLabelWithIcons(
-				`$(${Codicon.attach.id}) ${localize("attach as context", "Attach {0} as Context", typeName)}`,
-			);
-			const htmlElements = iconAndtextElements.map((element) => {
-				if (typeof element === "string") {
-					return $("span.overlay-text", undefined, element);
+			const iconAndtextElements = renderLabelWithIcons(`$(${Codicon.attach.id}) ${localize('attach as context', 'Attach {0} as Context', typeName)}`);
+			const htmlElements = iconAndtextElements.map(element => {
+				if (typeof element === 'string') {
+					return $('span.overlay-text', undefined, element);
 				}
 				return element;
 			});
 
-			this.overlayText = $(
-				"span.attach-context-overlay-text",
-				undefined,
-				...htmlElements,
-			);
+			this.overlayText = $('span.attach-context-overlay-text', undefined, ...htmlElements);
 			this.overlayText.style.backgroundColor = this.overlayTextBackground;
 			this.overlay.appendChild(this.overlayText);
 		}
 
-		this.overlay.classList.toggle("visible", type !== undefined);
+		this.overlay.classList.toggle('visible', type !== undefined);
 	}
 
 	override updateStyles(): void {
-		this.overlay.style.backgroundColor =
-			this.getColor(this.styles.overlayBackground) || "";
-		this.overlay.style.color =
-			this.getColor(this.styles.listForeground) || "";
-		this.overlayTextBackground =
-			this.getColor(this.styles.listBackground) || "";
+		this.overlay.style.backgroundColor = this.getColor(this.styles.overlayBackground) || '';
+		this.overlay.style.color = this.getColor(this.styles.listForeground) || '';
+		this.overlayTextBackground = this.getColor(this.styles.listBackground) || '';
 	}
 }
 
-function getEditorAttachContext(
-	editor: EditorInput | IDraggedResourceEditorInput,
-): IChatRequestVariableEntry | undefined {
+function getEditorAttachContext(editor: EditorInput | IDraggedResourceEditorInput): IChatRequestVariableEntry | undefined {
 	if (!editor.resource) {
 		return undefined;
 	}
@@ -269,21 +227,17 @@ function getEditorAttachContext(
 	return getFileAttachContext(editor.resource);
 }
 
-function getFileAttachContext(
-	resource: URI,
-): IChatRequestVariableEntry | undefined {
+function getFileAttachContext(resource: URI): IChatRequestVariableEntry | undefined {
 	return {
 		value: resource,
 		id: resource.toString(),
 		name: basename(resource),
 		isFile: true,
-		isDynamic: true,
+		isDynamic: true
 	};
 }
 
-function getImageAttachContext(
-	editor: EditorInput | IDraggedResourceEditorInput,
-): IChatRequestVariableEntry | undefined {
+function getImageAttachContext(editor: EditorInput | IDraggedResourceEditorInput): IChatRequestVariableEntry | undefined {
 	if (!editor.resource) {
 		return undefined;
 	}
@@ -298,7 +252,7 @@ function getImageAttachContext(
 			icon: Codicon.fileMedia,
 			isDynamic: true,
 			isImage: true,
-			isFile: false,
+			isFile: false
 		};
 	}
 

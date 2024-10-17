@@ -3,38 +3,26 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { bufferToStream, VSBuffer } from "../../../common/buffer.js";
-import { CancellationToken } from "../../../common/cancellation.js";
-import { canceled } from "../../../common/errors.js";
-import {
-	IHeaders,
-	IRequestContext,
-	IRequestOptions,
-	OfflineError,
-} from "../common/request.js";
+import { bufferToStream, VSBuffer } from '../../../common/buffer.js';
+import { CancellationToken } from '../../../common/cancellation.js';
+import { canceled } from '../../../common/errors.js';
+import { IHeaders, IRequestContext, IRequestOptions, OfflineError } from '../common/request.js';
 
-export async function request(
-	options: IRequestOptions,
-	token: CancellationToken,
-): Promise<IRequestContext> {
+export async function request(options: IRequestOptions, token: CancellationToken): Promise<IRequestContext> {
 	if (token.isCancellationRequested) {
 		throw canceled();
 	}
 
 	const cancellation = new AbortController();
-	const disposable = token.onCancellationRequested(() =>
-		cancellation.abort(),
-	);
-	const signal = options.timeout
-		? AbortSignal.any([
-				cancellation.signal,
-				AbortSignal.timeout(options.timeout),
-			])
-		: cancellation.signal;
+	const disposable = token.onCancellationRequested(() => cancellation.abort());
+	const signal = options.timeout ? AbortSignal.any([
+		cancellation.signal,
+		AbortSignal.timeout(options.timeout),
+	]) : cancellation.signal;
 
 	try {
-		const res = await fetch(options.url || "", {
-			method: options.type || "GET",
+		const res = await fetch(options.url || '', {
+			method: options.type || 'GET',
 			headers: getRequestHeaders(options),
 			body: options.data,
 			signal,
@@ -44,18 +32,16 @@ export async function request(
 				statusCode: res.status,
 				headers: getResponseHeaders(res),
 			},
-			stream: bufferToStream(
-				VSBuffer.wrap(new Uint8Array(await res.arrayBuffer())),
-			),
+			stream: bufferToStream(VSBuffer.wrap(new Uint8Array(await res.arrayBuffer()))),
 		};
 	} catch (err) {
 		if (!navigator.onLine) {
 			throw new OfflineError();
 		}
-		if (err?.name === "AbortError") {
+		if (err?.name === 'AbortError') {
 			throw canceled();
 		}
-		if (err?.name === "TimeoutError") {
+		if (err?.name === 'TimeoutError') {
 			throw new Error(`Fetch timeout: ${options.timeout}ms`);
 		}
 		throw err;
@@ -65,23 +51,18 @@ export async function request(
 }
 
 function getRequestHeaders(options: IRequestOptions) {
-	if (
-		options.headers ||
-		options.user ||
-		options.password ||
-		options.proxyAuthorization
-	) {
+	if (options.headers || options.user || options.password || options.proxyAuthorization) {
 		const headers: HeadersInit = new Headers();
 		outer: for (const k in options.headers) {
 			switch (k.toLowerCase()) {
-				case "user-agent":
-				case "accept-encoding":
-				case "content-length":
+				case 'user-agent':
+				case 'accept-encoding':
+				case 'content-length':
 					// unsafe headers
 					continue outer;
 			}
 			const header = options.headers[k];
-			if (typeof header === "string") {
+			if (typeof header === 'string') {
 				headers.set(k, header);
 			} else if (Array.isArray(header)) {
 				for (const h of header) {
@@ -90,14 +71,10 @@ function getRequestHeaders(options: IRequestOptions) {
 			}
 		}
 		if (options.user || options.password) {
-			headers.set(
-				"Authorization",
-				"Basic " +
-					btoa(`${options.user || ""}:${options.password || ""}`),
-			);
+			headers.set('Authorization', 'Basic ' + btoa(`${options.user || ''}:${options.password || ''}`));
 		}
 		if (options.proxyAuthorization) {
-			headers.set("Proxy-Authorization", options.proxyAuthorization);
+			headers.set('Proxy-Authorization', options.proxyAuthorization);
 		}
 		return headers;
 	}

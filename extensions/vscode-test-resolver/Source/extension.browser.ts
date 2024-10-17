@@ -3,22 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
+import * as vscode from 'vscode';
 
 export function activate(_context: vscode.ExtensionContext) {
-	vscode.workspace.registerRemoteAuthorityResolver("test", {
+	vscode.workspace.registerRemoteAuthorityResolver('test', {
 		async resolve(_authority: string): Promise<vscode.ResolverResult> {
 			console.log(`Resolving ${_authority}`);
-			console.log(
-				`Activating vscode.github-authentication to simulate auth`,
-			);
-			await vscode.extensions
-				.getExtension("vscode.github-authentication")
-				?.activate();
+			console.log(`Activating vscode.github-authentication to simulate auth`);
+			await vscode.extensions.getExtension('vscode.github-authentication')?.activate();
 			return new vscode.ManagedResolvedAuthority(async () => {
 				return new InitialManagedMessagePassing();
 			});
-		},
+		}
 	});
 }
 
@@ -29,9 +25,7 @@ export function activate(_context: vscode.ExtensionContext) {
  */
 class InitialManagedMessagePassing implements vscode.ManagedMessagePassing {
 	private readonly dataEmitter = new vscode.EventEmitter<Uint8Array>();
-	private readonly closeEmitter = new vscode.EventEmitter<
-		Error | undefined
-	>();
+	private readonly closeEmitter = new vscode.EventEmitter<Error | undefined>();
 	private readonly endEmitter = new vscode.EventEmitter<void>();
 
 	public readonly onDidReceiveMessage = this.dataEmitter.event;
@@ -70,12 +64,7 @@ class InitialManagedMessagePassing implements vscode.ManagedMessagePassing {
 
 		// extract path and query from url using browser's URL
 		const parsedUrl = new URL(url);
-		this._actual = new OpeningManagedMessagePassing(
-			parsedUrl,
-			this.dataEmitter,
-			this.closeEmitter,
-			this.endEmitter,
-		);
+		this._actual = new OpeningManagedMessagePassing(parsedUrl, this.dataEmitter, this.closeEmitter, this.endEmitter);
 	}
 
 	public end(): void {
@@ -88,6 +77,7 @@ class InitialManagedMessagePassing implements vscode.ManagedMessagePassing {
 }
 
 class OpeningManagedMessagePassing {
+
 	private readonly socket: WebSocket;
 	private isOpen = false;
 	private bufferedData: Uint8Array[] = [];
@@ -96,22 +86,16 @@ class OpeningManagedMessagePassing {
 		url: URL,
 		dataEmitter: vscode.EventEmitter<Uint8Array>,
 		closeEmitter: vscode.EventEmitter<Error | undefined>,
-		_endEmitter: vscode.EventEmitter<void>,
+		_endEmitter: vscode.EventEmitter<void>
 	) {
-		this.socket = new WebSocket(
-			`ws://localhost:9888${url.pathname}${url.search.replace(/skipWebSocketFrames=true/, "skipWebSocketFrames=false")}`,
-		);
-		this.socket.addEventListener("close", () =>
-			closeEmitter.fire(undefined),
-		);
-		this.socket.addEventListener("error", (e) =>
-			closeEmitter.fire(new Error(String(e))),
-		);
-		this.socket.addEventListener("message", async (e) => {
+		this.socket = new WebSocket(`ws://localhost:9888${url.pathname}${url.search.replace(/skipWebSocketFrames=true/, 'skipWebSocketFrames=false')}`);
+		this.socket.addEventListener('close', () => closeEmitter.fire(undefined));
+		this.socket.addEventListener('error', (e) => closeEmitter.fire(new Error(String(e))));
+		this.socket.addEventListener('message', async (e) => {
 			const arrayBuffer = await e.data.arrayBuffer();
 			dataEmitter.fire(new Uint8Array(arrayBuffer));
 		});
-		this.socket.addEventListener("open", () => {
+		this.socket.addEventListener('open', () => {
 			while (this.bufferedData.length > 0) {
 				const first = this.bufferedData.shift()!;
 				this.socket.send(first);
@@ -127,13 +111,11 @@ class OpeningManagedMessagePassing {
 				`HTTP/1.1 101 Switching Protocols`,
 				`Upgrade: websocket`,
 				`Connection: Upgrade`,
-				`Sec-WebSocket-Accept: TODO`,
+				`Sec-WebSocket-Accept: TODO`
 			];
 			const textEncoder = new TextEncoder();
-			textEncoder.encode(responseHeaders.join("\r\n") + "\r\n\r\n");
-			dataEmitter.fire(
-				textEncoder.encode(responseHeaders.join("\r\n") + "\r\n\r\n"),
-			);
+			textEncoder.encode(responseHeaders.join('\r\n') + '\r\n\r\n');
+			dataEmitter.fire(textEncoder.encode(responseHeaders.join('\r\n') + '\r\n\r\n'));
 		});
 	}
 

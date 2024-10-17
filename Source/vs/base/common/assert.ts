@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { BugIndicatingError, onUnexpectedError } from "./errors.js";
+import { BugIndicatingError, onUnexpectedError } from './errors.js';
 
 /**
  * Throws an error with the provided message if the provided value does not evaluate to a true Javascript value.
@@ -21,20 +21,15 @@ import { BugIndicatingError, onUnexpectedError } from "./errors.js";
  */
 export function ok(value?: unknown, message?: string) {
 	if (!value) {
-		throw new Error(
-			message ? `Assertion failed (${message})` : "Assertion Failed",
-		);
+		throw new Error(message ? `Assertion failed (${message})` : 'Assertion Failed');
 	}
 }
 
-export function assertNever(value: never, message = "Unreachable"): never {
+export function assertNever(value: never, message = 'Unreachable'): never {
 	throw new Error(message);
 }
 
-export function assert(
-	condition: boolean,
-	message = "unexpected state",
-): asserts condition {
+export function assert(condition: boolean, message = 'unexpected state'): asserts condition {
 	if (!condition) {
 		throw new BugIndicatingError(`Assertion Failed: ${message}`);
 	}
@@ -45,7 +40,7 @@ export function assert(
  */
 export function softAssert(condition: boolean): void {
 	if (!condition) {
-		onUnexpectedError(new BugIndicatingError("Soft Assertion Failed"));
+		onUnexpectedError(new BugIndicatingError('Soft Assertion Failed'));
 	}
 }
 
@@ -58,14 +53,11 @@ export function assertFn(condition: () => boolean): void {
 		debugger;
 		// Reevaluate `condition` again to make debugging easier
 		condition();
-		onUnexpectedError(new BugIndicatingError("Assertion Failed"));
+		onUnexpectedError(new BugIndicatingError('Assertion Failed'));
 	}
 }
 
-export function checkAdjacentItems<T>(
-	items: readonly T[],
-	predicate: (item1: T, item2: T) => boolean,
-): boolean {
+export function checkAdjacentItems<T>(items: readonly T[], predicate: (item1: T, item2: T) => boolean): boolean {
 	let i = 0;
 	while (i < items.length - 1) {
 		const a = items[i];

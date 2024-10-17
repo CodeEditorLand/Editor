@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	export interface FindFiles2Options {
 		// note: this is just FindTextInFilesOptions without select properties (include, previewOptions, beforeContext, afterContext)
 
@@ -83,10 +84,6 @@ declare module "vscode" {
 		 * @returns A thenable that resolves to an array of resource identifiers. Will return no results if no
 		 * {@link workspace.workspaceFolders workspace folders} are opened.
 		 */
-		export function findFiles2(
-			filePattern: GlobPattern,
-			options?: FindFiles2Options,
-			token?: CancellationToken,
-		): Thenable<Uri[]>;
+		export function findFiles2(filePattern: GlobPattern, options?: FindFiles2Options, token?: CancellationToken): Thenable<Uri[]>;
 	}
 }

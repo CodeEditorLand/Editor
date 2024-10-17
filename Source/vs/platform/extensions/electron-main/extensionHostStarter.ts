@@ -3,24 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Promises } from "../../../base/common/async.js";
-import { canceled } from "../../../base/common/errors.js";
-import { Event } from "../../../base/common/event.js";
-import { Disposable, IDisposable } from "../../../base/common/lifecycle.js";
-import { ILifecycleMainService } from "../../lifecycle/electron-main/lifecycleMainService.js";
-import { ILogService } from "../../log/common/log.js";
-import { ITelemetryService } from "../../telemetry/common/telemetry.js";
-import { WindowUtilityProcess } from "../../utilityProcess/electron-main/utilityProcess.js";
-import { IWindowsMainService } from "../../windows/electron-main/windows.js";
-import {
-	IExtensionHostProcessOptions,
-	IExtensionHostStarter,
-} from "../common/extensionHostStarter.js";
+import { Promises } from '../../../base/common/async.js';
+import { canceled } from '../../../base/common/errors.js';
+import { Event } from '../../../base/common/event.js';
+import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
+import { IExtensionHostProcessOptions, IExtensionHostStarter } from '../common/extensionHostStarter.js';
+import { ILifecycleMainService } from '../../lifecycle/electron-main/lifecycleMainService.js';
+import { ILogService } from '../../log/common/log.js';
+import { ITelemetryService } from '../../telemetry/common/telemetry.js';
+import { WindowUtilityProcess } from '../../utilityProcess/electron-main/utilityProcess.js';
+import { IWindowsMainService } from '../../windows/electron-main/windows.js';
 
-export class ExtensionHostStarter
-	extends Disposable
-	implements IDisposable, IExtensionHostStarter
-{
+export class ExtensionHostStarter extends Disposable implements IDisposable, IExtensionHostStarter {
+
 	readonly _serviceBrand: undefined;
 
 	private static _lastId: number = 0;
@@ -30,22 +25,17 @@ export class ExtensionHostStarter
 
 	constructor(
 		@ILogService private readonly _logService: ILogService,
-		@ILifecycleMainService
-		private readonly _lifecycleMainService: ILifecycleMainService,
-		@IWindowsMainService
-		private readonly _windowsMainService: IWindowsMainService,
-		@ITelemetryService
-		private readonly _telemetryService: ITelemetryService,
+		@ILifecycleMainService private readonly _lifecycleMainService: ILifecycleMainService,
+		@IWindowsMainService private readonly _windowsMainService: IWindowsMainService,
+		@ITelemetryService private readonly _telemetryService: ITelemetryService,
 	) {
 		super();
 
 		// On shutdown: gracefully await extension host shutdowns
-		this._register(
-			this._lifecycleMainService.onWillShutdown((e) => {
-				this._shutdown = true;
-				e.join("extHostStarter", this._waitForAllExit(6000));
-			}),
-		);
+		this._register(this._lifecycleMainService.onWillShutdown(e => {
+			this._shutdown = true;
+			e.join('extHostStarter', this._waitForAllExit(6000));
+		}));
 	}
 
 	override dispose(): void {
@@ -82,18 +72,11 @@ export class ExtensionHostStarter
 			throw canceled();
 		}
 		const id = String(++ExtensionHostStarter._lastId);
-		const extHost = new WindowUtilityProcess(
-			this._logService,
-			this._windowsMainService,
-			this._telemetryService,
-			this._lifecycleMainService,
-		);
+		const extHost = new WindowUtilityProcess(this._logService, this._windowsMainService, this._telemetryService, this._lifecycleMainService);
 		this._extHosts.set(id, extHost);
 		const disposable = extHost.onExit(({ pid, code, signal }) => {
 			disposable.dispose();
-			this._logService.info(
-				`Extension host with pid ${pid} exited with code: ${code}, signal: ${signal}.`,
-			);
+			this._logService.info(`Extension host with pid ${pid} exited with code: ${code}, signal: ${signal}.`);
 			setTimeout(() => {
 				extHost.dispose();
 				this._extHosts.delete(id);
@@ -107,9 +90,7 @@ export class ExtensionHostStarter
 			setTimeout(() => {
 				try {
 					process.kill(pid, 0); // will throw if the process doesn't exist anymore.
-					this._logService.error(
-						`Extension host with pid ${pid} still exists, forcefully killing it...`,
-					);
+					this._logService.error(`Extension host with pid ${pid} still exists, forcefully killing it...`);
 					process.kill(pid);
 				} catch (er) {
 					// ignore, as the process is already gone
@@ -119,23 +100,20 @@ export class ExtensionHostStarter
 		return { id };
 	}
 
-	async start(
-		id: string,
-		opts: IExtensionHostProcessOptions,
-	): Promise<{ pid: number | undefined }> {
+	async start(id: string, opts: IExtensionHostProcessOptions): Promise<{ pid: number | undefined }> {
 		if (this._shutdown) {
 			throw canceled();
 		}
 		const extHost = this._getExtHost(id);
 		extHost.start({
 			...opts,
-			type: "extensionHost",
-			entryPoint: "vs/workbench/api/node/extensionHostProcess",
-			args: ["--skipWorkspaceStorageLock"],
+			type: 'extensionHost',
+			entryPoint: 'vs/workbench/api/node/extensionHostProcess',
+			args: ['--skipWorkspaceStorageLock'],
 			execArgv: opts.execArgv,
 			allowLoadingUnsignedLibraries: true,
 			respondToAuthRequestsFromMainProcess: true,
-			correlationId: id,
+			correlationId: id
 		});
 		const pid = await Event.toPromise(extHost.onSpawn);
 		return { pid };
@@ -175,6 +153,6 @@ export class ExtensionHostStarter
 		for (const [, extHost] of this._extHosts) {
 			exitPromises.push(extHost.waitForExit(maxWaitTimeMs));
 		}
-		return Promises.settled(exitPromises).then(() => {});
+		return Promises.settled(exitPromises).then(() => { });
 	}
 }

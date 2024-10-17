@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { CancellationToken } from "../../../common/cancellation.js";
-import type { IMarkdownString } from "../../../common/htmlContent.js";
-import type { IDisposable } from "../../../common/lifecycle.js";
-import type { IHoverDelegate } from "./hoverDelegate.js";
-import type { HoverPosition } from "./hoverWidget.js";
+import type { IHoverDelegate } from './hoverDelegate.js';
+import type { HoverPosition } from './hoverWidget.js';
+import type { CancellationToken } from '../../../common/cancellation.js';
+import type { IMarkdownString } from '../../../common/htmlContent.js';
+import type { IDisposable } from '../../../common/lifecycle.js';
 
 /**
  * Enables the convenient display of rich markdown-based hovers in the workbench.
@@ -30,7 +30,7 @@ export interface IHoverDelegate2 {
 	 */
 	showHover(
 		options: IHoverOptions,
-		focus?: boolean,
+		focus?: boolean
 	): IHoverWidget | undefined;
 
 	/**
@@ -62,12 +62,7 @@ export interface IHoverDelegate2 {
 	//       will avoid confusion around IHoverDelegate/IHoverDelegate2 as well as align more with
 	//       the design of the hover service.
 	// TODO: Align prototype closer to showHover, deriving options from IHoverOptions if possible.
-	setupManagedHover(
-		hoverDelegate: IHoverDelegate,
-		targetElement: HTMLElement,
-		content: IManagedHoverContentOrFactory,
-		options?: IManagedHoverOptions,
-	): IManagedHover;
+	setupManagedHover(hoverDelegate: IHoverDelegate, targetElement: HTMLElement, content: IManagedHoverContentOrFactory, options?: IManagedHoverOptions): IManagedHover;
 
 	/**
 	 * Shows the hover for the given element if one has been setup.
@@ -271,28 +266,15 @@ export interface IHoverTarget extends IDisposable {
 // #region Managed hover
 
 export interface IManagedHoverTooltipMarkdownString {
-	markdown:
-		| IMarkdownString
-		| string
-		| undefined
-		| ((
-				token: CancellationToken,
-		  ) => Promise<IMarkdownString | string | undefined>);
+	markdown: IMarkdownString | string | undefined | ((token: CancellationToken) => Promise<IMarkdownString | string | undefined>);
 	markdownNotSupportedFallback: string | undefined;
 }
 
-export type IManagedHoverContent =
-	| string
-	| IManagedHoverTooltipMarkdownString
-	| HTMLElement
-	| undefined;
-export type IManagedHoverContentOrFactory =
-	| IManagedHoverContent
-	| (() => IManagedHoverContent);
+export type IManagedHoverContent = string | IManagedHoverTooltipMarkdownString | HTMLElement | undefined;
+export type IManagedHoverContentOrFactory = IManagedHoverContent | (() => IManagedHoverContent);
 
-export interface IManagedHoverOptions
-	extends Pick<IHoverOptions, "actions" | "linkHandler" | "trapFocus"> {
-	appearance?: Pick<IHoverAppearanceOptions, "showHoverHint">;
+export interface IManagedHoverOptions extends Pick<IHoverOptions, 'actions' | 'linkHandler' | 'trapFocus'> {
+	appearance?: Pick<IHoverAppearanceOptions, 'showHoverHint'>;
 }
 
 export interface IManagedHover extends IDisposable {

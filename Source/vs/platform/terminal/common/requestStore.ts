@@ -3,16 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { timeout } from "../../../base/common/async.js";
-import { CancellationTokenSource } from "../../../base/common/cancellation.js";
-import { Emitter } from "../../../base/common/event.js";
-import {
-	Disposable,
-	dispose,
-	IDisposable,
-	toDisposable,
-} from "../../../base/common/lifecycle.js";
-import { ILogService } from "../../log/common/log.js";
+import { timeout } from '../../../base/common/async.js';
+import { CancellationTokenSource } from '../../../base/common/cancellation.js';
+import { Emitter } from '../../../base/common/event.js';
+import { Disposable, dispose, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { ILogService } from '../../log/common/log.js';
 
 /**
  * A helper class to track requests that have replies. Using this it's easy to implement an event
@@ -24,9 +19,7 @@ export class RequestStore<T, RequestArgs> extends Disposable {
 	private _pendingRequests: Map<number, (resolved: T) => void> = new Map();
 	private _pendingRequestDisposables: Map<number, IDisposable[]> = new Map();
 
-	private readonly _onCreateRequest = this._register(
-		new Emitter<RequestArgs & { requestId: number }>(),
-	);
+	private readonly _onCreateRequest = this._register(new Emitter<RequestArgs & { requestId: number }>());
 	readonly onCreateRequest = this._onCreateRequest.event;
 
 	/**
@@ -35,17 +28,15 @@ export class RequestStore<T, RequestArgs> extends Disposable {
 	 */
 	constructor(
 		timeout: number | undefined,
-		@ILogService private readonly _logService: ILogService,
+		@ILogService private readonly _logService: ILogService
 	) {
 		super();
 		this._timeout = timeout === undefined ? 15000 : timeout;
-		this._register(
-			toDisposable(() => {
-				for (const d of this._pendingRequestDisposables.values()) {
-					dispose(d);
-				}
-			}),
-		);
+		this._register(toDisposable(() => {
+			for (const d of this._pendingRequestDisposables.values()) {
+				dispose(d);
+			}
+		}));
 	}
 
 	/**
@@ -58,12 +49,8 @@ export class RequestStore<T, RequestArgs> extends Disposable {
 			this._pendingRequests.set(requestId, resolve);
 			this._onCreateRequest.fire({ requestId, ...args });
 			const tokenSource = new CancellationTokenSource();
-			timeout(this._timeout, tokenSource.token).then(() =>
-				reject(`Request ${requestId} timed out (${this._timeout}ms)`),
-			);
-			this._pendingRequestDisposables.set(requestId, [
-				toDisposable(() => tokenSource.cancel()),
-			]);
+			timeout(this._timeout, tokenSource.token).then(() => reject(`Request ${requestId} timed out (${this._timeout}ms)`));
+			this._pendingRequestDisposables.set(requestId, [toDisposable(() => tokenSource.cancel())]);
 		});
 	}
 
@@ -80,9 +67,7 @@ export class RequestStore<T, RequestArgs> extends Disposable {
 			this._pendingRequestDisposables.delete(requestId);
 			resolveRequest(data);
 		} else {
-			this._logService.warn(
-				`RequestStore#acceptReply was called without receiving a matching request ${requestId}`,
-			);
+			this._logService.warn(`RequestStore#acceptReply was called without receiving a matching request ${requestId}`);
 		}
 	}
 }

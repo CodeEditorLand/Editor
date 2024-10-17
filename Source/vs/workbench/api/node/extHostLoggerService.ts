@@ -3,33 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Schemas } from "../../../base/common/network.js";
-import { URI } from "../../../base/common/uri.js";
-import { generateUuid } from "../../../base/common/uuid.js";
-import {
-	ILogger,
-	ILoggerOptions,
-	ILoggerResource,
-	LogLevel,
-} from "../../../platform/log/common/log.js";
-import { SpdLogLogger } from "../../../platform/log/node/spdlogLog.js";
-import { ExtHostLoggerService as BaseExtHostLoggerService } from "../common/extHostLoggerService.js";
+import { ILogger, ILoggerOptions, ILoggerResource, LogLevel } from '../../../platform/log/common/log.js';
+import { URI } from '../../../base/common/uri.js';
+import { ExtHostLoggerService as BaseExtHostLoggerService } from '../common/extHostLoggerService.js';
+import { Schemas } from '../../../base/common/network.js';
+import { SpdLogLogger } from '../../../platform/log/node/spdlogLog.js';
+import { generateUuid } from '../../../base/common/uuid.js';
 
 export class ExtHostLoggerService extends BaseExtHostLoggerService {
-	protected override doCreateLogger(
-		resource: URI,
-		logLevel: LogLevel,
-		options?: ILoggerOptions,
-	): ILogger {
+
+	protected override doCreateLogger(resource: URI, logLevel: LogLevel, options?: ILoggerOptions): ILogger {
 		if (resource.scheme === Schemas.file) {
 			/* Create the logger in the Extension Host process to prevent loggers (log, output channels...) traffic  over IPC */
-			return new SpdLogLogger(
-				options?.name || generateUuid(),
-				resource.fsPath,
-				!options?.donotRotate,
-				!!options?.donotUseFormatters,
-				logLevel,
-			);
+			return new SpdLogLogger(options?.name || generateUuid(), resource.fsPath, !options?.donotRotate, !!options?.donotUseFormatters, logLevel);
 		}
 		return super.doCreateLogger(resource, logLevel, options);
 	}
@@ -43,4 +29,5 @@ export class ExtHostLoggerService extends BaseExtHostLoggerService {
 		super.deregisterLogger(resource);
 		this._proxy.$deregisterLogger(resource);
 	}
+
 }

@@ -3,21 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { readUInt32BE, writeUInt32BE } from "../../../base/common/buffer.js";
-import { ContiguousMultilineTokens } from "./contiguousMultilineTokens.js";
+import { readUInt32BE, writeUInt32BE } from '../../../base/common/buffer.js';
+import { ContiguousMultilineTokens } from './contiguousMultilineTokens.js';
 
 export class ContiguousMultilineTokensBuilder {
+
 	public static deserialize(buff: Uint8Array): ContiguousMultilineTokens[] {
 		let offset = 0;
-		const count = readUInt32BE(buff, offset);
-		offset += 4;
+		const count = readUInt32BE(buff, offset); offset += 4;
 		const result: ContiguousMultilineTokens[] = [];
 		for (let i = 0; i < count; i++) {
-			offset = ContiguousMultilineTokens.deserialize(
-				buff,
-				offset,
-				result,
-			);
+			offset = ContiguousMultilineTokens.deserialize(buff, offset, result);
 		}
 		return result;
 	}
@@ -37,9 +33,7 @@ export class ContiguousMultilineTokensBuilder {
 				return;
 			}
 		}
-		this._tokens.push(
-			new ContiguousMultilineTokens(lineNumber, [lineTokens]),
-		);
+		this._tokens.push(new ContiguousMultilineTokens(lineNumber, [lineTokens]));
 	}
 
 	public finalize(): ContiguousMultilineTokens[] {
@@ -64,8 +58,7 @@ export class ContiguousMultilineTokensBuilder {
 
 	private _serialize(destination: Uint8Array): void {
 		let offset = 0;
-		writeUInt32BE(destination, this._tokens.length, offset);
-		offset += 4;
+		writeUInt32BE(destination, this._tokens.length, offset); offset += 4;
 		for (let i = 0; i < this._tokens.length; i++) {
 			offset = this._tokens[i].serialize(destination, offset);
 		}

@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-declare module "vscode" {
+declare module 'vscode' {
+
 	export interface SpeechToTextOptions {
 		readonly language?: string;
 	}
@@ -13,7 +14,7 @@ declare module "vscode" {
 		Recognizing = 2,
 		Recognized = 3,
 		Stopped = 4,
-		Error = 5,
+		Error = 5
 	}
 
 	export interface SpeechToTextEvent {
@@ -32,7 +33,7 @@ declare module "vscode" {
 	export enum TextToSpeechStatus {
 		Started = 1,
 		Stopped = 2,
-		Error = 3,
+		Error = 3
 	}
 
 	export interface TextToSpeechEvent {
@@ -48,7 +49,7 @@ declare module "vscode" {
 
 	export enum KeywordRecognitionStatus {
 		Recognized = 1,
-		Stopped = 2,
+		Stopped = 2
 	}
 
 	export interface KeywordRecognitionEvent {
@@ -61,23 +62,13 @@ declare module "vscode" {
 	}
 
 	export interface SpeechProvider {
-		provideSpeechToTextSession(
-			token: CancellationToken,
-			options?: SpeechToTextOptions,
-		): ProviderResult<SpeechToTextSession>;
-		provideTextToSpeechSession(
-			token: CancellationToken,
-			options?: TextToSpeechOptions,
-		): ProviderResult<TextToSpeechSession>;
-		provideKeywordRecognitionSession(
-			token: CancellationToken,
-		): ProviderResult<KeywordRecognitionSession>;
+		provideSpeechToTextSession(token: CancellationToken, options?: SpeechToTextOptions): ProviderResult<SpeechToTextSession>;
+		provideTextToSpeechSession(token: CancellationToken, options?: TextToSpeechOptions): ProviderResult<TextToSpeechSession>;
+		provideKeywordRecognitionSession(token: CancellationToken): ProviderResult<KeywordRecognitionSession>;
 	}
 
 	export namespace speech {
-		export function registerSpeechProvider(
-			id: string,
-			provider: SpeechProvider,
-		): Disposable;
+
+		export function registerSpeechProvider(id: string, provider: SpeechProvider): Disposable;
 	}
 }

@@ -3,11 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 
-export const INotebookLoggingService = createDecorator<INotebookLoggingService>(
-	"INotebookLoggingService",
-);
+export const INotebookLoggingService = createDecorator<INotebookLoggingService>('INotebookLoggingService');
 
 export interface INotebookLoggingService {
 	readonly _serviceBrand: undefined;

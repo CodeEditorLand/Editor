@@ -3,38 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from "../../../../base/common/cancellation.js";
-import { Codicon } from "../../../../base/common/codicons.js";
-import { Emitter } from "../../../../base/common/event.js";
-import { Disposable, toDisposable } from "../../../../base/common/lifecycle.js";
-import { Schemas } from "../../../../base/common/network.js";
-import { ThemeIcon } from "../../../../base/common/themables.js";
-import { URI } from "../../../../base/common/uri.js";
-import * as nls from "../../../../nls.js";
-import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
-import { registerIcon } from "../../../../platform/theme/common/iconRegistry.js";
-import {
-	EditorInputCapabilities,
-	IEditorSerializer,
-	IUntypedEditorInput,
-} from "../../../common/editor.js";
-import { EditorInput } from "../../../common/editor/editorInput.js";
-import { ChatAgentLocation } from "../common/chatAgents.js";
-import { IChatModel } from "../common/chatModel.js";
-import { IChatService } from "../common/chatService.js";
-import type { IChatEditorOptions } from "./chatEditor.js";
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { Codicon } from '../../../../base/common/codicons.js';
+import { Emitter } from '../../../../base/common/event.js';
+import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { Schemas } from '../../../../base/common/network.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
+import { URI } from '../../../../base/common/uri.js';
+import * as nls from '../../../../nls.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
+import { EditorInputCapabilities, IEditorSerializer, IUntypedEditorInput } from '../../../common/editor.js';
+import { EditorInput } from '../../../common/editor/editorInput.js';
+import type { IChatEditorOptions } from './chatEditor.js';
+import { ChatAgentLocation } from '../common/chatAgents.js';
+import { IChatModel } from '../common/chatModel.js';
+import { IChatService } from '../common/chatService.js';
 
-const ChatEditorIcon = registerIcon(
-	"chat-editor-label-icon",
-	Codicon.commentDiscussion,
-	nls.localize("chatEditorLabelIcon", "Icon of the chat editor label."),
-);
+const ChatEditorIcon = registerIcon('chat-editor-label-icon', Codicon.commentDiscussion, nls.localize('chatEditorLabelIcon', 'Icon of the chat editor label.'));
 
 export class ChatEditorInput extends EditorInput {
 	static readonly countsInUse = new Set<number>();
 
-	static readonly TypeID: string = "workbench.input.chatSession";
-	static readonly EditorID: string = "workbench.editor.chatSession";
+	static readonly TypeID: string = 'workbench.input.chatSession';
+	static readonly EditorID: string = 'workbench.editor.chatSession';
 
 	private readonly inputCount: number;
 	public sessionId: string | undefined;
@@ -58,26 +50,21 @@ export class ChatEditorInput extends EditorInput {
 	constructor(
 		readonly resource: URI,
 		readonly options: IChatEditorOptions,
-		@IChatService private readonly chatService: IChatService,
+		@IChatService private readonly chatService: IChatService
 	) {
 		super();
 
 		const parsed = ChatUri.parse(resource);
-		if (typeof parsed?.handle !== "number") {
-			throw new Error("Invalid chat URI");
+		if (typeof parsed?.handle !== 'number') {
+			throw new Error('Invalid chat URI');
 		}
 
-		this.sessionId =
-			options.target && "sessionId" in options.target
-				? options.target.sessionId
-				: undefined;
+		this.sessionId = (options.target && 'sessionId' in options.target) ?
+			options.target.sessionId :
+			undefined;
 		this.inputCount = ChatEditorInput.getNextCount();
 		ChatEditorInput.countsInUse.add(this.inputCount);
-		this._register(
-			toDisposable(() =>
-				ChatEditorInput.countsInUse.delete(this.inputCount),
-			),
-		);
+		this._register(toDisposable(() => ChatEditorInput.countsInUse.delete(this.inputCount)));
 	}
 
 	override get editorId(): string | undefined {
@@ -89,10 +76,7 @@ export class ChatEditorInput extends EditorInput {
 	}
 
 	override matches(otherInput: EditorInput | IUntypedEditorInput): boolean {
-		return (
-			otherInput instanceof ChatEditorInput &&
-			otherInput.resource.toString() === this.resource.toString()
-		);
+		return otherInput instanceof ChatEditorInput && otherInput.resource.toString() === this.resource.toString();
 	}
 
 	override get typeId(): string {
@@ -100,11 +84,7 @@ export class ChatEditorInput extends EditorInput {
 	}
 
 	override getName(): string {
-		return (
-			this.model?.title ||
-			nls.localize("chatEditorName", "Chat") +
-				(this.inputCount > 0 ? ` ${this.inputCount + 1}` : "")
-		);
+		return this.model?.title || nls.localize('chatEditorName', "Chat") + (this.inputCount > 0 ? ` ${this.inputCount + 1}` : '');
 	}
 
 	override getIcon(): ThemeIcon {
@@ -112,17 +92,12 @@ export class ChatEditorInput extends EditorInput {
 	}
 
 	override async resolve(): Promise<ChatEditorModel | null> {
-		if (typeof this.sessionId === "string") {
+		if (typeof this.sessionId === 'string') {
 			this.model = this.chatService.getOrRestoreSession(this.sessionId);
 		} else if (!this.options.target) {
-			this.model = this.chatService.startSession(
-				ChatAgentLocation.Panel,
-				CancellationToken.None,
-			);
-		} else if ("data" in this.options.target) {
-			this.model = this.chatService.loadSessionFromContent(
-				this.options.target.data,
-			);
+			this.model = this.chatService.startSession(ChatAgentLocation.Panel, CancellationToken.None);
+		} else if ('data' in this.options.target) {
+			this.model = this.chatService.loadSessionFromContent(this.options.target.data);
 		}
 
 		if (!this.model) {
@@ -130,9 +105,7 @@ export class ChatEditorInput extends EditorInput {
 		}
 
 		this.sessionId = this.model.sessionId;
-		this._register(
-			this.model.onDidChange(() => this._onDidChangeLabel.fire()),
-		);
+		this._register(this.model.onDidChange(() => this._onDidChangeLabel.fire()));
 
 		return this._register(new ChatEditorModel(this.model));
 	}
@@ -152,9 +125,9 @@ export class ChatEditorModel extends Disposable {
 	private _isDisposed = false;
 	private _isResolved = false;
 
-	constructor(readonly model: IChatModel) {
-		super();
-	}
+	constructor(
+		readonly model: IChatModel
+	) { super(); }
 
 	async resolve(): Promise<void> {
 		this._isResolved = true;
@@ -175,7 +148,9 @@ export class ChatEditorModel extends Disposable {
 }
 
 export namespace ChatUri {
+
 	export const scheme = Schemas.vscodeChatSesssion;
+
 
 	export function generate(handle: number): URI {
 		return URI.from({ scheme, path: `chat-${handle}` });
@@ -188,7 +163,7 @@ export namespace ChatUri {
 
 		const match = resource.path.match(/chat-(\d+)/);
 		const handleStr = match?.[1];
-		if (typeof handleStr !== "string") {
+		if (typeof handleStr !== 'string') {
 			return undefined;
 		}
 
@@ -208,13 +183,8 @@ interface ISerializedChatEditorInput {
 }
 
 export class ChatEditorInputSerializer implements IEditorSerializer {
-	canSerialize(
-		input: EditorInput,
-	): input is ChatEditorInput & { readonly sessionId: string } {
-		return (
-			input instanceof ChatEditorInput &&
-			typeof input.sessionId === "string"
-		);
+	canSerialize(input: EditorInput): input is ChatEditorInput & { readonly sessionId: string } {
+		return input instanceof ChatEditorInput && typeof input.sessionId === 'string';
 	}
 
 	serialize(input: EditorInput): string | undefined {
@@ -225,24 +195,16 @@ export class ChatEditorInputSerializer implements IEditorSerializer {
 		const obj: ISerializedChatEditorInput = {
 			options: input.options,
 			sessionId: input.sessionId,
-			resource: input.resource,
+			resource: input.resource
 		};
 		return JSON.stringify(obj);
 	}
 
-	deserialize(
-		instantiationService: IInstantiationService,
-		serializedEditor: string,
-	): EditorInput | undefined {
+	deserialize(instantiationService: IInstantiationService, serializedEditor: string): EditorInput | undefined {
 		try {
-			const parsed: ISerializedChatEditorInput =
-				JSON.parse(serializedEditor);
+			const parsed: ISerializedChatEditorInput = JSON.parse(serializedEditor);
 			const resource = URI.revive(parsed.resource);
-			return instantiationService.createInstance(
-				ChatEditorInput,
-				resource,
-				{ ...parsed.options, target: { sessionId: parsed.sessionId } },
-			);
+			return instantiationService.createInstance(ChatEditorInput, resource, { ...parsed.options, target: { sessionId: parsed.sessionId } });
 		} catch (err) {
 			return undefined;
 		}

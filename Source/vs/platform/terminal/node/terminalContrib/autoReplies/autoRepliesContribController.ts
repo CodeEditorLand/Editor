@@ -3,25 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ILogService } from "../../../../log/common/log.js";
-import type {
-	IPtyServiceContribution,
-	ITerminalChildProcess,
-} from "../../../common/terminal.js";
-import { TerminalAutoResponder } from "./terminalAutoResponder.js";
+import { ILogService } from '../../../../log/common/log.js';
+import type { IPtyServiceContribution, ITerminalChildProcess } from '../../../common/terminal.js';
+import { TerminalAutoResponder } from './terminalAutoResponder.js';
 
-export class AutoRepliesPtyServiceContribution
-	implements IPtyServiceContribution
-{
+export class AutoRepliesPtyServiceContribution implements IPtyServiceContribution {
 	private readonly _autoReplies: Map<string, string> = new Map();
-	private readonly _terminalProcesses: Map<number, ITerminalChildProcess> =
-		new Map();
-	private readonly _autoResponders: Map<
-		number,
-		Map<string, TerminalAutoResponder>
-	> = new Map();
+	private readonly _terminalProcesses: Map<number, ITerminalChildProcess> = new Map();
+	private readonly _autoResponders: Map<number, Map<string, TerminalAutoResponder>> = new Map();
 
-	constructor(@ILogService private readonly _logService: ILogService) {}
+	constructor(
+		@ILogService private readonly _logService: ILogService
+	) {
+	}
 
 	async installAutoReply(match: string, reply: string) {
 		this._autoReplies.set(match, reply);
@@ -29,17 +23,10 @@ export class AutoRepliesPtyServiceContribution
 		for (const persistentProcessId of this._autoResponders.keys()) {
 			const process = this._terminalProcesses.get(persistentProcessId);
 			if (!process) {
-				this._logService.error(
-					"Could not find terminal process to install auto reply",
-				);
+				this._logService.error('Could not find terminal process to install auto reply');
 				continue;
 			}
-			this._processInstallAutoReply(
-				persistentProcessId,
-				process,
-				match,
-				reply,
-			);
+			this._processInstallAutoReply(persistentProcessId, process, match, reply);
 		}
 	}
 
@@ -52,25 +39,16 @@ export class AutoRepliesPtyServiceContribution
 		}
 	}
 
-	handleProcessReady(
-		persistentProcessId: number,
-		process: ITerminalChildProcess,
-	): void {
+	handleProcessReady(persistentProcessId: number, process: ITerminalChildProcess): void {
 		this._terminalProcesses.set(persistentProcessId, process);
 		this._autoResponders.set(persistentProcessId, new Map());
 		for (const [match, reply] of this._autoReplies.entries()) {
-			this._processInstallAutoReply(
-				persistentProcessId,
-				process,
-				match,
-				reply,
-			);
+			this._processInstallAutoReply(persistentProcessId, process, match, reply);
 		}
 	}
 
 	handleProcessDispose(persistentProcessId: number): void {
-		const processAutoResponders =
-			this._autoResponders.get(persistentProcessId);
+		const processAutoResponders = this._autoResponders.get(persistentProcessId);
 		if (processAutoResponders) {
 			for (const e of processAutoResponders.values()) {
 				e.dispose();
@@ -80,8 +58,7 @@ export class AutoRepliesPtyServiceContribution
 	}
 
 	handleProcessInput(persistentProcessId: number, data: string) {
-		const processAutoResponders =
-			this._autoResponders.get(persistentProcessId);
+		const processAutoResponders = this._autoResponders.get(persistentProcessId);
 		if (processAutoResponders) {
 			for (const listener of processAutoResponders.values()) {
 				listener.handleInput();
@@ -89,13 +66,8 @@ export class AutoRepliesPtyServiceContribution
 		}
 	}
 
-	handleProcessResize(
-		persistentProcessId: number,
-		cols: number,
-		rows: number,
-	) {
-		const processAutoResponders =
-			this._autoResponders.get(persistentProcessId);
+	handleProcessResize(persistentProcessId: number, cols: number, rows: number) {
+		const processAutoResponders = this._autoResponders.get(persistentProcessId);
 		if (processAutoResponders) {
 			for (const listener of processAutoResponders.values()) {
 				listener.handleResize();
@@ -103,25 +75,11 @@ export class AutoRepliesPtyServiceContribution
 		}
 	}
 
-	private _processInstallAutoReply(
-		persistentProcessId: number,
-		terminalProcess: ITerminalChildProcess,
-		match: string,
-		reply: string,
-	) {
-		const processAutoResponders =
-			this._autoResponders.get(persistentProcessId);
+	private _processInstallAutoReply(persistentProcessId: number, terminalProcess: ITerminalChildProcess, match: string, reply: string) {
+		const processAutoResponders = this._autoResponders.get(persistentProcessId);
 		if (processAutoResponders) {
 			processAutoResponders.get(match)?.dispose();
-			processAutoResponders.set(
-				match,
-				new TerminalAutoResponder(
-					terminalProcess,
-					match,
-					reply,
-					this._logService,
-				),
-			);
+			processAutoResponders.set(match, new TerminalAutoResponder(terminalProcess, match, reply, this._logService));
 		}
 	}
 }

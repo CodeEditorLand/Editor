@@ -3,26 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	CancellationError,
-	CancellationToken,
-	Disposable,
-	Event,
-	EventEmitter,
-} from "vscode";
+import { CancellationError, CancellationToken, Disposable, Event, EventEmitter } from 'vscode';
 
 /**
  * Can be passed into the Delayed to defer using a microtask
  */
-export const MicrotaskDelay = Symbol("MicrotaskDelay");
+export const MicrotaskDelay = Symbol('MicrotaskDelay');
 
 export class SequencerByKey<TKey> {
+
 	private promiseMap = new Map<TKey, Promise<unknown>>();
 
 	queue<T>(key: TKey, promiseTask: () => Promise<T>): Promise<T> {
 		const runningPromise = this.promiseMap.get(key) ?? Promise.resolve();
 		const newPromise = runningPromise
-			.catch(() => {})
+			.catch(() => { })
 			.then(promiseTask)
 			.finally(() => {
 				if (this.promiseMap.get(key) === newPromise) {
@@ -35,6 +30,7 @@ export class SequencerByKey<TKey> {
 }
 
 export class IntervalTimer extends Disposable {
+
 	private _token: any;
 
 	constructor() {
@@ -61,10 +57,7 @@ export class IntervalTimer extends Disposable {
  * Returns a promise that rejects with an {@CancellationError} as soon as the passed token is cancelled.
  * @see {@link raceCancellation}
  */
-export function raceCancellationError<T>(
-	promise: Promise<T>,
-	token: CancellationToken,
-): Promise<T> {
+export function raceCancellationError<T>(promise: Promise<T>, token: CancellationToken): Promise<T> {
 	return new Promise((resolve, reject) => {
 		const ref = token.onCancellationRequested(() => {
 			ref.dispose();
@@ -76,14 +69,11 @@ export function raceCancellationError<T>(
 
 export class TimeoutError extends Error {
 	constructor() {
-		super("Timed out");
+		super('Timed out');
 	}
 }
 
-export function raceTimeoutError<T>(
-	promise: Promise<T>,
-	timeout: number,
-): Promise<T> {
+export function raceTimeoutError<T>(promise: Promise<T>, timeout: number): Promise<T> {
 	return new Promise((resolve, reject) => {
 		const ref = setTimeout(() => {
 			reject(new CancellationError());
@@ -92,11 +82,7 @@ export function raceTimeoutError<T>(
 	});
 }
 
-export function raceCancellationAndTimeoutError<T>(
-	promise: Promise<T>,
-	token: CancellationToken,
-	timeout: number,
-): Promise<T> {
+export function raceCancellationAndTimeoutError<T>(promise: Promise<T>, token: CancellationToken, timeout: number): Promise<T> {
 	return raceCancellationError(raceTimeoutError(promise, timeout), token);
 }
 
@@ -107,6 +93,7 @@ interface ILimitedTaskFactory<T> {
 }
 
 export interface ILimiter<T> {
+
 	readonly size: number;
 
 	queue(factory: () => Promise<T>): Promise<T>;
@@ -119,6 +106,7 @@ export interface ILimiter<T> {
  * ensures that at any time no more than M promises are running at the same time.
  */
 export class Limiter<T> implements ILimiter<T> {
+
 	private _size = 0;
 	private _isDisposed = false;
 	private runningPromises: number;
@@ -139,7 +127,9 @@ export class Limiter<T> implements ILimiter<T> {
 	 * there is nothing to do
 	 */
 	whenIdle(): Promise<void> {
-		return this.size > 0 ? toPromise(this.onDrained) : Promise.resolve();
+		return this.size > 0
+			? toPromise(this.onDrained)
+			: Promise.resolve();
 	}
 
 	get onDrained(): Event<void> {
@@ -152,7 +142,7 @@ export class Limiter<T> implements ILimiter<T> {
 
 	queue(factory: () => Promise<T>): Promise<T> {
 		if (this._isDisposed) {
-			throw new Error("Object has been disposed");
+			throw new Error('Object has been disposed');
 		}
 		this._size++;
 
@@ -163,19 +153,13 @@ export class Limiter<T> implements ILimiter<T> {
 	}
 
 	private consume(): void {
-		while (
-			this.outstandingPromises.length &&
-			this.runningPromises < this.maxDegreeOfParalellism
-		) {
+		while (this.outstandingPromises.length && this.runningPromises < this.maxDegreeOfParalellism) {
 			const iLimitedTask = this.outstandingPromises.shift()!;
 			this.runningPromises++;
 
 			const promise = iLimitedTask.factory();
 			promise.then(iLimitedTask.c, iLimitedTask.e);
-			promise.then(
-				() => this.consumed(),
-				() => this.consumed(),
-			);
+			promise.then(() => this.consumed(), () => this.consumed());
 		}
 	}
 
@@ -195,7 +179,7 @@ export class Limiter<T> implements ILimiter<T> {
 
 	clear(): void {
 		if (this._isDisposed) {
-			throw new Error("Object has been disposed");
+			throw new Error('Object has been disposed');
 		}
 		this.outstandingPromises.length = 0;
 		this._size = this.runningPromises;
@@ -208,6 +192,7 @@ export class Limiter<T> implements ILimiter<T> {
 		this._onDrained.dispose();
 	}
 }
+
 
 interface IScheduledLater extends Disposable {
 	isTriggered(): boolean;
@@ -239,9 +224,7 @@ const microtaskDeferred = (fn: () => void): IScheduledLater => {
 
 	return {
 		isTriggered: () => scheduled,
-		dispose: () => {
-			scheduled = false;
-		},
+		dispose: () => { scheduled = false; },
 	};
 };
 
@@ -269,6 +252,7 @@ const microtaskDeferred = (fn: () => void): IScheduledLater => {
  * 		}
  */
 export class Delayer<T> implements Disposable {
+
 	private deferred: IScheduledLater | null;
 	private completionPromise: Promise<any> | null;
 	private doResolve: ((value?: any | Promise<any>) => void) | null;
@@ -308,10 +292,7 @@ export class Delayer<T> implements Disposable {
 			this.doResolve?.(null);
 		};
 
-		this.deferred =
-			delay === MicrotaskDelay
-				? microtaskDeferred(fn)
-				: timeoutDeferred(delay, fn);
+		this.deferred = delay === MicrotaskDelay ? microtaskDeferred(fn) : timeoutDeferred(delay, fn);
 
 		return this.completionPromise;
 	}
@@ -366,6 +347,7 @@ export class Delayer<T> implements Disposable {
  * 		}
  */
 export class Throttler implements Disposable {
+
 	private activePromise: Promise<any> | null;
 	private queuedPromise: Promise<any> | null;
 	private queuedPromiseFactory: (() => Promise<any>) | null;
@@ -380,7 +362,7 @@ export class Throttler implements Disposable {
 
 	queue<T>(promiseFactory: () => Promise<T>): Promise<T> {
 		if (this.isDisposed) {
-			return Promise.reject(new Error("Throttler is disposed"));
+			return Promise.reject(new Error('Throttler is disposed'));
 		}
 
 		if (this.activePromise) {
@@ -400,10 +382,8 @@ export class Throttler implements Disposable {
 					return result;
 				};
 
-				this.queuedPromise = new Promise((resolve) => {
-					this.activePromise!.then(onComplete, onComplete).then(
-						resolve,
-					);
+				this.queuedPromise = new Promise(resolve => {
+					this.activePromise!.then(onComplete, onComplete).then(resolve);
 				});
 			}
 
@@ -415,16 +395,13 @@ export class Throttler implements Disposable {
 		this.activePromise = promiseFactory();
 
 		return new Promise((resolve, reject) => {
-			this.activePromise!.then(
-				(result: T) => {
-					this.activePromise = null;
-					resolve(result);
-				},
-				(err: unknown) => {
-					this.activePromise = null;
-					reject(err);
-				},
-			);
+			this.activePromise!.then((result: T) => {
+				this.activePromise = null;
+				resolve(result);
+			}, (err: unknown) => {
+				this.activePromise = null;
+				reject(err);
+			});
 		});
 	}
 
@@ -443,6 +420,7 @@ export class Throttler implements Disposable {
  * do one more trip to deliver the letters that have accumulated while he was out.
  */
 export class ThrottledDelayer<T> {
+
 	private delayer: Delayer<Promise<T>>;
 	private throttler: Throttler;
 
@@ -452,10 +430,7 @@ export class ThrottledDelayer<T> {
 	}
 
 	trigger(promiseFactory: () => Promise<T>, delay?: number): Promise<T> {
-		return this.delayer.trigger(
-			() => this.throttler.queue(promiseFactory),
-			delay,
-		) as unknown as Promise<T>;
+		return this.delayer.trigger(() => this.throttler.queue(promiseFactory), delay) as unknown as Promise<T>;
 	}
 
 	isTriggered(): boolean {
@@ -476,6 +451,7 @@ export class ThrottledDelayer<T> {
  * A queue is handles one promise at a time and guarantees that at any time only one promise is executing.
  */
 export class Queue<T> extends Limiter<T> {
+
 	constructor() {
 		super(1);
 	}
@@ -491,21 +467,17 @@ export function once<T>(event: Event<T>): Event<T> {
 		// we need this, in case the event fires during the listener call
 		let didFire = false;
 		let result: Disposable | undefined = undefined;
-		result = event(
-			(e) => {
-				if (didFire) {
-					return;
-				} else if (result) {
-					result.dispose();
-				} else {
-					didFire = true;
-				}
+		result = event(e => {
+			if (didFire) {
+				return;
+			} else if (result) {
+				result.dispose();
+			} else {
+				didFire = true;
+			}
 
-				return listener.call(thisArgs, e);
-			},
-			null,
-			disposables,
-		);
+			return listener.call(thisArgs, e);
+		}, null, disposables);
 
 		if (didFire) {
 			result.dispose();
@@ -519,25 +491,24 @@ export function once<T>(event: Event<T>): Event<T> {
  * Creates a promise out of an event, using the {@link Event.once} helper.
  */
 export function toPromise<T>(event: Event<T>): Promise<T> {
-	return new Promise((resolve) => once(event)(resolve));
+	return new Promise(resolve => once(event)(resolve));
 }
 
 export type ValueCallback<T = unknown> = (value: T | Promise<T>) => void;
 
 const enum DeferredOutcome {
 	Resolved,
-	Rejected,
+	Rejected
 }
 
 /**
  * Creates a promise whose resolution or rejection can be controlled imperatively.
  */
 export class DeferredPromise<T> {
+
 	private completeCallback!: ValueCallback<T>;
 	private errorCallback!: (err: unknown) => void;
-	private outcome?:
-		| { outcome: DeferredOutcome.Rejected; value: any }
-		| { outcome: DeferredOutcome.Resolved; value: T };
+	private outcome?: { outcome: DeferredOutcome.Rejected; value: any } | { outcome: DeferredOutcome.Resolved; value: T };
 
 	public get isRejected() {
 		return this.outcome?.outcome === DeferredOutcome.Rejected;
@@ -552,9 +523,7 @@ export class DeferredPromise<T> {
 	}
 
 	public get value() {
-		return this.outcome?.outcome === DeferredOutcome.Resolved
-			? this.outcome?.value
-			: undefined;
+		return this.outcome?.outcome === DeferredOutcome.Resolved ? this.outcome?.value : undefined;
 	}
 
 	public readonly p: Promise<T>;
@@ -567,7 +536,7 @@ export class DeferredPromise<T> {
 	}
 
 	public complete(value: T) {
-		return new Promise<void>((resolve) => {
+		return new Promise<void>(resolve => {
 			this.completeCallback(value);
 			this.outcome = { outcome: DeferredOutcome.Resolved, value };
 			resolve();
@@ -575,7 +544,7 @@ export class DeferredPromise<T> {
 	}
 
 	public error(err: unknown) {
-		return new Promise<void>((resolve) => {
+		return new Promise<void>(resolve => {
 			this.errorCallback(err);
 			this.outcome = { outcome: DeferredOutcome.Rejected, value: err };
 			resolve();

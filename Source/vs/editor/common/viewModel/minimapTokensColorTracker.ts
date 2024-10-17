@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable, markAsSingleton } from "../../../base/common/lifecycle.js";
-import { RGBA8 } from "../core/rgba.js";
-import { ColorId } from "../encodedTokenAttributes.js";
-import { TokenizationRegistry } from "../languages.js";
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable, markAsSingleton } from '../../../base/common/lifecycle.js';
+import { RGBA8 } from '../core/rgba.js';
+import { TokenizationRegistry } from '../languages.js';
+import { ColorId } from '../encodedTokenAttributes.js';
 
 export class MinimapTokensColorTracker extends Disposable {
 	private static _INSTANCE: MinimapTokensColorTracker | null = null;
@@ -27,13 +27,11 @@ export class MinimapTokensColorTracker extends Disposable {
 	private constructor() {
 		super();
 		this._updateColorMap();
-		this._register(
-			TokenizationRegistry.onDidChange((e) => {
-				if (e.changedColorMap) {
-					this._updateColorMap();
-				}
-			}),
-		);
+		this._register(TokenizationRegistry.onDidChange(e => {
+			if (e.changedColorMap) {
+				this._updateColorMap();
+			}
+		}));
 	}
 
 	private _updateColorMap(): void {
@@ -47,15 +45,9 @@ export class MinimapTokensColorTracker extends Disposable {
 		for (let colorId = 1; colorId < colorMap.length; colorId++) {
 			const source = colorMap[colorId].rgba;
 			// Use a VM friendly data-type
-			this._colors[colorId] = new RGBA8(
-				source.r,
-				source.g,
-				source.b,
-				Math.round(source.a * 255),
-			);
+			this._colors[colorId] = new RGBA8(source.r, source.g, source.b, Math.round(source.a * 255));
 		}
-		const backgroundLuminosity =
-			colorMap[ColorId.DefaultBackground].getRelativeLuminance();
+		const backgroundLuminosity = colorMap[ColorId.DefaultBackground].getRelativeLuminance();
 		this._backgroundIsLight = backgroundLuminosity >= 0.5;
 		this._onDidChange.fire(undefined);
 	}

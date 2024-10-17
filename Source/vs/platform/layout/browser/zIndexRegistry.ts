@@ -3,12 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	clearNode,
-	createCSSRule,
-	createStyleSheet,
-} from "../../../base/browser/dom.js";
-import { RunOnceScheduler } from "../../../base/common/async.js";
+import { clearNode, createCSSRule, createStyleSheet } from '../../../base/browser/dom.js';
+import { RunOnceScheduler } from '../../../base/common/async.js';
 
 export enum ZIndex {
 	Base = 0,
@@ -19,13 +15,10 @@ export enum ZIndex {
 	MenubarMenuItemsHolder = 2000, // quick-input-widget
 	ContextView = 2500,
 	ModalDialog = 2600,
-	PaneDropOverlay = 10000,
+	PaneDropOverlay = 10000
 }
 
-const ZIndexValues = Object.keys(ZIndex)
-	.filter((key) => !isNaN(Number(key)))
-	.map((key) => Number(key))
-	.sort((a, b) => b - a);
+const ZIndexValues = Object.keys(ZIndex).filter(key => !isNaN(Number(key))).map(key => Number(key)).sort((a, b) => b - a);
 function findBase(z: number) {
 	for (const zi of ZIndexValues) {
 		if (z >= zi) {
@@ -43,24 +36,17 @@ class ZIndexRegistry {
 	constructor() {
 		this.styleSheet = createStyleSheet();
 		this.zIndexMap = new Map<string, number>();
-		this.scheduler = new RunOnceScheduler(
-			() => this.updateStyleElement(),
-			200,
-		);
+		this.scheduler = new RunOnceScheduler(() => this.updateStyleElement(), 200);
 	}
 
 	registerZIndex(relativeLayer: ZIndex, z: number, name: string): string {
 		if (this.zIndexMap.get(name)) {
-			throw new Error(
-				`z-index with name ${name} has already been registered.`,
-			);
+			throw new Error(`z-index with name ${name} has already been registered.`);
 		}
 
 		const proposedZValue = relativeLayer + z;
 		if (findBase(proposedZValue) !== relativeLayer) {
-			throw new Error(
-				`Relative layer: ${relativeLayer} + z-index: ${z} exceeds next layer ${proposedZValue}.`,
-			);
+			throw new Error(`Relative layer: ${relativeLayer} + z-index: ${z} exceeds next layer ${proposedZValue}.`);
 		}
 
 		this.zIndexMap.set(name, proposedZValue);
@@ -74,20 +60,16 @@ class ZIndexRegistry {
 
 	private updateStyleElement(): void {
 		clearNode(this.styleSheet);
-		let ruleBuilder = "";
+		let ruleBuilder = '';
 		this.zIndexMap.forEach((zIndex, name) => {
 			ruleBuilder += `${this.getVarName(name)}: ${zIndex};\n`;
 		});
-		createCSSRule(":root", ruleBuilder, this.styleSheet);
+		createCSSRule(':root', ruleBuilder, this.styleSheet);
 	}
 }
 
 const zIndexRegistry = new ZIndexRegistry();
 
-export function registerZIndex(
-	relativeLayer: ZIndex,
-	z: number,
-	name: string,
-): string {
+export function registerZIndex(relativeLayer: ZIndex, z: number, name: string): string {
 	return zIndexRegistry.registerZIndex(relativeLayer, z, name);
 }

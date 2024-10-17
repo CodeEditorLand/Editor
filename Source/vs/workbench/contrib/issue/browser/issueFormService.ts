@@ -2,35 +2,24 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { safeInnerHtml } from "../../../../base/browser/dom.js";
-import { DisposableStore } from "../../../../base/common/lifecycle.js";
-import Severity from "../../../../base/common/severity.js";
-
-import "./media/issueReporter.css";
-
-import { localize } from "../../../../nls.js";
-import {
-	IMenuService,
-	MenuId,
-} from "../../../../platform/actions/common/actions.js";
-import { IContextKeyService } from "../../../../platform/contextkey/common/contextkey.js";
-import { IDialogService } from "../../../../platform/dialogs/common/dialogs.js";
-import {
-	ExtensionIdentifier,
-	ExtensionIdentifierSet,
-} from "../../../../platform/extensions/common/extensions.js";
-import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
-import { ILogService } from "../../../../platform/log/common/log.js";
-import product from "../../../../platform/product/common/product.js";
-import { IRectangle } from "../../../../platform/window/common/window.js";
-import {
-	AuxiliaryWindowMode,
-	IAuxiliaryWindowService,
-} from "../../../services/auxiliaryWindow/browser/auxiliaryWindowService.js";
-import { IHostService } from "../../../services/host/browser/host.js";
-import { IIssueFormService, IssueReporterData } from "../common/issue.js";
-import BaseHtml from "./issueReporterPage.js";
-import { IssueWebReporter } from "./issueReporterService.js";
+import { safeInnerHtml } from '../../../../base/browser/dom.js';
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import Severity from '../../../../base/common/severity.js';
+import './media/issueReporter.css';
+import { localize } from '../../../../nls.js';
+import { IMenuService, MenuId } from '../../../../platform/actions/common/actions.js';
+import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
+import { ExtensionIdentifier, ExtensionIdentifierSet } from '../../../../platform/extensions/common/extensions.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { ILogService } from '../../../../platform/log/common/log.js';
+import product from '../../../../platform/product/common/product.js';
+import { IRectangle } from '../../../../platform/window/common/window.js';
+import BaseHtml from './issueReporterPage.js';
+import { IssueWebReporter } from './issueReporterService.js';
+import { IIssueFormService, IssueReporterData } from '../common/issue.js';
+import { AuxiliaryWindowMode, IAuxiliaryWindowService } from '../../../services/auxiliaryWindow/browser/auxiliaryWindowService.js';
+import { IHostService } from '../../../services/host/browser/host.js';
 
 export interface IssuePassData {
 	issueTitle: string;
@@ -38,30 +27,27 @@ export interface IssuePassData {
 }
 
 export class IssueFormService implements IIssueFormService {
+
 	readonly _serviceBrand: undefined;
 
 	protected currentData: IssueReporterData | undefined;
 
 	protected issueReporterWindow: Window | null = null;
-	protected extensionIdentifierSet: ExtensionIdentifierSet =
-		new ExtensionIdentifierSet();
+	protected extensionIdentifierSet: ExtensionIdentifierSet = new ExtensionIdentifierSet();
 
-	protected arch: string = "";
-	protected release: string = "";
-	protected type: string = "";
+	protected arch: string = '';
+	protected release: string = '';
+	protected type: string = '';
 
 	constructor(
-		@IInstantiationService
-		protected readonly instantiationService: IInstantiationService,
-		@IAuxiliaryWindowService
-		protected readonly auxiliaryWindowService: IAuxiliaryWindowService,
+		@IInstantiationService protected readonly instantiationService: IInstantiationService,
+		@IAuxiliaryWindowService protected readonly auxiliaryWindowService: IAuxiliaryWindowService,
 		@IMenuService protected readonly menuService: IMenuService,
-		@IContextKeyService
-		protected readonly contextKeyService: IContextKeyService,
+		@IContextKeyService protected readonly contextKeyService: IContextKeyService,
 		@ILogService protected readonly logService: ILogService,
 		@IDialogService protected readonly dialogService: IDialogService,
-		@IHostService protected readonly hostService: IHostService,
-	) {}
+		@IHostService protected readonly hostService: IHostService
+	) { }
 
 	async openReporter(data: IssueReporterData): Promise<void> {
 		if (this.hasToReload(data)) {
@@ -71,60 +57,35 @@ export class IssueFormService implements IIssueFormService {
 		await this.openAuxIssueReporter(data);
 
 		if (this.issueReporterWindow) {
-			const issueReporter = this.instantiationService.createInstance(
-				IssueWebReporter,
-				false,
-				data,
-				{ type: this.type, arch: this.arch, release: this.release },
-				product,
-				this.issueReporterWindow,
-			);
+			const issueReporter = this.instantiationService.createInstance(IssueWebReporter, false, data, { type: this.type, arch: this.arch, release: this.release }, product, this.issueReporterWindow);
 			issueReporter.render();
 		}
 	}
 
-	async openAuxIssueReporter(
-		data: IssueReporterData,
-		bounds?: IRectangle,
-	): Promise<void> {
-		let issueReporterBounds: Partial<IRectangle> = {
-			width: 700,
-			height: 800,
-		};
+	async openAuxIssueReporter(data: IssueReporterData, bounds?: IRectangle): Promise<void> {
+
+		let issueReporterBounds: Partial<IRectangle> = { width: 700, height: 800 };
 
 		// Center Issue Reporter Window based on bounds from native host service
 		if (bounds && bounds.x && bounds.y) {
 			const centerX = bounds.x + bounds.width / 2;
 			const centerY = bounds.y + bounds.height / 2;
-			issueReporterBounds = {
-				...issueReporterBounds,
-				x: centerX - 350,
-				y: centerY - 400,
-			};
+			issueReporterBounds = { ...issueReporterBounds, x: centerX - 350, y: centerY - 400 };
 		}
 
 		const disposables = new DisposableStore();
 
 		// Auxiliary Window
-		const auxiliaryWindow = disposables.add(
-			await this.auxiliaryWindowService.open({
-				mode: AuxiliaryWindowMode.Normal,
-				bounds: issueReporterBounds,
-				nativeTitlebar: true,
-				disableFullscreen: true,
-			}),
-		);
+		const auxiliaryWindow = disposables.add(await this.auxiliaryWindowService.open({ mode: AuxiliaryWindowMode.Normal, bounds: issueReporterBounds, nativeTitlebar: true, disableFullscreen: true }));
 
 		if (auxiliaryWindow) {
 			await auxiliaryWindow.whenStylesHaveLoaded;
-			auxiliaryWindow.window.document.title = "Issue Reporter";
-			auxiliaryWindow.window.document.body.classList.add(
-				"issue-reporter-body",
-			);
+			auxiliaryWindow.window.document.title = 'Issue Reporter';
+			auxiliaryWindow.window.document.body.classList.add('issue-reporter-body');
 
 			// custom issue reporter wrapper
-			const div = document.createElement("div");
-			div.classList.add("monaco-workbench");
+			const div = document.createElement('div');
+			div.classList.add('monaco-workbench');
 
 			// removes preset monaco-workbench
 			auxiliaryWindow.container.remove();
@@ -133,35 +94,24 @@ export class IssueFormService implements IIssueFormService {
 
 			this.issueReporterWindow = auxiliaryWindow.window;
 		} else {
-			console.error("Failed to open auxiliary window");
+			console.error('Failed to open auxiliary window');
 		}
 
 		// handle closing issue reporter
-		this.issueReporterWindow?.addEventListener("beforeunload", () => {
+		this.issueReporterWindow?.addEventListener('beforeunload', () => {
 			auxiliaryWindow.window.close();
 			this.issueReporterWindow = null;
 		});
 	}
 
-	async sendReporterMenu(
-		extensionId: string,
-	): Promise<IssueReporterData | undefined> {
-		const menu = this.menuService.createMenu(
-			MenuId.IssueReporter,
-			this.contextKeyService,
-		);
+	async sendReporterMenu(extensionId: string): Promise<IssueReporterData | undefined> {
+		const menu = this.menuService.createMenu(MenuId.IssueReporter, this.contextKeyService);
 
 		// render menu and dispose
-		const actions = menu
-			.getActions({ renderShortTitle: true })
-			.flatMap((entry) => entry[1]);
+		const actions = menu.getActions({ renderShortTitle: true }).flatMap(entry => entry[1]);
 		for (const action of actions) {
 			try {
-				if (
-					action.item &&
-					"source" in action.item &&
-					action.item.source?.id === extensionId
-				) {
+				if (action.item && 'source' in action.item && action.item.source?.id === extensionId) {
 					this.extensionIdentifierSet.add(extensionId);
 					await action.run();
 				}
@@ -176,9 +126,7 @@ export class IssueFormService implements IIssueFormService {
 		}
 
 		// we found the extension, now we clean up the menu and remove it from the set. This is to ensure that we do duplicate extension identifiers
-		this.extensionIdentifierSet.delete(
-			new ExtensionIdentifier(extensionId),
-		);
+		this.extensionIdentifierSet.delete(new ExtensionIdentifier(extensionId));
 		menu.dispose();
 
 		const result = this.currentData;
@@ -208,26 +156,20 @@ export class IssueFormService implements IIssueFormService {
 	async showConfirmCloseDialog(): Promise<void> {
 		await this.dialogService.prompt({
 			type: Severity.Warning,
-			message: localize(
-				"confirmCloseIssueReporter",
-				"Your input will not be saved. Are you sure you want to close this window?",
-			),
+			message: localize('confirmCloseIssueReporter', "Your input will not be saved. Are you sure you want to close this window?"),
 			buttons: [
 				{
-					label: localize(
-						{ key: "yes", comment: ["&& denotes a mnemonic"] },
-						"&&Yes",
-					),
+					label: localize({ key: 'yes', comment: ['&& denotes a mnemonic'] }, "&&Yes"),
 					run: () => {
 						this.closeReporter();
 						this.issueReporterWindow = null;
-					},
+					}
 				},
 				{
-					label: localize("cancel", "Cancel"),
-					run: () => {},
-				},
-			],
+					label: localize('cancel', "Cancel"),
+					run: () => { }
+				}
+			]
 		});
 	}
 
@@ -236,37 +178,24 @@ export class IssueFormService implements IIssueFormService {
 
 		await this.dialogService.prompt({
 			type: Severity.Warning,
-			message: localize(
-				"issueReporterWriteToClipboard",
-				"There is too much data to send to GitHub directly. The data will be copied to the clipboard, please paste it into the GitHub issue page that is opened.",
-			),
+			message: localize('issueReporterWriteToClipboard', "There is too much data to send to GitHub directly. The data will be copied to the clipboard, please paste it into the GitHub issue page that is opened."),
 			buttons: [
 				{
-					label: localize(
-						{ key: "ok", comment: ["&& denotes a mnemonic"] },
-						"&&OK",
-					),
-					run: () => {
-						result = true;
-					},
+					label: localize({ key: 'ok', comment: ['&& denotes a mnemonic'] }, "&&OK"),
+					run: () => { result = true; }
 				},
 				{
-					label: localize("cancel", "Cancel"),
-					run: () => {
-						result = false;
-					},
-				},
-			],
+					label: localize('cancel', "Cancel"),
+					run: () => { result = false; }
+				}
+			]
 		});
 
 		return result;
 	}
 
 	hasToReload(data: IssueReporterData): boolean {
-		if (
-			data.extensionId &&
-			this.extensionIdentifierSet.has(data.extensionId)
-		) {
+		if (data.extensionId && this.extensionIdentifierSet.has(data.extensionId)) {
 			this.currentData = data;
 			this.issueReporterWindow?.focus();
 			return true;

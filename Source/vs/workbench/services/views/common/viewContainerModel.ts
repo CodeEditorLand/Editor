@@ -3,80 +3,45 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { coalesce, move } from "../../../../base/common/arrays.js";
-import { IStringDictionary } from "../../../../base/common/collections.js";
-import { Emitter, Event } from "../../../../base/common/event.js";
-import { Lazy } from "../../../../base/common/lazy.js";
-import {
-	Disposable,
-	DisposableStore,
-} from "../../../../base/common/lifecycle.js";
-import { CounterSet } from "../../../../base/common/map.js";
-import { isEqual } from "../../../../base/common/resources.js";
-import { ThemeIcon } from "../../../../base/common/themables.js";
-import {
-	isUndefined,
-	isUndefinedOrNull,
-} from "../../../../base/common/types.js";
-import { URI } from "../../../../base/common/uri.js";
-import { localize2 } from "../../../../nls.js";
-import { Categories } from "../../../../platform/action/common/actionCommonCategories.js";
-import {
-	Action2,
-	registerAction2,
-} from "../../../../platform/actions/common/actions.js";
-import { IContextKeyService } from "../../../../platform/contextkey/common/contextkey.js";
-import {
-	IInstantiationService,
-	ServicesAccessor,
-} from "../../../../platform/instantiation/common/instantiation.js";
-import {
-	ILogger,
-	ILoggerService,
-} from "../../../../platform/log/common/log.js";
-import { Registry } from "../../../../platform/registry/common/platform.js";
-import {
-	IStorageService,
-	StorageScope,
-	StorageTarget,
-} from "../../../../platform/storage/common/storage.js";
-import {
-	defaultViewIcon,
-	IAddedViewDescriptorRef,
-	IAddedViewDescriptorState,
-	IViewContainerModel,
-	IViewDescriptor,
-	IViewDescriptorRef,
-	IViewsRegistry,
-	ViewContainer,
-	Extensions as ViewExtensions,
-	VIEWS_LOG_ID,
-	VIEWS_LOG_NAME,
-} from "../../../common/views.js";
-import { IOutputService } from "../../output/common/output.js";
+import { ViewContainer, IViewsRegistry, IViewDescriptor, Extensions as ViewExtensions, IViewContainerModel, IAddedViewDescriptorRef, IViewDescriptorRef, IAddedViewDescriptorState, defaultViewIcon, VIEWS_LOG_ID, VIEWS_LOG_NAME } from '../../../common/views.js';
+import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
+import { Registry } from '../../../../platform/registry/common/platform.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { Event, Emitter } from '../../../../base/common/event.js';
+import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { URI } from '../../../../base/common/uri.js';
+import { coalesce, move } from '../../../../base/common/arrays.js';
+import { isUndefined, isUndefinedOrNull } from '../../../../base/common/types.js';
+import { isEqual } from '../../../../base/common/resources.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
+import { IStringDictionary } from '../../../../base/common/collections.js';
+import { ILogger, ILoggerService } from '../../../../platform/log/common/log.js';
+import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
+import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
+import { IOutputService } from '../../output/common/output.js';
+import { CounterSet } from '../../../../base/common/map.js';
+import { localize2 } from '../../../../nls.js';
+import { Lazy } from '../../../../base/common/lazy.js';
 
-registerAction2(
-	class extends Action2 {
-		constructor() {
-			super({
-				id: "_workbench.output.showViewsLog",
-				title: localize2("showViewsLog", "Show Views Log"),
-				category: Categories.Developer,
-				f1: true,
-			});
-		}
-		async run(servicesAccessor: ServicesAccessor): Promise<void> {
-			const loggerService = servicesAccessor.get(ILoggerService);
-			const outputService = servicesAccessor.get(IOutputService);
-			loggerService.setVisibility(VIEWS_LOG_ID, true);
-			outputService.showChannel(VIEWS_LOG_ID);
-		}
-	},
-);
+registerAction2(class extends Action2 {
+	constructor() {
+		super({
+			id: '_workbench.output.showViewsLog',
+			title: localize2('showViewsLog', "Show Views Log"),
+			category: Categories.Developer,
+			f1: true
+		});
+	}
+	async run(servicesAccessor: ServicesAccessor): Promise<void> {
+		const loggerService = servicesAccessor.get(ILoggerService);
+		const outputService = servicesAccessor.get(IOutputService);
+		loggerService.setVisibility(VIEWS_LOG_ID, true);
+		outputService.showChannel(VIEWS_LOG_ID);
+	}
+});
 
-export function getViewsStateStorageId(viewContainerStorageId: string): string {
-	return `${viewContainerStorageId}.hidden`;
-}
+export function getViewsStateStorageId(viewContainerStorageId: string): string { return `${viewContainerStorageId}.hidden`; }
 
 interface IStoredWorkspaceViewState {
 	collapsed: boolean;
@@ -101,13 +66,12 @@ interface IViewDescriptorState {
 }
 
 class ViewDescriptorsState extends Disposable {
+
 	private readonly workspaceViewsStateStorageId: string;
 	private readonly globalViewsStateStorageId: string;
 	private readonly state: Map<string, IViewDescriptorState>;
 
-	private _onDidChangeStoredState = this._register(
-		new Emitter<{ id: string; visible: boolean }[]>(),
-	);
+	private _onDidChangeStoredState = this._register(new Emitter<{ id: string; visible: boolean }[]>());
 	readonly onDidChangeStoredState = this._onDidChangeStoredState.event;
 
 	private readonly logger: Lazy<ILogger>;
@@ -120,26 +84,14 @@ class ViewDescriptorsState extends Disposable {
 	) {
 		super();
 
-		this.logger = new Lazy(() =>
-			loggerService.createLogger(VIEWS_LOG_ID, {
-				name: VIEWS_LOG_NAME,
-				hidden: true,
-			}),
-		);
+		this.logger = new Lazy(() => loggerService.createLogger(VIEWS_LOG_ID, { name: VIEWS_LOG_NAME, hidden: true }));
 
-		this.globalViewsStateStorageId = getViewsStateStorageId(
-			viewContainerStorageId,
-		);
+		this.globalViewsStateStorageId = getViewsStateStorageId(viewContainerStorageId);
 		this.workspaceViewsStateStorageId = viewContainerStorageId;
-		this._register(
-			this.storageService.onDidChangeValue(
-				StorageScope.PROFILE,
-				this.globalViewsStateStorageId,
-				this._register(new DisposableStore()),
-			)(() => this.onDidStorageChange()),
-		);
+		this._register(this.storageService.onDidChangeValue(StorageScope.PROFILE, this.globalViewsStateStorageId, this._register(new DisposableStore()))(() => this.onDidStorageChange()));
 
 		this.state = this.initialize();
+
 	}
 
 	set(id: string, state: IViewDescriptorState): void {
@@ -155,9 +107,7 @@ class ViewDescriptorsState extends Disposable {
 		this.updateGlobalState(viewDescriptors);
 	}
 
-	private updateWorkspaceState(
-		viewDescriptors: ReadonlyArray<IViewDescriptor>,
-	): void {
+	private updateWorkspaceState(viewDescriptors: ReadonlyArray<IViewDescriptor>): void {
 		const storedViewsStates = this.getStoredWorkspaceState();
 		for (const viewDescriptor of viewDescriptors) {
 			const viewState = this.get(viewDescriptor.id);
@@ -166,55 +116,33 @@ class ViewDescriptorsState extends Disposable {
 					collapsed: !!viewState.collapsed,
 					isHidden: !viewState.visibleWorkspace,
 					size: viewState.size,
-					order:
-						viewDescriptor.workspace && viewState
-							? viewState.order
-							: undefined,
+					order: viewDescriptor.workspace && viewState ? viewState.order : undefined
 				};
 			}
 		}
 
 		if (Object.keys(storedViewsStates).length > 0) {
-			this.storageService.store(
-				this.workspaceViewsStateStorageId,
-				JSON.stringify(storedViewsStates),
-				StorageScope.WORKSPACE,
-				StorageTarget.MACHINE,
-			);
+			this.storageService.store(this.workspaceViewsStateStorageId, JSON.stringify(storedViewsStates), StorageScope.WORKSPACE, StorageTarget.MACHINE);
 		} else {
-			this.storageService.remove(
-				this.workspaceViewsStateStorageId,
-				StorageScope.WORKSPACE,
-			);
+			this.storageService.remove(this.workspaceViewsStateStorageId, StorageScope.WORKSPACE);
 		}
 	}
 
-	private updateGlobalState(
-		viewDescriptors: ReadonlyArray<IViewDescriptor>,
-	): void {
+	private updateGlobalState(viewDescriptors: ReadonlyArray<IViewDescriptor>): void {
 		const storedGlobalState = this.getStoredGlobalState();
 		for (const viewDescriptor of viewDescriptors) {
 			const state = this.get(viewDescriptor.id);
 			storedGlobalState.set(viewDescriptor.id, {
 				id: viewDescriptor.id,
-				isHidden:
-					state && viewDescriptor.canToggleVisibility
-						? !state.visibleGlobal
-						: false,
-				order:
-					!viewDescriptor.workspace && state
-						? state.order
-						: undefined,
+				isHidden: state && viewDescriptor.canToggleVisibility ? !state.visibleGlobal : false,
+				order: !viewDescriptor.workspace && state ? state.order : undefined
 			});
 		}
 		this.setStoredGlobalState(storedGlobalState);
 	}
 
 	private onDidStorageChange(): void {
-		if (
-			this.globalViewsStatesValue !==
-			this.getStoredGlobalViewsStatesValue() /* This checks if current window changed the value or not */
-		) {
+		if (this.globalViewsStatesValue !== this.getStoredGlobalViewsStatesValue() /* This checks if current window changed the value or not */) {
 			this._globalViewsStatesValue = undefined;
 			const storedViewsVisibilityStates = this.getStoredGlobalState();
 			const storedWorkspaceViewsStates = this.getStoredWorkspaceState();
@@ -224,28 +152,16 @@ class ViewDescriptorsState extends Disposable {
 				if (state) {
 					if (state.visibleGlobal !== !storedState.isHidden) {
 						if (!storedState.isHidden) {
-							this.logger.value.info(
-								`View visibility state changed: ${id} is now visible`,
-								this.viewContainerName,
-							);
+							this.logger.value.info(`View visibility state changed: ${id} is now visible`, this.viewContainerName);
 						}
-						changedStates.push({
-							id,
-							visible: !storedState.isHidden,
-						});
+						changedStates.push({ id, visible: !storedState.isHidden });
 					}
 				} else {
-					const workspaceViewState:
-						| IStoredWorkspaceViewState
-						| undefined = storedWorkspaceViewsStates[id];
+					const workspaceViewState: IStoredWorkspaceViewState | undefined = storedWorkspaceViewsStates[id];
 					this.set(id, {
 						active: false,
 						visibleGlobal: !storedState.isHidden,
-						visibleWorkspace: isUndefined(
-							workspaceViewState?.isHidden,
-						)
-							? undefined
-							: !workspaceViewState?.isHidden,
+						visibleWorkspace: isUndefined(workspaceViewState?.isHidden) ? undefined : !workspaceViewState?.isHidden,
 						collapsed: workspaceViewState?.collapsed,
 						order: workspaceViewState?.order,
 						size: workspaceViewState?.size,
@@ -274,9 +190,7 @@ class ViewDescriptorsState extends Disposable {
 			viewStates.set(id, {
 				active: false,
 				visibleGlobal: undefined,
-				visibleWorkspace: isUndefined(workspaceViewState.isHidden)
-					? undefined
-					: !workspaceViewState.isHidden,
+				visibleWorkspace: isUndefined(workspaceViewState.isHidden) ? undefined : !workspaceViewState.isHidden,
 				collapsed: workspaceViewState.collapsed,
 				order: workspaceViewState.order,
 				size: workspaceViewState.size,
@@ -284,13 +198,8 @@ class ViewDescriptorsState extends Disposable {
 		}
 
 		// Migrate to `viewletStateStorageId`
-		const value = this.storageService.get(
-			this.globalViewsStateStorageId,
-			StorageScope.WORKSPACE,
-			"[]",
-		);
-		const { state: workspaceVisibilityStates } =
-			this.parseStoredGlobalState(value);
+		const value = this.storageService.get(this.globalViewsStateStorageId, StorageScope.WORKSPACE, '[]');
+		const { state: workspaceVisibilityStates } = this.parseStoredGlobalState(value);
 		if (workspaceVisibilityStates.size > 0) {
 			for (const { id, isHidden } of workspaceVisibilityStates.values()) {
 				const viewState = viewStates.get(id);
@@ -308,15 +217,10 @@ class ViewDescriptorsState extends Disposable {
 					});
 				}
 			}
-			this.storageService.remove(
-				this.globalViewsStateStorageId,
-				StorageScope.WORKSPACE,
-			);
+			this.storageService.remove(this.globalViewsStateStorageId, StorageScope.WORKSPACE);
 		}
 
-		const { state, hasDuplicates } = this.parseStoredGlobalState(
-			this.globalViewsStatesValue,
-		);
+		const { state, hasDuplicates } = this.parseStoredGlobalState(this.globalViewsStatesValue);
 		if (hasDuplicates) {
 			this.setStoredGlobalState(state);
 		}
@@ -341,36 +245,22 @@ class ViewDescriptorsState extends Disposable {
 	}
 
 	private getStoredWorkspaceState(): IStringDictionary<IStoredWorkspaceViewState> {
-		return JSON.parse(
-			this.storageService.get(
-				this.workspaceViewsStateStorageId,
-				StorageScope.WORKSPACE,
-				"{}",
-			),
-		);
+		return JSON.parse(this.storageService.get(this.workspaceViewsStateStorageId, StorageScope.WORKSPACE, '{}'));
 	}
 
 	private getStoredGlobalState(): Map<string, IStoredGlobalViewState> {
 		return this.parseStoredGlobalState(this.globalViewsStatesValue).state;
 	}
 
-	private setStoredGlobalState(
-		storedGlobalState: Map<string, IStoredGlobalViewState>,
-	): void {
-		this.globalViewsStatesValue = JSON.stringify([
-			...storedGlobalState.values(),
-		]);
+	private setStoredGlobalState(storedGlobalState: Map<string, IStoredGlobalViewState>): void {
+		this.globalViewsStatesValue = JSON.stringify([...storedGlobalState.values()]);
 	}
 
-	private parseStoredGlobalState(value: string): {
-		state: Map<string, IStoredGlobalViewState>;
-		hasDuplicates: boolean;
-	} {
-		const storedValue: Array<string | IStoredGlobalViewState> =
-			JSON.parse(value);
+	private parseStoredGlobalState(value: string): { state: Map<string, IStoredGlobalViewState>; hasDuplicates: boolean } {
+		const storedValue: Array<string | IStoredGlobalViewState> = JSON.parse(value);
 		let hasDuplicates = false;
 		const state = storedValue.reduce((result, storedState) => {
-			if (typeof storedState === "string" /* migration */) {
+			if (typeof storedState === 'string' /* migration */) {
 				hasDuplicates = hasDuplicates || result.has(storedState);
 				result.set(storedState, { id: storedState, isHidden: true });
 			} else {
@@ -385,8 +275,7 @@ class ViewDescriptorsState extends Disposable {
 	private _globalViewsStatesValue: string | undefined;
 	private get globalViewsStatesValue(): string {
 		if (!this._globalViewsStatesValue) {
-			this._globalViewsStatesValue =
-				this.getStoredGlobalViewsStatesValue();
+			this._globalViewsStatesValue = this.getStoredGlobalViewsStatesValue();
 		}
 
 		return this._globalViewsStatesValue;
@@ -400,21 +289,13 @@ class ViewDescriptorsState extends Disposable {
 	}
 
 	private getStoredGlobalViewsStatesValue(): string {
-		return this.storageService.get(
-			this.globalViewsStateStorageId,
-			StorageScope.PROFILE,
-			"[]",
-		);
+		return this.storageService.get(this.globalViewsStateStorageId, StorageScope.PROFILE, '[]');
 	}
 
 	private setStoredGlobalViewsStatesValue(value: string): void {
-		this.storageService.store(
-			this.globalViewsStateStorageId,
-			value,
-			StorageScope.PROFILE,
-			StorageTarget.USER,
-		);
+		this.storageService.store(this.globalViewsStateStorageId, value, StorageScope.PROFILE, StorageTarget.USER);
 	}
+
 }
 
 interface IViewDescriptorItem {
@@ -422,173 +303,84 @@ interface IViewDescriptorItem {
 	state: IViewDescriptorState;
 }
 
-export class ViewContainerModel
-	extends Disposable
-	implements IViewContainerModel
-{
+export class ViewContainerModel extends Disposable implements IViewContainerModel {
+
 	private readonly contextKeys = new CounterSet<string>();
 	private viewDescriptorItems: IViewDescriptorItem[] = [];
 	private viewDescriptorsState: ViewDescriptorsState;
 
 	// Container Info
 	private _title!: string;
-	get title(): string {
-		return this._title;
-	}
+	get title(): string { return this._title; }
 
 	private _icon: URI | ThemeIcon | undefined;
-	get icon(): URI | ThemeIcon | undefined {
-		return this._icon;
-	}
+	get icon(): URI | ThemeIcon | undefined { return this._icon; }
 
 	private _keybindingId: string | undefined;
-	get keybindingId(): string | undefined {
-		return this._keybindingId;
-	}
+	get keybindingId(): string | undefined { return this._keybindingId; }
 
-	private _onDidChangeContainerInfo = this._register(
-		new Emitter<{
-			title?: boolean;
-			icon?: boolean;
-			keybindingId?: boolean;
-		}>(),
-	);
+	private _onDidChangeContainerInfo = this._register(new Emitter<{ title?: boolean; icon?: boolean; keybindingId?: boolean }>());
 	readonly onDidChangeContainerInfo = this._onDidChangeContainerInfo.event;
 
 	// All View Descriptors
-	get allViewDescriptors(): ReadonlyArray<IViewDescriptor> {
-		return this.viewDescriptorItems.map((item) => item.viewDescriptor);
-	}
-	private _onDidChangeAllViewDescriptors = this._register(
-		new Emitter<{
-			added: ReadonlyArray<IViewDescriptor>;
-			removed: ReadonlyArray<IViewDescriptor>;
-		}>(),
-	);
-	readonly onDidChangeAllViewDescriptors =
-		this._onDidChangeAllViewDescriptors.event;
+	get allViewDescriptors(): ReadonlyArray<IViewDescriptor> { return this.viewDescriptorItems.map(item => item.viewDescriptor); }
+	private _onDidChangeAllViewDescriptors = this._register(new Emitter<{ added: ReadonlyArray<IViewDescriptor>; removed: ReadonlyArray<IViewDescriptor> }>());
+	readonly onDidChangeAllViewDescriptors = this._onDidChangeAllViewDescriptors.event;
 
 	// Active View Descriptors
-	get activeViewDescriptors(): ReadonlyArray<IViewDescriptor> {
-		return this.viewDescriptorItems
-			.filter((item) => item.state.active)
-			.map((item) => item.viewDescriptor);
-	}
-	private _onDidChangeActiveViewDescriptors = this._register(
-		new Emitter<{
-			added: ReadonlyArray<IViewDescriptor>;
-			removed: ReadonlyArray<IViewDescriptor>;
-		}>(),
-	);
-	readonly onDidChangeActiveViewDescriptors =
-		this._onDidChangeActiveViewDescriptors.event;
+	get activeViewDescriptors(): ReadonlyArray<IViewDescriptor> { return this.viewDescriptorItems.filter(item => item.state.active).map(item => item.viewDescriptor); }
+	private _onDidChangeActiveViewDescriptors = this._register(new Emitter<{ added: ReadonlyArray<IViewDescriptor>; removed: ReadonlyArray<IViewDescriptor> }>());
+	readonly onDidChangeActiveViewDescriptors = this._onDidChangeActiveViewDescriptors.event;
 
 	// Visible View Descriptors
-	get visibleViewDescriptors(): ReadonlyArray<IViewDescriptor> {
-		return this.viewDescriptorItems
-			.filter((item) => this.isViewDescriptorVisible(item))
-			.map((item) => item.viewDescriptor);
-	}
+	get visibleViewDescriptors(): ReadonlyArray<IViewDescriptor> { return this.viewDescriptorItems.filter(item => this.isViewDescriptorVisible(item)).map(item => item.viewDescriptor); }
 
-	private _onDidAddVisibleViewDescriptors = this._register(
-		new Emitter<IAddedViewDescriptorRef[]>(),
-	);
-	readonly onDidAddVisibleViewDescriptors: Event<IAddedViewDescriptorRef[]> =
-		this._onDidAddVisibleViewDescriptors.event;
+	private _onDidAddVisibleViewDescriptors = this._register(new Emitter<IAddedViewDescriptorRef[]>());
+	readonly onDidAddVisibleViewDescriptors: Event<IAddedViewDescriptorRef[]> = this._onDidAddVisibleViewDescriptors.event;
 
-	private _onDidRemoveVisibleViewDescriptors = this._register(
-		new Emitter<IViewDescriptorRef[]>(),
-	);
-	readonly onDidRemoveVisibleViewDescriptors: Event<IViewDescriptorRef[]> =
-		this._onDidRemoveVisibleViewDescriptors.event;
+	private _onDidRemoveVisibleViewDescriptors = this._register(new Emitter<IViewDescriptorRef[]>());
+	readonly onDidRemoveVisibleViewDescriptors: Event<IViewDescriptorRef[]> = this._onDidRemoveVisibleViewDescriptors.event;
 
-	private _onDidMoveVisibleViewDescriptors = this._register(
-		new Emitter<{ from: IViewDescriptorRef; to: IViewDescriptorRef }>(),
-	);
-	readonly onDidMoveVisibleViewDescriptors: Event<{
-		from: IViewDescriptorRef;
-		to: IViewDescriptorRef;
-	}> = this._onDidMoveVisibleViewDescriptors.event;
+	private _onDidMoveVisibleViewDescriptors = this._register(new Emitter<{ from: IViewDescriptorRef; to: IViewDescriptorRef }>());
+	readonly onDidMoveVisibleViewDescriptors: Event<{ from: IViewDescriptorRef; to: IViewDescriptorRef }> = this._onDidMoveVisibleViewDescriptors.event;
 
 	private readonly logger: Lazy<ILogger>;
 
 	constructor(
 		readonly viewContainer: ViewContainer,
 		@IInstantiationService instantiationService: IInstantiationService,
-		@IContextKeyService
-		private readonly contextKeyService: IContextKeyService,
+		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 		@ILoggerService loggerService: ILoggerService,
 	) {
 		super();
 
-		this.logger = new Lazy(() =>
-			loggerService.createLogger(VIEWS_LOG_ID, {
-				name: VIEWS_LOG_NAME,
-				hidden: true,
-			}),
-		);
+		this.logger = new Lazy(() => loggerService.createLogger(VIEWS_LOG_ID, { name: VIEWS_LOG_NAME, hidden: true }));
 
-		this._register(
-			Event.filter(contextKeyService.onDidChangeContext, (e) =>
-				e.affectsSome(this.contextKeys),
-			)(() => this.onDidChangeContext()),
-		);
-		this.viewDescriptorsState = this._register(
-			instantiationService.createInstance(
-				ViewDescriptorsState,
-				viewContainer.storageId || `${viewContainer.id}.state`,
-				typeof viewContainer.title === "string"
-					? viewContainer.title
-					: viewContainer.title.original,
-			),
-		);
-		this._register(
-			this.viewDescriptorsState.onDidChangeStoredState((items) =>
-				this.updateVisibility(items),
-			),
-		);
+		this._register(Event.filter(contextKeyService.onDidChangeContext, e => e.affectsSome(this.contextKeys))(() => this.onDidChangeContext()));
+		this.viewDescriptorsState = this._register(instantiationService.createInstance(ViewDescriptorsState, viewContainer.storageId || `${viewContainer.id}.state`, typeof viewContainer.title === 'string' ? viewContainer.title : viewContainer.title.original));
+		this._register(this.viewDescriptorsState.onDidChangeStoredState(items => this.updateVisibility(items)));
 
 		this.updateContainerInfo();
 	}
 
 	private updateContainerInfo(): void {
 		/* Use default container info if one of the visible view descriptors belongs to the current container by default */
-		const useDefaultContainerInfo =
-			this.viewContainer.alwaysUseContainerInfo ||
-			this.visibleViewDescriptors.length === 0 ||
-			this.visibleViewDescriptors.some(
-				(v) =>
-					Registry.as<IViewsRegistry>(
-						ViewExtensions.ViewsRegistry,
-					).getViewContainer(v.id) === this.viewContainer,
-			);
-		const title = useDefaultContainerInfo
-			? typeof this.viewContainer.title === "string"
-				? this.viewContainer.title
-				: this.viewContainer.title.value
-			: this.visibleViewDescriptors[0]?.containerTitle ||
-				this.visibleViewDescriptors[0]?.name?.value ||
-				"";
+		const useDefaultContainerInfo = this.viewContainer.alwaysUseContainerInfo || this.visibleViewDescriptors.length === 0 || this.visibleViewDescriptors.some(v => Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).getViewContainer(v.id) === this.viewContainer);
+		const title = useDefaultContainerInfo ? (typeof this.viewContainer.title === 'string' ? this.viewContainer.title : this.viewContainer.title.value) : this.visibleViewDescriptors[0]?.containerTitle || this.visibleViewDescriptors[0]?.name?.value || '';
 		let titleChanged: boolean = false;
 		if (this._title !== title) {
 			this._title = title;
 			titleChanged = true;
 		}
 
-		const icon = useDefaultContainerInfo
-			? this.viewContainer.icon
-			: this.visibleViewDescriptors[0]?.containerIcon || defaultViewIcon;
+		const icon = useDefaultContainerInfo ? this.viewContainer.icon : this.visibleViewDescriptors[0]?.containerIcon || defaultViewIcon;
 		let iconChanged: boolean = false;
 		if (!this.isEqualIcon(icon)) {
 			this._icon = icon;
 			iconChanged = true;
 		}
 
-		const keybindingId =
-			this.viewContainer.openCommandActionDescriptor?.id ??
-			this.activeViewDescriptors.find(
-				(v) => v.openCommandActionDescriptor,
-			)?.openCommandActionDescriptor?.id;
+		const keybindingId = this.viewContainer.openCommandActionDescriptor?.id ?? this.activeViewDescriptors.find(v => v.openCommandActionDescriptor)?.openCommandActionDescriptor?.id;
 		let keybindingIdChanged: boolean = false;
 		if (this._keybindingId !== keybindingId) {
 			this._keybindingId = keybindingId;
@@ -596,11 +388,7 @@ export class ViewContainerModel
 		}
 
 		if (titleChanged || iconChanged || keybindingIdChanged) {
-			this._onDidChangeContainerInfo.fire({
-				title: titleChanged,
-				icon: iconChanged,
-				keybindingId: keybindingIdChanged,
-			});
+			this._onDidChangeContainerInfo.fire({ title: titleChanged, icon: iconChanged, keybindingId: keybindingIdChanged });
 		}
 	}
 
@@ -608,18 +396,13 @@ export class ViewContainerModel
 		if (URI.isUri(icon)) {
 			return URI.isUri(this._icon) && isEqual(icon, this._icon);
 		} else if (ThemeIcon.isThemeIcon(icon)) {
-			return (
-				ThemeIcon.isThemeIcon(this._icon) &&
-				ThemeIcon.isEqual(icon, this._icon)
-			);
+			return ThemeIcon.isThemeIcon(this._icon) && ThemeIcon.isEqual(icon, this._icon);
 		}
 		return icon === this._icon;
 	}
 
 	isVisible(id: string): boolean {
-		const viewDescriptorItem = this.viewDescriptorItems.find(
-			(v) => v.viewDescriptor.id === id,
-		);
+		const viewDescriptorItem = this.viewDescriptorItems.find(v => v.viewDescriptor.id === id);
 		if (!viewDescriptorItem) {
 			throw new Error(`Unknown view ${id}`);
 		}
@@ -630,30 +413,14 @@ export class ViewContainerModel
 		this.updateVisibility([{ id, visible }]);
 	}
 
-	private updateVisibility(
-		viewDescriptors: { id: string; visible: boolean }[],
-	): void {
+	private updateVisibility(viewDescriptors: { id: string; visible: boolean }[]): void {
 		// First: Update and remove the view descriptors which are asked to be hidden
-		const viewDescriptorItemsToHide = coalesce(
-			viewDescriptors
-				.filter(({ visible }) => !visible)
-				.map(({ id }) => this.findAndIgnoreIfNotFound(id)),
-		);
+		const viewDescriptorItemsToHide = coalesce(viewDescriptors.filter(({ visible }) => !visible)
+			.map(({ id }) => this.findAndIgnoreIfNotFound(id)));
 		const removed: IViewDescriptorRef[] = [];
-		for (const {
-			viewDescriptorItem,
-			visibleIndex,
-		} of viewDescriptorItemsToHide) {
-			if (
-				this.updateViewDescriptorItemVisibility(
-					viewDescriptorItem,
-					false,
-				)
-			) {
-				removed.push({
-					viewDescriptor: viewDescriptorItem.viewDescriptor,
-					index: visibleIndex,
-				});
+		for (const { viewDescriptorItem, visibleIndex } of viewDescriptorItemsToHide) {
+			if (this.updateViewDescriptorItemVisibility(viewDescriptorItem, false)) {
+				removed.push({ viewDescriptor: viewDescriptorItem.viewDescriptor, index: visibleIndex });
 			}
 		}
 		if (removed.length) {
@@ -671,18 +438,8 @@ export class ViewContainerModel
 				continue;
 			}
 			const { viewDescriptorItem, visibleIndex } = foundViewDescriptor;
-			if (
-				this.updateViewDescriptorItemVisibility(
-					viewDescriptorItem,
-					true,
-				)
-			) {
-				added.push({
-					index: visibleIndex,
-					viewDescriptor: viewDescriptorItem.viewDescriptor,
-					size: viewDescriptorItem.state.size,
-					collapsed: !!viewDescriptorItem.state.collapsed,
-				});
+			if (this.updateViewDescriptorItemVisibility(viewDescriptorItem, true)) {
+				added.push({ index: visibleIndex, viewDescriptor: viewDescriptorItem.viewDescriptor, size: viewDescriptorItem.state.size, collapsed: !!viewDescriptorItem.state.collapsed });
 			}
 		}
 		if (added.length) {
@@ -690,17 +447,11 @@ export class ViewContainerModel
 		}
 	}
 
-	private updateViewDescriptorItemVisibility(
-		viewDescriptorItem: IViewDescriptorItem,
-		visible: boolean,
-	): boolean {
+	private updateViewDescriptorItemVisibility(viewDescriptorItem: IViewDescriptorItem, visible: boolean): boolean {
 		if (!viewDescriptorItem.viewDescriptor.canToggleVisibility) {
 			return false;
 		}
-		if (
-			this.isViewDescriptorVisibleWhenActive(viewDescriptorItem) ===
-			visible
-		) {
+		if (this.isViewDescriptorVisibleWhenActive(viewDescriptorItem) === visible) {
 			return false;
 		}
 
@@ -710,9 +461,7 @@ export class ViewContainerModel
 		} else {
 			viewDescriptorItem.state.visibleGlobal = visible;
 			if (visible) {
-				this.logger.value.info(
-					`Showing view ${viewDescriptorItem.viewDescriptor.id} in the container ${this.viewContainer.id}`,
-				);
+				this.logger.value.info(`Showing view ${viewDescriptorItem.viewDescriptor.id} in the container ${this.viewContainer.id}`);
 			}
 		}
 
@@ -747,12 +496,8 @@ export class ViewContainerModel
 	}
 
 	move(from: string, to: string): void {
-		const fromIndex = this.viewDescriptorItems.findIndex(
-			(v) => v.viewDescriptor.id === from,
-		);
-		const toIndex = this.viewDescriptorItems.findIndex(
-			(v) => v.viewDescriptor.id === to,
-		);
+		const fromIndex = this.viewDescriptorItems.findIndex(v => v.viewDescriptor.id === from);
+		const toIndex = this.viewDescriptorItems.findIndex(v => v.viewDescriptor.id === to);
 
 		const fromViewDescriptor = this.viewDescriptorItems[fromIndex];
 		const toViewDescriptor = this.viewDescriptorItems[toIndex];
@@ -763,13 +508,7 @@ export class ViewContainerModel
 			this.viewDescriptorItems[index].state.order = index;
 		}
 
-		this.broadCastMovedViewDescriptors(
-			{
-				index: fromIndex,
-				viewDescriptor: fromViewDescriptor.viewDescriptor,
-			},
-			{ index: toIndex, viewDescriptor: toViewDescriptor.viewDescriptor },
-		);
+		this.broadCastMovedViewDescriptors({ index: fromIndex, viewDescriptor: fromViewDescriptor.viewDescriptor }, { index: toIndex, viewDescriptor: toViewDescriptor.viewDescriptor });
 	}
 
 	add(addedViewDescriptorStates: IAddedViewDescriptorState[]): void {
@@ -787,105 +526,46 @@ export class ViewContainerModel
 			if (state) {
 				// set defaults if not set
 				if (viewDescriptor.workspace) {
-					state.visibleWorkspace = isUndefinedOrNull(
-						addedViewDescriptorState.visible,
-					)
-						? isUndefinedOrNull(state.visibleWorkspace)
-							? !viewDescriptor.hideByDefault
-							: state.visibleWorkspace
-						: addedViewDescriptorState.visible;
+					state.visibleWorkspace = isUndefinedOrNull(addedViewDescriptorState.visible) ? (isUndefinedOrNull(state.visibleWorkspace) ? !viewDescriptor.hideByDefault : state.visibleWorkspace) : addedViewDescriptorState.visible;
 				} else {
 					const isVisible = state.visibleGlobal;
-					state.visibleGlobal = isUndefinedOrNull(
-						addedViewDescriptorState.visible,
-					)
-						? isUndefinedOrNull(state.visibleGlobal)
-							? !viewDescriptor.hideByDefault
-							: state.visibleGlobal
-						: addedViewDescriptorState.visible;
+					state.visibleGlobal = isUndefinedOrNull(addedViewDescriptorState.visible) ? (isUndefinedOrNull(state.visibleGlobal) ? !viewDescriptor.hideByDefault : state.visibleGlobal) : addedViewDescriptorState.visible;
 					if (state.visibleGlobal && !isVisible) {
-						this.logger.value.info(
-							`Added view ${viewDescriptor.id} in the container ${this.viewContainer.id} and showing it.`,
-							`${isVisible}`,
-							`${viewDescriptor.hideByDefault}`,
-							`${addedViewDescriptorState.visible}`,
-						);
+						this.logger.value.info(`Added view ${viewDescriptor.id} in the container ${this.viewContainer.id} and showing it.`, `${isVisible}`, `${viewDescriptor.hideByDefault}`, `${addedViewDescriptorState.visible}`);
 					}
 				}
-				state.collapsed = isUndefinedOrNull(
-					addedViewDescriptorState.collapsed,
-				)
-					? isUndefinedOrNull(state.collapsed)
-						? !!viewDescriptor.collapsed
-						: state.collapsed
-					: addedViewDescriptorState.collapsed;
+				state.collapsed = isUndefinedOrNull(addedViewDescriptorState.collapsed) ? (isUndefinedOrNull(state.collapsed) ? !!viewDescriptor.collapsed : state.collapsed) : addedViewDescriptorState.collapsed;
 			} else {
 				state = {
 					active: false,
-					visibleGlobal: isUndefinedOrNull(
-						addedViewDescriptorState.visible,
-					)
-						? !viewDescriptor.hideByDefault
-						: addedViewDescriptorState.visible,
-					visibleWorkspace: isUndefinedOrNull(
-						addedViewDescriptorState.visible,
-					)
-						? !viewDescriptor.hideByDefault
-						: addedViewDescriptorState.visible,
-					collapsed: isUndefinedOrNull(
-						addedViewDescriptorState.collapsed,
-					)
-						? !!viewDescriptor.collapsed
-						: addedViewDescriptorState.collapsed,
+					visibleGlobal: isUndefinedOrNull(addedViewDescriptorState.visible) ? !viewDescriptor.hideByDefault : addedViewDescriptorState.visible,
+					visibleWorkspace: isUndefinedOrNull(addedViewDescriptorState.visible) ? !viewDescriptor.hideByDefault : addedViewDescriptorState.visible,
+					collapsed: isUndefinedOrNull(addedViewDescriptorState.collapsed) ? !!viewDescriptor.collapsed : addedViewDescriptorState.collapsed,
 				};
 			}
 			this.viewDescriptorsState.set(viewDescriptor.id, state);
-			state.active = this.contextKeyService.contextMatchesRules(
-				viewDescriptor.when,
-			);
+			state.active = this.contextKeyService.contextMatchesRules(viewDescriptor.when);
 			addedItems.push({ viewDescriptor, state });
 		}
 		this.viewDescriptorItems.push(...addedItems);
 		this.viewDescriptorItems.sort(this.compareViewDescriptors.bind(this));
-		this._onDidChangeAllViewDescriptors.fire({
-			added: addedItems.map(({ viewDescriptor }) => viewDescriptor),
-			removed: [],
-		});
+		this._onDidChangeAllViewDescriptors.fire({ added: addedItems.map(({ viewDescriptor }) => viewDescriptor), removed: [] });
 
-		const addedActiveItems: {
-			viewDescriptorItem: IViewDescriptorItem;
-			visible: boolean;
-		}[] = [];
+		const addedActiveItems: { viewDescriptorItem: IViewDescriptorItem; visible: boolean }[] = [];
 		for (const viewDescriptorItem of addedItems) {
 			if (viewDescriptorItem.state.active) {
-				addedActiveItems.push({
-					viewDescriptorItem,
-					visible: this.isViewDescriptorVisible(viewDescriptorItem),
-				});
+				addedActiveItems.push({ viewDescriptorItem, visible: this.isViewDescriptorVisible(viewDescriptorItem) });
 			}
 		}
 		if (addedActiveItems.length) {
-			this._onDidChangeActiveViewDescriptors.fire({
-				added: addedActiveItems.map(
-					({ viewDescriptorItem }) =>
-						viewDescriptorItem.viewDescriptor,
-				),
-				removed: [],
-			});
+			this._onDidChangeActiveViewDescriptors.fire(({ added: addedActiveItems.map(({ viewDescriptorItem }) => viewDescriptorItem.viewDescriptor), removed: [] }));
 		}
 
 		const addedVisibleDescriptors: IAddedViewDescriptorRef[] = [];
 		for (const { viewDescriptorItem, visible } of addedActiveItems) {
 			if (visible && this.isViewDescriptorVisible(viewDescriptorItem)) {
-				const { visibleIndex } = this.find(
-					viewDescriptorItem.viewDescriptor.id,
-				);
-				addedVisibleDescriptors.push({
-					index: visibleIndex,
-					viewDescriptor: viewDescriptorItem.viewDescriptor,
-					size: viewDescriptorItem.state.size,
-					collapsed: !!viewDescriptorItem.state.collapsed,
-				});
+				const { visibleIndex } = this.find(viewDescriptorItem.viewDescriptor.id);
+				addedVisibleDescriptors.push({ index: visibleIndex, viewDescriptor: viewDescriptorItem.viewDescriptor, size: viewDescriptorItem.state.size, collapsed: !!viewDescriptorItem.state.collapsed });
 			}
 		}
 		this.broadCastAddedVisibleViewDescriptors(addedVisibleDescriptors);
@@ -903,44 +583,27 @@ export class ViewContainerModel
 					this.contextKeys.delete(key);
 				}
 			}
-			const index = this.viewDescriptorItems.findIndex(
-				(i) => i.viewDescriptor.id === viewDescriptor.id,
-			);
+			const index = this.viewDescriptorItems.findIndex(i => i.viewDescriptor.id === viewDescriptor.id);
 			if (index !== -1) {
 				removed.push(viewDescriptor);
 				const viewDescriptorItem = this.viewDescriptorItems[index];
 				if (viewDescriptorItem.state.active) {
-					removedActiveDescriptors.push(
-						viewDescriptorItem.viewDescriptor,
-					);
+					removedActiveDescriptors.push(viewDescriptorItem.viewDescriptor);
 				}
 				if (this.isViewDescriptorVisible(viewDescriptorItem)) {
-					const { visibleIndex } = this.find(
-						viewDescriptorItem.viewDescriptor.id,
-					);
-					removedVisibleDescriptors.push({
-						index: visibleIndex,
-						viewDescriptor: viewDescriptorItem.viewDescriptor,
-					});
+					const { visibleIndex } = this.find(viewDescriptorItem.viewDescriptor.id);
+					removedVisibleDescriptors.push({ index: visibleIndex, viewDescriptor: viewDescriptorItem.viewDescriptor });
 				}
 				removedItems.push(viewDescriptorItem);
 			}
 		}
 
 		// update state
-		removedItems.forEach((item) =>
-			this.viewDescriptorItems.splice(
-				this.viewDescriptorItems.indexOf(item),
-				1,
-			),
-		);
+		removedItems.forEach(item => this.viewDescriptorItems.splice(this.viewDescriptorItems.indexOf(item), 1));
 
 		this.broadCastRemovedVisibleViewDescriptors(removedVisibleDescriptors);
 		if (removedActiveDescriptors.length) {
-			this._onDidChangeActiveViewDescriptors.fire({
-				added: [],
-				removed: removedActiveDescriptors,
-			});
+			this._onDidChangeActiveViewDescriptors.fire(({ added: [], removed: removedActiveDescriptors }));
 		}
 		if (removed.length) {
 			this._onDidChangeAllViewDescriptors.fire({ added: [], removed });
@@ -948,24 +611,15 @@ export class ViewContainerModel
 	}
 
 	private onDidChangeContext(): void {
-		const addedActiveItems: {
-			item: IViewDescriptorItem;
-			visibleWhenActive: boolean;
-		}[] = [];
+		const addedActiveItems: { item: IViewDescriptorItem; visibleWhenActive: boolean }[] = [];
 		const removedActiveItems: IViewDescriptorItem[] = [];
 
 		for (const item of this.viewDescriptorItems) {
 			const wasActive = item.state.active;
-			const isActive = this.contextKeyService.contextMatchesRules(
-				item.viewDescriptor.when,
-			);
+			const isActive = this.contextKeyService.contextMatchesRules(item.viewDescriptor.when);
 			if (wasActive !== isActive) {
 				if (isActive) {
-					addedActiveItems.push({
-						item,
-						visibleWhenActive:
-							this.isViewDescriptorVisibleWhenActive(item),
-					});
+					addedActiveItems.push({ item, visibleWhenActive: this.isViewDescriptorVisibleWhenActive(item) });
 				} else {
 					removedActiveItems.push(item);
 				}
@@ -976,75 +630,47 @@ export class ViewContainerModel
 		for (const item of removedActiveItems) {
 			if (this.isViewDescriptorVisible(item)) {
 				const { visibleIndex } = this.find(item.viewDescriptor.id);
-				removedVisibleDescriptors.push({
-					index: visibleIndex,
-					viewDescriptor: item.viewDescriptor,
-				});
+				removedVisibleDescriptors.push({ index: visibleIndex, viewDescriptor: item.viewDescriptor });
 			}
 		}
 
 		// Update the State
-		removedActiveItems.forEach((item) => (item.state.active = false));
-		addedActiveItems.forEach(({ item }) => (item.state.active = true));
+		removedActiveItems.forEach(item => item.state.active = false);
+		addedActiveItems.forEach(({ item }) => item.state.active = true);
 
 		this.broadCastRemovedVisibleViewDescriptors(removedVisibleDescriptors);
 
 		if (addedActiveItems.length || removedActiveItems.length) {
-			this._onDidChangeActiveViewDescriptors.fire({
-				added: addedActiveItems.map(({ item }) => item.viewDescriptor),
-				removed: removedActiveItems.map((item) => item.viewDescriptor),
-			});
+			this._onDidChangeActiveViewDescriptors.fire(({ added: addedActiveItems.map(({ item }) => item.viewDescriptor), removed: removedActiveItems.map(item => item.viewDescriptor) }));
 		}
 
 		const addedVisibleDescriptors: IAddedViewDescriptorRef[] = [];
 		for (const { item, visibleWhenActive } of addedActiveItems) {
 			if (visibleWhenActive && this.isViewDescriptorVisible(item)) {
 				const { visibleIndex } = this.find(item.viewDescriptor.id);
-				addedVisibleDescriptors.push({
-					index: visibleIndex,
-					viewDescriptor: item.viewDescriptor,
-					size: item.state.size,
-					collapsed: !!item.state.collapsed,
-				});
+				addedVisibleDescriptors.push({ index: visibleIndex, viewDescriptor: item.viewDescriptor, size: item.state.size, collapsed: !!item.state.collapsed });
 			}
 		}
 		this.broadCastAddedVisibleViewDescriptors(addedVisibleDescriptors);
 	}
 
-	private broadCastAddedVisibleViewDescriptors(
-		added: IAddedViewDescriptorRef[],
-	): void {
+	private broadCastAddedVisibleViewDescriptors(added: IAddedViewDescriptorRef[]): void {
 		if (added.length) {
-			this._onDidAddVisibleViewDescriptors.fire(
-				added.sort((a, b) => a.index - b.index),
-			);
-			this.updateState(
-				`Added views:${added.map((v) => v.viewDescriptor.id).join(",")} in ${this.viewContainer.id}`,
-			);
+			this._onDidAddVisibleViewDescriptors.fire(added.sort((a, b) => a.index - b.index));
+			this.updateState(`Added views:${added.map(v => v.viewDescriptor.id).join(',')} in ${this.viewContainer.id}`);
 		}
 	}
 
-	private broadCastRemovedVisibleViewDescriptors(
-		removed: IViewDescriptorRef[],
-	): void {
+	private broadCastRemovedVisibleViewDescriptors(removed: IViewDescriptorRef[]): void {
 		if (removed.length) {
-			this._onDidRemoveVisibleViewDescriptors.fire(
-				removed.sort((a, b) => b.index - a.index),
-			);
-			this.updateState(
-				`Removed views:${removed.map((v) => v.viewDescriptor.id).join(",")} from ${this.viewContainer.id}`,
-			);
+			this._onDidRemoveVisibleViewDescriptors.fire(removed.sort((a, b) => b.index - a.index));
+			this.updateState(`Removed views:${removed.map(v => v.viewDescriptor.id).join(',')} from ${this.viewContainer.id}`);
 		}
 	}
 
-	private broadCastMovedViewDescriptors(
-		from: IViewDescriptorRef,
-		to: IViewDescriptorRef,
-	): void {
+	private broadCastMovedViewDescriptors(from: IViewDescriptorRef, to: IViewDescriptorRef): void {
 		this._onDidMoveVisibleViewDescriptors.fire({ from, to });
-		this.updateState(
-			`Moved view ${from.viewDescriptor.id} to ${to.viewDescriptor.id} in ${this.viewContainer.id}`,
-		);
+		this.updateState(`Moved view ${from.viewDescriptor.id} to ${to.viewDescriptor.id} in ${this.viewContainer.id}`);
 	}
 
 	private updateState(reason: string): void {
@@ -1053,29 +679,21 @@ export class ViewContainerModel
 		this.updateContainerInfo();
 	}
 
-	private isViewDescriptorVisible(
-		viewDescriptorItem: IViewDescriptorItem,
-	): boolean {
+	private isViewDescriptorVisible(viewDescriptorItem: IViewDescriptorItem): boolean {
 		if (!viewDescriptorItem.state.active) {
 			return false;
 		}
 		return this.isViewDescriptorVisibleWhenActive(viewDescriptorItem);
 	}
 
-	private isViewDescriptorVisibleWhenActive(
-		viewDescriptorItem: IViewDescriptorItem,
-	): boolean {
+	private isViewDescriptorVisibleWhenActive(viewDescriptorItem: IViewDescriptorItem): boolean {
 		if (viewDescriptorItem.viewDescriptor.workspace) {
 			return !!viewDescriptorItem.state.visibleWorkspace;
 		}
 		return !!viewDescriptorItem.state.visibleGlobal;
 	}
 
-	private find(id: string): {
-		index: number;
-		visibleIndex: number;
-		viewDescriptorItem: IViewDescriptorItem;
-	} {
+	private find(id: string): { index: number; visibleIndex: number; viewDescriptorItem: IViewDescriptorItem } {
 		const result = this.findAndIgnoreIfNotFound(id);
 		if (result) {
 			return result;
@@ -1083,27 +701,11 @@ export class ViewContainerModel
 		throw new Error(`view descriptor ${id} not found`);
 	}
 
-	private findAndIgnoreIfNotFound(
-		id: string,
-	):
-		| {
-				index: number;
-				visibleIndex: number;
-				viewDescriptorItem: IViewDescriptorItem;
-		  }
-		| undefined {
-		for (
-			let i = 0, visibleIndex = 0;
-			i < this.viewDescriptorItems.length;
-			i++
-		) {
+	private findAndIgnoreIfNotFound(id: string): { index: number; visibleIndex: number; viewDescriptorItem: IViewDescriptorItem } | undefined {
+		for (let i = 0, visibleIndex = 0; i < this.viewDescriptorItems.length; i++) {
 			const viewDescriptorItem = this.viewDescriptorItems[i];
 			if (viewDescriptorItem.viewDescriptor.id === id) {
-				return {
-					index: i,
-					visibleIndex,
-					viewDescriptorItem: viewDescriptorItem,
-				};
+				return { index: i, visibleIndex, viewDescriptorItem: viewDescriptorItem };
 			}
 			if (this.isViewDescriptorVisible(viewDescriptorItem)) {
 				visibleIndex++;
@@ -1112,26 +714,17 @@ export class ViewContainerModel
 		return undefined;
 	}
 
-	private compareViewDescriptors(
-		a: IViewDescriptorItem,
-		b: IViewDescriptorItem,
-	): number {
+	private compareViewDescriptors(a: IViewDescriptorItem, b: IViewDescriptorItem): number {
 		if (a.viewDescriptor.id === b.viewDescriptor.id) {
 			return 0;
 		}
 
-		return (
-			this.getViewOrder(a) - this.getViewOrder(b) ||
-			this.getGroupOrderResult(a.viewDescriptor, b.viewDescriptor)
-		);
+		return (this.getViewOrder(a) - this.getViewOrder(b)) || this.getGroupOrderResult(a.viewDescriptor, b.viewDescriptor);
 	}
 
 	private getViewOrder(viewDescriptorItem: IViewDescriptorItem): number {
-		const viewOrder =
-			typeof viewDescriptorItem.state.order === "number"
-				? viewDescriptorItem.state.order
-				: viewDescriptorItem.viewDescriptor.order;
-		return typeof viewOrder === "number" ? viewOrder : Number.MAX_VALUE;
+		const viewOrder = typeof viewDescriptorItem.state.order === 'number' ? viewDescriptorItem.state.order : viewDescriptorItem.viewDescriptor.order;
+		return typeof viewOrder === 'number' ? viewOrder : Number.MAX_VALUE;
 	}
 
 	private getGroupOrderResult(a: IViewDescriptor, b: IViewDescriptor) {

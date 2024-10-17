@@ -38,10 +38,10 @@ export class RGBA8 {
 
 	public equals(other: RGBA8): boolean {
 		return (
-			this.r === other.r &&
-			this.g === other.g &&
-			this.b === other.b &&
-			this.a === other.a
+			this.r === other.r
+			&& this.g === other.g
+			&& this.b === other.b
+			&& this.a === other.a
 		);
 	}
 

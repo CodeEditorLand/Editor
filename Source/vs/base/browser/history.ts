@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event } from "../common/event.js";
+import { Event } from '../common/event.js';
 
 export interface IHistoryNavigationWidget {
+
 	readonly element: HTMLElement;
 
 	showPreviousValue(): void;
@@ -15,4 +16,5 @@ export interface IHistoryNavigationWidget {
 	onDidFocus: Event<void>;
 
 	onDidBlur: Event<void>;
+
 }

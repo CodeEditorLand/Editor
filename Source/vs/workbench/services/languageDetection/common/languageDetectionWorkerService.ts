@@ -3,13 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { URI } from "../../../../base/common/uri.js";
-import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
+import { URI } from '../../../../base/common/uri.js';
+import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 
-export const ILanguageDetectionService =
-	createDecorator<ILanguageDetectionService>("ILanguageDetectionService");
+export const ILanguageDetectionService = createDecorator<ILanguageDetectionService>('ILanguageDetectionService');
 
-export const LanguageDetectionLanguageEventSource = "languageDetection";
+export const LanguageDetectionLanguageEventSource = 'languageDetection';
 
 export interface ILanguageDetectionService {
 	readonly _serviceBrand: undefined;
@@ -25,10 +24,7 @@ export interface ILanguageDetectionService {
 	 * @param supportedLangs Optional. When populated, the model will only return languages from the provided list
 	 * @returns the language id for the given resource or undefined if the model is not confident enough.
 	 */
-	detectLanguage(
-		resource: URI,
-		supportedLangs?: string[],
-	): Promise<string | undefined>;
+	detectLanguage(resource: URI, supportedLangs?: string[]): Promise<string | undefined>;
 }
 
 export type LanguageDetectionHintConfig = {
@@ -38,8 +34,7 @@ export type LanguageDetectionHintConfig = {
 
 //#region Telemetry events
 
-export const AutomaticLanguageDetectionLikelyWrongId =
-	"automaticlanguagedetection.likelywrong";
+export const AutomaticLanguageDetectionLikelyWrongId = 'automaticlanguagedetection.likelywrong';
 
 export interface IAutomaticLanguageDetectionLikelyWrongData {
 	currentLanguageId: string;
@@ -49,31 +44,15 @@ export interface IAutomaticLanguageDetectionLikelyWrongData {
 }
 
 export type AutomaticLanguageDetectionLikelyWrongClassification = {
-	owner: "TylerLeonhardt,JacksonKearl";
-	comment: "Used to determine how often language detection is likely wrong.";
-	currentLanguageId: {
-		classification: "SystemMetaData";
-		purpose: "FeatureInsight";
-		comment: "The language id we guessed.";
-	};
-	nextLanguageId: {
-		classification: "SystemMetaData";
-		purpose: "FeatureInsight";
-		comment: "The language id the user chose.";
-	};
-	lineCount: {
-		classification: "SystemMetaData";
-		purpose: "FeatureInsight";
-		comment: "The number of lines in the file.";
-	};
-	modelPreference: {
-		classification: "SystemMetaData";
-		purpose: "FeatureInsight";
-		comment: "What the user's model preference is.";
-	};
+	owner: 'TylerLeonhardt,JacksonKearl';
+	comment: 'Used to determine how often language detection is likely wrong.';
+	currentLanguageId: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The language id we guessed.' };
+	nextLanguageId: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The language id the user chose.' };
+	lineCount: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The number of lines in the file.' };
+	modelPreference: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'What the user\'s model preference is.' };
 };
 
-export const LanguageDetectionStatsId = "automaticlanguagedetection.stats";
+export const LanguageDetectionStatsId = 'automaticlanguagedetection.stats';
 
 export interface ILanguageDetectionStats {
 	languages: string;
@@ -82,23 +61,11 @@ export interface ILanguageDetectionStats {
 }
 
 export type LanguageDetectionStatsClassification = {
-	owner: "TylerLeonhardt,JacksonKearl";
-	comment: "Used to determine how definitive language detection is and how long it takes.";
-	languages: {
-		classification: "SystemMetaData";
-		purpose: "FeatureInsight";
-		comment: "The languages the model supports.";
-	};
-	confidences: {
-		classification: "SystemMetaData";
-		purpose: "FeatureInsight";
-		comment: "The confidences of those languages.";
-	};
-	timeSpent: {
-		classification: "SystemMetaData";
-		purpose: "FeatureInsight";
-		comment: "How long the operation took.";
-	};
+	owner: 'TylerLeonhardt,JacksonKearl';
+	comment: 'Used to determine how definitive language detection is and how long it takes.';
+	languages: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The languages the model supports.' };
+	confidences: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'The confidences of those languages.' };
+	timeSpent: { classification: 'SystemMetaData'; purpose: 'FeatureInsight'; comment: 'How long the operation took.' };
 };
 
 //#endregion

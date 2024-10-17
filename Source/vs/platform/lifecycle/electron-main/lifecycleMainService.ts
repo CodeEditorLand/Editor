@@ -3,36 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import electron from "electron";
+import electron from 'electron';
+import { validatedIpcMain } from '../../../base/parts/ipc/electron-main/ipcMain.js';
+import { Barrier, Promises, timeout } from '../../../base/common/async.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
+import { isMacintosh, isWindows } from '../../../base/common/platform.js';
+import { cwd } from '../../../base/common/process.js';
+import { assertIsDefined } from '../../../base/common/types.js';
+import { NativeParsedArgs } from '../../environment/common/argv.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { ILogService } from '../../log/common/log.js';
+import { IStateService } from '../../state/node/state.js';
+import { ICodeWindow, LoadReason, UnloadReason } from '../../window/electron-main/window.js';
+import { ISingleFolderWorkspaceIdentifier, IWorkspaceIdentifier } from '../../workspace/common/workspace.js';
+import { IEnvironmentMainService } from '../../environment/electron-main/environmentMainService.js';
+import { IAuxiliaryWindow } from '../../auxiliaryWindow/electron-main/auxiliaryWindow.js';
 
-import { Barrier, Promises, timeout } from "../../../base/common/async.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable, DisposableStore } from "../../../base/common/lifecycle.js";
-import { isMacintosh, isWindows } from "../../../base/common/platform.js";
-import { cwd } from "../../../base/common/process.js";
-import { assertIsDefined } from "../../../base/common/types.js";
-import { validatedIpcMain } from "../../../base/parts/ipc/electron-main/ipcMain.js";
-import { IAuxiliaryWindow } from "../../auxiliaryWindow/electron-main/auxiliaryWindow.js";
-import { NativeParsedArgs } from "../../environment/common/argv.js";
-import { IEnvironmentMainService } from "../../environment/electron-main/environmentMainService.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { ILogService } from "../../log/common/log.js";
-import { IStateService } from "../../state/node/state.js";
-import {
-	ICodeWindow,
-	LoadReason,
-	UnloadReason,
-} from "../../window/electron-main/window.js";
-import {
-	ISingleFolderWorkspaceIdentifier,
-	IWorkspaceIdentifier,
-} from "../../workspace/common/workspace.js";
-
-export const ILifecycleMainService = createDecorator<ILifecycleMainService>(
-	"lifecycleMainService",
-);
+export const ILifecycleMainService = createDecorator<ILifecycleMainService>('lifecycleMainService');
 
 interface WindowLoadEvent {
+
 	/**
 	 * The window that is loaded to a new workspace.
 	 */
@@ -41,10 +32,7 @@ interface WindowLoadEvent {
 	/**
 	 * The workspace the window is loaded into.
 	 */
-	readonly workspace:
-		| IWorkspaceIdentifier
-		| ISingleFolderWorkspaceIdentifier
-		| undefined;
+	readonly workspace: IWorkspaceIdentifier | ISingleFolderWorkspaceIdentifier | undefined;
 
 	/**
 	 * More details why the window loads to a new workspace.
@@ -53,6 +41,7 @@ interface WindowLoadEvent {
 }
 
 export const enum ShutdownReason {
+
 	/**
 	 * The application exits normally.
 	 */
@@ -63,10 +52,11 @@ export const enum ShutdownReason {
 	 * killed with an exit code (e.g. from integration
 	 * test run)
 	 */
-	KILL,
+	KILL
 }
 
 export interface ShutdownEvent {
+
 	/**
 	 * More details why the application is shutting down.
 	 */
@@ -80,6 +70,7 @@ export interface ShutdownEvent {
 }
 
 export interface IRelaunchHandler {
+
 	/**
 	 * Allows a handler to deal with relaunching the application. The return
 	 * value indicates if the relaunch is handled or not.
@@ -93,6 +84,7 @@ export interface IRelaunchOptions {
 }
 
 export interface ILifecycleMainService {
+
 	readonly _serviceBrand: undefined;
 
 	/**
@@ -153,10 +145,7 @@ export interface ILifecycleMainService {
 	/**
 	 * Unload a window for the provided reason. All lifecycle event handlers are triggered.
 	 */
-	unload(
-		window: ICodeWindow,
-		reason: UnloadReason,
-	): Promise<boolean /* veto */>;
+	unload(window: ICodeWindow, reason: UnloadReason): Promise<boolean /* veto */>;
 
 	/**
 	 * Restart the application with optional arguments (CLI). All lifecycle event handlers are triggered.
@@ -195,6 +184,7 @@ export interface ILifecycleMainService {
 }
 
 export const enum LifecycleMainPhase {
+
 	/**
 	 * The first phase signals that we are about to startup.
 	 */
@@ -216,64 +206,46 @@ export const enum LifecycleMainPhase {
 	 * The last phase after a window has opened and some time has passed
 	 * (2-5 seconds).
 	 */
-	Eventually = 4,
+	Eventually = 4
 }
 
-export class LifecycleMainService
-	extends Disposable
-	implements ILifecycleMainService
-{
+export class LifecycleMainService extends Disposable implements ILifecycleMainService {
+
 	declare readonly _serviceBrand: undefined;
 
-	private static readonly QUIT_AND_RESTART_KEY = "lifecycle.quitAndRestart";
+	private static readonly QUIT_AND_RESTART_KEY = 'lifecycle.quitAndRestart';
 
 	private readonly _onBeforeShutdown = this._register(new Emitter<void>());
 	readonly onBeforeShutdown = this._onBeforeShutdown.event;
 
-	private readonly _onWillShutdown = this._register(
-		new Emitter<ShutdownEvent>(),
-	);
+	private readonly _onWillShutdown = this._register(new Emitter<ShutdownEvent>());
 	readonly onWillShutdown = this._onWillShutdown.event;
 
-	private readonly _onWillLoadWindow = this._register(
-		new Emitter<WindowLoadEvent>(),
-	);
+	private readonly _onWillLoadWindow = this._register(new Emitter<WindowLoadEvent>());
 	readonly onWillLoadWindow = this._onWillLoadWindow.event;
 
-	private readonly _onBeforeCloseWindow = this._register(
-		new Emitter<ICodeWindow>(),
-	);
+	private readonly _onBeforeCloseWindow = this._register(new Emitter<ICodeWindow>());
 	readonly onBeforeCloseWindow = this._onBeforeCloseWindow.event;
 
 	private _quitRequested = false;
-	get quitRequested(): boolean {
-		return this._quitRequested;
-	}
+	get quitRequested(): boolean { return this._quitRequested; }
 
 	private _wasRestarted: boolean = false;
-	get wasRestarted(): boolean {
-		return this._wasRestarted;
-	}
+	get wasRestarted(): boolean { return this._wasRestarted; }
 
 	private _phase = LifecycleMainPhase.Starting;
-	get phase(): LifecycleMainPhase {
-		return this._phase;
-	}
+	get phase(): LifecycleMainPhase { return this._phase; }
 
 	private readonly windowToCloseRequest = new Set<number>();
 	private oneTimeListenerTokenGenerator = 0;
 	private windowCounter = 0;
 
 	private pendingQuitPromise: Promise<boolean> | undefined = undefined;
-	private pendingQuitPromiseResolve: { (veto: boolean): void } | undefined =
-		undefined;
+	private pendingQuitPromiseResolve: { (veto: boolean): void } | undefined = undefined;
 
 	private pendingWillShutdownPromise: Promise<void> | undefined = undefined;
 
-	private readonly mapWindowIdToPendingUnload = new Map<
-		number,
-		Promise<boolean>
-	>();
+	private readonly mapWindowIdToPendingUnload = new Map<number, Promise<boolean>>();
 
 	private readonly phaseWhen = new Map<LifecycleMainPhase, Barrier>();
 
@@ -282,31 +254,25 @@ export class LifecycleMainService
 	constructor(
 		@ILogService private readonly logService: ILogService,
 		@IStateService private readonly stateService: IStateService,
-		@IEnvironmentMainService
-		private readonly environmentMainService: IEnvironmentMainService,
+		@IEnvironmentMainService private readonly environmentMainService: IEnvironmentMainService
 	) {
 		super();
 
 		this.resolveRestarted();
-		this.when(LifecycleMainPhase.Ready).then(() =>
-			this.registerListeners(),
-		);
+		this.when(LifecycleMainPhase.Ready).then(() => this.registerListeners());
 	}
 
 	private resolveRestarted(): void {
-		this._wasRestarted = !!this.stateService.getItem(
-			LifecycleMainService.QUIT_AND_RESTART_KEY,
-		);
+		this._wasRestarted = !!this.stateService.getItem(LifecycleMainService.QUIT_AND_RESTART_KEY);
 
 		if (this._wasRestarted) {
 			// remove the marker right after if found
-			this.stateService.removeItem(
-				LifecycleMainService.QUIT_AND_RESTART_KEY,
-			);
+			this.stateService.removeItem(LifecycleMainService.QUIT_AND_RESTART_KEY);
 		}
 	}
 
 	private registerListeners(): void {
+
 		// before-quit: an event that is fired if application quit was
 		// requested but before any window was closed.
 		const beforeQuitListener = () => {
@@ -314,11 +280,11 @@ export class LifecycleMainService
 				return;
 			}
 
-			this.trace("Lifecycle#app.on(before-quit)");
+			this.trace('Lifecycle#app.on(before-quit)');
 			this._quitRequested = true;
 
 			// Emit event to indicate that we are about to shutdown
-			this.trace("Lifecycle#onBeforeShutdown.fire()");
+			this.trace('Lifecycle#onBeforeShutdown.fire()');
 			this._onBeforeShutdown.fire();
 
 			// macOS: can run without any window open. in that case we fire
@@ -328,13 +294,13 @@ export class LifecycleMainService
 				this.fireOnWillShutdown(ShutdownReason.QUIT);
 			}
 		};
-		electron.app.addListener("before-quit", beforeQuitListener);
+		electron.app.addListener('before-quit', beforeQuitListener);
 
 		// window-all-closed: an event that only fires when the last window
 		// was closed. We override this event to be in charge if app.quit()
 		// should be called or not.
 		const windowAllClosedListener = () => {
-			this.trace("Lifecycle#app.on(window-all-closed)");
+			this.trace('Lifecycle#app.on(window-all-closed)');
 
 			// Windows/Linux: we quit when all windows have closed
 			// Mac: we only quit when quit was requested
@@ -342,26 +308,22 @@ export class LifecycleMainService
 				electron.app.quit();
 			}
 		};
-		electron.app.addListener("window-all-closed", windowAllClosedListener);
+		electron.app.addListener('window-all-closed', windowAllClosedListener);
 
 		// will-quit: an event that is fired after all windows have been
 		// closed, but before actually quitting.
-		electron.app.once("will-quit", (e) => {
-			this.trace("Lifecycle#app.on(will-quit) - begin");
+		electron.app.once('will-quit', e => {
+			this.trace('Lifecycle#app.on(will-quit) - begin');
 
 			// Prevent the quit until the shutdown promise was resolved
 			e.preventDefault();
 
 			// Start shutdown sequence
-			const shutdownPromise = this.fireOnWillShutdown(
-				ShutdownReason.QUIT,
-			);
+			const shutdownPromise = this.fireOnWillShutdown(ShutdownReason.QUIT);
 
 			// Wait until shutdown is signaled to be complete
 			shutdownPromise.finally(() => {
-				this.trace(
-					"Lifecycle#app.on(will-quit) - after fireOnWillShutdown",
-				);
+				this.trace('Lifecycle#app.on(will-quit) - after fireOnWillShutdown');
 
 				// Resolve pending quit promise now without veto
 				this.resolvePendingQuitPromise(false /* no veto */);
@@ -370,13 +332,10 @@ export class LifecycleMainService
 				// will-quit listener is only installed "once". Also
 				// remove any listener we have that is no longer needed
 
-				electron.app.removeListener("before-quit", beforeQuitListener);
-				electron.app.removeListener(
-					"window-all-closed",
-					windowAllClosedListener,
-				);
+				electron.app.removeListener('before-quit', beforeQuitListener);
+				electron.app.removeListener('window-all-closed', windowAllClosedListener);
 
-				this.trace("Lifecycle#app.on(will-quit) - calling app.quit()");
+				this.trace('Lifecycle#app.on(will-quit) - calling app.quit()');
 
 				electron.app.quit();
 			});
@@ -389,7 +348,7 @@ export class LifecycleMainService
 		}
 
 		const logService = this.logService;
-		this.trace("Lifecycle#onWillShutdown.fire()");
+		this.trace('Lifecycle#onWillShutdown.fire()');
 
 		const joiners: Promise<void>[] = [];
 
@@ -397,17 +356,14 @@ export class LifecycleMainService
 			reason,
 			join(id, promise) {
 				logService.trace(`Lifecycle#onWillShutdown - begin '${id}'`);
-				joiners.push(
-					promise.finally(() => {
-						logService.trace(
-							`Lifecycle#onWillShutdown - end '${id}'`,
-						);
-					}),
-				);
-			},
+				joiners.push(promise.finally(() => {
+					logService.trace(`Lifecycle#onWillShutdown - end '${id}'`);
+				}));
+			}
 		});
 
 		this.pendingWillShutdownPromise = (async () => {
+
 			// Settle all shutdown event joiners
 			try {
 				await Promises.settled(joiners);
@@ -429,7 +385,7 @@ export class LifecycleMainService
 
 	set phase(value: LifecycleMainPhase) {
 		if (value < this.phase) {
-			throw new Error("Lifecycle cannot go backwards");
+			throw new Error('Lifecycle cannot go backwards');
 		}
 
 		if (this._phase === value) {
@@ -468,131 +424,90 @@ export class LifecycleMainService
 		this.windowCounter++;
 
 		// Window Will Load
-		windowListeners.add(
-			window.onWillLoad((e) =>
-				this._onWillLoadWindow.fire({
-					window,
-					workspace: e.workspace,
-					reason: e.reason,
-				}),
-			),
-		);
+		windowListeners.add(window.onWillLoad(e => this._onWillLoadWindow.fire({ window, workspace: e.workspace, reason: e.reason })));
 
 		// Window Before Closing: Main -> Renderer
 		const win = assertIsDefined(window.win);
-		windowListeners.add(
-			Event.fromNodeEventEmitter<electron.Event>(
-				win,
-				"close",
-			)((e) => {
-				// The window already acknowledged to be closed
-				const windowId = window.id;
-				if (this.windowToCloseRequest.has(windowId)) {
-					this.windowToCloseRequest.delete(windowId);
+		windowListeners.add(Event.fromNodeEventEmitter<electron.Event>(win, 'close')(e => {
 
+			// The window already acknowledged to be closed
+			const windowId = window.id;
+			if (this.windowToCloseRequest.has(windowId)) {
+				this.windowToCloseRequest.delete(windowId);
+
+				return;
+			}
+
+			this.trace(`Lifecycle#window.on('close') - window ID ${window.id}`);
+
+			// Otherwise prevent unload and handle it from window
+			e.preventDefault();
+			this.unload(window, UnloadReason.CLOSE).then(veto => {
+				if (veto) {
+					this.windowToCloseRequest.delete(windowId);
 					return;
 				}
 
-				this.trace(
-					`Lifecycle#window.on('close') - window ID ${window.id}`,
-				);
+				this.windowToCloseRequest.add(windowId);
 
-				// Otherwise prevent unload and handle it from window
-				e.preventDefault();
-				this.unload(window, UnloadReason.CLOSE).then((veto) => {
-					if (veto) {
-						this.windowToCloseRequest.delete(windowId);
-						return;
-					}
+				// Fire onBeforeCloseWindow before actually closing
+				this.trace(`Lifecycle#onBeforeCloseWindow.fire() - window ID ${windowId}`);
+				this._onBeforeCloseWindow.fire(window);
 
-					this.windowToCloseRequest.add(windowId);
+				// No veto, close window now
+				window.close();
+			});
+		}));
+		windowListeners.add(Event.fromNodeEventEmitter<electron.Event>(win, 'closed')(() => {
+			this.trace(`Lifecycle#window.on('closed') - window ID ${window.id}`);
 
-					// Fire onBeforeCloseWindow before actually closing
-					this.trace(
-						`Lifecycle#onBeforeCloseWindow.fire() - window ID ${windowId}`,
-					);
-					this._onBeforeCloseWindow.fire(window);
+			// update window count
+			this.windowCounter--;
 
-					// No veto, close window now
-					window.close();
-				});
-			}),
-		);
-		windowListeners.add(
-			Event.fromNodeEventEmitter<electron.Event>(
-				win,
-				"closed",
-			)(() => {
-				this.trace(
-					`Lifecycle#window.on('closed') - window ID ${window.id}`,
-				);
+			// clear window listeners
+			windowListeners.dispose();
 
-				// update window count
-				this.windowCounter--;
-
-				// clear window listeners
-				windowListeners.dispose();
-
-				// if there are no more code windows opened, fire the onWillShutdown event, unless
-				// we are on macOS where it is perfectly fine to close the last window and
-				// the application continues running (unless quit was actually requested)
-				if (
-					this.windowCounter === 0 &&
-					(!isMacintosh || this._quitRequested)
-				) {
-					this.fireOnWillShutdown(ShutdownReason.QUIT);
-				}
-			}),
-		);
+			// if there are no more code windows opened, fire the onWillShutdown event, unless
+			// we are on macOS where it is perfectly fine to close the last window and
+			// the application continues running (unless quit was actually requested)
+			if (this.windowCounter === 0 && (!isMacintosh || this._quitRequested)) {
+				this.fireOnWillShutdown(ShutdownReason.QUIT);
+			}
+		}));
 	}
 
 	registerAuxWindow(auxWindow: IAuxiliaryWindow): void {
 		const win = assertIsDefined(auxWindow.win);
 
 		const windowListeners = new DisposableStore();
-		windowListeners.add(
-			Event.fromNodeEventEmitter<electron.Event>(
-				win,
-				"close",
-			)((e) => {
-				this.trace(
-					`Lifecycle#auxWindow.on('close') - window ID ${auxWindow.id}`,
-				);
+		windowListeners.add(Event.fromNodeEventEmitter<electron.Event>(win, 'close')(e => {
+			this.trace(`Lifecycle#auxWindow.on('close') - window ID ${auxWindow.id}`);
 
-				if (this._quitRequested) {
-					this.trace(
-						`Lifecycle#auxWindow.on('close') - preventDefault() because quit requested`,
-					);
+			if (this._quitRequested) {
+				this.trace(`Lifecycle#auxWindow.on('close') - preventDefault() because quit requested`);
 
-					// When quit is requested, Electron will close all
-					// auxiliary windows before closing the main windows.
-					// This prevents us from storing the auxiliary window
-					// state on shutdown and thus we prevent closing if
-					// quit is requested.
-					//
-					// Interestingly, this will not prevent the application
-					// from quitting because the auxiliary windows will still
-					// close once the owning window closes.
+				// When quit is requested, Electron will close all
+				// auxiliary windows before closing the main windows.
+				// This prevents us from storing the auxiliary window
+				// state on shutdown and thus we prevent closing if
+				// quit is requested.
+				//
+				// Interestingly, this will not prevent the application
+				// from quitting because the auxiliary windows will still
+				// close once the owning window closes.
 
-					e.preventDefault();
-				}
-			}),
-		);
-		windowListeners.add(
-			Event.fromNodeEventEmitter<electron.Event>(
-				win,
-				"closed",
-			)(() => {
-				this.trace(
-					`Lifecycle#auxWindow.on('closed') - window ID ${auxWindow.id}`,
-				);
+				e.preventDefault();
+			}
+		}));
+		windowListeners.add(Event.fromNodeEventEmitter<electron.Event>(win, 'closed')(() => {
+			this.trace(`Lifecycle#auxWindow.on('closed') - window ID ${auxWindow.id}`);
 
-				windowListeners.dispose();
-			}),
-		);
+			windowListeners.dispose();
+		}));
 	}
 
 	async reload(window: ICodeWindow, cli?: NativeParsedArgs): Promise<void> {
+
 		// Only reload when the window has not vetoed this
 		const veto = await this.unload(window, UnloadReason.RELOAD);
 		if (!veto) {
@@ -600,14 +515,10 @@ export class LifecycleMainService
 		}
 	}
 
-	unload(
-		window: ICodeWindow,
-		reason: UnloadReason,
-	): Promise<boolean /* veto */> {
+	unload(window: ICodeWindow, reason: UnloadReason): Promise<boolean /* veto */> {
+
 		// Ensure there is only 1 unload running at the same time
-		const pendingUnloadPromise = this.mapWindowIdToPendingUnload.get(
-			window.id,
-		);
+		const pendingUnloadPromise = this.mapWindowIdToPendingUnload.get(window.id);
 		if (pendingUnloadPromise) {
 			return pendingUnloadPromise;
 		}
@@ -621,10 +532,8 @@ export class LifecycleMainService
 		return unloadPromise;
 	}
 
-	private async doUnload(
-		window: ICodeWindow,
-		reason: UnloadReason,
-	): Promise<boolean /* veto */> {
+	private async doUnload(window: ICodeWindow, reason: UnloadReason): Promise<boolean /* veto */> {
+
 		// Always allow to unload a window that is not yet ready
 		if (!window.isReady) {
 			return false;
@@ -633,17 +542,10 @@ export class LifecycleMainService
 		this.trace(`Lifecycle#unload() - window ID ${window.id}`);
 
 		// first ask the window itself if it vetos the unload
-		const windowUnloadReason = this._quitRequested
-			? UnloadReason.QUIT
-			: reason;
-		const veto = await this.onBeforeUnloadWindowInRenderer(
-			window,
-			windowUnloadReason,
-		);
+		const windowUnloadReason = this._quitRequested ? UnloadReason.QUIT : reason;
+		const veto = await this.onBeforeUnloadWindowInRenderer(window, windowUnloadReason);
 		if (veto) {
-			this.trace(
-				`Lifecycle#unload() - veto in renderer (window ID ${window.id})`,
-			);
+			this.trace(`Lifecycle#unload() - veto in renderer (window ID ${window.id})`);
 
 			return this.handleWindowUnloadVeto(veto);
 		}
@@ -676,11 +578,8 @@ export class LifecycleMainService
 		}
 	}
 
-	private onBeforeUnloadWindowInRenderer(
-		window: ICodeWindow,
-		reason: UnloadReason,
-	): Promise<boolean /* veto */> {
-		return new Promise<boolean>((resolve) => {
+	private onBeforeUnloadWindowInRenderer(window: ICodeWindow, reason: UnloadReason): Promise<boolean /* veto */> {
+		return new Promise<boolean>(resolve => {
 			const oneTimeEventToken = this.oneTimeListenerTokenGenerator++;
 			const okChannel = `vscode:ok${oneTimeEventToken}`;
 			const cancelChannel = `vscode:cancel${oneTimeEventToken}`;
@@ -693,30 +592,23 @@ export class LifecycleMainService
 				resolve(true); // veto
 			});
 
-			window.send("vscode:onBeforeUnload", {
-				okChannel,
-				cancelChannel,
-				reason,
-			});
+			window.send('vscode:onBeforeUnload', { okChannel, cancelChannel, reason });
 		});
 	}
 
-	private onWillUnloadWindowInRenderer(
-		window: ICodeWindow,
-		reason: UnloadReason,
-	): Promise<void> {
-		return new Promise<void>((resolve) => {
+	private onWillUnloadWindowInRenderer(window: ICodeWindow, reason: UnloadReason): Promise<void> {
+		return new Promise<void>(resolve => {
 			const oneTimeEventToken = this.oneTimeListenerTokenGenerator++;
 			const replyChannel = `vscode:reply${oneTimeEventToken}`;
 
 			validatedIpcMain.once(replyChannel, () => resolve());
 
-			window.send("vscode:onWillUnload", { replyChannel, reason });
+			window.send('vscode:onWillUnload', { replyChannel, reason });
 		});
 	}
 
 	quit(willRestart?: boolean): Promise<boolean /* veto */> {
-		return this.doQuit(willRestart).then((veto) => {
+		return this.doQuit(willRestart).then(veto => {
 			if (!veto && willRestart) {
 				// Windows: we are about to restart and as such we need to restore the original
 				// current working directory we had on startup to get the exact same startup
@@ -742,26 +634,24 @@ export class LifecycleMainService
 		this.trace(`Lifecycle#quit() - begin (willRestart: ${willRestart})`);
 
 		if (this.pendingQuitPromise) {
-			this.trace("Lifecycle#quit() - returning pending quit promise");
+			this.trace('Lifecycle#quit() - returning pending quit promise');
 
 			return this.pendingQuitPromise;
 		}
 
 		// Remember if we are about to restart
 		if (willRestart) {
-			this.stateService.setItem(
-				LifecycleMainService.QUIT_AND_RESTART_KEY,
-				true,
-			);
+			this.stateService.setItem(LifecycleMainService.QUIT_AND_RESTART_KEY, true);
 		}
 
-		this.pendingQuitPromise = new Promise((resolve) => {
+		this.pendingQuitPromise = new Promise(resolve => {
+
 			// Store as field to access it from a window cancellation
 			this.pendingQuitPromiseResolve = resolve;
 
 			// Calling app.quit() will trigger the close handlers of each opened window
 			// and only if no window vetoed the shutdown, we will get the will-quit event
-			this.trace("Lifecycle#quit() - calling app.quit()");
+			this.trace('Lifecycle#quit() - calling app.quit()');
 			electron.app.quit();
 		});
 
@@ -769,7 +659,7 @@ export class LifecycleMainService
 	}
 
 	private trace(msg: string): void {
-		if (this.environmentMainService.args["enable-smoke-test-driver"]) {
+		if (this.environmentMainService.args['enable-smoke-test-driver']) {
 			this.logService.info(msg); // helps diagnose issues with exiting from smoke tests
 		} else {
 			this.logService.trace(msg);
@@ -781,7 +671,7 @@ export class LifecycleMainService
 	}
 
 	async relaunch(options?: IRelaunchOptions): Promise<void> {
-		this.trace("Lifecycle#relaunch()");
+		this.trace('Lifecycle#relaunch()');
 
 		const args = process.argv.slice(1);
 		if (options?.addArgs) {
@@ -799,22 +689,22 @@ export class LifecycleMainService
 
 		const quitListener = () => {
 			if (!this.relaunchHandler?.handleRelaunch(options)) {
-				this.trace("Lifecycle#relaunch() - calling app.relaunch()");
+				this.trace('Lifecycle#relaunch() - calling app.relaunch()');
 				electron.app.relaunch({ args });
 			}
 		};
-		electron.app.once("quit", quitListener);
+		electron.app.once('quit', quitListener);
 
 		// `app.relaunch()` does not quit automatically, so we quit first,
 		// check for vetoes and then relaunch from the `app.on('quit')` event
 		const veto = await this.quit(true /* will restart */);
 		if (veto) {
-			electron.app.removeListener("quit", quitListener);
+			electron.app.removeListener('quit', quitListener);
 		}
 	}
 
 	async kill(code?: number): Promise<void> {
-		this.trace("Lifecycle#kill()");
+		this.trace('Lifecycle#kill()');
 
 		// Give main process participants a chance to orderly shutdown
 		await this.fireOnWillShutdown(ShutdownReason.KILL);
@@ -828,6 +718,7 @@ export class LifecycleMainService
 		// https://github.com/electron/electron/blob/fe5318d753637c3903e23fc1ed1b263025887b6a/spec-main/window-helpers.ts#L5
 
 		await Promise.race([
+
 			// Still do not block more than 1s
 			timeout(1000),
 
@@ -839,13 +730,8 @@ export class LifecycleMainService
 				for (const window of electron.BrowserWindow.getAllWindows()) {
 					if (window && !window.isDestroyed()) {
 						let whenWindowClosed: Promise<void>;
-						if (
-							window.webContents &&
-							!window.webContents.isDestroyed()
-						) {
-							whenWindowClosed = new Promise((resolve) =>
-								window.once("closed", resolve),
-							);
+						if (window.webContents && !window.webContents.isDestroyed()) {
+							whenWindowClosed = new Promise(resolve => window.once('closed', resolve));
 						} else {
 							whenWindowClosed = Promise.resolve();
 						}
@@ -854,7 +740,7 @@ export class LifecycleMainService
 						await whenWindowClosed;
 					}
 				}
-			})(),
+			})()
 		]);
 
 		// Now exit either after 1s or all windows destroyed

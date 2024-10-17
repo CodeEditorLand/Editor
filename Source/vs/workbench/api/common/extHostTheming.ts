@@ -3,18 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Emitter, Event } from "../../../base/common/event.js";
-import { ExtHostThemingShape } from "./extHost.protocol.js";
-import { IExtHostRpcService } from "./extHostRpcService.js";
-import { ColorTheme, ColorThemeKind } from "./extHostTypes.js";
+import { ColorTheme, ColorThemeKind } from './extHostTypes.js';
+import { IExtHostRpcService } from './extHostRpcService.js';
+import { ExtHostThemingShape } from './extHost.protocol.js';
+import { Emitter, Event } from '../../../base/common/event.js';
 
 export class ExtHostTheming implements ExtHostThemingShape {
+
 	readonly _serviceBrand: undefined;
 
 	private _actual: ColorTheme;
 	private _onDidChangeActiveColorTheme: Emitter<ColorTheme>;
 
-	constructor(@IExtHostRpcService _extHostRpc: IExtHostRpcService) {
+	constructor(
+		@IExtHostRpcService _extHostRpc: IExtHostRpcService
+	) {
 		this._actual = new ColorTheme(ColorThemeKind.Dark);
 		this._onDidChangeActiveColorTheme = new Emitter<ColorTheme>();
 	}
@@ -26,15 +29,9 @@ export class ExtHostTheming implements ExtHostThemingShape {
 	$onColorThemeChange(type: string): void {
 		let kind;
 		switch (type) {
-			case "light":
-				kind = ColorThemeKind.Light;
-				break;
-			case "hcDark":
-				kind = ColorThemeKind.HighContrast;
-				break;
-			case "hcLight":
-				kind = ColorThemeKind.HighContrastLight;
-				break;
+			case 'light': kind = ColorThemeKind.Light; break;
+			case 'hcDark': kind = ColorThemeKind.HighContrast; break;
+			case 'hcLight': kind = ColorThemeKind.HighContrastLight; break;
 			default:
 				kind = ColorThemeKind.Dark;
 		}

@@ -3,25 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IRange } from "../../../editor/common/core/range.js";
-import {
-	ICodeEditorViewState,
-	IDiffEditorViewState,
-	IEditor,
-	ScrollType,
-} from "../../../editor/common/editorCommon.js";
-import {
-	ITextEditorOptions,
-	TextEditorSelectionRevealType,
-	TextEditorSelectionSource,
-} from "../../../platform/editor/common/editor.js";
-import { isTextEditorViewState } from "../editor.js";
+import { IRange } from '../../../editor/common/core/range.js';
+import { ICodeEditorViewState, IDiffEditorViewState, IEditor, ScrollType } from '../../../editor/common/editorCommon.js';
+import { ITextEditorOptions, TextEditorSelectionRevealType, TextEditorSelectionSource } from '../../../platform/editor/common/editor.js';
+import { isTextEditorViewState } from '../editor.js';
 
-export function applyTextEditorOptions(
-	options: ITextEditorOptions,
-	editor: IEditor,
-	scrollType: ScrollType,
-): boolean {
+export function applyTextEditorOptions(options: ITextEditorOptions, editor: IEditor, scrollType: ScrollType): boolean {
 	let applied = false;
 
 	// Restore view state if any
@@ -37,37 +24,22 @@ export function applyTextEditorOptions(
 		const range: IRange = {
 			startLineNumber: options.selection.startLineNumber,
 			startColumn: options.selection.startColumn,
-			endLineNumber:
-				options.selection.endLineNumber ??
-				options.selection.startLineNumber,
-			endColumn:
-				options.selection.endColumn ?? options.selection.startColumn,
+			endLineNumber: options.selection.endLineNumber ?? options.selection.startLineNumber,
+			endColumn: options.selection.endColumn ?? options.selection.startColumn
 		};
 
 		// Apply selection with a source so that listeners can
 		// distinguish this selection change from others.
 		// If no source is provided, set a default source to
 		// signal this navigation.
-		editor.setSelection(
-			range,
-			options.selectionSource ?? TextEditorSelectionSource.NAVIGATION,
-		);
+		editor.setSelection(range, options.selectionSource ?? TextEditorSelectionSource.NAVIGATION);
 
 		// Reveal selection
-		if (
-			options.selectionRevealType ===
-			TextEditorSelectionRevealType.NearTop
-		) {
+		if (options.selectionRevealType === TextEditorSelectionRevealType.NearTop) {
 			editor.revealRangeNearTop(range, scrollType);
-		} else if (
-			options.selectionRevealType ===
-			TextEditorSelectionRevealType.NearTopIfOutsideViewport
-		) {
+		} else if (options.selectionRevealType === TextEditorSelectionRevealType.NearTopIfOutsideViewport) {
 			editor.revealRangeNearTopIfOutsideViewport(range, scrollType);
-		} else if (
-			options.selectionRevealType ===
-			TextEditorSelectionRevealType.CenterIfOutsideViewport
-		) {
+		} else if (options.selectionRevealType === TextEditorSelectionRevealType.CenterIfOutsideViewport) {
 			editor.revealRangeInCenterIfOutsideViewport(range, scrollType);
 		} else {
 			editor.revealRangeInCenter(range, scrollType);
@@ -79,9 +51,8 @@ export function applyTextEditorOptions(
 	return applied;
 }
 
-function massageEditorViewState(
-	options: ITextEditorOptions,
-): object | undefined {
+function massageEditorViewState(options: ITextEditorOptions): object | undefined {
+
 	// Without a selection or view state, just return immediately
 	if (!options.selection || !options.viewState) {
 		return options.viewState;

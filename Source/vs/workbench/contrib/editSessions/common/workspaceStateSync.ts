@@ -3,47 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-	CancellationToken,
-	CancellationTokenSource,
-} from "../../../../base/common/cancellation.js";
-import { IStringDictionary } from "../../../../base/common/collections.js";
-import { Emitter, Event } from "../../../../base/common/event.js";
-import { parse, stringify } from "../../../../base/common/marshalling.js";
-import { URI } from "../../../../base/common/uri.js";
-import { IConfigurationService } from "../../../../platform/configuration/common/configuration.js";
-import { IEnvironmentService } from "../../../../platform/environment/common/environment.js";
-import { IFileService } from "../../../../platform/files/common/files.js";
-import {
-	IStorageEntry,
-	IStorageService,
-	StorageScope,
-	StorageTarget,
-} from "../../../../platform/storage/common/storage.js";
-import { ITelemetryService } from "../../../../platform/telemetry/common/telemetry.js";
-import { IUriIdentityService } from "../../../../platform/uriIdentity/common/uriIdentity.js";
-import { IUserDataProfile } from "../../../../platform/userDataProfile/common/userDataProfile.js";
-import {
-	AbstractSynchroniser,
-	IAcceptResult,
-	IMergeResult,
-	IResourcePreview,
-	ISyncResourcePreview,
-} from "../../../../platform/userDataSync/common/abstractSynchronizer.js";
-import {
-	IRemoteUserData,
-	IResourceRefHandle,
-	IUserDataSyncConfiguration,
-	IUserDataSyncEnablementService,
-	IUserDataSynchroniser,
-	IUserDataSyncLocalStoreService,
-	IUserDataSyncLogService,
-	IUserDataSyncStoreService,
-	IWorkspaceState,
-	SyncResource,
-} from "../../../../platform/userDataSync/common/userDataSync.js";
-import { IWorkspaceIdentityService } from "../../../services/workspaces/common/workspaceIdentityService.js";
-import { EditSession, IEditSessionsStorageService } from "./editSessions.js";
+import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { IStringDictionary } from '../../../../base/common/collections.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
+import { parse, stringify } from '../../../../base/common/marshalling.js';
+import { URI } from '../../../../base/common/uri.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IEnvironmentService } from '../../../../platform/environment/common/environment.js';
+import { IFileService } from '../../../../platform/files/common/files.js';
+import { IStorageEntry, IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
+import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
+import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
+import { IUserDataProfile } from '../../../../platform/userDataProfile/common/userDataProfile.js';
+import { AbstractSynchroniser, IAcceptResult, IMergeResult, IResourcePreview, ISyncResourcePreview } from '../../../../platform/userDataSync/common/abstractSynchronizer.js';
+import { IRemoteUserData, IResourceRefHandle, IUserDataSyncLocalStoreService, IUserDataSyncConfiguration, IUserDataSyncEnablementService, IUserDataSyncLogService, IUserDataSyncStoreService, IUserDataSynchroniser, IWorkspaceState, SyncResource } from '../../../../platform/userDataSync/common/userDataSync.js';
+import { EditSession, IEditSessionsStorageService } from './editSessions.js';
+import { IWorkspaceIdentityService } from '../../../services/workspaces/common/workspaceIdentityService.js';
+
 
 class NullBackupStoreService implements IUserDataSyncLocalStoreService {
 	_serviceBrand: undefined;
@@ -56,41 +32,28 @@ class NullBackupStoreService implements IUserDataSyncLocalStoreService {
 	async resolveResourceContent(): Promise<string | null> {
 		return null;
 	}
+
 }
 
 class NullEnablementService implements IUserDataSyncEnablementService {
 	_serviceBrand: any;
 
 	private _onDidChangeEnablement = new Emitter<boolean>();
-	readonly onDidChangeEnablement: Event<boolean> =
-		this._onDidChangeEnablement.event;
+	readonly onDidChangeEnablement: Event<boolean> = this._onDidChangeEnablement.event;
 
-	private _onDidChangeResourceEnablement = new Emitter<
-		[SyncResource, boolean]
-	>();
-	readonly onDidChangeResourceEnablement: Event<[SyncResource, boolean]> =
-		this._onDidChangeResourceEnablement.event;
+	private _onDidChangeResourceEnablement = new Emitter<[SyncResource, boolean]>();
+	readonly onDidChangeResourceEnablement: Event<[SyncResource, boolean]> = this._onDidChangeResourceEnablement.event;
 
-	isEnabled(): boolean {
-		return true;
-	}
-	canToggleEnablement(): boolean {
-		return true;
-	}
-	setEnablement(_enabled: boolean): void {}
-	isResourceEnabled(_resource: SyncResource): boolean {
-		return true;
-	}
-	setResourceEnablement(_resource: SyncResource, _enabled: boolean): void {}
-	getResourceSyncStateVersion(_resource: SyncResource): string | undefined {
-		return undefined;
-	}
+	isEnabled(): boolean { return true; }
+	canToggleEnablement(): boolean { return true; }
+	setEnablement(_enabled: boolean): void { }
+	isResourceEnabled(_resource: SyncResource): boolean { return true; }
+	setResourceEnablement(_resource: SyncResource, _enabled: boolean): void { }
+	getResourceSyncStateVersion(_resource: SyncResource): string | undefined { return undefined; }
+
 }
 
-export class WorkspaceStateSynchroniser
-	extends AbstractSynchroniser
-	implements IUserDataSynchroniser
-{
+export class WorkspaceStateSynchroniser extends AbstractSynchroniser implements IUserDataSynchroniser {
 	protected override version: number = 1;
 
 	constructor(
@@ -104,35 +67,17 @@ export class WorkspaceStateSynchroniser
 		@IConfigurationService configurationService: IConfigurationService,
 		@IStorageService storageService: IStorageService,
 		@IUriIdentityService uriIdentityService: IUriIdentityService,
-		@IWorkspaceIdentityService
-		private readonly workspaceIdentityService: IWorkspaceIdentityService,
-		@IEditSessionsStorageService
-		private readonly editSessionsStorageService: IEditSessionsStorageService,
+		@IWorkspaceIdentityService private readonly workspaceIdentityService: IWorkspaceIdentityService,
+		@IEditSessionsStorageService private readonly editSessionsStorageService: IEditSessionsStorageService,
 	) {
 		const userDataSyncLocalStoreService = new NullBackupStoreService();
 		const userDataSyncEnablementService = new NullEnablementService();
-		super(
-			{ syncResource: SyncResource.WorkspaceState, profile },
-			collection,
-			fileService,
-			environmentService,
-			storageService,
-			userDataSyncStoreService,
-			userDataSyncLocalStoreService,
-			userDataSyncEnablementService,
-			telemetryService,
-			logService,
-			configurationService,
-			uriIdentityService,
-		);
+		super({ syncResource: SyncResource.WorkspaceState, profile }, collection, fileService, environmentService, storageService, userDataSyncStoreService, userDataSyncLocalStoreService, userDataSyncEnablementService, telemetryService, logService, configurationService, uriIdentityService);
 	}
 
 	override async sync(): Promise<void> {
 		const cancellationTokenSource = new CancellationTokenSource();
-		const folders =
-			await this.workspaceIdentityService.getWorkspaceStateFolders(
-				cancellationTokenSource.token,
-			);
+		const folders = await this.workspaceIdentityService.getWorkspaceStateFolders(cancellationTokenSource.token);
 		if (!folders.length) {
 			return;
 		}
@@ -140,10 +85,7 @@ export class WorkspaceStateSynchroniser
 		// Ensure we have latest state by sending out onWillSaveState event
 		await this.storageService.flush();
 
-		const keys = this.storageService.keys(
-			StorageScope.WORKSPACE,
-			StorageTarget.USER,
-		);
+		const keys = this.storageService.keys(StorageScope.WORKSPACE, StorageTarget.USER);
 		if (!keys.length) {
 			return;
 		}
@@ -156,52 +98,30 @@ export class WorkspaceStateSynchroniser
 			}
 		});
 
-		const content: IWorkspaceState = {
-			folders,
-			storage: contributedData,
-			version: this.version,
-		};
-		await this.editSessionsStorageService.write(
-			"workspaceState",
-			stringify(content),
-		);
+		const content: IWorkspaceState = { folders, storage: contributedData, version: this.version };
+		await this.editSessionsStorageService.write('workspaceState', stringify(content));
 	}
 
 	override async apply(): Promise<ISyncResourcePreview | null> {
-		const payload =
-			this.editSessionsStorageService.lastReadResources.get(
-				"editSessions",
-			)?.content;
-		const workspaceStateId = payload
-			? (JSON.parse(payload) as EditSession).workspaceStateId
-			: undefined;
+		const payload = this.editSessionsStorageService.lastReadResources.get('editSessions')?.content;
+		const workspaceStateId = payload ? (JSON.parse(payload) as EditSession).workspaceStateId : undefined;
 
-		const resource = await this.editSessionsStorageService.read(
-			"workspaceState",
-			workspaceStateId,
-		);
+		const resource = await this.editSessionsStorageService.read('workspaceState', workspaceStateId);
 		if (!resource) {
 			return null;
 		}
 
 		const remoteWorkspaceState: IWorkspaceState = parse(resource.content);
 		if (!remoteWorkspaceState) {
-			this.logService.info(
-				"Skipping initializing workspace state because remote workspace state does not exist.",
-			);
+			this.logService.info('Skipping initializing workspace state because remote workspace state does not exist.');
 			return null;
 		}
 
 		// Evaluate whether storage is applicable for current workspace
 		const cancellationTokenSource = new CancellationTokenSource();
-		const replaceUris = await this.workspaceIdentityService.matches(
-			remoteWorkspaceState.folders,
-			cancellationTokenSource.token,
-		);
+		const replaceUris = await this.workspaceIdentityService.matches(remoteWorkspaceState.folders, cancellationTokenSource.token);
 		if (!replaceUris) {
-			this.logService.info(
-				"Skipping initializing workspace state because remote workspace state does not match current workspace.",
-			);
+			this.logService.info('Skipping initializing workspace state because remote workspace state does not match current workspace.');
 			return null;
 		}
 
@@ -219,63 +139,32 @@ export class WorkspaceStateSynchroniser
 					const value = parse(storage[key]);
 					// Run URI conversion on the stored state
 					replaceUris(value);
-					storageEntries.push({
-						key,
-						value,
-						scope: StorageScope.WORKSPACE,
-						target: StorageTarget.USER,
-					});
+					storageEntries.push({ key, value, scope: StorageScope.WORKSPACE, target: StorageTarget.USER });
 				} catch {
-					storageEntries.push({
-						key,
-						value: storage[key],
-						scope: StorageScope.WORKSPACE,
-						target: StorageTarget.USER,
-					});
+					storageEntries.push({ key, value: storage[key], scope: StorageScope.WORKSPACE, target: StorageTarget.USER });
 				}
 			}
 			this.storageService.storeAll(storageEntries, true);
 		}
 
-		this.editSessionsStorageService.delete("workspaceState", resource.ref);
+		this.editSessionsStorageService.delete('workspaceState', resource.ref);
 		return null;
 	}
 
 	// TODO@joyceerhl implement AbstractSynchronizer in full
-	protected override applyResult(
-		remoteUserData: IRemoteUserData,
-		lastSyncUserData: IRemoteUserData | null,
-		result: [IResourcePreview, IAcceptResult][],
-		force: boolean,
-	): Promise<void> {
-		throw new Error("Method not implemented.");
+	protected override applyResult(remoteUserData: IRemoteUserData, lastSyncUserData: IRemoteUserData | null, result: [IResourcePreview, IAcceptResult][], force: boolean): Promise<void> {
+		throw new Error('Method not implemented.');
 	}
-	protected override async generateSyncPreview(
-		remoteUserData: IRemoteUserData,
-		lastSyncUserData: IRemoteUserData | null,
-		isRemoteDataFromCurrentMachine: boolean,
-		userDataSyncConfiguration: IUserDataSyncConfiguration,
-		token: CancellationToken,
-	): Promise<IResourcePreview[]> {
+	protected override async generateSyncPreview(remoteUserData: IRemoteUserData, lastSyncUserData: IRemoteUserData | null, isRemoteDataFromCurrentMachine: boolean, userDataSyncConfiguration: IUserDataSyncConfiguration, token: CancellationToken): Promise<IResourcePreview[]> {
 		return [];
 	}
-	protected override getMergeResult(
-		resourcePreview: IResourcePreview,
-		token: CancellationToken,
-	): Promise<IMergeResult> {
-		throw new Error("Method not implemented.");
+	protected override getMergeResult(resourcePreview: IResourcePreview, token: CancellationToken): Promise<IMergeResult> {
+		throw new Error('Method not implemented.');
 	}
-	protected override getAcceptResult(
-		resourcePreview: IResourcePreview,
-		resource: URI,
-		content: string | null | undefined,
-		token: CancellationToken,
-	): Promise<IAcceptResult> {
-		throw new Error("Method not implemented.");
+	protected override getAcceptResult(resourcePreview: IResourcePreview, resource: URI, content: string | null | undefined, token: CancellationToken): Promise<IAcceptResult> {
+		throw new Error('Method not implemented.');
 	}
-	protected override async hasRemoteChanged(
-		lastSyncUserData: IRemoteUserData,
-	): Promise<boolean> {
+	protected override async hasRemoteChanged(lastSyncUserData: IRemoteUserData): Promise<boolean> {
 		return true;
 	}
 	override async hasLocalData(): Promise<boolean> {

@@ -3,64 +3,29 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "./media/notificationsToasts.css";
-
-import {
-	addDisposableListener,
-	Dimension,
-	EventType,
-	getWindow,
-	isAncestorOfActiveElement,
-	scheduleAtNextAnimationFrame,
-} from "../../../../base/browser/dom.js";
-import { mainWindow } from "../../../../base/browser/window.js";
-import { IntervalCounter } from "../../../../base/common/async.js";
-import { Emitter, Event } from "../../../../base/common/event.js";
-import {
-	DisposableStore,
-	dispose,
-	IDisposable,
-	toDisposable,
-} from "../../../../base/common/lifecycle.js";
-import { ScrollbarVisibility } from "../../../../base/common/scrollable.js";
-import { assertIsDefined } from "../../../../base/common/types.js";
-import { localize } from "../../../../nls.js";
-import { IContextKeyService } from "../../../../platform/contextkey/common/contextkey.js";
-import { IInstantiationService } from "../../../../platform/instantiation/common/instantiation.js";
-import {
-	NotificationPriority,
-	NotificationsFilter,
-	Severity,
-} from "../../../../platform/notification/common/notification.js";
-import { widgetShadow } from "../../../../platform/theme/common/colorRegistry.js";
-import {
-	IThemeService,
-	Themable,
-} from "../../../../platform/theme/common/themeService.js";
-import { NotificationsToastsVisibleContext } from "../../../common/contextkeys.js";
-import {
-	INotificationChangeEvent,
-	INotificationsModel,
-	INotificationViewItem,
-	NotificationChangeType,
-	NotificationViewItemContentChangeKind,
-} from "../../../common/notifications.js";
-import {
-	NOTIFICATIONS_BACKGROUND,
-	NOTIFICATIONS_TOAST_BORDER,
-} from "../../../common/theme.js";
-import { IEditorGroupsService } from "../../../services/editor/common/editorGroupsService.js";
-import { IHostService } from "../../../services/host/browser/host.js";
-import {
-	IWorkbenchLayoutService,
-	Parts,
-} from "../../../services/layout/browser/layoutService.js";
-import {
-	ILifecycleService,
-	LifecyclePhase,
-} from "../../../services/lifecycle/common/lifecycle.js";
-import { INotificationsToastController } from "./notificationsCommands.js";
-import { NotificationsList } from "./notificationsList.js";
+import './media/notificationsToasts.css';
+import { localize } from '../../../../nls.js';
+import { INotificationsModel, NotificationChangeType, INotificationChangeEvent, INotificationViewItem, NotificationViewItemContentChangeKind } from '../../../common/notifications.js';
+import { IDisposable, dispose, toDisposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { addDisposableListener, EventType, Dimension, scheduleAtNextAnimationFrame, isAncestorOfActiveElement, getWindow } from '../../../../base/browser/dom.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { NotificationsList } from './notificationsList.js';
+import { Event, Emitter } from '../../../../base/common/event.js';
+import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { NOTIFICATIONS_TOAST_BORDER, NOTIFICATIONS_BACKGROUND } from '../../../common/theme.js';
+import { IThemeService, Themable } from '../../../../platform/theme/common/themeService.js';
+import { widgetShadow } from '../../../../platform/theme/common/colorRegistry.js';
+import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { INotificationsToastController } from './notificationsCommands.js';
+import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
+import { Severity, NotificationsFilter, NotificationPriority } from '../../../../platform/notification/common/notification.js';
+import { ScrollbarVisibility } from '../../../../base/common/scrollable.js';
+import { ILifecycleService, LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
+import { IHostService } from '../../../services/host/browser/host.js';
+import { IntervalCounter } from '../../../../base/common/async.js';
+import { assertIsDefined } from '../../../../base/common/types.js';
+import { NotificationsToastsVisibleContext } from '../../../common/contextkeys.js';
+import { mainWindow } from '../../../../base/browser/window.js';
 
 interface INotificationToast {
 	readonly item: INotificationViewItem;
@@ -72,73 +37,54 @@ interface INotificationToast {
 enum ToastVisibility {
 	HIDDEN_OR_VISIBLE,
 	HIDDEN,
-	VISIBLE,
+	VISIBLE
 }
 
-export class NotificationsToasts
-	extends Themable
-	implements INotificationsToastController
-{
+export class NotificationsToasts extends Themable implements INotificationsToastController {
+
 	private static readonly MAX_WIDTH = 450;
 	private static readonly MAX_NOTIFICATIONS = 3;
 
 	private static readonly PURGE_TIMEOUT: { [severity: number]: number } = {
 		[Severity.Info]: 15000,
 		[Severity.Warning]: 18000,
-		[Severity.Error]: 20000,
+		[Severity.Error]: 20000
 	};
 
 	private static readonly SPAM_PROTECTION = {
 		// Count for the number of notifications over 800ms...
 		interval: 800,
 		// ...and ensure we are not showing more than MAX_NOTIFICATIONS
-		limit: this.MAX_NOTIFICATIONS,
+		limit: this.MAX_NOTIFICATIONS
 	};
 
-	private readonly _onDidChangeVisibility = this._register(
-		new Emitter<void>(),
-	);
+	private readonly _onDidChangeVisibility = this._register(new Emitter<void>());
 	readonly onDidChangeVisibility = this._onDidChangeVisibility.event;
 
 	private _isVisible = false;
-	get isVisible(): boolean {
-		return !!this._isVisible;
-	}
+	get isVisible(): boolean { return !!this._isVisible; }
 
 	private notificationsToastsContainer: HTMLElement | undefined;
 	private workbenchDimensions: Dimension | undefined;
 	private isNotificationsCenterVisible: boolean | undefined;
 
-	private readonly mapNotificationToToast = new Map<
-		INotificationViewItem,
-		INotificationToast
-	>();
-	private readonly mapNotificationToDisposable = new Map<
-		INotificationViewItem,
-		IDisposable
-	>();
+	private readonly mapNotificationToToast = new Map<INotificationViewItem, INotificationToast>();
+	private readonly mapNotificationToDisposable = new Map<INotificationViewItem, IDisposable>();
 
-	private readonly notificationsToastsVisibleContextKey =
-		NotificationsToastsVisibleContext.bindTo(this.contextKeyService);
+	private readonly notificationsToastsVisibleContextKey = NotificationsToastsVisibleContext.bindTo(this.contextKeyService);
 
-	private readonly addedToastsIntervalCounter = new IntervalCounter(
-		NotificationsToasts.SPAM_PROTECTION.interval,
-	);
+	private readonly addedToastsIntervalCounter = new IntervalCounter(NotificationsToasts.SPAM_PROTECTION.interval);
 
 	constructor(
 		private readonly container: HTMLElement,
 		private readonly model: INotificationsModel,
-		@IInstantiationService
-		private readonly instantiationService: IInstantiationService,
-		@IWorkbenchLayoutService
-		private readonly layoutService: IWorkbenchLayoutService,
+		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 		@IThemeService themeService: IThemeService,
-		@IEditorGroupsService
-		private readonly editorGroupService: IEditorGroupsService,
-		@IContextKeyService
-		private readonly contextKeyService: IContextKeyService,
+		@IEditorGroupsService private readonly editorGroupService: IEditorGroupsService,
+		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 		@ILifecycleService private readonly lifecycleService: ILifecycleService,
-		@IHostService private readonly hostService: IHostService,
+		@IHostService private readonly hostService: IHostService
 	) {
 		super(themeService);
 
@@ -146,50 +92,33 @@ export class NotificationsToasts
 	}
 
 	private registerListeners(): void {
+
 		// Layout
-		this._register(
-			this.layoutService.onDidLayoutMainContainer((dimension) =>
-				this.layout(Dimension.lift(dimension)),
-			),
-		);
+		this._register(this.layoutService.onDidLayoutMainContainer(dimension => this.layout(Dimension.lift(dimension))));
 
 		// Delay some tasks until after we have restored
 		// to reduce UI pressure from the startup phase
 		this.lifecycleService.when(LifecyclePhase.Restored).then(() => {
+
 			// Show toast for initial notifications if any
-			this.model.notifications.forEach((notification) =>
-				this.addToast(notification),
-			);
+			this.model.notifications.forEach(notification => this.addToast(notification));
 
 			// Update toasts on notification changes
-			this._register(
-				this.model.onDidChangeNotification((e) =>
-					this.onDidChangeNotification(e),
-				),
-			);
+			this._register(this.model.onDidChangeNotification(e => this.onDidChangeNotification(e)));
 		});
 
 		// Filter
-		this._register(
-			this.model.onDidChangeFilter(({ global, sources }) => {
-				if (global === NotificationsFilter.ERROR) {
-					this.hide();
-				} else if (sources) {
-					for (const [notification] of this.mapNotificationToToast) {
-						if (
-							typeof notification.sourceId === "string" &&
-							sources.get(notification.sourceId) ===
-								NotificationsFilter.ERROR &&
-							notification.severity !== Severity.Error &&
-							notification.priority !==
-								NotificationPriority.URGENT
-						) {
-							this.removeToast(notification);
-						}
+		this._register(this.model.onDidChangeFilter(({ global, sources }) => {
+			if (global === NotificationsFilter.ERROR) {
+				this.hide();
+			} else if (sources) {
+				for (const [notification] of this.mapNotificationToToast) {
+					if (typeof notification.sourceId === 'string' && sources.get(notification.sourceId) === NotificationsFilter.ERROR && notification.severity !== Severity.Error && notification.priority !== NotificationPriority.URGENT) {
+						this.removeToast(notification);
 					}
 				}
-			}),
-		);
+			}
+		}));
 	}
 
 	private onDidChangeNotification(e: INotificationChangeEvent): void {
@@ -216,10 +145,7 @@ export class NotificationsToasts
 		// be accessed from the notification center, a user can always get to
 		// them later on.
 		// (see also https://github.com/microsoft/vscode/issues/107935)
-		if (
-			this.addedToastsIntervalCounter.increment() >
-			NotificationsToasts.SPAM_PROTECTION.limit
-		) {
+		if (this.addedToastsIntervalCounter.increment() > NotificationsToasts.SPAM_PROTECTION.limit) {
 			return;
 		}
 
@@ -231,90 +157,57 @@ export class NotificationsToasts
 		// (see also https://github.com/microsoft/vscode/issues/107935)
 		const itemDisposables = new DisposableStore();
 		this.mapNotificationToDisposable.set(item, itemDisposables);
-		itemDisposables.add(
-			scheduleAtNextAnimationFrame(getWindow(this.container), () =>
-				this.doAddToast(item, itemDisposables),
-			),
-		);
+		itemDisposables.add(scheduleAtNextAnimationFrame(getWindow(this.container), () => this.doAddToast(item, itemDisposables)));
 	}
 
-	private doAddToast(
-		item: INotificationViewItem,
-		itemDisposables: DisposableStore,
-	): void {
+	private doAddToast(item: INotificationViewItem, itemDisposables: DisposableStore): void {
+
 		// Lazily create toasts containers
 		let notificationsToastsContainer = this.notificationsToastsContainer;
 		if (!notificationsToastsContainer) {
-			notificationsToastsContainer = this.notificationsToastsContainer =
-				document.createElement("div");
-			notificationsToastsContainer.classList.add("notifications-toasts");
+			notificationsToastsContainer = this.notificationsToastsContainer = document.createElement('div');
+			notificationsToastsContainer.classList.add('notifications-toasts');
 
 			this.container.appendChild(notificationsToastsContainer);
 		}
 
 		// Make Visible
-		notificationsToastsContainer.classList.add("visible");
+		notificationsToastsContainer.classList.add('visible');
 
 		// Container
-		const notificationToastContainer = document.createElement("div");
-		notificationToastContainer.classList.add(
-			"notification-toast-container",
-		);
+		const notificationToastContainer = document.createElement('div');
+		notificationToastContainer.classList.add('notification-toast-container');
 
 		const firstToast = notificationsToastsContainer.firstChild;
 		if (firstToast) {
-			notificationsToastsContainer.insertBefore(
-				notificationToastContainer,
-				firstToast,
-			); // always first
+			notificationsToastsContainer.insertBefore(notificationToastContainer, firstToast); // always first
 		} else {
-			notificationsToastsContainer.appendChild(
-				notificationToastContainer,
-			);
+			notificationsToastsContainer.appendChild(notificationToastContainer);
 		}
 
 		// Toast
-		const notificationToast = document.createElement("div");
-		notificationToast.classList.add("notification-toast");
+		const notificationToast = document.createElement('div');
+		notificationToast.classList.add('notification-toast');
 		notificationToastContainer.appendChild(notificationToast);
 
 		// Create toast with item and show
-		const notificationList = this.instantiationService.createInstance(
-			NotificationsList,
-			notificationToast,
-			{
-				verticalScrollMode: ScrollbarVisibility.Hidden,
-				widgetAriaLabel: (() => {
-					if (!item.source) {
-						return localize(
-							"notificationAriaLabel",
-							"{0}, notification",
-							item.message.raw,
-						);
-					}
-					return localize(
-						"notificationWithSourceAriaLabel",
-						"{0}, source: {1}, notification",
-						item.message.raw,
-						item.source,
-					);
-				})(),
-			},
-		);
+		const notificationList = this.instantiationService.createInstance(NotificationsList, notificationToast, {
+			verticalScrollMode: ScrollbarVisibility.Hidden,
+			widgetAriaLabel: (() => {
+
+				if (!item.source) {
+					return localize('notificationAriaLabel', "{0}, notification", item.message.raw);
+				}
+				return localize('notificationWithSourceAriaLabel', "{0}, source: {1}, notification", item.message.raw, item.source);
+			})()
+		});
 		itemDisposables.add(notificationList);
 
-		const toast: INotificationToast = {
-			item,
-			list: notificationList,
-			container: notificationToastContainer,
-			toast: notificationToast,
-		};
+		const toast: INotificationToast = { item, list: notificationList, container: notificationToastContainer, toast: notificationToast };
 		this.mapNotificationToToast.set(item, toast);
 
 		// When disposed, remove as visible
-		itemDisposables.add(
-			toDisposable(() => this.updateToastVisibility(toast, false)),
-		);
+		itemDisposables.add(toDisposable(() => this.updateToastVisibility(toast, false)));
 
 		// Make visible
 		notificationList.show();
@@ -331,29 +224,25 @@ export class NotificationsToasts
 		this.layoutContainer(maxDimensions.height);
 
 		// Re-draw entire item when expansion changes to reveal or hide details
-		itemDisposables.add(
-			item.onDidChangeExpansion(() => {
-				notificationList.updateNotificationsList(0, 1, [item]);
-			}),
-		);
+		itemDisposables.add(item.onDidChangeExpansion(() => {
+			notificationList.updateNotificationsList(0, 1, [item]);
+		}));
 
 		// Handle content changes
 		// - actions: re-draw to properly show them
 		// - message: update notification height unless collapsed
-		itemDisposables.add(
-			item.onDidChangeContent((e) => {
-				switch (e.kind) {
-					case NotificationViewItemContentChangeKind.ACTIONS:
-						notificationList.updateNotificationsList(0, 1, [item]);
-						break;
-					case NotificationViewItemContentChangeKind.MESSAGE:
-						if (item.expanded) {
-							notificationList.updateNotificationHeight(item);
-						}
-						break;
-				}
-			}),
-		);
+		itemDisposables.add(item.onDidChangeContent(e => {
+			switch (e.kind) {
+				case NotificationViewItemContentChangeKind.ACTIONS:
+					notificationList.updateNotificationsList(0, 1, [item]);
+					break;
+				case NotificationViewItemContentChangeKind.MESSAGE:
+					if (item.expanded) {
+						notificationList.updateNotificationHeight(item);
+					}
+					break;
+			}
+		}));
 
 		// Remove when item gets closed
 		Event.once(item.onDidClose)(() => {
@@ -361,12 +250,7 @@ export class NotificationsToasts
 		});
 
 		// Automatically purge non-sticky notifications
-		this.purgeNotification(
-			item,
-			notificationToastContainer,
-			notificationList,
-			itemDisposables,
-		);
+		this.purgeNotification(item, notificationToastContainer, notificationList, itemDisposables);
 
 		// Theming
 		this.updateStyles();
@@ -375,13 +259,11 @@ export class NotificationsToasts
 		this.notificationsToastsVisibleContextKey.set(true);
 
 		// Animate in
-		notificationToast.classList.add("notification-fade-in");
-		itemDisposables.add(
-			addDisposableListener(notificationToast, "transitionend", () => {
-				notificationToast.classList.remove("notification-fade-in");
-				notificationToast.classList.add("notification-fade-in-done");
-			}),
-		);
+		notificationToast.classList.add('notification-fade-in');
+		itemDisposables.add(addDisposableListener(notificationToast, 'transitionend', () => {
+			notificationToast.classList.remove('notification-fade-in');
+			notificationToast.classList.add('notification-fade-in-done');
+		}));
 
 		// Mark as visible
 		item.updateVisibility(true);
@@ -393,57 +275,41 @@ export class NotificationsToasts
 		}
 	}
 
-	private purgeNotification(
-		item: INotificationViewItem,
-		notificationToastContainer: HTMLElement,
-		notificationList: NotificationsList,
-		disposables: DisposableStore,
-	): void {
+	private purgeNotification(item: INotificationViewItem, notificationToastContainer: HTMLElement, notificationList: NotificationsList, disposables: DisposableStore): void {
+
 		// Track mouse over item
 		let isMouseOverToast = false;
-		disposables.add(
-			addDisposableListener(
-				notificationToastContainer,
-				EventType.MOUSE_OVER,
-				() => (isMouseOverToast = true),
-			),
-		);
-		disposables.add(
-			addDisposableListener(
-				notificationToastContainer,
-				EventType.MOUSE_OUT,
-				() => (isMouseOverToast = false),
-			),
-		);
+		disposables.add(addDisposableListener(notificationToastContainer, EventType.MOUSE_OVER, () => isMouseOverToast = true));
+		disposables.add(addDisposableListener(notificationToastContainer, EventType.MOUSE_OUT, () => isMouseOverToast = false));
 
 		// Install Timers to Purge Notification
 		let purgeTimeoutHandle: any;
 		let listener: IDisposable;
 
 		const hideAfterTimeout = () => {
+
 			purgeTimeoutHandle = setTimeout(() => {
+
 				// If the window does not have focus, we wait for the window to gain focus
 				// again before triggering the timeout again. This prevents an issue where
 				// focussing the window could immediately hide the notification because the
 				// timeout was triggered again.
 				if (!this.hostService.hasFocus) {
 					if (!listener) {
-						listener = this.hostService.onDidChangeFocus(
-							(focus) => {
-								if (focus) {
-									hideAfterTimeout();
-								}
-							},
-						);
+						listener = this.hostService.onDidChangeFocus(focus => {
+							if (focus) {
+								hideAfterTimeout();
+							}
+						});
 						disposables.add(listener);
 					}
 				}
 
 				// Otherwise...
 				else if (
-					item.sticky || // never hide sticky notifications
-					notificationList.hasFocus() || // never hide notifications with focus
-					isMouseOverToast // never hide notifications under mouse
+					item.sticky ||								// never hide sticky notifications
+					notificationList.hasFocus() ||				// never hide notifications with focus
+					isMouseOverToast							// never hide notifications under mouse
 				) {
 					hideAfterTimeout();
 				} else {
@@ -463,9 +329,7 @@ export class NotificationsToasts
 		// UI
 		const notificationToast = this.mapNotificationToToast.get(item);
 		if (notificationToast) {
-			const toastHasDOMFocus = isAncestorOfActiveElement(
-				notificationToast.container,
-			);
+			const toastHasDOMFocus = isAncestorOfActiveElement(notificationToast.container);
 			if (toastHasDOMFocus) {
 				focusEditor = !(this.focusNext() || this.focusPrevious()); // focus next if any, otherwise focus editor
 			}
@@ -474,8 +338,7 @@ export class NotificationsToasts
 		}
 
 		// Disposables
-		const notificationDisposables =
-			this.mapNotificationToDisposable.get(item);
+		const notificationDisposables = this.mapNotificationToDisposable.get(item);
 		if (notificationDisposables) {
 			dispose(notificationDisposables);
 
@@ -499,20 +362,19 @@ export class NotificationsToasts
 	}
 
 	private removeToasts(): void {
+
 		// Toast
 		this.mapNotificationToToast.clear();
 
 		// Disposables
-		this.mapNotificationToDisposable.forEach((disposable) =>
-			dispose(disposable),
-		);
+		this.mapNotificationToDisposable.forEach(disposable => dispose(disposable));
 		this.mapNotificationToDisposable.clear();
 
 		this.doHide();
 	}
 
 	private doHide(): void {
-		this.notificationsToastsContainer?.classList.remove("visible");
+		this.notificationsToastsContainer?.classList.remove('visible');
 
 		// Context Key
 		this.notificationsToastsVisibleContextKey.set(false);
@@ -525,9 +387,7 @@ export class NotificationsToasts
 	}
 
 	hide(): void {
-		const focusEditor = this.notificationsToastsContainer
-			? isAncestorOfActiveElement(this.notificationsToastsContainer)
-			: false;
+		const focusEditor = this.notificationsToastsContainer ? isAncestorOfActiveElement(this.notificationsToastsContainer) : false;
 
 		this.removeToasts();
 
@@ -621,22 +481,20 @@ export class NotificationsToasts
 	override updateStyles(): void {
 		this.mapNotificationToToast.forEach(({ toast }) => {
 			const backgroundColor = this.getColor(NOTIFICATIONS_BACKGROUND);
-			toast.style.background = backgroundColor ? backgroundColor : "";
+			toast.style.background = backgroundColor ? backgroundColor : '';
 
 			const widgetShadowColor = this.getColor(widgetShadow);
-			toast.style.boxShadow = widgetShadowColor
-				? `0 0 8px 2px ${widgetShadowColor}`
-				: "";
+			toast.style.boxShadow = widgetShadowColor ? `0 0 8px 2px ${widgetShadowColor}` : '';
 
 			const borderColor = this.getColor(NOTIFICATIONS_TOAST_BORDER);
-			toast.style.border = borderColor ? `1px solid ${borderColor}` : "";
+			toast.style.border = borderColor ? `1px solid ${borderColor}` : '';
 		});
 	}
 
 	private getToasts(state: ToastVisibility): INotificationToast[] {
 		const notificationToasts: INotificationToast[] = [];
 
-		this.mapNotificationToToast.forEach((toast) => {
+		this.mapNotificationToToast.forEach(toast => {
 			switch (state) {
 				case ToastVisibility.HIDDEN_OR_VISIBLE:
 					notificationToasts.push(toast);
@@ -678,15 +536,14 @@ export class NotificationsToasts
 		let availableHeight: number | undefined;
 
 		if (this.workbenchDimensions) {
+
 			// Make sure notifications are not exceding available width
 			availableWidth = this.workbenchDimensions.width;
-			availableWidth -= 2 * 8; // adjust for paddings left and right
+			availableWidth -= (2 * 8); // adjust for paddings left and right
 
 			// Make sure notifications are not exceeding available height
 			availableHeight = this.workbenchDimensions.height;
-			if (
-				this.layoutService.isVisible(Parts.STATUSBAR_PART, mainWindow)
-			) {
+			if (this.layoutService.isVisible(Parts.STATUSBAR_PART, mainWindow)) {
 				availableHeight -= 22; // adjust for status bar
 			}
 
@@ -694,18 +551,14 @@ export class NotificationsToasts
 				availableHeight -= 22; // adjust for title bar
 			}
 
-			availableHeight -= 2 * 12; // adjust for paddings top and bottom
+			availableHeight -= (2 * 12); // adjust for paddings top and bottom
 		}
 
-		availableHeight =
-			typeof availableHeight === "number"
-				? Math.round(availableHeight * 0.618) // try to not cover the full height for stacked toasts
-				: 0;
+		availableHeight = typeof availableHeight === 'number'
+			? Math.round(availableHeight * 0.618) // try to not cover the full height for stacked toasts
+			: 0;
 
-		return new Dimension(
-			Math.min(maxWidth, availableWidth),
-			availableHeight,
-		);
+		return new Dimension(Math.min(maxWidth, availableWidth), availableHeight);
 	}
 
 	private layoutLists(width: number): void {
@@ -715,8 +568,9 @@ export class NotificationsToasts
 	private layoutContainer(heightToGive: number): void {
 		let visibleToasts = 0;
 		for (const toast of this.getToasts(ToastVisibility.HIDDEN_OR_VISIBLE)) {
+
 			// In order to measure the client height, the element cannot have display: none
-			toast.container.style.opacity = "0";
+			toast.container.style.opacity = '0';
 			this.updateToastVisibility(toast, true);
 
 			heightToGive -= toast.container.offsetHeight;
@@ -730,7 +584,7 @@ export class NotificationsToasts
 
 			// Hide or show toast based on context
 			this.updateToastVisibility(toast, makeVisible);
-			toast.container.style.opacity = "";
+			toast.container.style.opacity = '';
 
 			if (makeVisible) {
 				visibleToasts++;
@@ -738,18 +592,13 @@ export class NotificationsToasts
 		}
 	}
 
-	private updateToastVisibility(
-		toast: INotificationToast,
-		visible: boolean,
-	): void {
+	private updateToastVisibility(toast: INotificationToast, visible: boolean): void {
 		if (this.isToastInDOM(toast) === visible) {
 			return;
 		}
 
 		// Update visibility in DOM
-		const notificationsToastsContainer = assertIsDefined(
-			this.notificationsToastsContainer,
-		);
+		const notificationsToastsContainer = assertIsDefined(this.notificationsToastsContainer);
 		if (visible) {
 			notificationsToastsContainer.appendChild(toast.container);
 		} else {

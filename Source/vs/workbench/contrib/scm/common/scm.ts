@@ -3,30 +3,30 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IAction } from "../../../../base/common/actions.js";
-import { Event } from "../../../../base/common/event.js";
-import { IMarkdownString } from "../../../../base/common/htmlContent.js";
-import { IDisposable } from "../../../../base/common/lifecycle.js";
-import { IObservable } from "../../../../base/common/observable.js";
-import { ResourceTree } from "../../../../base/common/resourceTree.js";
-import { ThemeIcon } from "../../../../base/common/themables.js";
-import { URI } from "../../../../base/common/uri.js";
-import { Command } from "../../../../editor/common/languages.js";
-import { ITextModel } from "../../../../editor/common/model.js";
-import { IMenu } from "../../../../platform/actions/common/actions.js";
-import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
-import { ISCMHistoryProvider } from "./history.js";
+import { URI } from '../../../../base/common/uri.js';
+import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { Event } from '../../../../base/common/event.js';
+import { IDisposable } from '../../../../base/common/lifecycle.js';
+import { Command } from '../../../../editor/common/languages.js';
+import { IAction } from '../../../../base/common/actions.js';
+import { IMenu } from '../../../../platform/actions/common/actions.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
+import { IMarkdownString } from '../../../../base/common/htmlContent.js';
+import { ResourceTree } from '../../../../base/common/resourceTree.js';
+import { ISCMHistoryProvider } from './history.js';
+import { ITextModel } from '../../../../editor/common/model.js';
+import { IObservable } from '../../../../base/common/observable.js';
 
-export const VIEWLET_ID = "workbench.view.scm";
-export const VIEW_PANE_ID = "workbench.scm";
-export const REPOSITORIES_VIEW_PANE_ID = "workbench.scm.repositories";
-export const HISTORY_VIEW_PANE_ID = "workbench.scm.history";
+export const VIEWLET_ID = 'workbench.view.scm';
+export const VIEW_PANE_ID = 'workbench.scm';
+export const REPOSITORIES_VIEW_PANE_ID = 'workbench.scm.repositories';
+export const HISTORY_VIEW_PANE_ID = 'workbench.scm.history';
 
 export interface IBaselineResourceProvider {
 	getBaselineResource(resource: URI): Promise<URI>;
 }
 
-export const ISCMService = createDecorator<ISCMService>("scm");
+export const ISCMService = createDecorator<ISCMService>('scm');
 
 export interface ISCMResourceDecorations {
 	icon?: URI | ThemeIcon;
@@ -92,7 +92,7 @@ export interface ISCMInputValueProviderContext {
 export const enum InputValidationType {
 	Error = 0,
 	Warning = 1,
-	Information = 2,
+	Information = 2
 }
 
 export interface IInputValidation {
@@ -101,15 +101,12 @@ export interface IInputValidation {
 }
 
 export interface IInputValidator {
-	(
-		value: string,
-		cursorPosition: number,
-	): Promise<IInputValidation | undefined>;
+	(value: string, cursorPosition: number): Promise<IInputValidation | undefined>;
 }
 
 export enum SCMInputChangeReason {
 	HistoryPrevious,
-	HistoryNext,
+	HistoryNext
 }
 
 export interface ISCMInputChangeEvent {
@@ -124,7 +121,7 @@ export interface ISCMActionButtonDescriptor {
 }
 
 export interface ISCMActionButton {
-	readonly type: "actionButton";
+	readonly type: 'actionButton';
 	readonly repository: ISCMRepository;
 	readonly button: ISCMActionButtonDescriptor;
 }
@@ -151,10 +148,7 @@ export interface ISCMInput {
 	setFocus(): void;
 	readonly onDidChangeFocus: Event<void>;
 
-	showValidationMessage(
-		message: string | IMarkdownString,
-		type: InputValidationType,
-	): void;
+	showValidationMessage(message: string | IMarkdownString, type: InputValidationType): void;
 	readonly onDidChangeValidationMessage: Event<IInputValidation>;
 
 	showNextHistoryValue(): void;
@@ -168,6 +162,7 @@ export interface ISCMRepository extends IDisposable {
 }
 
 export interface ISCMService {
+
 	readonly _serviceBrand: undefined;
 	readonly onDidAddRepository: Event<ISCMRepository>;
 	readonly onDidRemoveRepository: Event<ISCMRepository>;
@@ -201,12 +196,12 @@ export interface ISCMMenus {
 }
 
 export const enum ISCMRepositorySortKey {
-	DiscoveryTime = "discoveryTime",
-	Name = "name",
-	Path = "path",
+	DiscoveryTime = 'discoveryTime',
+	Name = 'name',
+	Path = 'path'
 }
 
-export const ISCMViewService = createDecorator<ISCMViewService>("scmView");
+export const ISCMViewService = createDecorator<ISCMViewService>('scmView');
 
 export interface ISCMViewVisibleRepositoryChangeEvent {
 	readonly added: Iterable<ISCMRepository>;
@@ -239,6 +234,6 @@ export interface ISCMViewService {
 	readonly activeRepository: IObservable<ISCMRepository | undefined>;
 }
 
-export const SCM_CHANGES_EDITOR_ID = "workbench.editor.scmChangesEditor";
+export const SCM_CHANGES_EDITOR_ID = 'workbench.editor.scmChangesEditor';
 
-export interface ISCMChangesEditor {}
+export interface ISCMChangesEditor { }

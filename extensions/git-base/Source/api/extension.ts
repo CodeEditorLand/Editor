@@ -3,18 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Event, EventEmitter } from "vscode";
-
-import { Model } from "../model";
-import { ApiImpl } from "./api1";
-import { API, GitBaseExtension } from "./git-base";
+import { Model } from '../model';
+import { GitBaseExtension, API } from './git-base';
+import { Event, EventEmitter } from 'vscode';
+import { ApiImpl } from './api1';
 
 export class GitBaseExtensionImpl implements GitBaseExtension {
+
 	enabled: boolean = false;
 
 	private _onDidChangeEnablement = new EventEmitter<boolean>();
-	readonly onDidChangeEnablement: Event<boolean> =
-		this._onDidChangeEnablement.event;
+	readonly onDidChangeEnablement: Event<boolean> = this._onDidChangeEnablement.event;
 
 	private _model: Model | undefined = undefined;
 
@@ -44,7 +43,7 @@ export class GitBaseExtensionImpl implements GitBaseExtension {
 
 	getAPI(version: number): API {
 		if (!this._model) {
-			throw new Error("Git model not found");
+			throw new Error('Git model not found');
 		}
 
 		if (version !== 1) {

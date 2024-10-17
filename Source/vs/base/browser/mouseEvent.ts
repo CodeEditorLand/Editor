@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as platform from "../common/platform.js";
-import * as browser from "./browser.js";
-import { IframeUtils } from "./iframe.js";
+import * as browser from './browser.js';
+import { IframeUtils } from './iframe.js';
+import * as platform from '../common/platform.js';
 
 export interface IMouseEvent {
 	readonly browserEvent: MouseEvent;
@@ -28,6 +28,7 @@ export interface IMouseEvent {
 }
 
 export class StandardMouseEvent implements IMouseEvent {
+
 	public readonly browserEvent: MouseEvent;
 
 	public readonly leftButton: boolean;
@@ -55,7 +56,7 @@ export class StandardMouseEvent implements IMouseEvent {
 		this.target = <HTMLElement>e.target;
 
 		this.detail = e.detail || 1;
-		if (e.type === "dblclick") {
+		if (e.type === 'dblclick') {
 			this.detail = 2;
 		}
 		this.ctrlKey = e.ctrlKey;
@@ -63,27 +64,17 @@ export class StandardMouseEvent implements IMouseEvent {
 		this.altKey = e.altKey;
 		this.metaKey = e.metaKey;
 
-		if (typeof e.pageX === "number") {
+		if (typeof e.pageX === 'number') {
 			this.posx = e.pageX;
 			this.posy = e.pageY;
 		} else {
 			// Probably hit by MSGestureEvent
-			this.posx =
-				e.clientX +
-				this.target.ownerDocument.body.scrollLeft +
-				this.target.ownerDocument.documentElement.scrollLeft;
-			this.posy =
-				e.clientY +
-				this.target.ownerDocument.body.scrollTop +
-				this.target.ownerDocument.documentElement.scrollTop;
+			this.posx = e.clientX + this.target.ownerDocument.body.scrollLeft + this.target.ownerDocument.documentElement.scrollLeft;
+			this.posy = e.clientY + this.target.ownerDocument.body.scrollTop + this.target.ownerDocument.documentElement.scrollTop;
 		}
 
 		// Find the position of the iframe this code is executing in relative to the iframe where the event was captured.
-		const iframeOffsets =
-			IframeUtils.getPositionOfChildWindowRelativeToAncestorWindow(
-				targetWindow,
-				e.view,
-			);
+		const iframeOffsets = IframeUtils.getPositionOfChildWindowRelativeToAncestorWindow(targetWindow, e.view);
 		this.posx -= iframeOffsets.left;
 		this.posy -= iframeOffsets.top;
 	}
@@ -98,6 +89,7 @@ export class StandardMouseEvent implements IMouseEvent {
 }
 
 export class DragMouseEvent extends StandardMouseEvent {
+
 	public readonly dataTransfer: DataTransfer;
 
 	constructor(targetWindow: Window, e: MouseEvent) {
@@ -130,20 +122,16 @@ interface IGeckoMouseWheelEvent {
 }
 
 export class StandardWheelEvent {
+
 	public readonly browserEvent: IMouseWheelEvent | null;
 	public readonly deltaY: number;
 	public readonly deltaX: number;
 	public readonly target: Node;
 
-	constructor(
-		e: IMouseWheelEvent | null,
-		deltaX: number = 0,
-		deltaY: number = 0,
-	) {
+	constructor(e: IMouseWheelEvent | null, deltaX: number = 0, deltaY: number = 0) {
+
 		this.browserEvent = e || null;
-		this.target = e
-			? e.target || (<any>e).targetNode || e.srcElement
-			: null;
+		this.target = e ? (e.target || (<any>e).targetNode || e.srcElement) : null;
 
 		this.deltaY = deltaY;
 		this.deltaX = deltaX;
@@ -151,38 +139,32 @@ export class StandardWheelEvent {
 		let shouldFactorDPR: boolean = false;
 		if (browser.isChrome) {
 			// Chrome version >= 123 contains the fix to factor devicePixelRatio into the wheel event.
-
-			const chromeVersionMatch =
-				navigator.userAgent.match(/Chrome\/(\d+)/);
-			const chromeMajorVersion = chromeVersionMatch
-				? parseInt(chromeVersionMatch[1])
-				: 123;
+			// See https://chromium.googlesource.com/chromium/src.git/+/be51b448441ff0c9d1f17e0f25c4bf1ab3f11f61
+			const chromeVersionMatch = navigator.userAgent.match(/Chrome\/(\d+)/);
+			const chromeMajorVersion = chromeVersionMatch ? parseInt(chromeVersionMatch[1]) : 123;
 			shouldFactorDPR = chromeMajorVersion <= 122;
 		}
 
 		if (e) {
 			// Old (deprecated) wheel events
-			const e1 = <IWebKitMouseWheelEvent>(<any>e);
-			const e2 = <IGeckoMouseWheelEvent>(<any>e);
+			const e1 = <IWebKitMouseWheelEvent><any>e;
+			const e2 = <IGeckoMouseWheelEvent><any>e;
 			const devicePixelRatio = e.view?.devicePixelRatio || 1;
 
 			// vertical delta scroll
-			if (typeof e1.wheelDeltaY !== "undefined") {
+			if (typeof e1.wheelDeltaY !== 'undefined') {
 				if (shouldFactorDPR) {
 					// Refs https://github.com/microsoft/vscode/issues/146403#issuecomment-1854538928
 					this.deltaY = e1.wheelDeltaY / (120 * devicePixelRatio);
 				} else {
 					this.deltaY = e1.wheelDeltaY / 120;
 				}
-			} else if (
-				typeof e2.VERTICAL_AXIS !== "undefined" &&
-				e2.axis === e2.VERTICAL_AXIS
-			) {
+			} else if (typeof e2.VERTICAL_AXIS !== 'undefined' && e2.axis === e2.VERTICAL_AXIS) {
 				this.deltaY = -e2.detail / 3;
-			} else if (e.type === "wheel") {
+			} else if (e.type === 'wheel') {
 				// Modern wheel event
 				// https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent
-				const ev = <WheelEvent>(<unknown>e);
+				const ev = <WheelEvent><unknown>e;
 
 				if (ev.deltaMode === ev.DOM_DELTA_LINE) {
 					// the deltas are expressed in lines
@@ -197,24 +179,21 @@ export class StandardWheelEvent {
 			}
 
 			// horizontal delta scroll
-			if (typeof e1.wheelDeltaX !== "undefined") {
+			if (typeof e1.wheelDeltaX !== 'undefined') {
 				if (browser.isSafari && platform.isWindows) {
-					this.deltaX = -(e1.wheelDeltaX / 120);
+					this.deltaX = - (e1.wheelDeltaX / 120);
 				} else if (shouldFactorDPR) {
 					// Refs https://github.com/microsoft/vscode/issues/146403#issuecomment-1854538928
 					this.deltaX = e1.wheelDeltaX / (120 * devicePixelRatio);
 				} else {
 					this.deltaX = e1.wheelDeltaX / 120;
 				}
-			} else if (
-				typeof e2.HORIZONTAL_AXIS !== "undefined" &&
-				e2.axis === e2.HORIZONTAL_AXIS
-			) {
+			} else if (typeof e2.HORIZONTAL_AXIS !== 'undefined' && e2.axis === e2.HORIZONTAL_AXIS) {
 				this.deltaX = -e.detail / 3;
-			} else if (e.type === "wheel") {
+			} else if (e.type === 'wheel') {
 				// Modern wheel event
 				// https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent
-				const ev = <WheelEvent>(<unknown>e);
+				const ev = <WheelEvent><unknown>e;
 
 				if (ev.deltaMode === ev.DOM_DELTA_LINE) {
 					// the deltas are expressed in lines

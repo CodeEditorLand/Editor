@@ -3,28 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from "../../../../base/common/cancellation.js";
-import { ResourceSet } from "../../../../base/common/map.js";
-import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
-import {
-	ISearchComplete,
-	ISearchProgressItem,
-	ITextQuery,
-} from "../../../services/search/common/search.js";
+import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { ResourceSet } from '../../../../base/common/map.js';
+import { ITextQuery, ISearchProgressItem, ISearchComplete } from '../../../services/search/common/search.js';
 
-export const INotebookSearchService = createDecorator<INotebookSearchService>(
-	"notebookSearchService",
-);
+export const INotebookSearchService = createDecorator<INotebookSearchService>('notebookSearchService');
 
 export interface INotebookSearchService {
+
 	readonly _serviceBrand: undefined;
 
-	notebookSearch(
-		query: ITextQuery,
-		token: CancellationToken | undefined,
-		searchInstanceID: string,
-		onProgress?: (result: ISearchProgressItem) => void,
-	): {
+	notebookSearch(query: ITextQuery, token: CancellationToken | undefined, searchInstanceID: string, onProgress?: (result: ISearchProgressItem) => void): {
 		openFilesToScan: ResourceSet;
 		completeData: Promise<ISearchComplete>;
 		allScannedFiles: Promise<ResourceSet>;

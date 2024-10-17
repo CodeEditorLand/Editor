@@ -3,15 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ProcessTimeRunOnceScheduler } from "../../base/common/async.js";
-import { VSBuffer } from "../../base/common/buffer.js";
-import { Emitter, Event } from "../../base/common/event.js";
-import {
-	ISocket,
-	PersistentProtocol,
-	ProtocolConstants,
-} from "../../base/parts/ipc/common/ipc.net.js";
-import { ILogService } from "../../platform/log/common/log.js";
+import { PersistentProtocol, ProtocolConstants, ISocket } from '../../base/parts/ipc/common/ipc.net.js';
+import { ILogService } from '../../platform/log/common/log.js';
+import { Emitter, Event } from '../../base/common/event.js';
+import { VSBuffer } from '../../base/common/buffer.js';
+import { ProcessTimeRunOnceScheduler } from '../../base/common/async.js';
 
 function printTime(ms: number): string {
 	let h = 0;
@@ -37,6 +33,7 @@ function printTime(ms: number): string {
 }
 
 export class ManagementConnection {
+
 	private _onClose = new Emitter<void>();
 	public readonly onClose: Event<void> = this._onClose.event;
 
@@ -53,38 +50,29 @@ export class ManagementConnection {
 		private readonly _logService: ILogService,
 		private readonly _reconnectionToken: string,
 		remoteAddress: string,
-		protocol: PersistentProtocol,
+		protocol: PersistentProtocol
 	) {
 		this._reconnectionGraceTime = ProtocolConstants.ReconnectionGraceTime;
-		this._reconnectionShortGraceTime =
-			ProtocolConstants.ReconnectionShortGraceTime;
+		this._reconnectionShortGraceTime = ProtocolConstants.ReconnectionShortGraceTime;
 		this._remoteAddress = remoteAddress;
 
 		this.protocol = protocol;
 		this._disposed = false;
 		this._disconnectRunner1 = new ProcessTimeRunOnceScheduler(() => {
-			this._log(
-				`The reconnection grace time of ${printTime(this._reconnectionGraceTime)} has expired, so the connection will be disposed.`,
-			);
+			this._log(`The reconnection grace time of ${printTime(this._reconnectionGraceTime)} has expired, so the connection will be disposed.`);
 			this._cleanResources();
 		}, this._reconnectionGraceTime);
 		this._disconnectRunner2 = new ProcessTimeRunOnceScheduler(() => {
-			this._log(
-				`The reconnection short grace time of ${printTime(this._reconnectionShortGraceTime)} has expired, so the connection will be disposed.`,
-			);
+			this._log(`The reconnection short grace time of ${printTime(this._reconnectionShortGraceTime)} has expired, so the connection will be disposed.`);
 			this._cleanResources();
 		}, this._reconnectionShortGraceTime);
 
 		this.protocol.onDidDispose(() => {
-			this._log(
-				`The client has disconnected gracefully, so the connection will be disposed.`,
-			);
+			this._log(`The client has disconnected gracefully, so the connection will be disposed.`);
 			this._cleanResources();
 		});
 		this.protocol.onSocketClose(() => {
-			this._log(
-				`The client has disconnected, will wait for reconnection ${printTime(this._reconnectionGraceTime)} before disposing...`,
-			);
+			this._log(`The client has disconnected, will wait for reconnection ${printTime(this._reconnectionGraceTime)} before disposing...`);
 			// The socket has closed, let's give the renderer a certain amount of time to reconnect
 			this._disconnectRunner1.schedule();
 		});
@@ -93,9 +81,7 @@ export class ManagementConnection {
 	}
 
 	private _log(_str: string): void {
-		this._logService.info(
-			`[${this._remoteAddress}][${this._reconnectionToken.substr(0, 8)}][ManagementConnection] ${_str}`,
-		);
+		this._logService.info(`[${this._remoteAddress}][${this._reconnectionToken.substr(0, 8)}][ManagementConnection] ${_str}`);
 	}
 
 	public shortenReconnectionGraceTimeIfNecessary(): void {
@@ -104,9 +90,7 @@ export class ManagementConnection {
 			return;
 		}
 		if (this._disconnectRunner1.isScheduled()) {
-			this._log(
-				`Another client has connected, will shorten the wait for reconnection ${printTime(this._reconnectionShortGraceTime)} before disposing...`,
-			);
+			this._log(`Another client has connected, will shorten the wait for reconnection ${printTime(this._reconnectionShortGraceTime)} before disposing...`);
 			// we are disconnected and running the long reconnection timer
 			this._disconnectRunner2.schedule();
 		}
@@ -127,11 +111,7 @@ export class ManagementConnection {
 		this._onClose.fire(undefined);
 	}
 
-	public acceptReconnection(
-		remoteAddress: string,
-		socket: ISocket,
-		initialDataChunk: VSBuffer,
-	): void {
+	public acceptReconnection(remoteAddress: string, socket: ISocket, initialDataChunk: VSBuffer): void {
 		this._remoteAddress = remoteAddress;
 		this._log(`The client has reconnected.`);
 		this._disconnectRunner1.cancel();

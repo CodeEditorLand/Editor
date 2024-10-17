@@ -3,14 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDimension } from "../../../base/browser/dom.js";
-import { Event } from "../../../base/common/event.js";
-import { DisposableStore } from "../../../base/common/lifecycle.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { IDimension } from '../../../base/browser/dom.js';
+import { Event } from '../../../base/common/event.js';
+import { DisposableStore } from '../../../base/common/lifecycle.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
 
-export const ILayoutService = createDecorator<ILayoutService>("layoutService");
+export const ILayoutService = createDecorator<ILayoutService>('layoutService');
 
 export interface ILayoutOffsetInfo {
+
 	/**
 	 * Generic top offset
 	 */
@@ -23,6 +24,7 @@ export interface ILayoutOffsetInfo {
 }
 
 export interface ILayoutService {
+
 	readonly _serviceBrand: undefined;
 
 	/**
@@ -33,10 +35,7 @@ export interface ILayoutService {
 	/**
 	 * An event that is emitted when any container is layed out.
 	 */
-	readonly onDidLayoutContainer: Event<{
-		readonly container: HTMLElement;
-		readonly dimension: IDimension;
-	}>;
+	readonly onDidLayoutContainer: Event<{ readonly container: HTMLElement; readonly dimension: IDimension }>;
 
 	/**
 	 * An event that is emitted when the active container is layed out.
@@ -47,10 +46,7 @@ export interface ILayoutService {
 	 * An event that is emitted when a new container is added. This
 	 * can happen in multi-window environments.
 	 */
-	readonly onDidAddContainer: Event<{
-		readonly container: HTMLElement;
-		readonly disposables: DisposableStore;
-	}>;
+	readonly onDidAddContainer: Event<{ readonly container: HTMLElement; readonly disposables: DisposableStore }>;
 
 	/**
 	 * An event that is emitted when the active container changes.

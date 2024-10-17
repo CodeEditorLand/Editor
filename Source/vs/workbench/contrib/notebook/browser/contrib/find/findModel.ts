@@ -3,41 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { findFirstIdxMonotonousOrArrLen } from "../../../../../../base/common/arraysFind.js";
-import {
-	CancelablePromise,
-	createCancelablePromise,
-	Delayer,
-} from "../../../../../../base/common/async.js";
-import { CancellationToken } from "../../../../../../base/common/cancellation.js";
-import {
-	Disposable,
-	DisposableStore,
-} from "../../../../../../base/common/lifecycle.js";
-import { Range } from "../../../../../../editor/common/core/range.js";
-import { FindMatch } from "../../../../../../editor/common/model.js";
-import { PrefixSumComputer } from "../../../../../../editor/common/model/prefixSumComputer.js";
-import {
-	FindReplaceState,
-	FindReplaceStateChangedEvent,
-} from "../../../../../../editor/contrib/find/browser/findState.js";
-import { IConfigurationService } from "../../../../../../platform/configuration/common/configuration.js";
-import { NotebookTextModel } from "../../../common/model/notebookTextModel.js";
-import {
-	CellKind,
-	INotebookFindOptions,
-	NotebookCellsChangeType,
-} from "../../../common/notebookCommon.js";
-import {
-	CellEditState,
-	CellFindMatchWithIndex,
-	CellWebviewFindMatch,
-	ICellViewModel,
-	INotebookEditor,
-} from "../../notebookBrowser.js";
-import { NotebookViewModel } from "../../viewModel/notebookViewModelImpl.js";
-import { NotebookFindFilters } from "./findFilters.js";
-import { FindMatchDecorationModel } from "./findMatchDecorationModel.js";
+import { findFirstIdxMonotonousOrArrLen } from '../../../../../../base/common/arraysFind.js';
+import { CancelablePromise, createCancelablePromise, Delayer } from '../../../../../../base/common/async.js';
+import { CancellationToken } from '../../../../../../base/common/cancellation.js';
+import { Disposable, DisposableStore } from '../../../../../../base/common/lifecycle.js';
+import { Range } from '../../../../../../editor/common/core/range.js';
+import { FindMatch } from '../../../../../../editor/common/model.js';
+import { PrefixSumComputer } from '../../../../../../editor/common/model/prefixSumComputer.js';
+import { FindReplaceState, FindReplaceStateChangedEvent } from '../../../../../../editor/contrib/find/browser/findState.js';
+import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
+import { NotebookFindFilters } from './findFilters.js';
+import { FindMatchDecorationModel } from './findMatchDecorationModel.js';
+import { CellEditState, CellFindMatchWithIndex, CellWebviewFindMatch, ICellViewModel, INotebookEditor } from '../../notebookBrowser.js';
+import { NotebookViewModel } from '../../viewModel/notebookViewModelImpl.js';
+import { NotebookTextModel } from '../../../common/model/notebookTextModel.js';
+import { CellKind, INotebookFindOptions, NotebookCellsChangeType } from '../../../common/notebookCommon.js';
 
 export class CellFindMatchModel implements CellFindMatchWithIndex {
 	readonly cell: ICellViewModel;
@@ -56,12 +36,7 @@ export class CellFindMatchModel implements CellFindMatchWithIndex {
 		return this._webviewMatches;
 	}
 
-	constructor(
-		cell: ICellViewModel,
-		index: number,
-		contentMatches: FindMatch[],
-		webviewMatches: CellWebviewFindMatch[],
-	) {
+	constructor(cell: ICellViewModel, index: number, contentMatches: FindMatch[], webviewMatches: CellWebviewFindMatch[]) {
 		this.cell = cell;
 		this.index = index;
 		this._contentMatches = contentMatches;
@@ -70,7 +45,7 @@ export class CellFindMatchModel implements CellFindMatchWithIndex {
 
 	getMatch(index: number) {
 		if (index >= this.length) {
-			throw new Error("NotebookCellFindMatch: index out of range");
+			throw new Error('NotebookCellFindMatch: index out of range');
 		}
 
 		if (index < this._contentMatches.length) {
@@ -87,9 +62,7 @@ export class FindModel extends Disposable {
 	private _currentMatch: number = -1;
 
 	private readonly _throttledDelayer: Delayer<void>;
-	private _computePromise: CancelablePromise<
-		CellFindMatchWithIndex[] | null
-	> | null = null;
+	private _computePromise: CancelablePromise<CellFindMatchWithIndex[] | null> | null = null;
 	private readonly _modelDisposable = this._register(new DisposableStore());
 	private _findMatchDecorationModel: FindMatchDecorationModel;
 
@@ -104,86 +77,56 @@ export class FindModel extends Disposable {
 	constructor(
 		private readonly _notebookEditor: INotebookEditor,
 		private readonly _state: FindReplaceState<NotebookFindFilters>,
-		@IConfigurationService
-		private readonly _configurationService: IConfigurationService,
+		@IConfigurationService private readonly _configurationService: IConfigurationService
 	) {
 		super();
 
 		this._throttledDelayer = new Delayer(20);
 		this._computePromise = null;
 
-		this._register(
-			_state.onFindReplaceStateChange((e) => {
-				this._updateCellStates(e);
+		this._register(_state.onFindReplaceStateChange(e => {
+			this._updateCellStates(e);
 
-				if (
-					e.searchString ||
-					e.isRegex ||
-					e.matchCase ||
-					e.searchScope ||
-					e.wholeWord ||
-					(e.isRevealed && this._state.isRevealed) ||
-					e.filters ||
-					e.isReplaceRevealed
-				) {
-					this.research();
-				}
+			if (e.searchString || e.isRegex || e.matchCase || e.searchScope || e.wholeWord || (e.isRevealed && this._state.isRevealed) || e.filters || e.isReplaceRevealed) {
+				this.research();
+			}
 
-				if (e.isRevealed && !this._state.isRevealed) {
-					this.clear();
-				}
-			}),
-		);
+			if (e.isRevealed && !this._state.isRevealed) {
+				this.clear();
+			}
+		}));
 
-		this._register(
-			this._notebookEditor.onDidChangeModel((e) => {
-				this._registerModelListener(e);
-			}),
-		);
+		this._register(this._notebookEditor.onDidChangeModel(e => {
+			this._registerModelListener(e);
+		}));
 
-		this._register(
-			this._notebookEditor.onDidChangeCellState((e) => {
-				if (
-					e.cell.cellKind === CellKind.Markup &&
-					e.source.editStateChanged
-				) {
-					// research when markdown cell is switching between markdown preview and editing mode.
-					this.research();
-				}
-			}),
-		);
+		this._register(this._notebookEditor.onDidChangeCellState(e => {
+			if (e.cell.cellKind === CellKind.Markup && e.source.editStateChanged) {
+				// research when markdown cell is switching between markdown preview and editing mode.
+				this.research();
+			}
+		}));
 
 		if (this._notebookEditor.hasModel()) {
 			this._registerModelListener(this._notebookEditor.textModel);
 		}
 
-		this._findMatchDecorationModel = new FindMatchDecorationModel(
-			this._notebookEditor,
-			this._notebookEditor.getId(),
-		);
+		this._findMatchDecorationModel = new FindMatchDecorationModel(this._notebookEditor, this._notebookEditor.getId());
 	}
 
 	private _updateCellStates(e: FindReplaceStateChangedEvent) {
-		if (
-			!this._state.filters?.markupInput ||
-			!this._state.filters?.markupPreview ||
-			!this._state.filters?.findScope
-		) {
+		if (!this._state.filters?.markupInput || !this._state.filters?.markupPreview || !this._state.filters?.findScope) {
 			return;
 		}
 
 		// we only update cell state if users are using the hybrid mode (both input and preview are enabled)
 		const updateEditingState = () => {
-			const viewModel = this._notebookEditor.getViewModel() as
-				| NotebookViewModel
-				| undefined;
+			const viewModel = this._notebookEditor.getViewModel() as NotebookViewModel | undefined;
 			if (!viewModel) {
 				return;
 			}
 			// search markup sources first to decide if a markup cell should be in editing mode
-			const wordSeparators = this._configurationService.inspect<string>(
-				"editor.wordSeparators",
-			).value;
+			const wordSeparators = this._configurationService.inspect<string>('editor.wordSeparators').value;
 			const options: INotebookFindOptions = {
 				regex: this._state.isRegex,
 				wholeWord: this._state.wholeWord,
@@ -196,42 +139,29 @@ export class FindModel extends Disposable {
 				findScope: this._state.filters?.findScope,
 			};
 
-			const contentMatches = viewModel.find(
-				this._state.searchString,
-				options,
-			);
+			const contentMatches = viewModel.find(this._state.searchString, options);
 			for (let i = 0; i < viewModel.length; i++) {
 				const cell = viewModel.cellAt(i);
 				if (cell && cell.cellKind === CellKind.Markup) {
-					const foundContentMatch = contentMatches.find(
-						(m) =>
-							m.cell.handle === cell.handle &&
-							m.contentMatches.length > 0,
-					);
-					const targetState = foundContentMatch
-						? CellEditState.Editing
-						: CellEditState.Preview;
+					const foundContentMatch = contentMatches.find(m => m.cell.handle === cell.handle && m.contentMatches.length > 0);
+					const targetState = foundContentMatch ? CellEditState.Editing : CellEditState.Preview;
 					const currentEditingState = cell.getEditState();
 
-					if (
-						currentEditingState === CellEditState.Editing &&
-						cell.editStateSource !== "find"
-					) {
+					if (currentEditingState === CellEditState.Editing && cell.editStateSource !== 'find') {
 						// it's already in editing mode, we should not update
 						continue;
 					}
 					if (currentEditingState !== targetState) {
-						cell.updateEditState(targetState, "find");
+						cell.updateEditState(targetState, 'find');
 					}
 				}
 			}
 		};
 
+
 		if (e.isReplaceRevealed && !this._state.isReplaceRevealed) {
 			// replace is hidden, we need to switch all markdown cells to preview mode
-			const viewModel = this._notebookEditor.getViewModel() as
-				| NotebookViewModel
-				| undefined;
+			const viewModel = this._notebookEditor.getViewModel() as NotebookViewModel | undefined;
 			if (!viewModel) {
 				return;
 			}
@@ -239,11 +169,8 @@ export class FindModel extends Disposable {
 			for (let i = 0; i < viewModel.length; i++) {
 				const cell = viewModel.cellAt(i);
 				if (cell && cell.cellKind === CellKind.Markup) {
-					if (
-						cell.getEditState() === CellEditState.Editing &&
-						cell.editStateSource === "find"
-					) {
-						cell.updateEditState(CellEditState.Preview, "find");
+					if (cell.getEditState() === CellEditState.Editing && cell.editStateSource === 'find') {
+						cell.updateEditState(CellEditState.Preview, 'find');
 					}
 				}
 			}
@@ -253,11 +180,7 @@ export class FindModel extends Disposable {
 
 		if (e.isReplaceRevealed) {
 			updateEditingState();
-		} else if (
-			(e.filters || e.isRevealed || e.searchString || e.replaceString) &&
-			this._state.isRevealed &&
-			this._state.isReplaceRevealed
-		) {
+		} else if ((e.filters || e.isRevealed || e.searchString || e.replaceString) && this._state.isRevealed && this._state.isReplaceRevealed) {
 			updateEditingState();
 		}
 	}
@@ -269,59 +192,43 @@ export class FindModel extends Disposable {
 	}
 
 	getCurrentMatch() {
-		const nextIndex = this._findMatchesStarts!.getIndexOf(
-			this._currentMatch,
-		);
+		const nextIndex = this._findMatchesStarts!.getIndexOf(this._currentMatch);
 		const cell = this._findMatches[nextIndex.index].cell;
-		const match = this._findMatches[nextIndex.index].getMatch(
-			nextIndex.remainder,
-		);
+		const match = this._findMatches[nextIndex.index].getMatch(nextIndex.remainder);
 
 		return {
 			cell,
 			match,
-			isModelMatch:
-				nextIndex.remainder <
-				this._findMatches[nextIndex.index].contentMatches.length,
+			isModelMatch: nextIndex.remainder < this._findMatches[nextIndex.index].contentMatches.length
 		};
 	}
 
 	refreshCurrentMatch(focus: { cell: ICellViewModel; range: Range }) {
-		const findMatchIndex = this.findMatches.findIndex(
-			(match) => match.cell === focus.cell,
-		);
+		const findMatchIndex = this.findMatches.findIndex(match => match.cell === focus.cell);
 
 		if (findMatchIndex === -1) {
 			return;
 		}
 
 		const findMatch = this.findMatches[findMatchIndex];
-		const index = findMatch.contentMatches.findIndex(
-			(match) => match.range.intersectRanges(focus.range) !== null,
-		);
+		const index = findMatch.contentMatches.findIndex(match => match.range.intersectRanges(focus.range) !== null);
 
 		if (index === undefined) {
 			return;
 		}
 
-		const matchesBefore =
-			findMatchIndex === 0
-				? 0
-				: (this._findMatchesStarts?.getPrefixSum(findMatchIndex - 1) ??
-					0);
+		const matchesBefore = findMatchIndex === 0 ? 0 : (this._findMatchesStarts?.getPrefixSum(findMatchIndex - 1) ?? 0);
 		this._currentMatch = matchesBefore + index;
 
-		this.highlightCurrentFindMatchDecoration(findMatchIndex, index).then(
-			(offset) => {
-				this.revealCellRange(findMatchIndex, index, offset);
+		this.highlightCurrentFindMatchDecoration(findMatchIndex, index).then(offset => {
+			this.revealCellRange(findMatchIndex, index, offset);
 
-				this._state.changeMatchInfo(
-					this._currentMatch,
-					this._findMatches.reduce((p, c) => p + c.length, 0),
-					undefined,
-				);
-			},
-		);
+			this._state.changeMatchInfo(
+				this._currentMatch,
+				this._findMatches.reduce((p, c) => p + c.length, 0),
+				undefined
+			);
+		});
 	}
 
 	find(option: { previous: boolean } | { index: number }) {
@@ -332,50 +239,38 @@ export class FindModel extends Disposable {
 		// let currCell;
 		if (!this._findMatchesStarts) {
 			this.set(this._findMatches, true);
-			if ("index" in option) {
+			if ('index' in option) {
 				this._currentMatch = option.index;
 			}
 		} else {
 			// const currIndex = this._findMatchesStarts!.getIndexOf(this._currentMatch);
 			// currCell = this._findMatches[currIndex.index].cell;
 			const totalVal = this._findMatchesStarts.getTotalSum();
-			if ("index" in option) {
+			if ('index' in option) {
 				this._currentMatch = option.index;
-			} else if (this._currentMatch === -1) {
+			}
+			else if (this._currentMatch === -1) {
 				this._currentMatch = option.previous ? totalVal - 1 : 0;
 			} else {
-				const nextVal =
-					(this._currentMatch +
-						(option.previous ? -1 : 1) +
-						totalVal) %
-					totalVal;
+				const nextVal = (this._currentMatch + (option.previous ? -1 : 1) + totalVal) % totalVal;
 				this._currentMatch = nextVal;
 			}
 		}
 
-		const nextIndex = this._findMatchesStarts!.getIndexOf(
-			this._currentMatch,
-		);
+		const nextIndex = this._findMatchesStarts!.getIndexOf(this._currentMatch);
 		// const newFocusedCell = this._findMatches[nextIndex.index].cell;
-		this.highlightCurrentFindMatchDecoration(
-			nextIndex.index,
-			nextIndex.remainder,
-		).then((offset) => {
+		this.highlightCurrentFindMatchDecoration(nextIndex.index, nextIndex.remainder).then(offset => {
 			this.revealCellRange(nextIndex.index, nextIndex.remainder, offset);
 
 			this._state.changeMatchInfo(
 				this._currentMatch,
 				this._findMatches.reduce((p, c) => p + c.length, 0),
-				undefined,
+				undefined
 			);
 		});
 	}
 
-	private revealCellRange(
-		cellIndex: number,
-		matchIndex: number,
-		outputOffset: number | null,
-	) {
+	private revealCellRange(cellIndex: number, matchIndex: number, outputOffset: number | null) {
 		const findMatch = this._findMatches[cellIndex];
 		if (matchIndex >= findMatch.contentMatches.length) {
 			// reveal output range
@@ -383,26 +278,17 @@ export class FindModel extends Disposable {
 			const index = this._notebookEditor.getCellIndex(findMatch.cell);
 			if (index !== undefined) {
 				// const range: ICellRange = { start: index, end: index + 1 };
-				this._notebookEditor.revealCellOffsetInCenter(
-					findMatch.cell,
-					outputOffset ?? 0,
-				);
+				this._notebookEditor.revealCellOffsetInCenter(findMatch.cell, outputOffset ?? 0);
 			}
 		} else {
 			const match = findMatch.getMatch(matchIndex) as FindMatch;
 			if (findMatch.cell.getEditState() !== CellEditState.Editing) {
-				findMatch.cell.updateEditState(CellEditState.Editing, "find");
+				findMatch.cell.updateEditState(CellEditState.Editing, 'find');
 			}
 			findMatch.cell.isInputCollapsed = false;
 			this._notebookEditor.focusElement(findMatch.cell);
-			this._notebookEditor.setCellEditorSelection(
-				findMatch.cell,
-				match.range,
-			);
-			this._notebookEditor.revealRangeInCenterIfOutsideViewportAsync(
-				findMatch.cell,
-				match.range,
-			);
+			this._notebookEditor.setCellEditorSelection(findMatch.cell, match.range);
+			this._notebookEditor.revealRangeInCenterIfOutsideViewportAsync(findMatch.cell, match.range);
 		}
 	}
 
@@ -410,23 +296,13 @@ export class FindModel extends Disposable {
 		this._modelDisposable.clear();
 
 		if (notebookTextModel) {
-			this._modelDisposable.add(
-				notebookTextModel.onDidChangeContent((e) => {
-					if (
-						!e.rawEvents.some(
-							(event) =>
-								event.kind ===
-									NotebookCellsChangeType.ChangeCellContent ||
-								event.kind ===
-									NotebookCellsChangeType.ModelChange,
-						)
-					) {
-						return;
-					}
+			this._modelDisposable.add(notebookTextModel.onDidChangeContent((e) => {
+				if (!e.rawEvents.some(event => event.kind === NotebookCellsChangeType.ChangeCellContent || event.kind === NotebookCellsChangeType.ModelChange)) {
+					return;
+				}
 
-					this.research();
-				}),
-			);
+				this.research();
+			}));
 		}
 
 		this.research();
@@ -448,9 +324,7 @@ export class FindModel extends Disposable {
 			return;
 		}
 
-		this._computePromise = createCancelablePromise((token) =>
-			this._compute(token),
-		);
+		this._computePromise = createCancelablePromise(token => this._compute(token));
 
 		const findMatches = await this._computePromise;
 		if (!findMatches) {
@@ -464,14 +338,8 @@ export class FindModel extends Disposable {
 		}
 
 		const findFirstMatchAfterCellIndex = (cellIndex: number) => {
-			const matchAfterSelection = findFirstIdxMonotonousOrArrLen(
-				findMatches.map((match) => match.index),
-				(index) => index >= cellIndex,
-			);
-			this._updateCurrentMatch(
-				findMatches,
-				this._matchesCountBeforeIndex(findMatches, matchAfterSelection),
-			);
+			const matchAfterSelection = findFirstIdxMonotonousOrArrLen(findMatches.map(match => match.index), index => index >= cellIndex);
+			this._updateCurrentMatch(findMatches, this._matchesCountBeforeIndex(findMatches, matchAfterSelection));
 		};
 
 		if (this._currentMatch === -1) {
@@ -487,12 +355,10 @@ export class FindModel extends Disposable {
 			}
 		}
 
-		const oldCurrIndex = this._findMatchesStarts!.getIndexOf(
-			this._currentMatch,
-		);
+		const oldCurrIndex = this._findMatchesStarts!.getIndexOf(this._currentMatch);
 		const oldCurrCell = this._findMatches[oldCurrIndex.index].cell;
-		const oldCurrMatchCellIndex =
-			this._notebookEditor.getCellIndex(oldCurrCell);
+		const oldCurrMatchCellIndex = this._notebookEditor.getCellIndex(oldCurrCell);
+
 
 		if (oldCurrMatchCellIndex < 0) {
 			// the cell containing the active match is deleted
@@ -509,10 +375,7 @@ export class FindModel extends Disposable {
 		const cell = this._notebookEditor.cellAt(oldCurrMatchCellIndex);
 		// we will try restore the active find match in this cell, if it contains any find match
 
-		if (
-			cell.cellKind === CellKind.Markup &&
-			cell.getEditState() === CellEditState.Preview
-		) {
+		if (cell.cellKind === CellKind.Markup && cell.getEditState() === CellEditState.Preview) {
 			// find first match in this cell or below
 			findFirstMatchAfterCellIndex(oldCurrMatchCellIndex);
 			return;
@@ -528,14 +391,8 @@ export class FindModel extends Disposable {
 
 		// check if there is monaco editor selection and find the first match, otherwise find the first match above current cell
 		// this._findMatches[cellIndex].matches[matchIndex].range
-		if (
-			this._findMatchDecorationModel.currentMatchDecorations.kind ===
-			"input"
-		) {
-			const currentMatchDecorationId =
-				this._findMatchDecorationModel.currentMatchDecorations.decorations.find(
-					(decoration) => decoration.ownerId === cell.handle,
-				);
+		if (this._findMatchDecorationModel.currentMatchDecorations.kind === 'input') {
+			const currentMatchDecorationId = this._findMatchDecorationModel.currentMatchDecorations.decorations.find(decoration => decoration.ownerId === cell.handle);
 
 			if (!currentMatchDecorationId) {
 				// current match decoration is no longer valid
@@ -543,95 +400,38 @@ export class FindModel extends Disposable {
 				return;
 			}
 
-			const matchAfterSelection =
-				findFirstIdxMonotonousOrArrLen(
-					findMatches,
-					(match) => match.index >= oldCurrMatchCellIndex,
-				) % findMatches.length;
-			if (
-				findMatches[matchAfterSelection].index > oldCurrMatchCellIndex
-			) {
+			const matchAfterSelection = findFirstIdxMonotonousOrArrLen(findMatches, match => match.index >= oldCurrMatchCellIndex) % findMatches.length;
+			if (findMatches[matchAfterSelection].index > oldCurrMatchCellIndex) {
 				// there is no search result in curr cell anymore, find the nearest one (from top to bottom)
-				this._updateCurrentMatch(
-					findMatches,
-					this._matchesCountBeforeIndex(
-						findMatches,
-						matchAfterSelection,
-					),
-				);
+				this._updateCurrentMatch(findMatches, this._matchesCountBeforeIndex(findMatches, matchAfterSelection));
 				return;
 			} else {
 				// there are still some search results in current cell
-				let currMatchRangeInEditor =
-					cell.editorAttached &&
-					currentMatchDecorationId.decorations[0]
-						? cell.getCellDecorationRange(
-								currentMatchDecorationId.decorations[0],
-							)
-						: null;
+				let currMatchRangeInEditor = cell.editorAttached && currentMatchDecorationId.decorations[0] ? cell.getCellDecorationRange(currentMatchDecorationId.decorations[0]) : null;
 
-				if (
-					currMatchRangeInEditor === null &&
-					oldCurrIndex.remainder <
-						this._findMatches[oldCurrIndex.index].contentMatches
-							.length
-				) {
-					currMatchRangeInEditor = (
-						this._findMatches[oldCurrIndex.index].getMatch(
-							oldCurrIndex.remainder,
-						) as FindMatch
-					).range;
+				if (currMatchRangeInEditor === null && oldCurrIndex.remainder < this._findMatches[oldCurrIndex.index].contentMatches.length) {
+					currMatchRangeInEditor = (this._findMatches[oldCurrIndex.index].getMatch(oldCurrIndex.remainder) as FindMatch).range;
 				}
 
 				if (currMatchRangeInEditor !== null) {
 					// we find a range for the previous current match, let's find the nearest one after it (can overlap)
 					const cellMatch = findMatches[matchAfterSelection];
-					const matchAfterOldSelection =
-						findFirstIdxMonotonousOrArrLen(
-							cellMatch.contentMatches,
-							(match) =>
-								Range.compareRangesUsingStarts(
-									(match as FindMatch).range,
-									currMatchRangeInEditor,
-								) >= 0,
-						);
-					this._updateCurrentMatch(
-						findMatches,
-						this._matchesCountBeforeIndex(
-							findMatches,
-							matchAfterSelection,
-						) + matchAfterOldSelection,
-					);
+					const matchAfterOldSelection = findFirstIdxMonotonousOrArrLen(cellMatch.contentMatches, match => Range.compareRangesUsingStarts((match as FindMatch).range, currMatchRangeInEditor) >= 0);
+					this._updateCurrentMatch(findMatches, this._matchesCountBeforeIndex(findMatches, matchAfterSelection) + matchAfterOldSelection);
 				} else {
 					// no range found, let's fall back to finding the nearest match
-					this._updateCurrentMatch(
-						findMatches,
-						this._matchesCountBeforeIndex(
-							findMatches,
-							matchAfterSelection,
-						),
-					);
+					this._updateCurrentMatch(findMatches, this._matchesCountBeforeIndex(findMatches, matchAfterSelection));
 					return;
 				}
 			}
 		} else {
 			// output now has the highlight
-			const matchAfterSelection =
-				findFirstIdxMonotonousOrArrLen(
-					findMatches.map((match) => match.index),
-					(index) => index >= oldCurrMatchCellIndex,
-				) % findMatches.length;
-			this._updateCurrentMatch(
-				findMatches,
-				this._matchesCountBeforeIndex(findMatches, matchAfterSelection),
-			);
+			const matchAfterSelection = findFirstIdxMonotonousOrArrLen(findMatches.map(match => match.index), index => index >= oldCurrMatchCellIndex) % findMatches.length;
+			this._updateCurrentMatch(findMatches, this._matchesCountBeforeIndex(findMatches, matchAfterSelection));
 		}
 	}
 
-	private set(
-		cellFindMatches: CellFindMatchWithIndex[] | null,
-		autoStart: boolean,
-	): void {
+	private set(cellFindMatches: CellFindMatchWithIndex[] | null, autoStart: boolean): void {
 		if (!cellFindMatches || !cellFindMatches.length) {
 			this._findMatches = [];
 			this._findMatchDecorationModel.setAllFindMatchesDecorations([]);
@@ -643,16 +443,14 @@ export class FindModel extends Disposable {
 			this._state.changeMatchInfo(
 				this._currentMatch,
 				this._findMatches.reduce((p, c) => p + c.length, 0),
-				undefined,
+				undefined
 			);
 			return;
 		}
 
 		// all matches
 		this._findMatches = cellFindMatches;
-		this._findMatchDecorationModel.setAllFindMatchesDecorations(
-			cellFindMatches || [],
-		);
+		this._findMatchDecorationModel.setAllFindMatchesDecorations(cellFindMatches || []);
 
 		// current match
 		this.constructFindMatchesStarts();
@@ -665,21 +463,17 @@ export class FindModel extends Disposable {
 		this._state.changeMatchInfo(
 			this._currentMatch,
 			this._findMatches.reduce((p, c) => p + c.length, 0),
-			undefined,
+			undefined
 		);
 	}
 
-	private async _compute(
-		token: CancellationToken,
-	): Promise<CellFindMatchWithIndex[] | null> {
+	private async _compute(token: CancellationToken): Promise<CellFindMatchWithIndex[] | null> {
 		if (!this._notebookEditor.hasModel()) {
 			return null;
 		}
 		let ret: CellFindMatchWithIndex[] | null = null;
 		const val = this._state.searchString;
-		const wordSeparators = this._configurationService.inspect<string>(
-			"editor.wordSeparators",
-		).value;
+		const wordSeparators = this._configurationService.inspect<string>('editor.wordSeparators').value;
 
 		const options: INotebookFindOptions = {
 			regex: this._state.isRegex,
@@ -702,31 +496,20 @@ export class FindModel extends Disposable {
 		return ret;
 	}
 
-	private _updateCurrentMatch(
-		findMatches: CellFindMatchWithIndex[],
-		currentMatchesPosition: number,
-	) {
+	private _updateCurrentMatch(findMatches: CellFindMatchWithIndex[], currentMatchesPosition: number) {
 		this._currentMatch = currentMatchesPosition % findMatches.length;
 		this.set(findMatches, false);
-		const nextIndex = this._findMatchesStarts!.getIndexOf(
-			this._currentMatch,
-		);
-		this.highlightCurrentFindMatchDecoration(
-			nextIndex.index,
-			nextIndex.remainder,
-		);
+		const nextIndex = this._findMatchesStarts!.getIndexOf(this._currentMatch);
+		this.highlightCurrentFindMatchDecoration(nextIndex.index, nextIndex.remainder);
 
 		this._state.changeMatchInfo(
 			this._currentMatch,
 			this._findMatches.reduce((p, c) => p + c.length, 0),
-			undefined,
+			undefined
 		);
 	}
 
-	private _matchesCountBeforeIndex(
-		findMatches: CellFindMatchWithIndex[],
-		index: number,
-	) {
+	private _matchesCountBeforeIndex(findMatches: CellFindMatchWithIndex[], index: number) {
 		let prevMatchesCount = 0;
 		for (let i = 0; i < index; i++) {
 			prevMatchesCount += findMatches[i].length;
@@ -748,23 +531,15 @@ export class FindModel extends Disposable {
 		}
 	}
 
-	private async highlightCurrentFindMatchDecoration(
-		cellIndex: number,
-		matchIndex: number,
-	): Promise<number | null> {
+
+	private async highlightCurrentFindMatchDecoration(cellIndex: number, matchIndex: number): Promise<number | null> {
 		const cell = this._findMatches[cellIndex].cell;
 		const match = this._findMatches[cellIndex].getMatch(matchIndex);
 
 		if (matchIndex < this._findMatches[cellIndex].contentMatches.length) {
-			return this._findMatchDecorationModel.highlightCurrentFindMatchDecorationInCell(
-				cell,
-				(match as FindMatch).range,
-			);
+			return this._findMatchDecorationModel.highlightCurrentFindMatchDecorationInCell(cell, (match as FindMatch).range);
 		} else {
-			return this._findMatchDecorationModel.highlightCurrentFindMatchDecorationInWebview(
-				cell,
-				(match as CellWebviewFindMatch).index,
-			);
+			return this._findMatchDecorationModel.highlightCurrentFindMatchDecorationInWebview(cell, (match as CellWebviewFindMatch).index);
 		}
 	}
 

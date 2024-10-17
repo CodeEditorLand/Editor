@@ -3,62 +3,41 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { mainWindow } from "../../../../../base/browser/window.js";
-import { Schemas } from "../../../../../base/common/network.js";
-import { IPath, posix, win32 } from "../../../../../base/common/path.js";
-import {
-	isWindows,
-	OperatingSystem,
-	OS,
-} from "../../../../../base/common/platform.js";
-import { URI } from "../../../../../base/common/uri.js";
-import { IFileService } from "../../../../../platform/files/common/files.js";
-import { ITerminalBackend } from "../../../../../platform/terminal/common/terminal.js";
-import { ITerminalProcessManager } from "../../../terminal/common/terminal.js";
-import { ITerminalLinkResolver, ResolvedLink } from "./links.js";
-import {
-	removeLinkQueryString,
-	removeLinkSuffix,
-	winDrivePrefix,
-} from "./terminalLinkParsing.js";
+import { ITerminalLinkResolver, ResolvedLink } from './links.js';
+import { removeLinkSuffix, removeLinkQueryString, winDrivePrefix } from './terminalLinkParsing.js';
+import { URI } from '../../../../../base/common/uri.js';
+import { ITerminalProcessManager } from '../../../terminal/common/terminal.js';
+import { Schemas } from '../../../../../base/common/network.js';
+import { isWindows, OperatingSystem, OS } from '../../../../../base/common/platform.js';
+import { IFileService } from '../../../../../platform/files/common/files.js';
+import { IPath, posix, win32 } from '../../../../../base/common/path.js';
+import { ITerminalBackend } from '../../../../../platform/terminal/common/terminal.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
 
 export class TerminalLinkResolver implements ITerminalLinkResolver {
 	// Link cache could be shared across all terminals, but that could lead to weird results when
 	// both local and remote terminals are present
 	private readonly _resolvedLinkCaches: Map<string, LinkCache> = new Map();
 
-	constructor(@IFileService private readonly _fileService: IFileService) {}
+	constructor(
+		@IFileService private readonly _fileService: IFileService,
+	) {
+	}
 
-	async resolveLink(
-		processManager: Pick<
-			ITerminalProcessManager,
-			"initialCwd" | "os" | "remoteAuthority" | "userHome"
-		> & { backend?: Pick<ITerminalBackend, "getWslPath"> },
-		link: string,
-		uri?: URI,
-	): Promise<ResolvedLink> {
+	async resolveLink(processManager: Pick<ITerminalProcessManager, 'initialCwd' | 'os' | 'remoteAuthority' | 'userHome'> & { backend?: Pick<ITerminalBackend, 'getWslPath'> }, link: string, uri?: URI): Promise<ResolvedLink> {
 		// Correct scheme and authority for remote terminals
-		if (
-			uri &&
-			uri.scheme === Schemas.file &&
-			processManager.remoteAuthority
-		) {
+		if (uri && uri.scheme === Schemas.file && processManager.remoteAuthority) {
 			uri = uri.with({
 				scheme: Schemas.vscodeRemote,
-				authority: processManager.remoteAuthority,
+				authority: processManager.remoteAuthority
 			});
 		}
 
 		// Get the link cache
-		let cache = this._resolvedLinkCaches.get(
-			processManager.remoteAuthority ?? "",
-		);
+		let cache = this._resolvedLinkCaches.get(processManager.remoteAuthority ?? '');
 		if (!cache) {
 			cache = new LinkCache();
-			this._resolvedLinkCaches.set(
-				processManager.remoteAuthority ?? "",
-				cache,
-			);
+			this._resolvedLinkCaches.set(processManager.remoteAuthority ?? '', cache);
 		}
 
 		// Check resolved link cache first
@@ -73,7 +52,8 @@ export class TerminalLinkResolver implements ITerminalLinkResolver {
 				const result = { uri, link, isDirectory: stat.isDirectory };
 				cache.set(uri, result);
 				return result;
-			} catch (e) {
+			}
+			catch (e) {
 				// Does not exist
 				cache.set(uri, null);
 				return null;
@@ -94,31 +74,16 @@ export class TerminalLinkResolver implements ITerminalLinkResolver {
 
 		// If the link looks like a /mnt/ WSL path and this is a Windows frontend, use the backend
 		// to get the resolved path from the wslpath util.
-		if (
-			isWindows &&
-			link.match(/^\/mnt\/[a-z]/i) &&
-			processManager.backend
-		) {
-			linkUrl = await processManager.backend.getWslPath(
-				linkUrl,
-				"unix-to-win",
-			);
+		if (isWindows && link.match(/^\/mnt\/[a-z]/i) && processManager.backend) {
+			linkUrl = await processManager.backend.getWslPath(linkUrl, 'unix-to-win');
 		}
 		// Skip preprocessing if it looks like a special Windows -> WSL link
-		else if (
-			isWindows &&
-			link.match(/^(?:\/\/|\\\\)wsl(?:\$|\.localhost)(\/|\\)/)
-		) {
+		else if (isWindows && link.match(/^(?:\/\/|\\\\)wsl(?:\$|\.localhost)(\/|\\)/)) {
 			// No-op, it's already the right format
 		}
 		// Handle all non-WSL links
 		else {
-			const preprocessedLink = this._preprocessPath(
-				linkUrl,
-				processManager.initialCwd,
-				processManager.os,
-				processManager.userHome,
-			);
+			const preprocessedLink = this._preprocessPath(linkUrl, processManager.initialCwd, processManager.os, processManager.userHome);
 			if (!preprocessedLink) {
 				cache.set(link, null);
 				return null;
@@ -132,7 +97,7 @@ export class TerminalLinkResolver implements ITerminalLinkResolver {
 				uri = URI.from({
 					scheme: Schemas.vscodeRemote,
 					authority: processManager.remoteAuthority,
-					path: linkUrl,
+					path: linkUrl
 				});
 			} else {
 				uri = URI.file(linkUrl);
@@ -143,7 +108,8 @@ export class TerminalLinkResolver implements ITerminalLinkResolver {
 				const result = { uri, link, isDirectory: stat.isDirectory };
 				cache.set(link, result);
 				return result;
-			} catch (e) {
+			}
+			catch (e) {
 				// Does not exist
 				cache.set(link, null);
 				return null;
@@ -155,26 +121,18 @@ export class TerminalLinkResolver implements ITerminalLinkResolver {
 		}
 	}
 
-	protected _preprocessPath(
-		link: string,
-		initialCwd: string,
-		os: OperatingSystem | undefined,
-		userHome: string | undefined,
-	): string | null {
+	protected _preprocessPath(link: string, initialCwd: string, os: OperatingSystem | undefined, userHome: string | undefined): string | null {
 		const osPath = this._getOsPath(os);
-		if (link.charAt(0) === "~") {
+		if (link.charAt(0) === '~') {
 			// Resolve ~ -> userHome
 			if (!userHome) {
 				return null;
 			}
 			link = osPath.join(userHome, link.substring(1));
-		} else if (link.charAt(0) !== "/" && link.charAt(0) !== "~") {
+		} else if (link.charAt(0) !== '/' && link.charAt(0) !== '~') {
 			// Resolve workspace path . | .. | <relative_path> -> <path>/. | <path>/.. | <path>/<relative_path>
 			if (os === OperatingSystem.Windows) {
-				if (
-					!link.match("^" + winDrivePrefix) &&
-					!link.startsWith("\\\\?\\")
-				) {
+				if (!link.match('^' + winDrivePrefix) && !link.startsWith('\\\\?\\')) {
 					if (!initialCwd) {
 						// Abort if no workspace is open
 						return null;
@@ -183,7 +141,7 @@ export class TerminalLinkResolver implements ITerminalLinkResolver {
 				} else {
 					// Remove \\?\ from paths so that they share the same underlying
 					// uri and don't open multiple tabs for the same file
-					link = link.replace(/^\\\\\?\\/, "");
+					link = link.replace(/^\\\\\?\\/, '');
 				}
 			} else {
 				if (!initialCwd) {
@@ -208,7 +166,7 @@ const enum LinkCacheConstants {
 	 * How long to cache links for in milliseconds, the TTL resets whenever a new value is set in
 	 * the cache.
 	 */
-	TTL = 10000,
+	TTL = 10000
 }
 
 class LinkCache {
@@ -220,10 +178,7 @@ class LinkCache {
 		if (this._cacheTilTimeout) {
 			mainWindow.clearTimeout(this._cacheTilTimeout);
 		}
-		this._cacheTilTimeout = mainWindow.setTimeout(
-			() => this._cache.clear(),
-			LinkCacheConstants.TTL,
-		);
+		this._cacheTilTimeout = mainWindow.setTimeout(() => this._cache.clear(), LinkCacheConstants.TTL);
 		this._cache.set(this._getKey(link), value);
 	}
 

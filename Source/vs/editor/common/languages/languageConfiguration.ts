@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CharCode } from "../../../base/common/charCode.js";
-import { StandardTokenType } from "../encodedTokenAttributes.js";
-import { ScopedLineTokens } from "./supports.js";
+import { CharCode } from '../../../base/common/charCode.js';
+import { StandardTokenType } from '../encodedTokenAttributes.js';
+import { ScopedLineTokens } from './supports.js';
 
 /**
  * Describes how comments for a language work.
@@ -65,7 +65,7 @@ export interface LanguageConfiguration {
 	/**
 	 * Defines a list of bracket pairs that are colorized depending on their nesting level.
 	 * If not set, the configured brackets will be used.
-	 */
+	*/
 	colorizedBracketPairs?: CharacterPair[];
 	/**
 	 * Defines what characters must be after the cursor for bracket or quote autoclosing to occur when using the \'languageDefined\' autoclosing setting.
@@ -97,9 +97,7 @@ type OrUndefined<T> = { [P in keyof T]: T[P] | undefined };
 /**
  * @internal
  */
-export type ExplicitLanguageConfiguration = OrUndefined<
-	Required<LanguageConfiguration>
->;
+export type ExplicitLanguageConfiguration = OrUndefined<Required<LanguageConfiguration>>;
 
 /**
  * Describes indentation rules for a language.
@@ -121,6 +119,7 @@ export interface IndentationRule {
 	 * If a line matches this pattern, then its indentation should not be changed and it should not be evaluated against the other rules.
 	 */
 	unIndentedLinePattern?: RegExp | null;
+
 }
 
 /**
@@ -224,7 +223,7 @@ export enum IndentAction {
 	/**
 	 * Insert new line and outdent once (relative to the previous line's indentation).
 	 */
-	Outdent = 3,
+	Outdent = 3
 }
 
 /**
@@ -271,6 +270,7 @@ export interface CompleteEnterAction {
  * @internal
  */
 export class StandardAutoClosingPairConditional {
+
 	readonly open: string;
 	readonly close: string;
 	private readonly _inString: boolean;
@@ -292,13 +292,13 @@ export class StandardAutoClosingPairConditional {
 			for (let i = 0, len = source.notIn.length; i < len; i++) {
 				const notIn: string = source.notIn[i];
 				switch (notIn) {
-					case "string":
+					case 'string':
 						this._inString = false;
 						break;
-					case "comment":
+					case 'comment':
 						this._inComment = false;
 						break;
-					case "regex":
+					case 'regex':
 						this._inRegEx = false;
 						break;
 				}
@@ -330,16 +330,10 @@ export class StandardAutoClosingPairConditional {
 		return this.isOK(standardTokenType);
 	}
 
-	private _findNeutralCharacterInRange(
-		fromCharCode: number,
-		toCharCode: number,
-	): string | null {
+	private _findNeutralCharacterInRange(fromCharCode: number, toCharCode: number): string | null {
 		for (let charCode = fromCharCode; charCode <= toCharCode; charCode++) {
 			const character = String.fromCharCode(charCode);
-			if (
-				!this.open.includes(character) &&
-				!this.close.includes(character)
-			) {
+			if (!this.open.includes(character) && !this.close.includes(character)) {
 				return character;
 			}
 		}
@@ -353,22 +347,13 @@ export class StandardAutoClosingPairConditional {
 		if (!this._neutralCharacterSearched) {
 			this._neutralCharacterSearched = true;
 			if (!this._neutralCharacter) {
-				this._neutralCharacter = this._findNeutralCharacterInRange(
-					CharCode.Digit0,
-					CharCode.Digit9,
-				);
+				this._neutralCharacter = this._findNeutralCharacterInRange(CharCode.Digit0, CharCode.Digit9);
 			}
 			if (!this._neutralCharacter) {
-				this._neutralCharacter = this._findNeutralCharacterInRange(
-					CharCode.a,
-					CharCode.z,
-				);
+				this._neutralCharacter = this._findNeutralCharacterInRange(CharCode.a, CharCode.z);
 			}
 			if (!this._neutralCharacter) {
-				this._neutralCharacter = this._findNeutralCharacterInRange(
-					CharCode.A,
-					CharCode.Z,
-				);
+				this._neutralCharacter = this._findNeutralCharacterInRange(CharCode.A, CharCode.Z);
 			}
 		}
 		return this._neutralCharacter;
@@ -382,79 +367,29 @@ export class AutoClosingPairs {
 	// it is useful to be able to get pairs using either end of open and close
 
 	/** Key is first character of open */
-	public readonly autoClosingPairsOpenByStart: Map<
-		string,
-		StandardAutoClosingPairConditional[]
-	>;
+	public readonly autoClosingPairsOpenByStart: Map<string, StandardAutoClosingPairConditional[]>;
 	/** Key is last character of open */
-	public readonly autoClosingPairsOpenByEnd: Map<
-		string,
-		StandardAutoClosingPairConditional[]
-	>;
+	public readonly autoClosingPairsOpenByEnd: Map<string, StandardAutoClosingPairConditional[]>;
 	/** Key is first character of close */
-	public readonly autoClosingPairsCloseByStart: Map<
-		string,
-		StandardAutoClosingPairConditional[]
-	>;
+	public readonly autoClosingPairsCloseByStart: Map<string, StandardAutoClosingPairConditional[]>;
 	/** Key is last character of close */
-	public readonly autoClosingPairsCloseByEnd: Map<
-		string,
-		StandardAutoClosingPairConditional[]
-	>;
+	public readonly autoClosingPairsCloseByEnd: Map<string, StandardAutoClosingPairConditional[]>;
 	/** Key is close. Only has pairs that are a single character */
-	public readonly autoClosingPairsCloseSingleChar: Map<
-		string,
-		StandardAutoClosingPairConditional[]
-	>;
+	public readonly autoClosingPairsCloseSingleChar: Map<string, StandardAutoClosingPairConditional[]>;
 
 	constructor(autoClosingPairs: StandardAutoClosingPairConditional[]) {
-		this.autoClosingPairsOpenByStart = new Map<
-			string,
-			StandardAutoClosingPairConditional[]
-		>();
-		this.autoClosingPairsOpenByEnd = new Map<
-			string,
-			StandardAutoClosingPairConditional[]
-		>();
-		this.autoClosingPairsCloseByStart = new Map<
-			string,
-			StandardAutoClosingPairConditional[]
-		>();
-		this.autoClosingPairsCloseByEnd = new Map<
-			string,
-			StandardAutoClosingPairConditional[]
-		>();
-		this.autoClosingPairsCloseSingleChar = new Map<
-			string,
-			StandardAutoClosingPairConditional[]
-		>();
+		this.autoClosingPairsOpenByStart = new Map<string, StandardAutoClosingPairConditional[]>();
+		this.autoClosingPairsOpenByEnd = new Map<string, StandardAutoClosingPairConditional[]>();
+		this.autoClosingPairsCloseByStart = new Map<string, StandardAutoClosingPairConditional[]>();
+		this.autoClosingPairsCloseByEnd = new Map<string, StandardAutoClosingPairConditional[]>();
+		this.autoClosingPairsCloseSingleChar = new Map<string, StandardAutoClosingPairConditional[]>();
 		for (const pair of autoClosingPairs) {
-			appendEntry(
-				this.autoClosingPairsOpenByStart,
-				pair.open.charAt(0),
-				pair,
-			);
-			appendEntry(
-				this.autoClosingPairsOpenByEnd,
-				pair.open.charAt(pair.open.length - 1),
-				pair,
-			);
-			appendEntry(
-				this.autoClosingPairsCloseByStart,
-				pair.close.charAt(0),
-				pair,
-			);
-			appendEntry(
-				this.autoClosingPairsCloseByEnd,
-				pair.close.charAt(pair.close.length - 1),
-				pair,
-			);
+			appendEntry(this.autoClosingPairsOpenByStart, pair.open.charAt(0), pair);
+			appendEntry(this.autoClosingPairsOpenByEnd, pair.open.charAt(pair.open.length - 1), pair);
+			appendEntry(this.autoClosingPairsCloseByStart, pair.close.charAt(0), pair);
+			appendEntry(this.autoClosingPairsCloseByEnd, pair.close.charAt(pair.close.length - 1), pair);
 			if (pair.close.length === 1 && pair.open.length === 1) {
-				appendEntry(
-					this.autoClosingPairsCloseSingleChar,
-					pair.close,
-					pair,
-				);
+				appendEntry(this.autoClosingPairsCloseSingleChar, pair.close, pair);
 			}
 		}
 	}

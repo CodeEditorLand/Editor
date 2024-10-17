@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable } from "../../../base/common/lifecycle.js";
+import { Disposable } from '../../../base/common/lifecycle.js';
 
 export class TextModelPart extends Disposable {
 	private _isDisposed = false;
@@ -14,7 +14,7 @@ export class TextModelPart extends Disposable {
 	}
 	protected assertNotDisposed(): void {
 		if (this._isDisposed) {
-			throw new Error("TextModelPart is disposed!");
+			throw new Error('TextModelPart is disposed!');
 		}
 	}
 }

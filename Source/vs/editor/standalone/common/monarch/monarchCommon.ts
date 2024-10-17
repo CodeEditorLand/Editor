@@ -17,7 +17,7 @@
 export const enum MonarchBracket {
 	None = 0,
 	Open = 1,
-	Close = -1,
+	Close = -1
 }
 
 export interface ILexerMin {
@@ -51,20 +51,16 @@ export interface IBracket {
 
 export type FuzzyAction = IAction | string;
 
-export function isFuzzyActionArr(
-	what: FuzzyAction | FuzzyAction[],
-): what is FuzzyAction[] {
-	return Array.isArray(what);
+export function isFuzzyActionArr(what: FuzzyAction | FuzzyAction[]): what is FuzzyAction[] {
+	return (Array.isArray(what));
 }
 
-export function isFuzzyAction(
-	what: FuzzyAction | FuzzyAction[],
-): what is FuzzyAction {
+export function isFuzzyAction(what: FuzzyAction | FuzzyAction[]): what is FuzzyAction {
 	return !isFuzzyActionArr(what);
 }
 
 export function isString(what: FuzzyAction): what is string {
-	return typeof what === "string";
+	return (typeof what === 'string');
 }
 
 export function isIAction(what: FuzzyAction): what is IAction {
@@ -83,12 +79,7 @@ export interface IAction {
 	group?: FuzzyAction[];
 
 	// or a function that returns a fresh action
-	test?: (
-		id: string,
-		matches: string[],
-		state: string,
-		eos: boolean,
-	) => FuzzyAction;
+	test?: (id: string, matches: string[], state: string, eos: boolean) => FuzzyAction;
 
 	// or it is a declarative action with a token value and various other attributes
 	token?: string;
@@ -105,12 +96,7 @@ export interface IAction {
 export interface IBranch {
 	name: string;
 	value: FuzzyAction;
-	test?: (
-		id: string,
-		matches: string[],
-		state: string,
-		eos: boolean,
-	) => boolean;
+	test?: (id: string, matches: string[], state: string, eos: boolean) => boolean;
 }
 
 // Small helper functions
@@ -119,21 +105,21 @@ export interface IBranch {
  * Is a string null, undefined, or empty?
  */
 export function empty(s: string): boolean {
-	return s ? false : true;
+	return (s ? false : true);
 }
 
 /**
  * Puts a string to lower case if 'ignoreCase' is set.
  */
 export function fixCase(lexer: ILexerMin, str: string): string {
-	return lexer.ignoreCase && str ? str.toLowerCase() : str;
+	return (lexer.ignoreCase && str ? str.toLowerCase() : str);
 }
 
 /**
  * Ensures there are no bad characters in a CSS token class.
  */
 export function sanitize(s: string) {
-	return s.replace(/[&<>'"_]/g, "-"); // used on all output token CSS classes
+	return s.replace(/[&<>'"_]/g, '-'); // used on all output token CSS classes
 }
 
 // Logging
@@ -162,41 +148,31 @@ export function createError(lexer: ILexerMin, msg: string): Error {
  *
  * See documentation for more info
  */
-export function substituteMatches(
-	lexer: ILexerMin,
-	str: string,
-	id: string,
-	matches: string[],
-	state: string,
-): string {
+export function substituteMatches(lexer: ILexerMin, str: string, id: string, matches: string[], state: string): string {
 	const re = /\$((\$)|(#)|(\d\d?)|[sS](\d\d?)|@(\w+))/g;
 	let stateMatches: string[] | null = null;
-	return str.replace(
-		re,
-		function (full, sub?, dollar?, hash?, n?, s?, attr?, ofs?, total?) {
-			if (!empty(dollar)) {
-				return "$"; // $$
-			}
-			if (!empty(hash)) {
-				return fixCase(lexer, id); // default $#
-			}
-			if (!empty(n) && n < matches.length) {
-				return fixCase(lexer, matches[n]); // $n
-			}
-			if (!empty(attr) && lexer && typeof lexer[attr] === "string") {
-				return lexer[attr]; //@attribute
-			}
-			if (stateMatches === null) {
-				// split state on demand
-				stateMatches = state.split(".");
-				stateMatches.unshift(state);
-			}
-			if (!empty(s) && s < stateMatches.length) {
-				return fixCase(lexer, stateMatches[s]); //$Sn
-			}
-			return "";
-		},
-	);
+	return str.replace(re, function (full, sub?, dollar?, hash?, n?, s?, attr?, ofs?, total?) {
+		if (!empty(dollar)) {
+			return '$'; // $$
+		}
+		if (!empty(hash)) {
+			return fixCase(lexer, id);   // default $#
+		}
+		if (!empty(n) && n < matches.length) {
+			return fixCase(lexer, matches[n]); // $n
+		}
+		if (!empty(attr) && lexer && typeof (lexer[attr]) === 'string') {
+			return lexer[attr]; //@attribute
+		}
+		if (stateMatches === null) { // split state on demand
+			stateMatches = state.split('.');
+			stateMatches.unshift(state);
+		}
+		if (!empty(s) && s < stateMatches.length) {
+			return fixCase(lexer, stateMatches[s]); //$Sn
+		}
+		return '';
+	});
 }
 
 /**
@@ -204,23 +180,18 @@ export function substituteMatches(
  * 		$Sn => n'th part of state
  *
  */
-export function substituteMatchesRe(
-	lexer: ILexerMin,
-	str: string,
-	state: string,
-): string {
+export function substituteMatchesRe(lexer: ILexerMin, str: string, state: string): string {
 	const re = /\$[sS](\d\d?)/g;
 	let stateMatches: string[] | null = null;
 	return str.replace(re, function (full, s) {
-		if (stateMatches === null) {
-			// split state on demand
-			stateMatches = state.split(".");
+		if (stateMatches === null) { // split state on demand
+			stateMatches = state.split('.');
 			stateMatches.unshift(state);
 		}
 		if (!empty(s) && s < stateMatches.length) {
 			return fixCase(lexer, stateMatches[s]); //$Sn
 		}
-		return "";
+		return '';
 	});
 }
 
@@ -235,7 +206,7 @@ export function findRules(lexer: ILexer, inState: string): IRule[] | null {
 			return rules;
 		}
 
-		const idx = state.lastIndexOf(".");
+		const idx = state.lastIndexOf('.');
 		if (idx < 0) {
 			state = null; // no further parent
 		} else {
@@ -258,7 +229,7 @@ export function stateExists(lexer: ILexerMin, inState: string): boolean {
 			return true;
 		}
 
-		const idx = state.lastIndexOf(".");
+		const idx = state.lastIndexOf('.');
 		if (idx < 0) {
 			state = null; // no further parent
 		} else {

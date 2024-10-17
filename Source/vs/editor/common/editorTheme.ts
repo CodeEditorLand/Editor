@@ -3,12 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Color } from "../../base/common/color.js";
-import { ColorIdentifier } from "../../platform/theme/common/colorRegistry.js";
-import { ColorScheme } from "../../platform/theme/common/theme.js";
-import { IColorTheme } from "../../platform/theme/common/themeService.js";
+import { IColorTheme } from '../../platform/theme/common/themeService.js';
+import { ColorIdentifier } from '../../platform/theme/common/colorRegistry.js';
+import { Color } from '../../base/common/color.js';
+import { ColorScheme } from '../../platform/theme/common/theme.js';
 
 export class EditorTheme {
+
 	private _theme: IColorTheme;
 
 	public get type(): ColorScheme {

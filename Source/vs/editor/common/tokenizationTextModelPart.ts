@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { OffsetEdit } from "./core/offsetEdit.js";
-import { OffsetRange } from "./core/offsetRange.js";
-import { Range } from "./core/range.js";
-import { StandardTokenType } from "./encodedTokenAttributes.js";
-import { LineTokens } from "./tokens/lineTokens.js";
-import { SparseMultilineTokens } from "./tokens/sparseMultilineTokens.js";
+import { OffsetEdit } from './core/offsetEdit.js';
+import { OffsetRange } from './core/offsetRange.js';
+import { Range } from './core/range.js';
+import { StandardTokenType } from './encodedTokenAttributes.js';
+import { LineTokens } from './tokens/lineTokens.js';
+import { SparseMultilineTokens } from './tokens/sparseMultilineTokens.js';
 
 /**
  * Provides tokenization related functionality of the text model.
- */
+*/
 export interface ITokenizationTextModelPart {
 	readonly hasTokens: boolean;
 
@@ -20,19 +20,13 @@ export interface ITokenizationTextModelPart {
 	 * Replaces all semantic tokens with the provided `tokens`.
 	 * @internal
 	 */
-	setSemanticTokens(
-		tokens: SparseMultilineTokens[] | null,
-		isComplete: boolean,
-	): void;
+	setSemanticTokens(tokens: SparseMultilineTokens[] | null, isComplete: boolean): void;
 
 	/**
 	 * Merges the provided semantic tokens into existing semantic tokens.
 	 * @internal
 	 */
-	setPartialSemanticTokens(
-		range: Range,
-		tokens: SparseMultilineTokens[] | null,
-	): void;
+	setPartialSemanticTokens(range: Range, tokens: SparseMultilineTokens[] | null): void;
 
 	/**
 	 * @internal
@@ -84,23 +78,16 @@ export interface ITokenizationTextModelPart {
 	getLineTokens(lineNumber: number): LineTokens;
 
 	/**
-	 * Returns the standard token type for a character if the character were to be inserted at
-	 * the given position. If the result cannot be accurate, it returns null.
-	 * @internal
-	 */
-	getTokenTypeIfInsertingCharacter(
-		lineNumber: number,
-		column: number,
-		character: string,
-	): StandardTokenType;
+	* Returns the standard token type for a character if the character were to be inserted at
+	* the given position. If the result cannot be accurate, it returns null.
+	* @internal
+	*/
+	getTokenTypeIfInsertingCharacter(lineNumber: number, column: number, character: string): StandardTokenType;
 
 	/**
 	 * @internal
-	 */
-	tokenizeLineWithEdit(
-		lineNumber: number,
-		edit: LineEditWithAdditionalLines,
-	): ITokenizeLineWithEditResult;
+	*/
+	tokenizeLineWithEdit(lineNumber: number, edit: LineEditWithAdditionalLines): ITokenizeLineWithEditResult;
 
 	getLanguageId(): string;
 	getLanguageIdAtPosition(lineNumber: number, column: number): string;
@@ -111,10 +98,7 @@ export interface ITokenizationTextModelPart {
 }
 
 export class LineEditWithAdditionalLines {
-	public static replace(
-		range: OffsetRange,
-		text: string,
-	): LineEditWithAdditionalLines {
+	public static replace(range: OffsetRange, text: string): LineEditWithAdditionalLines {
 		return new LineEditWithAdditionalLines(
 			OffsetEdit.replace(range, text),
 			null,
@@ -124,14 +108,14 @@ export class LineEditWithAdditionalLines {
 	constructor(
 		/**
 		 * The edit for the main line.
-		 */
+		*/
 		readonly lineEdit: OffsetEdit,
 
 		/**
 		 * Full lines appended after the main line.
-		 */
+		*/
 		readonly additionalLines: string[] | null,
-	) {}
+	) { }
 }
 
 export interface ITokenizeLineWithEditResult {

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IProcessEnvironment, isLinux } from "./platform.js";
+import { IProcessEnvironment, isLinux } from './platform.js';
 
 /**
  * Options to be passed to the external program or shell.
@@ -52,7 +52,7 @@ export interface ForkOptions extends CommandOptions {
 
 export const enum Source {
 	stdout,
-	stderr,
+	stderr
 }
 
 /**
@@ -101,10 +101,7 @@ export interface ProcessItem {
 /**
  * Sanitizes a VS Code process environment by removing all Electron/VS Code-related values.
  */
-export function sanitizeProcessEnvironment(
-	env: IProcessEnvironment,
-	...preserve: string[]
-): void {
+export function sanitizeProcessEnvironment(env: IProcessEnvironment, ...preserve: string[]): void {
 	const set = preserve.reduce<Record<string, boolean>>((set, key) => {
 		set[key] = true;
 		return set;
@@ -117,8 +114,8 @@ export function sanitizeProcessEnvironment(
 	];
 	const envKeys = Object.keys(env);
 	envKeys
-		.filter((key) => !set[key])
-		.forEach((envKey) => {
+		.filter(key => !set[key])
+		.forEach(envKey => {
 			for (let i = 0; i < keysToRemove.length; i++) {
 				if (envKey.search(keysToRemove[i]) !== -1) {
 					delete env[envKey];
@@ -134,20 +131,18 @@ export function sanitizeProcessEnvironment(
  *
  * @param env The env object to change
  */
-export function removeDangerousEnvVariables(
-	env: IProcessEnvironment | undefined,
-): void {
+export function removeDangerousEnvVariables(env: IProcessEnvironment | undefined): void {
 	if (!env) {
 		return;
 	}
 
 	// Unset `DEBUG`, as an invalid value might lead to process crashes
 	// See https://github.com/microsoft/vscode/issues/130072
-	delete env["DEBUG"];
+	delete env['DEBUG'];
 
 	if (isLinux) {
 		// Unset `LD_PRELOAD`, as it might lead to process crashes
 		// See https://github.com/microsoft/vscode/issues/134177
-		delete env["LD_PRELOAD"];
+		delete env['LD_PRELOAD'];
 	}
 }

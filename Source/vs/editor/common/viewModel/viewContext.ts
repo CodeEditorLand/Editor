@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IColorTheme } from "../../../platform/theme/common/themeService.js";
-import { IEditorConfiguration } from "../config/editorConfiguration.js";
-import { EditorTheme } from "../editorTheme.js";
-import { ViewEventHandler } from "../viewEventHandler.js";
-import { IViewLayout, IViewModel } from "../viewModel.js";
+import { IEditorConfiguration } from '../config/editorConfiguration.js';
+import { ViewEventHandler } from '../viewEventHandler.js';
+import { IViewLayout, IViewModel } from '../viewModel.js';
+import { IColorTheme } from '../../../platform/theme/common/themeService.js';
+import { EditorTheme } from '../editorTheme.js';
 
 export class ViewContext {
+
 	public readonly configuration: IEditorConfiguration;
 	public readonly viewModel: IViewModel;
 	public readonly viewLayout: IViewLayout;
@@ -18,7 +19,7 @@ export class ViewContext {
 	constructor(
 		configuration: IEditorConfiguration,
 		theme: IColorTheme,
-		model: IViewModel,
+		model: IViewModel
 	) {
 		this.configuration = configuration;
 		this.theme = new EditorTheme(theme);

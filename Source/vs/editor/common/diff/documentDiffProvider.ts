@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Event } from "../../../base/common/event.js";
-import { ITextModel } from "../model.js";
-import { MovedText } from "./linesDiffComputer.js";
-import { DetailedLineRangeMapping } from "./rangeMapping.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { Event } from '../../../base/common/event.js';
+import { MovedText } from './linesDiffComputer.js';
+import { DetailedLineRangeMapping } from './rangeMapping.js';
+import { ITextModel } from '../model.js';
 
 /**
  * A document diff provider computes the diff between two text models.
@@ -17,12 +17,7 @@ export interface IDocumentDiffProvider {
 	/**
 	 * Computes the diff between the text models `original` and `modified`.
 	 */
-	computeDiff(
-		original: ITextModel,
-		modified: ITextModel,
-		options: IDocumentDiffProviderOptions,
-		cancellationToken: CancellationToken,
-	): Promise<IDocumentDiff>;
+	computeDiff(original: ITextModel, modified: ITextModel, options: IDocumentDiffProviderOptions, cancellationToken: CancellationToken): Promise<IDocumentDiff>;
 
 	/**
 	 * Is fired when settings of the diff algorithm change that could alter the result of the diffing computation.
@@ -79,9 +74,10 @@ export interface IDocumentDiff {
 	readonly moves: readonly MovedText[];
 }
 
+
 export const nullDocumentDiff: IDocumentDiff = Object.freeze({
 	identical: true,
 	quitEarly: false,
 	changes: Object.freeze([]),
-	moves: Object.freeze([]),
+	moves: Object.freeze([])
 });

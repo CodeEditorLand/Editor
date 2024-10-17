@@ -1,26 +1,15 @@
 {
-  "name": "theme-monokai",
-  "displayName": "%displayName%",
-  "description": "%description%",
-  "version": "1.0.0",
-  "publisher": "vscode",
-  "license": "MIT",
-  "engines": {
-    "vscode": "*"
-  },
-  "categories": ["Themes"],
-  "contributes": {
-    "themes": [
-      {
-        "id": "Monokai",
-        "label": "%themeLabel%",
-        "uiTheme": "vs-dark",
-        "path": "./themes/monokai-color-theme.json"
-      }
-    ]
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/microsoft/vscode.git"
-  }
+	"contributes": {
+		"themes": [
+			{
+				"id": "Monokai",
+				"label": "%themeLabel%",
+				"path": "./themes/monokai-color-theme.json",
+				"uiTheme": "vs-dark"
+			}
+		]
+	},
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "theme-monokai"
 }

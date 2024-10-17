@@ -1,124 +1,113 @@
 {
-  "name": "json",
-  "displayName": "%displayName%",
-  "description": "%description%",
-  "version": "1.0.0",
-  "publisher": "vscode",
-  "license": "MIT",
-  "engines": {
-    "vscode": "0.10.x"
-  },
-  "scripts": {
-    "update-grammar": "node ./build/update-grammars.js"
-  },
-  "categories": ["Programming Languages"],
-  "contributes": {
-    "languages": [
-      {
-        "id": "json",
-        "aliases": [
-          "JSON",
-          "json"
-        ],
-        "extensions": [
-          ".json",
-          ".bowerrc",
-          ".jscsrc",
-          ".webmanifest",
-          ".js.map",
-          ".css.map",
-          ".ts.map",
-          ".har",
-          ".jslintrc",
-          ".jsonld",
-          ".geojson",
-          ".ipynb",
-          ".vuerc"
-        ],
-        "filenames": [
-          "composer.lock",
-          ".watchmanconfig"
-        ],
-        "mimetypes": [
-          "application/json",
-          "application/manifest+json"
-        ],
-        "configuration": "./language-configuration.json"
-      },
-      {
-        "id": "jsonc",
-        "aliases": [
-          "JSON with Comments"
-        ],
-        "extensions": [
-          ".jsonc",
-          ".eslintrc",
-          ".eslintrc.json",
-          ".jsfmtrc",
-          ".jshintrc",
-          ".swcrc",
-          ".hintrc",
-          ".babelrc"
-        ],
-        "filenames": [
-          "babel.config.json",
-          ".babelrc.json",
-          ".ember-cli",
-          "typedoc.json"
-        ],
-        "configuration": "./language-configuration.json"
-      },
-      {
-        "id": "jsonl",
-        "aliases": [
-          "JSON Lines"
-        ],
-        "extensions": [
-          ".jsonl"
-        ],
-        "filenames": [],
-        "configuration": "./language-configuration.json"
-      },
-      {
-        "id": "snippets",
-        "aliases": [
-            "Code Snippets"
-        ],
-        "extensions": [
-          ".code-snippets"
-        ],
-        "filenamePatterns": [
-          "**/User/snippets/*.json",
-          "**/User/profiles/*/snippets/*.json"
-        ],
-        "configuration": "./language-configuration.json"
-      }
-    ],
-    "grammars": [
-      {
-        "language": "json",
-        "scopeName": "source.json",
-        "path": "./syntaxes/JSON.tmLanguage.json"
-      },
-      {
-        "language": "jsonc",
-        "scopeName": "source.json.comments",
-        "path": "./syntaxes/JSONC.tmLanguage.json"
-      },
-      {
-        "language": "jsonl",
-        "scopeName": "source.json.lines",
-        "path": "./syntaxes/JSONL.tmLanguage.json"
-      },
-      {
-        "language": "snippets",
-        "scopeName": "source.json.comments.snippets",
-        "path": "./syntaxes/snippets.tmLanguage.json"
-      }
-    ]
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/microsoft/vscode.git"
-  }
+	"contributes": {
+		"grammars": [
+			{
+				"language": "json",
+				"path": "./syntaxes/JSON.tmLanguage.json",
+				"scopeName": "source.json"
+			},
+			{
+				"language": "jsonc",
+				"path": "./syntaxes/JSONC.tmLanguage.json",
+				"scopeName": "source.json.comments"
+			},
+			{
+				"language": "jsonl",
+				"path": "./syntaxes/JSONL.tmLanguage.json",
+				"scopeName": "source.json.lines"
+			},
+			{
+				"language": "snippets",
+				"path": "./syntaxes/snippets.tmLanguage.json",
+				"scopeName": "source.json.comments.snippets"
+			}
+		],
+		"languages": [
+			{
+				"aliases": [
+					"JSON",
+					"json"
+				],
+				"configuration": "./language-configuration.json",
+				"extensions": [
+					".json",
+					".bowerrc",
+					".jscsrc",
+					".webmanifest",
+					".js.map",
+					".css.map",
+					".ts.map",
+					".har",
+					".jslintrc",
+					".jsonld",
+					".geojson",
+					".ipynb",
+					".vuerc"
+				],
+				"filenames": [
+					"composer.lock",
+					".watchmanconfig"
+				],
+				"id": "json",
+				"mimetypes": [
+					"application/json",
+					"application/manifest+json"
+				]
+			},
+			{
+				"aliases": [
+					"JSON with Comments"
+				],
+				"configuration": "./language-configuration.json",
+				"extensions": [
+					".jsonc",
+					".eslintrc",
+					".eslintrc.json",
+					".jsfmtrc",
+					".jshintrc",
+					".swcrc",
+					".hintrc",
+					".babelrc"
+				],
+				"filenames": [
+					"babel.config.json",
+					".babelrc.json",
+					".ember-cli",
+					"typedoc.json"
+				],
+				"id": "jsonc"
+			},
+			{
+				"aliases": [
+					"JSON Lines"
+				],
+				"configuration": "./language-configuration.json",
+				"extensions": [
+					".jsonl"
+				],
+				"filenames": [],
+				"id": "jsonl"
+			},
+			{
+				"aliases": [
+					"Code Snippets"
+				],
+				"configuration": "./language-configuration.json",
+				"extensions": [
+					".code-snippets"
+				],
+				"filenamePatterns": [
+					"**/User/snippets/*.json",
+					"**/User/profiles/*/snippets/*.json"
+				],
+				"id": "snippets"
+			}
+		]
+	},
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "json",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammars.js"
+	}
 }

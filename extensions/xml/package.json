@@ -1,36 +1,24 @@
 {
-	"name": "xml",
-	"displayName": "%displayName%",
-	"version": "1.0.0",
-	"description": "%description%",
-	"categories": [
-		"Programming Languages"
-	],
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/microsoft/vscode.git"
-	},
-	"license": "MIT",
-	"publisher": "vscode",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin atom/language-xml grammars/xml.cson ./syntaxes/xml.tmLanguage.json grammars/xsl.cson ./syntaxes/xsl.tmLanguage.json"
-	},
 	"contributes": {
 		"grammars": [
 			{
 				"language": "xml",
-				"scopeName": "text.xml",
-				"path": "./syntaxes/xml.tmLanguage.json"
+				"path": "./syntaxes/xml.tmLanguage.json",
+				"scopeName": "text.xml"
 			},
 			{
 				"language": "xsl",
-				"scopeName": "text.xml.xsl",
-				"path": "./syntaxes/xsl.tmLanguage.json"
+				"path": "./syntaxes/xsl.tmLanguage.json",
+				"scopeName": "text.xml.xsl"
 			}
 		],
 		"languages": [
 			{
-				"id": "xml",
+				"aliases": [
+					"XML",
+					"xml"
+				],
+				"configuration": "./xml.language-configuration.json",
 				"extensions": [
 					".xml",
 					".xsd",
@@ -95,27 +83,26 @@
 					".xoml"
 				],
 				"firstLine": "(\\<\\?xml.*)|(\\<svg)|(\\<\\!doctype\\s+svg)",
-				"aliases": [
-					"XML",
-					"xml"
-				],
-				"configuration": "./xml.language-configuration.json"
+				"id": "xml"
 			},
 			{
-				"id": "xsl",
-				"extensions": [
-					".xsl",
-					".xslt"
-				],
 				"aliases": [
 					"XSL",
 					"xsl"
 				],
-				"configuration": "./xsl.language-configuration.json"
+				"configuration": "./xsl.language-configuration.json",
+				"extensions": [
+					".xsl",
+					".xslt"
+				],
+				"id": "xsl"
 			}
 		]
 	},
-	"engines": {
-		"vscode": "*"
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "xml",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin atom/language-xml grammars/xml.cson ./syntaxes/xml.tmLanguage.json grammars/xsl.cson ./syntaxes/xsl.tmLanguage.json"
 	}
 }

@@ -1,84 +1,85 @@
 {
-	"name": "vscode-test-resolver",
-	"version": "0.0.1",
-	"private": true,
-	"description": "Test resolver for VS Code",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/microsoft/vscode.git"
-	},
-	"license": "MIT",
-	"publisher": "vscode",
-	"main": "./out/extension",
+	"activationEvents": [
+		"onResolveRemoteAuthority:test",
+		"onCommand:vscode-testresolver.newWindow",
+		"onCommand:vscode-testresolver.currentWindow",
+		"onCommand:vscode-testresolver.newWindowWithError",
+		"onCommand:vscode-testresolver.showLog",
+		"onCommand:vscode-testresolver.openTunnel",
+		"onCommand:vscode-testresolver.startRemoteServer",
+		"onCommand:vscode-testresolver.toggleConnectionPause"
+	],
 	"browser": "./dist/browser/testResolverMain",
-	"scripts": {
-		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./",
-		"vscode:prepublish": "node ../../node_modules/gulp/bin/gulp.js --gulpfile ../../build/gulpfile.extensions.js compile-extension:vscode-test-resolver"
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
 	},
 	"contributes": {
 		"commands": [
 			{
-				"title": "New TestResolver Window",
 				"category": "Remote-TestResolver",
-				"command": "vscode-testresolver.newWindow"
+				"command": "vscode-testresolver.newWindow",
+				"title": "New TestResolver Window"
 			},
 			{
-				"title": "Connect to TestResolver in Current Window",
 				"category": "Remote-TestResolver",
-				"command": "vscode-testresolver.currentWindow"
+				"command": "vscode-testresolver.currentWindow",
+				"title": "Connect to TestResolver in Current Window"
 			},
 			{
-				"title": "Connect to TestResolver in Current Window with Managed Connection",
 				"category": "Remote-TestResolver",
-				"command": "vscode-testresolver.currentWindowManaged"
+				"command": "vscode-testresolver.currentWindowManaged",
+				"title": "Connect to TestResolver in Current Window with Managed Connection"
 			},
 			{
-				"title": "Show TestResolver Log",
 				"category": "Remote-TestResolver",
-				"command": "vscode-testresolver.showLog"
+				"command": "vscode-testresolver.showLog",
+				"title": "Show TestResolver Log"
 			},
 			{
-				"title": "Kill Remote Server and Trigger Handled Error",
 				"category": "Remote-TestResolver",
-				"command": "vscode-testresolver.killServerAndTriggerHandledError"
+				"command": "vscode-testresolver.killServerAndTriggerHandledError",
+				"title": "Kill Remote Server and Trigger Handled Error"
 			},
 			{
-				"title": "Open Tunnel...",
 				"category": "Remote-TestResolver",
-				"command": "vscode-testresolver.openTunnel"
+				"command": "vscode-testresolver.openTunnel",
+				"title": "Open Tunnel..."
 			},
 			{
-				"title": "Open a Remote Port...",
 				"category": "Remote-TestResolver",
-				"command": "vscode-testresolver.startRemoteServer"
+				"command": "vscode-testresolver.startRemoteServer",
+				"title": "Open a Remote Port..."
 			},
 			{
-				"title": "Pause Connection (Test Reconnect)",
 				"category": "Remote-TestResolver",
-				"command": "vscode-testresolver.toggleConnectionPause"
+				"command": "vscode-testresolver.toggleConnectionPause",
+				"title": "Pause Connection (Test Reconnect)"
 			},
 			{
-				"title": "Slowdown Connection (Test Slow Down Indicator)",
 				"category": "Remote-TestResolver",
-				"command": "vscode-testresolver.toggleConnectionSlowdown"
+				"command": "vscode-testresolver.toggleConnectionSlowdown",
+				"title": "Slowdown Connection (Test Slow Down Indicator)"
 			}
 		],
 		"configuration": {
 			"properties": {
 				"testresolver.startupDelay": {
+					"default": 0,
 					"description": "If set, the resolver will delay for the given amount of seconds. Use ths setting for testing a slow resolver",
-					"type": "number",
-					"default": 0
+					"type": "number"
 				},
 				"testresolver.startupError": {
+					"default": false,
 					"description": "If set, the resolver will fail. Use ths setting for testing the failure of a resolver.",
-					"type": "boolean",
-					"default": false
+					"type": "boolean"
 				},
 				"testresolver.supportPublicPorts": {
+					"default": false,
 					"description": "If set, the test resolver tunnel factory will support mock public ports. Forwarded ports will not actually be public. Requires reload.",
-					"type": "boolean",
-					"default": false
+					"type": "boolean"
 				}
 			}
 		},
@@ -100,39 +101,38 @@
 			"statusBar/remoteIndicator": [
 				{
 					"command": "vscode-testresolver.newWindow",
-					"when": "!remoteName && !virtualWorkspace",
-					"group": "remote_90_test_1_local@2"
+					"group": "remote_90_test_1_local@2",
+					"when": "!remoteName && !virtualWorkspace"
 				},
 				{
 					"command": "vscode-testresolver.showLog",
-					"when": "remoteName == test",
-					"group": "remote_90_test_1_open@3"
+					"group": "remote_90_test_1_open@3",
+					"when": "remoteName == test"
 				},
 				{
 					"command": "vscode-testresolver.newWindow",
-					"when": "remoteName == test",
-					"group": "remote_90_test_1_open@1"
+					"group": "remote_90_test_1_open@1",
+					"when": "remoteName == test"
 				},
 				{
 					"command": "vscode-testresolver.openTunnel",
-					"when": "remoteName == test",
-					"group": "remote_90_test_2_more@4"
+					"group": "remote_90_test_2_more@4",
+					"when": "remoteName == test"
 				},
 				{
 					"command": "vscode-testresolver.startRemoteServer",
-					"when": "remoteName == test",
-					"group": "remote_90_test_2_more@5"
+					"group": "remote_90_test_2_more@5",
+					"when": "remoteName == test"
 				},
 				{
 					"command": "vscode-testresolver.toggleConnectionPause",
-					"when": "remoteName == test",
-					"group": "remote_90_test_2_more@6"
+					"group": "remote_90_test_2_more@6",
+					"when": "remoteName == test"
 				}
 			]
 		},
 		"resourceLabelFormatters": [
 			{
-				"scheme": "vscode-remote",
 				"authority": "test+*",
 				"formatting": {
 					"label": "${path}",
@@ -140,32 +140,14 @@
 					"tildify": true,
 					"workspaceSuffix": "TestResolver",
 					"workspaceTooltip": "Remote running on the same machine"
-				}
+				},
+				"scheme": "vscode-remote"
 			}
 		]
 	},
-	"activationEvents": [
-		"onResolveRemoteAuthority:test",
-		"onCommand:vscode-testresolver.newWindow",
-		"onCommand:vscode-testresolver.currentWindow",
-		"onCommand:vscode-testresolver.newWindowWithError",
-		"onCommand:vscode-testresolver.showLog",
-		"onCommand:vscode-testresolver.openTunnel",
-		"onCommand:vscode-testresolver.startRemoteServer",
-		"onCommand:vscode-testresolver.toggleConnectionPause"
-	],
+	"description": "Test resolver for VS Code",
 	"devDependencies": {
 		"@types/node": "22.x"
-	},
-	"engines": {
-		"vscode": "^1.25.0"
-	},
-	"icon": "media/icon.png",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"supported": true
-		},
-		"virtualWorkspaces": true
 	},
 	"enabledApiProposals": [
 		"resolvers",
@@ -173,5 +155,11 @@
 	],
 	"extensionKind": [
 		"ui"
-	]
+	],
+	"icon": "media/icon.png",
+	"main": "./out/extension",
+	"name": "vscode-test-resolver",
+	"scripts": {
+		"compile": "node ./node_modules/vscode/bin/compile -watch -p ./"
+	}
 }

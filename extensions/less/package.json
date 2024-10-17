@@ -1,61 +1,50 @@
 {
-  "name": "less",
-  "displayName": "%displayName%",
-  "description": "%description%",
-  "version": "1.0.0",
-  "publisher": "vscode",
-  "license": "MIT",
-  "engines": {
-    "vscode": "*"
-  },
-  "scripts": {
-    "update-grammar": "node ./build/update-grammar.js"
-  },
-  "categories": ["Programming Languages"],
-  "contributes": {
-    "languages": [
-      {
-        "id": "less",
-        "aliases": [
-          "Less",
-          "less"
-        ],
-        "extensions": [
-          ".less"
-        ],
-        "mimetypes": [
-          "text/x-less",
-          "text/less"
-        ],
-        "configuration": "./language-configuration.json"
-      }
-    ],
-    "grammars": [
-      {
-        "language": "less",
-        "scopeName": "source.css.less",
-        "path": "./syntaxes/less.tmLanguage.json"
-      }
-    ],
-    "problemMatchers": [
-      {
-        "name": "lessc",
-        "label": "Lessc compiler",
-        "owner": "lessc",
-        "source": "less",
-        "fileLocation": "absolute",
-        "pattern": {
-          "regexp": "(.*)\\sin\\s(.*)\\son line\\s(\\d+),\\scolumn\\s(\\d+)",
-          "message": 1,
-          "file": 2,
-          "line": 3,
-          "column": 4
-        }
-      }
-    ]
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/microsoft/vscode.git"
-  }
+	"contributes": {
+		"grammars": [
+			{
+				"language": "less",
+				"path": "./syntaxes/less.tmLanguage.json",
+				"scopeName": "source.css.less"
+			}
+		],
+		"languages": [
+			{
+				"aliases": [
+					"Less",
+					"less"
+				],
+				"configuration": "./language-configuration.json",
+				"extensions": [
+					".less"
+				],
+				"id": "less",
+				"mimetypes": [
+					"text/x-less",
+					"text/less"
+				]
+			}
+		],
+		"problemMatchers": [
+			{
+				"fileLocation": "absolute",
+				"label": "Lessc compiler",
+				"name": "lessc",
+				"owner": "lessc",
+				"pattern": {
+					"column": 4,
+					"file": 2,
+					"line": 3,
+					"message": 1,
+					"regexp": "(.*)\\sin\\s(.*)\\son line\\s(\\d+),\\scolumn\\s(\\d+)"
+				},
+				"source": "less"
+			}
+		]
+	},
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "less",
+	"scripts": {
+		"update-grammar": "node ./build/update-grammar.js"
+	}
 }

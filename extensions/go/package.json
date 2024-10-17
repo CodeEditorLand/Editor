@@ -1,20 +1,4 @@
 {
-	"name": "go",
-	"displayName": "%displayName%",
-	"version": "1.0.0",
-	"description": "%description%",
-	"categories": [
-		"Programming Languages"
-	],
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/microsoft/vscode.git"
-	},
-	"license": "MIT",
-	"publisher": "vscode",
-	"scripts": {
-		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin worlpaker/go-syntax syntaxes/go.tmLanguage.json ./syntaxes/go.tmLanguage.json"
-	},
 	"contributes": {
 		"configurationDefaults": {
 			"[go]": {
@@ -24,24 +8,27 @@
 		"grammars": [
 			{
 				"language": "go",
-				"scopeName": "source.go",
-				"path": "./syntaxes/go.tmLanguage.json"
+				"path": "./syntaxes/go.tmLanguage.json",
+				"scopeName": "source.go"
 			}
 		],
 		"languages": [
 			{
-				"id": "go",
-				"extensions": [
-					".go"
-				],
 				"aliases": [
 					"Go"
 				],
-				"configuration": "./language-configuration.json"
+				"configuration": "./language-configuration.json",
+				"extensions": [
+					".go"
+				],
+				"id": "go"
 			}
 		]
 	},
-	"engines": {
-		"vscode": "*"
+	"description": "%description%",
+	"displayName": "%displayName%",
+	"name": "go",
+	"scripts": {
+		"update-grammar": "node ../node_modules/vscode-grammar-updater/bin worlpaker/go-syntax syntaxes/go.tmLanguage.json ./syntaxes/go.tmLanguage.json"
 	}
 }

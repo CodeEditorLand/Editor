@@ -56,12 +56,12 @@
 		]
 	},
 	"dependencies": {
-		"which": "^5.0.0"
+		"which": "5.0.0"
 	},
 	"description": "%description%",
 	"devDependencies": {
 		"@types/node": "22.x",
-		"@types/which": "^3.0.4"
+		"@types/which": "3.0.4"
 	},
 	"displayName": "%displayName%",
 	"icon": "icons/logo.png",

@@ -50,7 +50,7 @@
 	"description": "%description%",
 	"devDependencies": {
 		"@types/node": "22.x",
-		"@types/node-fetch": "^2.6.11"
+		"@types/node-fetch": "2.6.11"
 	},
 	"displayName": "%displayName%",
 	"extensionKind": [

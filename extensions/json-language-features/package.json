@@ -139,7 +139,7 @@
 		]
 	},
 	"dependencies": {
-		"request-light": "^0.8.0"
+		"request-light": "0.8.0"
 	},
 	"description": "%description%",
 	"devDependencies": {

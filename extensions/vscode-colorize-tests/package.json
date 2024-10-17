@@ -34,7 +34,7 @@
 		]
 	},
 	"dependencies": {
-		"jsonc-parser": "^3.3.1"
+		"jsonc-parser": "3.3.1"
 	},
 	"description": "Colorize tests for VS Code",
 	"devDependencies": {

@@ -15,11 +15,18 @@ name = "code"
 futures = "0.3.31"
 clap = { version = "4.5.20", features = ["derive", "env"] }
 open = "5.3.0"
-reqwest = { version = "0.12.8", default-features = false, features = ["json", "stream", "native-tls"] }
+reqwest = { version = "0.12.8", default-features = false, features = [
+	"json",
+	"stream",
+	"native-tls",
+] }
 tokio = { version = "1.40.0", features = ["full"] }
 tokio-util = { version = "0.7.12", features = ["compat", "codec"] }
 flate2 = { version = "1.0.34", default-features = false, features = ["zlib"] }
-zip = { version = "2.2.0", default-features = false, features = ["time", "deflate-zlib"] }
+zip = { version = "2.2.0", default-features = false, features = [
+	"time",
+	"deflate-zlib",
+] }
 regex = "1.11.0"
 lazy_static = "1.5.0"
 sysinfo = { version = "0.32.0", default-features = false }
@@ -31,11 +38,22 @@ dirs = "5.0.1"
 rand = "0.8.5"
 opentelemetry = { version = "0.26.0", features = ["rt-tokio"] }
 serde_bytes = "0.11.15"
-chrono = { version = "0.4.38", features = ["serde", "std", "clock"], default-features = false }
+chrono = { version = "0.4.38", features = [
+	"serde",
+	"std",
+	"clock",
+], default-features = false }
 gethostname = "0.5.0"
 libc = "0.2.159"
-tunnels = { git = "https://github.com/microsoft/dev-tunnels", rev = "8cae9b2a24c65c6c1958f5a0e77d72b23b5c6c30", default-features = false, features = ["connections"] }
-keyring = { version = "3.4.0", default-features = false, features = ["linux-secret-service-rt-tokio-crypto-openssl", "platform-windows", "platform-macos", "linux-keyutils"] }
+tunnels = { git = "https://github.com/microsoft/dev-tunnels", rev = "8cae9b2a24c65c6c1958f5a0e77d72b23b5c6c30", default-features = false, features = [
+	"connections",
+] }
+keyring = { version = "3.4.0", default-features = false, features = [
+	"linux-secret-service-rt-tokio-crypto-openssl",
+	"platform-windows",
+	"platform-macos",
+	"linux-keyutils",
+] }
 dialoguer = "0.11.0"
 hyper = { version = "1.5.0", features = ["server", "http1", "runtime"] }
 indicatif = "0.17.8"
@@ -56,7 +74,7 @@ bytes = "1.7.2"
 tar = "0.4.42"
 
 [build-dependencies]
-serde = { version="1.0.210", features = ["derive"] }
+serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.128"
 
 [target.'cfg(windows)'.dependencies]

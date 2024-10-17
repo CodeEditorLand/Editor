@@ -17,7 +17,7 @@ import { PipeCommand } from '../../workbench/api/node/extHostCLIServer.js';
 import { hasStdinWithoutTty, getStdinFilePath, readFromStdin } from '../../platform/environment/node/stdin.js';
 import { DeferredPromise } from '../../base/common/async.js';
 
-const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const __dirname = dirname(url.fileURLToPath(import.meta.url));
 
 /*
  * Implements a standalone CLI app that opens VS Code from a remote terminal.

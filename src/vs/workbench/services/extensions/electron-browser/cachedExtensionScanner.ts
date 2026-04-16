@@ -50,6 +50,7 @@ export class CachedExtensionScanner {
 	}
 
 	private async _scanInstalledExtensions(): Promise<IExtensionDescription[]> {
+		console.warn('[Land CachedScanner] _scanInstalledExtensions starting...');
 		try {
 			const language = platform.language;
 			const result = await Promise.allSettled([
@@ -57,6 +58,7 @@ export class CachedExtensionScanner {
 				this._extensionsScannerService.scanUserExtensions({ language, profileLocation: this._userDataProfileService.currentProfile.extensionsResource, useCache: true }),
 				this._environmentService.remoteAuthority ? [] : this._extensionManagementService.getInstalledWorkspaceExtensions(false)
 			]);
+			console.warn('[Land CachedScanner] allSettled:', result.map((r, i) => `[${i}]=${r.status}${r.status === 'fulfilled' ? ':' + (Array.isArray(r.value) ? r.value.length : '?') : ':' + String((r as any).reason).slice(0, 80)}`).join(' '));
 
 			let hasErrors = false;
 
@@ -112,7 +114,10 @@ export class CachedExtensionScanner {
 			const user = scannedUserExtensions.map(e => toExtensionDescriptionFromScannedExtension(e, false));
 			const workspace = workspaceExtensions.map(e => toExtensionDescription(e, false));
 			const development = scannedDevelopedExtensions.map(e => toExtensionDescriptionFromScannedExtension(e, true));
+			console.warn('[Land CachedScanner] toExtDesc: system:', system.length, 'user:', user.length, 'workspace:', workspace.length, 'dev:', development.length);
+			if (system.length > 0) { console.warn('[Land CachedScanner] First system ext:', system[0].identifier?.value || system[0].id, 'contributes:', system[0].contributes ? Object.keys(system[0].contributes as any).join(',') : 'NONE'); }
 			const r = dedupExtensions(system, user, workspace, development, this._logService);
+			console.warn('[Land CachedScanner] After dedup:', r.length, 'extensions');
 
 			if (!hasErrors) {
 				const disposable = this._extensionsScannerService.onDidChangeCache(() => {

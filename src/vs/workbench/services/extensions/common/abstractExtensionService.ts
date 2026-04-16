@@ -462,14 +462,20 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 	}
 
 	protected async _initialize(): Promise<void> {
+		console.warn('[Land ExtSvc] _initialize started');
 		perf.mark('code/willLoadExtensions');
 		this._startExtensionHostsIfNecessary(true, []);
 
 		const lock = await this._registry.acquireLock('_initialize');
+		console.warn('[Land ExtSvc] lock acquired, calling _resolveAndProcessExtensions');
 		try {
 			await this._resolveAndProcessExtensions(lock);
+			console.warn('[Land ExtSvc] _resolveAndProcessExtensions DONE');
 			// Start extension hosts which are not automatically started
 			this._startOnDemandExtensionHosts();
+		} catch (e) {
+			console.warn('[Land ExtSvc] _resolveAndProcessExtensions ERROR:', String(e).slice(0, 300));
+			throw e;
 		} finally {
 			lock.dispose();
 		}
@@ -518,7 +524,9 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 		let localExtensions: IExtensionDescription[] = [];
 		let remoteExtensions: IExtensionDescription[] = [];
 
+		console.warn('[Land ExtSvc] _resolveAndProcessExtensions: entering for-await loop');
 		for await (const extensions of this._resolveExtensions()) {
+			console.warn('[Land ExtSvc] _resolveExtensions yielded:', extensions?.constructor?.name, 'count:', (extensions as any)?.extensions?.length);
 			if (extensions instanceof ResolverExtensions) {
 				resolverExtensions = checkEnabledAndProposedAPI(this._logService, this._extensionEnablementService, this._extensionsProposedApi, extensions.extensions, false);
 				this._registry.deltaExtensions(lock, resolverExtensions, []);
@@ -526,11 +534,13 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			}
 			if (extensions instanceof LocalExtensions) {
 				localExtensions = checkEnabledAndProposedAPI(this._logService, this._extensionEnablementService, this._extensionsProposedApi, extensions.extensions, false);
+				console.warn('[Land ExtSvc] LocalExtensions received:', extensions.extensions.length, 'raw,', localExtensions.length, 'after enablement filter');
 			}
 			if (extensions instanceof RemoteExtensions) {
 				remoteExtensions = checkEnabledAndProposedAPI(this._logService, this._extensionEnablementService, this._extensionsProposedApi, extensions.extensions, false);
 			}
 		}
+		console.warn('[Land ExtSvc] for-await loop done. local:', localExtensions.length, 'remote:', remoteExtensions.length, 'resolver:', resolverExtensions.length);
 
 		// `initializeRunningLocation` will look at the complete picture (e.g. an extension installed on both sides),
 		// takes care of duplicates and picks a running location for each extension
@@ -575,7 +585,12 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 			});
 		}
 
-		this._doHandleExtensionPoints(this._registry.getAllExtensionDescriptions(), false);
+		const allDescs = this._registry.getAllExtensionDescriptions();
+		const withGrammars = allDescs.filter(e => (e.contributes as any)?.grammars?.length > 0);
+		const withLanguages = allDescs.filter(e => (e.contributes as any)?.languages?.length > 0);
+		console.warn('[Land ExtSvc] _doHandleExtensionPoints: total:', allDescs.length, 'withGrammars:', withGrammars.length, 'withLanguages:', withLanguages.length);
+		if (withGrammars.length > 0) { console.warn('[Land ExtSvc] First grammar ext:', withGrammars[0].identifier?.value || withGrammars[0].id, 'grammars:', JSON.stringify((withGrammars[0].contributes as any).grammars[0]).slice(0, 200)); }
+		this._doHandleExtensionPoints(allDescs, false);
 	}
 
 	private async _handleExtensionTests(): Promise<void> {
@@ -1157,6 +1172,7 @@ export abstract class AbstractExtensionService extends Disposable implements IEx
 				}
 			}
 		}
+		console.warn('[Land ExtSvc] _doHandleExtensionPoints: affected:', Object.keys(affectedExtensionPoints).join(','), 'onlyResolver:', onlyResolverExtensionPoints, 'extCount:', affectedExtensions.length);
 
 		const messageHandler = (msg: IMessage) => this._handleExtensionPointMessage(msg);
 		const availableExtensions = this._registry.getAllExtensionDescriptions();

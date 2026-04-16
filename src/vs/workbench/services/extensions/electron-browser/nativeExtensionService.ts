@@ -430,15 +430,19 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 	}
 
 	private async _startLocalExtensionHost(emitter: AsyncIterableEmitter<ResolvedExtensions>, remoteExtensions: IExtensionDescription[] = []): Promise<void> {
+		console.warn('[Land ExtSvc] _startLocalExtensionHost: waiting for workspaceTrustInitialized...');
 		// Ensure that the workspace trust state has been fully initialized so
 		// that the extension host can start with the correct set of extensions.
 		await this._workspaceTrustManagementService.workspaceTrustInitialized;
+		console.warn('[Land ExtSvc] _startLocalExtensionHost: trust resolved! scanning...');
 
 		if (remoteExtensions.length) {
 			emitter.emitOne(new RemoteExtensions(remoteExtensions));
 		}
 
-		emitter.emitOne(new LocalExtensions(await this._scanAllLocalExtensions()));
+		const scanned = await this._scanAllLocalExtensions();
+		console.warn('[Land ExtSvc] _startLocalExtensionHost: scanned', scanned.length, 'extensions, emitting LocalExtensions');
+		emitter.emitOne(new LocalExtensions(scanned));
 	}
 
 	protected async _onExtensionHostExit(code: number): Promise<void> {

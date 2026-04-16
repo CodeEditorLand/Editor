@@ -113,6 +113,7 @@ export class TextMateTokenizationFeature extends Disposable implements ITextMate
 	}
 
 	private _handleGrammarsExtPoint(extensions: readonly IExtensionPointUser<ITMSyntaxExtensionPoint[]>[]): void {
+		console.warn('[Land TextMate] _handleGrammarsExtPoint called with', extensions.length, 'extensions');
 		this._grammarDefinitions = null;
 		if (this._grammarFactory) {
 			this._grammarFactory.dispose();
@@ -121,20 +122,27 @@ export class TextMateTokenizationFeature extends Disposable implements ITextMate
 		this._tokenizersRegistrations.clear();
 
 		this._grammarDefinitions = [];
+		let totalGrammars = 0, validCount = 0, invalidCount = 0;
 		for (const extension of extensions) {
 			const grammars = extension.value;
+			totalGrammars += grammars.length;
 			for (const grammar of grammars) {
 				const validatedGrammar = this._validateGrammarDefinition(extension, grammar);
 				if (validatedGrammar) {
+					validCount++;
 					this._grammarDefinitions.push(validatedGrammar);
 					if (validatedGrammar.language) {
 						const lazyTokenizationSupport = new LazyTokenizationSupport(() => this._createTokenizationSupport(validatedGrammar.language!));
 						this._tokenizersRegistrations.add(lazyTokenizationSupport);
 						this._tokenizersRegistrations.add(TokenizationRegistry.registerFactory(validatedGrammar.language, lazyTokenizationSupport));
 					}
+				} else {
+					invalidCount++;
+					if (invalidCount <= 3) { console.warn('[Land TextMate] Invalid grammar:', grammar.scopeName, 'lang:', grammar.language, 'path:', grammar.path, 'ext:', extension.description?.identifier?.value); }
 				}
 			}
 		}
+		console.warn('[Land TextMate] Grammars: total:', totalGrammars, 'valid:', validCount, 'invalid:', invalidCount, 'definitions:', this._grammarDefinitions.length);
 
 		this._threadedBackgroundTokenizerFactory.setGrammarDefinitions(this._grammarDefinitions);
 

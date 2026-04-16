@@ -433,7 +433,17 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 		console.warn('[Land ExtSvc] _startLocalExtensionHost: waiting for workspaceTrustInitialized...');
 		// Ensure that the workspace trust state has been fully initialized so
 		// that the extension host can start with the correct set of extensions.
-		await this._workspaceTrustManagementService.workspaceTrustInitialized;
+		// Land: add 5 s timeout fallback so a stuck trust promise never blocks startup.
+		await Promise.race([
+			this._workspaceTrustManagementService.workspaceTrustInitialized,
+			new Promise<void>(resolve => {
+				const tid = setTimeout(() => {
+					console.warn('[Land ExtSvc] _startLocalExtensionHost: workspaceTrustInitialized timed out after 5 s — proceeding anyway');
+					resolve();
+				}, 5000);
+				this._workspaceTrustManagementService.workspaceTrustInitialized.then(() => clearTimeout(tid));
+			}),
+		]);
 		console.warn('[Land ExtSvc] _startLocalExtensionHost: trust resolved! scanning...');
 
 		if (remoteExtensions.length) {

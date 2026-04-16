@@ -145,16 +145,23 @@ export class WorkspaceTrustManagementService extends Disposable implements IWork
 	//#region initialize
 
 	private initializeWorkspaceTrust(): void {
+		console.warn('[Land Trust] initializeWorkspaceTrust: resolving canonical URIs...');
 		// Resolve canonical Uris
 		this.resolveCanonicalUris()
 			.then(async () => {
 				this._canonicalUrisResolved = true;
+				console.warn('[Land Trust] resolveCanonicalUris resolved, updating trust...');
 				await this.updateWorkspaceTrust();
 			})
+			.catch((err) => {
+				console.warn('[Land Trust] resolveCanonicalUris error:', err);
+			})
 			.finally(() => {
+				console.warn('[Land Trust] finally: resolving workspaceResolvedPromise, remoteAuthority=', this.environmentService.remoteAuthority);
 				this._workspaceResolvedPromiseResolve();
 
 				if (!this.environmentService.remoteAuthority) {
+					console.warn('[Land Trust] resolving workspaceTrustInitializedPromise');
 					this._workspaceTrustInitializedPromiseResolve();
 				}
 			});

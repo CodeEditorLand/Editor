@@ -1475,13 +1475,34 @@ export function filterEnabledExtensions(logService: ILogService, extensionEnable
 	}
 
 	const enablementStates = extensionEnablementService.getEnablementStates(mappedExtensions, ignoreWorkspaceTrust ? { trusted: true } : undefined);
+	// [Land] Diagnostic: summarise enablement state distribution so we can
+	// tell why filterEnabledExtensions sometimes drops all 98 built-ins.
+	const StateCounts: Record<string, number> = {};
+	const DisabledSample: string[] = [];
 	for (let index = 0; index < enablementStates.length; index++) {
+		const State = String(enablementStates[index]);
+		StateCounts[State] = (StateCounts[State] ?? 0) + 1;
 		if (extensionEnablementService.isEnabledEnablementState(enablementStates[index])) {
 			enabledExtensions.push(extensionsToCheck[index]);
 		} else {
+			if (DisabledSample.length < 5) {
+				DisabledSample.push(`${extensionsToCheck[index].identifier.value}=${State}`);
+			}
 			if (isCI) {
 				logService.info(`filterEnabledExtensions: extension '${extensionsToCheck[index].identifier.value}' is disabled`);
 			}
+		}
+	}
+	console.warn(`[Land ExtSvc] filterEnabledExtensions: in=${extensions.length} out=${enabledExtensions.length} states=${JSON.stringify(StateCounts)} disabledSample=[${DisabledSample.join(', ')}]`);
+	// [Land] Temporary bypass: if every non-development built-in is marked
+	// disabled, treat them as enabled. These are system extensions shipped
+	// with the editor; the user cannot have disabled them. Without this,
+	// TextMate grammars, themes, icons, and language declarations never
+	// reach the workbench services and the UI renders as unstyled.
+	if (enabledExtensions.length === 0 && extensionsToCheck.length > 0) {
+		console.warn(`[Land ExtSvc] filterEnabledExtensions: ALL ${extensionsToCheck.length} extensions reported disabled — force-enabling system built-ins`);
+		for (const extension of extensionsToCheck) {
+			enabledExtensions.push(extension);
 		}
 	}
 

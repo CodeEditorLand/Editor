@@ -2237,7 +2237,9 @@ suite('RunInTerminalTool', () => {
 		test('should require confirmation when sandbox is enabled but sandbox rewriting is disabled', async () => {
 			sandboxEnabled = true;
 
-			const { ConfirmTerminalCommandTool } = await import('../../browser/tools/runInTerminalConfirmationTool.js');
+			// Mangler-safe dynamic import — property access via string key survives
+			// export-name mangling; destructuring does not.
+			const ConfirmTerminalCommandTool = (await import('../../browser/tools/runInTerminalConfirmationTool.js') as any)['ConfirmTerminalCommandTool'];
 			const confirmTool = store.add(instantiationService.createInstance(ConfirmTerminalCommandTool));
 
 			const context: IToolInvocationPreparationContext = {
@@ -2258,7 +2260,9 @@ suite('RunInTerminalTool', () => {
 			sandboxEnabled = false;
 			setAutoApprove({});
 
-			const { ConfirmTerminalCommandTool } = await import('../../browser/tools/runInTerminalConfirmationTool.js');
+			// Mangler-safe dynamic import — property access via string key survives
+			// export-name mangling; destructuring does not.
+			const ConfirmTerminalCommandTool = (await import('../../browser/tools/runInTerminalConfirmationTool.js') as any)['ConfirmTerminalCommandTool'];
 			const confirmTool = store.add(instantiationService.createInstance(ConfirmTerminalCommandTool));
 
 			const context: IToolInvocationPreparationContext = {
@@ -2276,7 +2280,9 @@ suite('RunInTerminalTool', () => {
 		});
 
 		test('invoke should return approved message when user does not edit command', async () => {
-			const { ConfirmTerminalCommandTool } = await import('../../browser/tools/runInTerminalConfirmationTool.js');
+			// Mangler-safe dynamic import — property access via string key survives
+			// export-name mangling; destructuring does not.
+			const ConfirmTerminalCommandTool = (await import('../../browser/tools/runInTerminalConfirmationTool.js') as any)['ConfirmTerminalCommandTool'];
 			const confirmTool = store.add(instantiationService.createInstance(ConfirmTerminalCommandTool));
 
 			const result = await invokeConfirmTool(confirmTool, 'echo hello');
@@ -2285,7 +2291,9 @@ suite('RunInTerminalTool', () => {
 		});
 
 		test('invoke should return edited command when user edits the command', async () => {
-			const { ConfirmTerminalCommandTool } = await import('../../browser/tools/runInTerminalConfirmationTool.js');
+			// Mangler-safe dynamic import — property access via string key survives
+			// export-name mangling; destructuring does not.
+			const ConfirmTerminalCommandTool = (await import('../../browser/tools/runInTerminalConfirmationTool.js') as any)['ConfirmTerminalCommandTool'];
 			const confirmTool = store.add(instantiationService.createInstance(ConfirmTerminalCommandTool));
 
 			const result = await invokeConfirmTool(confirmTool, 'echo hello', 'echo stop');
@@ -2297,7 +2305,9 @@ suite('RunInTerminalTool', () => {
 		});
 
 		test('invoke should return approved message when userEdited equals original', async () => {
-			const { ConfirmTerminalCommandTool } = await import('../../browser/tools/runInTerminalConfirmationTool.js');
+			// Mangler-safe dynamic import — property access via string key survives
+			// export-name mangling; destructuring does not.
+			const ConfirmTerminalCommandTool = (await import('../../browser/tools/runInTerminalConfirmationTool.js') as any)['ConfirmTerminalCommandTool'];
 			const confirmTool = store.add(instantiationService.createInstance(ConfirmTerminalCommandTool));
 
 			const result = await invokeConfirmTool(confirmTool, 'echo hello', 'echo hello');

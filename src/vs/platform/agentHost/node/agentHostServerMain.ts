@@ -182,8 +182,11 @@ async function main(): Promise<void> {
 	}
 
 	if (options.enableMockAgent) {
-		// Dynamic import to avoid bundling test code in production
-		import('../test/node/mockAgent.js').then(({ ScriptedMockAgent }) => {
+		// Dynamic import to avoid bundling test code in production.
+		// Mangler-safe: string-keyed property access survives export renaming;
+		// destructuring does not.
+		import('../test/node/mockAgent.js').then(mod => {
+			const ScriptedMockAgent = (mod as any)['ScriptedMockAgent'];
 			const mockAgent = disposables.add(new ScriptedMockAgent());
 			agentService.registerProvider(mockAgent);
 		}).catch(err => {

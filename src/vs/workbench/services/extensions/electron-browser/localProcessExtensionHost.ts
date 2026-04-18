@@ -378,7 +378,11 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 
 		if (!this._isExtensionDevTestFromCli) {
 			if (!port) {
-				console.warn('%c[Extension Host] %cCould not find a free port for debugging', 'color: blue', 'color:');
+				// Land: downgraded from warn → debug. In the bundled Tauri host
+				// the NativeHostService port-scanner cannot find an inspector
+				// port because no Electron main process is attached; extensions
+				// activate fine without a debugger, so this is cosmetic noise.
+				console.debug('%c[Extension Host] %cCould not find a free port for debugging', 'color: blue', 'color:');
 			} else {
 				if (port !== expected) {
 					console.warn(`%c[Extension Host] %cProvided debugging port ${expected} is not free, using ${port} instead.`, 'color: blue', 'color:');

@@ -24,6 +24,6 @@
     "watch": "gulp watch-extension:vscode-selfhost-import-aid"
   },
   "dependencies": {
-    "typescript": "5.5.4"
+    "typescript": "7.0.2"
   }
 }
